@@ -1,0 +1,13 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+shapes.zernike.multiproc.zk_demo_m
+==================================
+
+Module: :mod:`shapes.zernike.multiproc.zk_demo_m`
+-------------------------------------------------
+.. automodule:: mindboggle.shapes.zernike.multiproc.zk_demo_m
+
+.. currentmodule:: mindboggle.shapes.zernike.multiproc.zk_demo_m
+
+.. autofunction:: mindboggle.shapes.zernike.multiproc.zk_demo_m.zk_demo
+

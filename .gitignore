@@ -7,7 +7,6 @@ mindboggle.*.box
 /MANIFEST
 /mindboggle/build
 /mindboggle/mindboggle.egg-info
-/doc/_build
 /doc/users/examples
 /doc/api/generated
 .vagrant/
@@ -24,6 +23,7 @@ crash-*
 *.gz
 *.zip
 *.tar
+*.tar.gz
 ._*
 *~ 
 #* 
@@ -46,3 +46,12 @@ _$*
 *.Z 
 *.elc 
 *.ln
+.del-* 
+*.cache*
+crash-*
+*.pyc
+x
+.idea
+CMakeCache.txt
+CMakeFiles
+

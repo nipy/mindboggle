@@ -1,0 +1,306 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Mindboggle &mdash; Mindboggle</title>
+    
+    <link rel="stylesheet" href="_static/mindboggle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.0dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Mindboggle" href="index.html" />
+  <HTML><head><title>arno klein's Mindboggle</title>
+  <meta http-equiv="Content-language" content="en">
+  <meta name="description" content="Mindboggle">
+  <meta name="keywords" content="Mindboggle, neuroimaging, brain imaging, python, neuroscience, labeling, parcellation, morphometry, shape analysis, MRI">
+  <meta name="author" content="mailto:arno&#64;binarybottle.com">
+  <meta name="dc.title" content="Mindboggle"> 
+  <meta name="dc.creator.address" content="arno&#64;binarybottle.com">
+  <meta name="dc.subject" content="Mindboggle">
+  <meta name="dc.type" content="text.homepage.academic"> 
+  <meta name="dc.format" content="text/html"> 
+  <meta name="dc.identifier" content="http://mindboggle.info/index.html">
+
+<!-- XTK>
+<script type="text/javascript" src="http://mindboggle.info/xtk/xtk.js"></script>
+<script type="text/javascript" src="http://mindboggle.info/xtk/xtk_xdat.gui.js"></script>
+<!--script type="text/javascript" src="http://mindboggle.info/xtk/code.js"></script-->
+<!--script type="text/javascript" src="http://mindboggle.info/xtk/code_single_panel.js"></script-->
+<!--link rel="stylesheet" type="text/css" href="http://mindboggle.info/xtk/style.css"-->
+
+
+  </head>
+  <body>
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+ <table>
+  <tr>
+   <td>
+
+ <a href="index.html">
+  <img src="_static/mindboggle_logo_small.jpg" alt="small mindboggle logo"  border="0" width="160"/></a>
+
+   </td>
+   <td>
+    <table>
+     <tr>
+ <a style="padding: 20px 20px 20px 20px; color: #b07613; text-decoration: none; font-size: 32px"
+  href="index.html">Mindboggle</a>
+     </tr>
+     <tr> <td height="18"></td>
+     </tr>
+     <tr>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="http://mindboggle.info/users/README.html">Software</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="#">Data</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="papers.html">Papers</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="people.html">People</a>
+      </td>
+     </tr>
+    </table>
+   </td>
+  </tr>
+ </table>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body">
+            
+  <div class="section" id="data">
+<h1>Data<a class="headerlink" href="#data" title="Permalink to this headline">¶</a></h1>
+<div class="line-block">
+<div class="line">1. <a class="reference internal" href="#introduction">Introduction</a></div>
+<div class="line">2. <a class="reference internal" href="#mindboggle-101-atlases">Mindboggle-101 atlases</a></div>
+<div class="line">3. <a class="reference internal" href="#mindboggle-101-templates">Mindboggle-101 templates</a></div>
+<div class="line">4. <a class="reference internal" href="#mindboggle-101-individual-manually-labeled-brain-surfaces-and-volumes">Mindboggle-101: Individual manually labeled brain surfaces and volumes</a></div>
+<div class="line">5. <a class="reference internal" href="#other-non-mindboggle-101-templates-and-manually-labeled-brains">Other (non-Mindboggle-101) templates and manually labeled brains</a></div>
+</div>
+<div class="section" id="id1">
+<h2><span class="target" id="introduction">Introduction</span><a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line">Welcome to the world&#8217;s largest collection of free, manually labeled human brain image data!</div>
+<div class="line">Please cite the following article and this website when making use of Mindboggle-101 data:</div>
+<div class="line"><a class="reference external" href="http://www.frontiersin.org/Brain_Imaging_Methods/10.3389/fnins.2012.00171/full">101 labeled brain images and a consistent human cortical labeling protocol</a></div>
+<div class="line">Arno Klein, Jason Tourville. Frontiers in Brain Imaging Methods. 6:171. DOI: 10.3389/fnins.2012.00171</div>
+<div class="line"><br /></div>
+<div class="line">See the <a class="reference external" href="http://mindboggle.info/data/mindboggle101/README.txt">README</a>, <a class="reference external" href="http://media.mindboggle.info/images/data/Mindboggle101_table.pdf">subjects table</a>, <a class="reference external" href="http://mindboggle.info/data/mindboggle101_extras/scans_info.tar.gz">scan info</a>, <a class="reference external" href="http://mindboggle.info/faq/labels.html">labels</a>, the <a class="reference external" href="http://mindboggle.info/data/CHANGELOG.txt">CHANGELOG</a>, and <a class="reference external" href="http://mindboggle.info/data/MD5SUMS">MD5SUMS</a>,</div>
+<div class="line">which describe the labeled nifti volumes (nii), vtk surfaces (vtk), and FreeSurfer files (mgh, etc.).</div>
+<div class="line">Except where noted, all data are licensed under a Creative Commons License: <a class="reference external" href="http://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US"><img alt="CC_license" src="http://i.creativecommons.org/l/by-nc-sa/3.0/80x15.png" /></a></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+<img alt="http://media.mindboggle.info/images/data/DKT_labels_width400px.png" src="http://media.mindboggle.info/images/data/DKT_labels_width400px.png" />
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="id2">
+<h2><span class="target" id="mindboggle-101-atlases">Mindboggle-101 atlases</span><a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line">Each of the 101 manually labeled individual brain surfaces and volumes is an atlas,</div>
+<div class="line">a labeled or annotated brain image that can be used in registration-based labeling.</div>
+<div class="line">We have combined the individual labels to create aggregate atlases here as well.</div>
+</div>
+<blockquote>
+<div><p><strong>Volume atlases</strong></p>
+<ul>
+<li><p class="first">OASIS-TRT-20 joint fusion atlas <a class="reference external" href="http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_OASIS-30_v2.nii.gz">in OASIS-30</a> and <a class="reference external" href="http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152_v2.nii.gz">in MNI152</a> space [<a class="reference external" href="http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152_2mm_v2.nii.gz">2mm</a> version] (2013)</p>
+</li>
+<li><p class="first">Corresponding label probabilities <a class="reference external" href="http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_label_probabilities_in_OASIS-30_v2.nii.gz">in OASIS-30</a> and <a class="reference external" href="http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_label_probabilities_in_MNI152_v2.nii.gz">in MNI152</a> space</p>
+<blockquote>
+<div><p>Probabilistic labels of the 20 OASIS-TRT brains using joint fusion (Hongzhi Wang, 2013; distributed with ANTs),
+including a single volume of probabilities corresponding to the winning labels.
+Joint fusion was performed on the 20 brains after antsRegistration warped them
+to the brain and cerebellum <a class="reference external" href="http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template.nii.gz">OASIS-30 Atropos template</a>. Results are also given after
+<a class="reference external" href="http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template_to_MNI152_affine.txt">affine</a>
+transformation to the <a class="reference external" href="http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template_in_MNI152.nii.gz">OASIS-30 Atropos template in MNI152</a> space [<a class="reference external" href="http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template_in_MNI152_2mm.nii.gz">2mm</a> version]</p>
+</div></blockquote>
+</li>
+<li><p class="first">Software for <a class="reference external" href="http://mindboggle.info/data/mindboggle101_extras/prep_OASIS-TRT-20_DKT31_CMA_labels.txt">preparing labels</a>, <a class="reference external" href="http://mindboggle.info/data/atlases/jointfusion/make_jointfusion_atlas.txt">running jointfusion</a>, and <a class="reference external" href="http://mindboggle.info/data/resample2mm.txt">resampling to 2mm</a></p>
+</li>
+</ul>
+<p><strong>Cortical surface atlases</strong></p>
+<ul class="simple">
+<li><a class="reference external" href="http://mindboggle.info/data/atlases/classifiers/DKTatlas40.tar.gz">DKT40 classifier atlas</a>: FreeSurfer atlas (.gcs) from 40 of the Mindboggle-101 participants (2012)</li>
+<li>Software for <a class="reference external" href="http://mindboggle.info/data/atlases/classifiers/make_freesurfer_classifier_atlas.txt">preparing classifier atlases</a></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="id6">
+<h2><span class="target" id="mindboggle-101-templates">Mindboggle-101 templates</span><a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line">A template is an unlabeled image used as a reference or standard, often for</div>
+<div class="line">registering other images to each other. Each one of the image volumes and</div>
+<div class="line">surfaces below was constructed by combining the images from multiple subjects.</div>
+<div class="line">ANTS brain templates were made with <a class="reference external" href="data/templates/ants/buildtemplateparallel.sh">buildtemplateparallel.sh</a>,</div>
+<div class="line">head templates with <a class="reference external" href="data/templates/ants/antsMultivariateTemplateConstruction.sh">antsMultivariateTemplateConstruction.sh</a>,</div>
+<div class="line">and FreeSurfer templates with <a class="reference external" href="data/templates/freesurfer/make_freesurfer_template.txt">make_freesurfer_template.py</a>.</div>
+</div>
+<blockquote>
+<div><p><strong>Brain volumes</strong>: ANTS nonlinear average templates (nii)</p>
+<ul class="simple">
+<li><a class="reference external" href="http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template.nii.gz">OASIS-TRT-20 brain</a> template from 20 brains [<a class="reference external" href="http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_in_MNI152_2mm.nii.gz">2mm</a> version] (2013)</li>
+<li><a class="reference external" href="http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_in_MNI152.nii.gz">OASIS-TRT-20 MNI152</a>: OASIS-TRT-20 template <a class="reference external" href="http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_in_MNI152_affine.txt">affine</a> transformed to <a class="reference external" href="http://mindboggle.info/data/templates/MNI152_T1_1mm_brain.nii.gz">MNI152</a> (2013)</li>
+<li><a class="reference external" href="http://mindboggle.info/data/templates/ants/MMRR-21_template.nii.gz">MMRR-21 brain</a> template from 21 brains (2012)</li>
+<li><a class="reference external" href="http://mindboggle.info/data/templates/ants/MMRR-21_template_in_MNI152.nii.gz">MMRR-21 MNI152</a>: MMRR-21 template <a class="reference external" href="http://mindboggle.info/data/templates/ants/MMRR-21_template_in_MNI152_affine.txt">affine</a> transformed to <a class="reference external" href="http://mindboggle.info/data/templates/MNI152_T1_1mm_brain.nii.gz">MNI152</a> (2012)</li>
+</ul>
+<p><strong>Head volumes</strong>: ANTS nonlinear average templates (nii)</p>
+<ul class="simple">
+<li><a class="reference external" href="http://mindboggle.info/data/templates/ants/OASIS-TRT-20_head_template.nii.gz">OASIS-TRT-20 head</a> template from 20 heads (2013) (<a class="reference external" href="http://mindboggle.info/data/templates/ants/OASIS-21_head_template_bet.nii.gz">FSL&#8217;s bet2 brain</a>)</li>
+<li><a class="reference external" href="http://mindboggle.info/data/templates/ants/NKI-RS-22_head_template.nii.gz">NKI-RS-22 head</a> template from 22 heads (2013)</li>
+<li><a class="reference external" href="http://mindboggle.info/data/templates/ants/NKI-TRT-20_head_template.nii.gz">NKI-TRT-20 head</a> template from 20 heads (2013)</li>
+<li><a class="reference external" href="http://mindboggle.info/data/templates/ants/MMRR-21_head_template.nii.gz">MMRR-21 head</a> template from 21 heads (2013)</li>
+<li><a class="reference external" href="http://mindboggle.info/data/templates/ants/HLN-12_head_template.nii.gz">HLN-12 head</a> template from 12 heads (2013)</li>
+</ul>
+<p><strong>Cortical surfaces</strong>: FreeSurfer nonlinear average templates (tif)</p>
+<ul class="simple">
+<li><a class="reference external" href="http://mindboggle.info/data/templates/freesurfer/OASIS-TRT-20_surface_template.tar.gz">OASIS-TRT-20 surface</a> template from 20 brains (2012)</li>
+<li><a class="reference external" href="http://mindboggle.info/data/templates/freesurfer/NKI-RS-22_surface_template.tar.gz">NKI-RS-22 surface</a> template from 22 brains (2012)</li>
+<li><a class="reference external" href="http://mindboggle.info/data/templates/freesurfer/NKI-TRT-20_surface_template.tar.gz">NKI-TRT-20 surface</a> template from 20 brains (2012)</li>
+<li><a class="reference external" href="http://mindboggle.info/data/templates/freesurfer/MMRR-21_surface_template.tar.gz">MMRR-21 surface</a> template from 21 brains (2012)</li>
+<li><a class="reference external" href="http://mindboggle.info/data/templates/freesurfer/HLN-12_surface_template.tar.gz">HLN-12 surface</a> template from 12 brains (2012)</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="id10">
+<h2><span class="target" id="mindboggle-101-individual-manually-labeled-brain-surfaces-and-volumes">Mindboggle-101: Individual manually labeled brain surfaces and volumes</span><a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line">The Mindboggle-101 dataset includes labeled anatomical regions for <a class="reference external" href="http://media.mindboggle.info/images/data/Mindboggle101_table.pdf">101 healthy subjects</a>.</div>
+<div class="line">The manually edited cortical labels follow sulcus landmarks according to the</div>
+<div class="line">Desikan-Killiany-Tourville (DKT) protocol (reference at top).</div>
+</div>
+<blockquote>
+<div><ul>
+<li><dl class="first docutils">
+<dt><strong>OASIS-TRT-20</strong> MRIs and cortical labels [<a class="reference external" href="http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_volumes.tar.gz">nii</a>, <a class="reference external" href="http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_volumes_in_MNI152.tar.gz">nii (MNI152)</a>, <a class="reference external" href="http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_surfaces.tar.gz">vtk</a>, <a class="reference external" href="http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_freesurfer.tar.gz">mgh</a>]:</dt>
+<dd><p class="first last">All 20 subjects from the OASIS Test-Retest sample <a class="reference external" href="http://www.oasis-brains.org/app/action/BundleAction/bundle/OAS1_RELIABILITY"><img alt="OASIS-TRT www" src="images/link-brown-12x12.png" /></a></p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><strong>OASIS-TRT-20 whole-brain</strong> labels [<a class="reference external" href="http://mindboggle.info/data/mindboggle101_extras/OASIS-TRT-20_DKT31_CMA_labels_v2.tar.gz">nii</a>, <a class="reference external" href="http://mindboggle.info/data/mindboggle101_extras/OASIS-TRT-20_DKT31_CMA_labels_in_MNI152_v2.tar.gz">nii (MNI152)</a>]</dt>
+<dd><p class="first last">The cortical labels above plus manual subcortex by <a class="reference external" href="http://neuromorphometrics.com">Neuromorphometrics</a> <a class="reference external" href="http://creativecommons.org/licenses/by-nc-nd/3.0/deed.en_US"><img alt="CC_license_nond" src="http://i.creativecommons.org/l/by-nc-nd/3.0/80x15.png" /></a></p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><strong>NKI-RS-22</strong> MRIs and cortical labels [<a class="reference external" href="http://mindboggle.info/data/mindboggle101/NKI-RS-22_volumes.tar.gz">nii</a>, <a class="reference external" href="http://mindboggle.info/data/mindboggle101/NKI-RS-22_volumes_in_MNI152.tar.gz">nii (MNI152)</a>, <a class="reference external" href="http://mindboggle.info/data/mindboggle101/NKI-RS-22_surfaces.tar.gz">vtk</a>,  <a class="reference external" href="http://mindboggle.info/data/mindboggle101/NKI-RS-22_freesurfer.tar.gz">mgh</a>]:</dt>
+<dd><p class="first last">22 subjects from the Nathan Klein Institute / Rockland Sample <a class="reference external" href="http://fcon_1000.projects.nitrc.org/indi/pro/nki.html"><img alt="NKI-RS www" src="images/link-brown-12x12.png" /></a></p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><strong>NKI-TRT-20</strong> MRIs and cortical labels [<a class="reference external" href="http://mindboggle.info/data/mindboggle101/NKI-TRT-20_volumes.tar.gz">nii</a>, <a class="reference external" href="http://mindboggle.info/data/mindboggle101/NKI-TRT-20_volumes_in_MNI152.tar.gz">nii (MNI152)</a>, <a class="reference external" href="http://mindboggle.info/data/mindboggle101/NKI-TRT-20_surfaces.tar.gz">vtk</a>, <a class="reference external" href="http://mindboggle.info/data/mindboggle101/NKI-TRT-20_freesurfer.tar.gz">mgh</a>]:</dt>
+<dd><p class="first last">20 subjects from the Nathan Klein Institute / Test-Retest Sample <a class="reference external" href="http://fcon_1000.projects.nitrc.org/indi/pro/eNKI_RS_TRT/FrontPage.html"><img alt="NKI-TRT www" src="images/link-brown-12x12.png" /></a></p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><strong>MMRR-21</strong> MRIs and cortical labels [<a class="reference external" href="http://mindboggle.info/data/mindboggle101/MMRR-21_volumes.tar.gz">nii</a>, <a class="reference external" href="http://mindboggle.info/data/mindboggle101/MMRR-21_volumes_in_MNI152.tar.gz">nii (MNI152)</a>, <a class="reference external" href="http://mindboggle.info/data/mindboggle101/MMRR-21_surfaces.tar.gz">vtk</a>, <a class="reference external" href="http://mindboggle.info/data/mindboggle101/MMRR-21_freesurfer.tar.gz">mgh</a>]:</dt>
+<dd><p class="first last">All 21 subjects in the Multi-Modal MRI Reproducibility Resource <a class="reference external" href="http://www.nitrc.org/projects/multimodal"><img alt="MMRR www" src="images/link-brown-12x12.png" /></a></p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><strong>Extra-18</strong> MRIs and cortical labels [<a class="reference external" href="http://mindboggle.info/data/mindboggle101/Extra-18_volumes.tar.gz">nii</a>, <a class="reference external" href="http://mindboggle.info/data/mindboggle101/Extra-18_volumes_in_MNI152.tar.gz">nii (MNI152)</a>, <a class="reference external" href="http://mindboggle.info/data/mindboggle101/Extra-18_surfaces.tar.gz">vtk</a>, <a class="reference external" href="http://mindboggle.info/data/mindboggle101/Extra-18_freesurfer.tar.gz">mgh</a>]:</dt>
+<dd><ul class="first last simple">
+<li><strong>HLN-12</strong>:  All 12 subjects from the Human Language Network study</li>
+<li><strong>MMRR-3T7T-2</strong>:  2 subjects acquired like MMRR-21 (multimodal + 7T scans: <a class="reference external" href="http://www.nitrc.org/projects/multimodal"><img alt="MMRR www" src="images/link-brown-12x12.png" /></a>)</li>
+<li><strong>Colin27-1</strong>:  Colin Holmes template (average of 27 scans)</li>
+<li><strong>Twins-2</strong>:  2 identical twins, including AK</li>
+<li><strong>Afterthought-1</strong>:  1 brain imager, SG</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><strong>fsaverage</strong> [<a class="reference external" href="http://mindboggle.info/data/atlases/fsaverage.tar.gz">nii and mgh</a>]:</dt>
+<dd><p class="first last">The figures above show the DKT cortical labeling <a class="reference external" href="https://github.com/binarybottle/mindboggle/blob/master/LABELS">protocol</a> with <a class="reference external" href="http://media.mindboggle.info/images/data/DKT_sulci_table.pdf">sulcus landmarks</a>
+on FreeSurfer&#8217;s fsaverage surface.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="id32">
+<h2><span class="target" id="other-non-mindboggle-101-templates-and-manually-labeled-brains">Other (non-Mindboggle-101) templates and manually labeled brains</span><a class="headerlink" href="#id32" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line">The following images are not from the Mindboggle-101 data above, and the manual labels are not the same</div>
+<div class="line">as those of the DKT labeling protocol used for the Mindboggle-101 data above</div>
+<div class="line">(<strong>Warning</strong>: These labeled brains were used for evaluating registrations; I cannot vouch for their anatomical accuracy.):</div>
+</div>
+<blockquote>
+<div><p><strong>Tissue-segmented templates</strong>: created by Nicholas Tustison for use with antsAtroposN4.sh</p>
+<ul class="simple">
+<li><a class="reference external" href="http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template.tar.gz">OASIS-30</a>: from 30 <a class="reference external" href="http://mindboggle.info/data/templates/atropos/MICCAI_2012_Workshop_v2.pdf">MICCAI challenge</a> OASIS images (2013)</li>
+<li><a class="reference external" href="http://mindboggle.info/data/templates/atropos/NKI-30_Atropos_template.tar.gz">NKI-30</a>: from 30 NKI images (2013)</li>
+<li><a class="reference external" href="http://mindboggle.info/data/templates/atropos/MMRR-41_Atropos_template.tar.gz">MMRR-41</a>: from 41 MMRR images (2013)</li>
+<li><a class="reference external" href="http://mindboggle.info/data/templates/atropos/IXI_Atropos_template.tar.gz">IXI</a>: from IXI images (2013)</li>
+</ul>
+<p><strong>Templates</strong>: built with <a class="reference external" href="data/templates/ants/buildtemplateparallel.sh">buildtemplateparallel.sh</a> with images from <a class="reference external" href="http://www.mindboggle.info/papers/evaluation_NeuroImage2009.php">2009 evaluation</a> (nii)</p>
+<ul class="simple">
+<li><a class="reference external" href="http://mindboggle.info/data/templates/ants/CUMC-12_template.nii.gz">CUMC12 brain</a> template from 12 brains (2010)</li>
+<li>See Satrajit Ghosh&#8217;s <a class="reference external" href="http://www.mit.edu/~satra/research/pubdata/index.html">pediatric template</a> of 31 brains (2011)</li>
+</ul>
+<p><strong>Atlases</strong>: manually labeled volumes from <a class="reference external" href="http://www.mindboggle.info/papers/evaluation_NeuroImage2009.php">2009 evaluation</a> (nii)</p>
+<ul class="simple">
+<li><a class="reference external" href="http://mindboggle.info/papers/evaluation_NeuroImage2009/data/CUMC12.tar.gz">CUMC-12</a>: 12 labeled brains (2009)</li>
+<li><a class="reference external" href="http://mindboggle.info/papers/evaluation_NeuroImage2009/data/IBSR18.tar.gz">IBSR-18</a>: 18 labeled brains (2009)</li>
+<li><a class="reference external" href="http://mindboggle.info/papers/evaluation_NeuroImage2009/data/MGH10.tar.gz">MGH-10</a>: 10 labeled brains (2009)</li>
+</ul>
+</div></blockquote>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<img alt="http://media.mindboggle.info/images/data/evaluation2009_80atlases.png" src="http://media.mindboggle.info/images/data/evaluation2009_80atlases.png" />
+</div>
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<!-- Google Analytics -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-693862-13");
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+
+  </body>
+</html>
