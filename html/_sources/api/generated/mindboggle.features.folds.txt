@@ -1,0 +1,20 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+features.folds
+==============
+
+Module: :mod:`features.folds`
+-----------------------------
+.. automodule:: mindboggle.features.folds
+
+.. currentmodule:: mindboggle.features.folds
+
+Functions
+---------
+
+
+.. autofunction:: mindboggle.features.folds.extract_folds
+
+
+.. autofunction:: mindboggle.features.folds.extract_subfolds
+

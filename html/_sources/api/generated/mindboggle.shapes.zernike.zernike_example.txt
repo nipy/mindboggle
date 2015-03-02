@@ -1,0 +1,20 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+shapes.zernike.zernike_example
+==============================
+
+Module: :mod:`shapes.zernike.zernike_example`
+---------------------------------------------
+.. automodule:: mindboggle.shapes.zernike.zernike_example
+
+.. currentmodule:: mindboggle.shapes.zernike.zernike_example
+
+Functions
+---------
+
+
+.. autofunction:: mindboggle.shapes.zernike.zernike_example.main
+
+
+.. autofunction:: mindboggle.shapes.zernike.zernike_example.zernike_moments
+
