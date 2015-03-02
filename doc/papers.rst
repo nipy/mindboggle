@@ -156,8 +156,6 @@ Conferences
 |                 | |title_pres7|       |
 +                 +---------------------+
 |                 | |ref_pres7|         |
-+                 +---------------------+
-|                 | |www_pres7|         |
 +-----------------+---------------------+
 |                 |                     |
 +-----------------+---------------------+
@@ -421,7 +419,7 @@ Conferences
 .. |ref_pres8| replace::
     *40th Annual Meeting for the Society for Neuroscience.*
 .. |www_pres8| replace::
-    Website: http://www.braincolor.org/colors/
+    Website: https://github.com/binarybottle/braincolor/
 .. _`An interactive tool for constructing optimal brain colormaps`:
     http://mindboggle.info/posters/SFN2010_BrainCOLORmap_poster.pdf
 
@@ -434,8 +432,6 @@ Conferences
     `Open labels: online feedback for a public resource of manually labeled brain images`_.
 .. |ref_pres7| replace::
     *16th Annual Meeting for the Organization of Human Brain Mapping.*
-.. |www_pres7| replace::
-    Website: http://www.braincolor.org/roygbiv/
 .. _`Open labels: online feedback for a public resource of manually labeled brain images`:
     http://mindboggle.info/posters/HBM2010_openlabels_poster.pdf
 
