@@ -11,7 +11,6 @@ including GPL, to use our code, and makes it more likely that we will
 attract support from companies, including open-source software
 companies, such as Enthought_ and Kitware_. 
 
-#.. include:: ../links.txt
 
 .. _Enthought: http://www.enthought.com
 .. _Kitware: http://www.kitware.com

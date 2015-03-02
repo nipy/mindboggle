@@ -137,8 +137,6 @@ Past contributors
     propagate labels across a brain surface.
 
 
-#.. include:: ./links.txt
-
 .. _Arno: http://binarybottle.com
 .. _`Arno Klein`: http://binarybottle.com
 .. _`CV`: http://binarybottle.com/cv.php
