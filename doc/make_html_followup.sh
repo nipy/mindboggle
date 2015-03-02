@@ -6,7 +6,7 @@ git checkout master
 cd doc
 bash make_html.sh
 git add build/html
-git commit -m “update html"
+git commit -m "update html"
 git push origin master
 
 
