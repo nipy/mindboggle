@@ -92,10 +92,8 @@
       <div class="documentwrapper">
           <div class="body">
             
-  <p id="readme">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
-.. _README:</p>
-<div class="section" id="software-note-mindboggle-is-still-in-pre-release-and-is-undergoing-changes">
-<h1>Software &#8211; NOTE: MINDBOGGLE IS STILL IN PRE-RELEASE AND IS UNDERGOING CHANGES<a class="headerlink" href="#software-note-mindboggle-is-still-in-pre-release-and-is-undergoing-changes" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="software-note-mindboggle-is-still-in-pre-release-and-is-undergoing-changes">
+<span id="id1"></span><h1>Software &#8211; NOTE: MINDBOGGLE IS STILL IN PRE-RELEASE AND IS UNDERGOING CHANGES<a class="headerlink" href="#software-note-mindboggle-is-still-in-pre-release-and-is-undergoing-changes" title="Permalink to this headline">¶</a></h1>
 <div class="line-block">
 <div class="line">1. <a class="reference internal" href="#introduction">Introduction</a></div>
 <div class="line">2. <a class="reference internal" href="#help-with-mindboggle">Help with Mindboggle</a></div>
@@ -105,8 +103,8 @@
 <div class="line">6. <a class="reference internal" href="#mindboggle-processing-steps">Mindboggle processing steps</a></div>
 <div class="line">7. <a class="reference internal" href="#mindboggle-output-files">Mindboggle output files</a></div>
 </div>
-<div class="section" id="id1">
-<h2><span class="target" id="introduction">Introduction</span><a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id2">
+<h2><span class="target" id="introduction">Introduction</span><a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <p>The Mindboggle software package automates shape analysis of anatomical labels
 and features extracted from human brain MR image data.
 Mindboggle can be run as a single command, and can be
@@ -114,8 +112,8 @@ easily installed as a cross-platform virtual machine for convenience and
 reproducibility of results. Behind the scenes, open source
 Python and C++ code run within a Nipype pipeline framework.</p>
 </div>
-<div class="section" id="id2">
-<h2><span class="target" id="help-with-mindboggle">Help with Mindboggle</span><a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id3">
+<h2><span class="target" id="help-with-mindboggle">Help with Mindboggle</span><a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
 <ul>
 <li><p class="first">Help in a terminal window (see below for inputs and outputs):</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">mindboggle</span> <span class="o">-</span><span class="n">h</span>
@@ -134,8 +132,8 @@ Python and C++ code run within a Nipype pipeline framework.</p>
 </li>
 </ul>
 </div>
-<div class="section" id="id3">
-<h2><span class="target" id="set-up-mindboggle">Set up Mindboggle</span><a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id4">
+<h2><span class="target" id="set-up-mindboggle">Set up Mindboggle</span><a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
 <p>If running Mindboggle in a virtual machine (recommended),
 type the following two commands in a terminal window,
 in the same directory as the Vagrantfile
@@ -146,8 +144,8 @@ vagrant ssh
 </pre></div>
 </div>
 </div>
-<div class="section" id="id4">
-<h2><span class="target" id="example-mindboggle-commands">Example Mindboggle commands</span><a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id5">
+<h2><span class="target" id="example-mindboggle-commands">Example Mindboggle commands</span><a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
 <p><strong>Example 1:</strong>
 The following bare-bones command runs Mindboggle (and its dependencies)
 on data processed by FreeSurfer but not ANTs
@@ -170,8 +168,8 @@ To compute all shape measures on all labels and features using 8 processors
 </pre></div>
 </div>
 </div>
-<div class="section" id="id5">
-<h2><span class="target" id="mindboggle-input-files">Mindboggle input files</span><a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id6">
+<h2><span class="target" id="mindboggle-input-files">Mindboggle input files</span><a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
 <p>Mindboggle currently takes output from <a class="reference external" href="http://surfer.nmr.mgh.harvard.edu">FreeSurfer</a>
 (preferably v5.3 and above) and the latest <a class="reference external" href="http://stnava.github.io/ANTs/">ANTs</a> software packages.</p>
 <p><strong>FreeSurfer</strong> generates labeled cortical surfaces, and labeled cortical and
@@ -196,8 +194,8 @@ files (backslash denotes a line return):</p>
 </pre></div>
 </div>
 </div>
-<div class="section" id="id6">
-<h2><span class="target" id="mindboggle-processing-steps">Mindboggle processing steps</span><a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id7">
+<h2><span class="target" id="mindboggle-processing-steps">Mindboggle processing steps</span><a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><ol class="arabic">
 <li><p class="first">Create hybrid gray/white segmentation from FreeSurfer and ANTs output (<a class="reference external" href="https://github.com/binarybottle/mindboggle/blob/master/mindboggle/utils/segment.py">combine_2labels_in_2volumes</a>).</p>
@@ -261,8 +259,8 @@ files (backslash denotes a line return):</p>
 </ol>
 </div></blockquote>
 </div>
-<div class="section" id="id7">
-<h2><span class="target" id="mindboggle-output-files">Mindboggle output files</span><a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id8">
+<h2><span class="target" id="mindboggle-output-files">Mindboggle output files</span><a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
 <p>By default, output files are saved in HOME/mindboggled/SUBJECT,
 where HOME is the home directory and SUBJECT is the name of the subject.
 Volume files are in <a class="reference external" href="http://nifti.nimh.nih.gov">Nifti</a> format,
@@ -345,40 +343,7 @@ The following include outputs from most, but not all, optional arguments.</p>
 </div></blockquote>
 </div></blockquote>
 </div></blockquote>
-<div class="section" id="mindboggle">
-<h3>Mindboggle<a class="headerlink" href="#mindboggle" title="Permalink to this headline">¶</a></h3>
-<p>This package enables a user to automate anatomical labeling and shape analysis
-of MRI brain image data.</p>
-</div>
-<div class="section" id="website">
-<h3>Website<a class="headerlink" href="#website" title="Permalink to this headline">¶</a></h3>
-<p>Current information can always be found at the Mindboggle website:</p>
-<blockquote>
-<div><a class="reference external" href="http://www.mindboggle.info">http://www.mindboggle.info</a></div></blockquote>
-</div>
-<div class="section" id="id9">
-<h3>Documentation<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><a class="reference external" href="http://www.mindboggle.info/software/documentation.html">http://www.mindboggle.info/software/documentation.html</a></div></blockquote>
-</div>
-<div class="section" id="software">
-<h3>Software<a class="headerlink" href="#software" title="Permalink to this headline">¶</a></h3>
-<p>You can find our sources and single-click downloads:</p>
-<div class="highlight-python"><div class="highlight"><pre>* Documentation_
-* `Github repository`_
-* Download as a tar/zip file from the `available releases`_
-</pre></div>
-</div>
-</div>
-<div class="section" id="id10">
-<h3>License<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
-<p>Except where otherwise noted, all Mindboggle software is licensed under the
-<a href="#id11"><span class="problematic" id="id12">`Apache v2.0`_</span></a> license, and all Mindboggle documentation is licensed under a
-<a href="#id13"><span class="problematic" id="id14">`Creative Commons Attribution 3.0 License`_</span></a>.
-Please see the LICENSE file in the Mindboggle distribution.</p>
-<p>&gt;&gt;&gt;&gt;&gt;&gt;&gt; e4dcb043a2f38490c0fd6c867f5864ca9eb440c4</p>
 <p>#.. include:: ../links.txt</p>
-</div>
 </div>
 </div>
 
