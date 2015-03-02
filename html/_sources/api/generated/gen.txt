@@ -1,0 +1,44 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+.. toctree::
+
+   generated/mindboggle.DATA
+   generated/mindboggle.LABELS
+   generated/mindboggle.LUT
+   generated/mindboggle.evaluate.evaluate_features
+   generated/mindboggle.evaluate.evaluate_labels
+   generated/mindboggle.features.folds
+   generated/mindboggle.features.fundi
+   generated/mindboggle.features.sulci
+   generated/mindboggle.labels
+   generated/mindboggle.labels.boundary_realignment
+   generated/mindboggle.labels.propagate_fundus_lines
+   generated/mindboggle.labels.rebound
+   generated/mindboggle.labels.relabel
+   generated/mindboggle.pkg_info
+   generated/mindboggle.shapes.laplace_beltrami
+   generated/mindboggle.shapes.likelihood
+   generated/mindboggle.shapes.shape_tools
+   generated/mindboggle.shapes.zernike.helpers
+   generated/mindboggle.shapes.zernike.pipelines
+   generated/mindboggle.shapes.zernike.zernike
+   generated/mindboggle.thirdparty.nilearn_image_resampling
+   generated/mindboggle.thirdparty.nilearn_niimg_conversions
+   generated/mindboggle.thirdparty.vtkviewer
+   generated/mindboggle.utils.ants
+   generated/mindboggle.utils.compute
+   generated/mindboggle.utils.freesurfer
+   generated/mindboggle.utils.graph
+   generated/mindboggle.utils.io_nifti
+   generated/mindboggle.utils.io_nii
+   generated/mindboggle.utils.io_table
+   generated/mindboggle.utils.io_uri
+   generated/mindboggle.utils.io_vtk
+   generated/mindboggle.utils.kernels
+   generated/mindboggle.utils.mesh
+   generated/mindboggle.utils.morph
+   generated/mindboggle.utils.paths
+   generated/mindboggle.utils.plots
+   generated/mindboggle.utils.segment
+   generated/mindboggle.utils.utils
+   generated/mindboggle.utils.vtkviewer
