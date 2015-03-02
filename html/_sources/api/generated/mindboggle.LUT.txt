@@ -1,0 +1,23 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+LUT
+===
+
+Module: :mod:`LUT`
+------------------
+.. automodule:: mindboggle.LUT
+
+.. currentmodule:: mindboggle.LUT
+
+Functions
+---------
+
+
+.. autofunction:: mindboggle.LUT.extract_numbers_names_colors
+
+
+.. autofunction:: mindboggle.LUT.is_number
+
+
+.. autofunction:: mindboggle.LUT.return_numbers_names_colors
+

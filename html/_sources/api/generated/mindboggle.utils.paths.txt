@@ -1,0 +1,35 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+utils.paths
+===========
+
+Module: :mod:`utils.paths`
+--------------------------
+.. automodule:: mindboggle.utils.paths
+
+.. currentmodule:: mindboggle.utils.paths
+
+Functions
+---------
+
+
+.. autofunction:: mindboggle.utils.paths.connect_points_erosion
+
+
+.. autofunction:: mindboggle.utils.paths.connect_points_hmmf
+
+
+.. autofunction:: mindboggle.utils.paths.find_max_values
+
+
+.. autofunction:: mindboggle.utils.paths.find_outer_anchors
+
+
+.. autofunction:: mindboggle.utils.paths.smooth_skeleton
+
+
+.. autofunction:: mindboggle.utils.paths.track_segments
+
+
+.. autofunction:: mindboggle.utils.paths.track_values
+

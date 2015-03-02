@@ -1,0 +1,29 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+labels.relabel
+==============
+
+Module: :mod:`labels.relabel`
+-----------------------------
+.. automodule:: mindboggle.labels.relabel
+
+.. currentmodule:: mindboggle.labels.relabel
+
+Functions
+---------
+
+
+.. autofunction:: mindboggle.labels.relabel.keep_volume_labels
+
+
+.. autofunction:: mindboggle.labels.relabel.overwrite_volume_labels
+
+
+.. autofunction:: mindboggle.labels.relabel.relabel_surface
+
+
+.. autofunction:: mindboggle.labels.relabel.relabel_volume
+
+
+.. autofunction:: mindboggle.labels.relabel.remove_volume_labels
+
