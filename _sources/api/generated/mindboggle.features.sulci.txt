@@ -1,0 +1,13 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+features.sulci
+==============
+
+Module: :mod:`features.sulci`
+-----------------------------
+.. automodule:: mindboggle.features.sulci
+
+.. currentmodule:: mindboggle.features.sulci
+
+.. autofunction:: mindboggle.features.sulci.extract_sulci
+

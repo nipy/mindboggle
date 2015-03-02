@@ -1,0 +1,35 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+utils.ants
+==========
+
+Module: :mod:`utils.ants`
+-------------------------
+.. automodule:: mindboggle.utils.ants
+
+.. currentmodule:: mindboggle.utils.ants
+
+Functions
+---------
+
+
+.. autofunction:: mindboggle.utils.ants.ImageMath
+
+
+.. autofunction:: mindboggle.utils.ants.PropagateLabelsThroughMask
+
+
+.. autofunction:: mindboggle.utils.ants.ThresholdImage
+
+
+.. autofunction:: mindboggle.utils.ants.antsApplyTransformsToPoints
+
+
+.. autofunction:: mindboggle.utils.ants.fetch_ants_data
+
+
+.. autofunction:: mindboggle.utils.ants.fill_volume_with_surface_labels
+
+
+.. autofunction:: mindboggle.utils.ants.thickinthehead
+

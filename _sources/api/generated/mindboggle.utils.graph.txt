@@ -1,0 +1,23 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+utils.graph
+===========
+
+Module: :mod:`utils.graph`
+--------------------------
+.. automodule:: mindboggle.utils.graph
+
+.. currentmodule:: mindboggle.utils.graph
+
+Functions
+---------
+
+
+.. autofunction:: mindboggle.utils.graph.diagonal_degree_matrix
+
+
+.. autofunction:: mindboggle.utils.graph.graph_laplacian
+
+
+.. autofunction:: mindboggle.utils.graph.weight_graph
+
