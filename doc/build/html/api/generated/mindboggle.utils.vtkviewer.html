@@ -1,0 +1,281 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Mindboggle &mdash; Mindboggle</title>
+    
+    <link rel="stylesheet" href="../../_static/mindboggle.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1.0dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Mindboggle" href="../../index.html" />
+  <HTML><head><title>Mindboggle</title>
+  <meta http-equiv="Content-language" content="en">
+  <meta name="description" content="Mindboggle">
+  <meta name="keywords" content="Mindboggle, neuroimaging, brain imaging, python, neuroscience, labeling, parcellation, morphometry, shape analysis, MRI">
+  <meta name="author" content="mailto:arno&#64;mindboggle.info">
+  <meta name="dc.title" content="Mindboggle"> 
+  <meta name="dc.creator.address" content="arno&#64;mindboggle.info">
+  <meta name="dc.subject" content="Mindboggle">
+  <meta name="dc.type" content="text.homepage.academic"> 
+  <meta name="dc.format" content="text/html"> 
+  <meta name="dc.identifier" content="http://mindboggle.info/">
+
+  </head>
+  <body>
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+ <table>
+  <tr>
+   <td>
+
+ <a href="../../index.html">
+  <img src="../../shared/mindboggle_logo_small.jpg" alt="small mindboggle logo"  border="0" width="160"/></a>
+
+   </td>
+   <td>
+    <table>
+     <tr>
+ <a style="padding: 20px 20px 20px 20px; color: #b07613; text-decoration: none; font-size: 32px"
+  href="../../index.html">Mindboggle</a>
+     </tr>
+     <tr> <td height="18"></td>
+     </tr>
+     <tr>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="./users/README.html">Software</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="../../data.html">Data</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="../../papers.html">Papers</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="../../people.html">People</a>
+      </td>
+     </tr>
+    </table>
+   </td>
+  </tr>
+ </table>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body">
+            
+  <div class="section" id="utils-vtkviewer">
+<h1>utils.vtkviewer<a class="headerlink" href="#utils-vtkviewer" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-utils-vtkviewer">
+<h2>Module: <tt class="xref py py-mod docutils literal"><span class="pre">utils.vtkviewer</span></tt><a class="headerlink" href="#module-utils-vtkviewer" title="Permalink to this headline">¶</a></h2>
+<p>Inheritance diagram for <tt class="docutils literal"><span class="pre">mindboggle.utils.vtkviewer</span></tt>:</p>
+<span class="target" id="module-mindboggle.utils.vtkviewer"></span><p>VTK Viewer
+Written 2012-2013 Hal Canary &lt;<a class="reference external" href="http://cs.unc.edu/~hal">http://cs.unc.edu/~hal</a>&gt;
+Copyright 2012-2013 University of North Carolina at Chapel Hill.</p>
+<p>Licensed under the Apache License, Version 2.0 (the &#8220;License&#8221;);
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at</p>
+<blockquote>
+<div>LICENSE.md in this repository or
+<a class="reference external" href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a></div></blockquote>
+<p>Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an &#8220;AS IS&#8221; BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+implied.  See the License for the specific language governing
+permissions and limitations under the License.</p>
+<p>CONTROLS:</p>
+<p>left mouse button:  rotation
+right mouse button:  zooming
+middle mouse button:  panning
+ctrl + left mouse button:  spinning</p>
+<p>ctrl + shift + left mouse button:  zooming
+shift + left mouse button:  panning</p>
+<p>j:  joystick
+t:  trackball</p>
+<p>c:  camera mode
+a:  actor mode</p>
+<p>3: toggle  stereo mode</p>
+<p>e: exit the application
+e: quit the application</p>
+<p>f: fly to the picked point
+r: reset the camera</p>
+<p>p: pick</p>
+<p>s: surface representation
+w: wireframe representation</p>
+<dl class="docutils">
+<dt>Set the STEREO_TYPE environment variable to control stereo type.</dt>
+<dd>STEREO_TYPE=CRYSTAL_EYES
+STEREO_TYPE=RED_BLUE
+STEREO_TYPE=INTERLACED
+STEREO_TYPE=LEFT
+STEREO_TYPE=RIGHT
+STEREO_TYPE=DRESDEN
+STEREO_TYPE=ANAGLYPH
+STEREO_TYPE=CHECKERBOARD
+STEREO_TYPE=SPLITVIEWPORT_HORIZONTAL</dd>
+</dl>
+<p>Set the COLORMAP environment variable to change the scalar color map.
+It should be in the format of a ParaView-style xml colormap file.</p>
+</div>
+<div class="section" id="vtkviewer">
+<h2><a class="reference internal" href="#mindboggle.utils.vtkviewer.VTKViewer" title="mindboggle.utils.vtkviewer.VTKViewer"><tt class="xref py py-class docutils literal"><span class="pre">VTKViewer</span></tt></a><a class="headerlink" href="#vtkviewer" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="mindboggle.utils.vtkviewer.VTKViewer">
+<em class="property">class </em><tt class="descclassname">mindboggle.utils.vtkviewer.</tt><tt class="descname">VTKViewer</tt><a class="headerlink" href="#mindboggle.utils.vtkviewer.VTKViewer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#mindboggle.utils.vtkviewer.VTKViewer.AddFile" title="mindboggle.utils.vtkviewer.VTKViewer.AddFile"><tt class="xref py py-obj docutils literal"><span class="pre">AddFile</span></tt></a>(file_name[,&nbsp;colorMap])</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mindboggle.utils.vtkviewer.VTKViewer.AddPolyData" title="mindboggle.utils.vtkviewer.VTKViewer.AddPolyData"><tt class="xref py py-obj docutils literal"><span class="pre">AddPolyData</span></tt></a>(polyData[,&nbsp;colorMap])</td>
+<td>colorMap should be a vtkScalarsToColors (or derived class) object</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mindboggle.utils.vtkviewer.VTKViewer.ConvertDataSetToSurface" title="mindboggle.utils.vtkviewer.VTKViewer.ConvertDataSetToSurface"><tt class="xref py py-obj docutils literal"><span class="pre">ConvertDataSetToSurface</span></tt></a>(algorithmOutputPort)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mindboggle.utils.vtkviewer.VTKViewer.GetDefaultColorMap" title="mindboggle.utils.vtkviewer.VTKViewer.GetDefaultColorMap"><tt class="xref py py-obj docutils literal"><span class="pre">GetDefaultColorMap</span></tt></a>(dataRange)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mindboggle.utils.vtkviewer.VTKViewer.GetVTKStereoType" title="mindboggle.utils.vtkviewer.VTKViewer.GetVTKStereoType"><tt class="xref py py-obj docutils literal"><span class="pre">GetVTKStereoType</span></tt></a>(stereoType)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mindboggle.utils.vtkviewer.VTKViewer.LoadColorMap" title="mindboggle.utils.vtkviewer.VTKViewer.LoadColorMap"><tt class="xref py py-obj docutils literal"><span class="pre">LoadColorMap</span></tt></a>(file_name)</td>
+<td>ParaView has an XML colormap format:</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mindboggle.utils.vtkviewer.VTKViewer.ReadLegacyVTK" title="mindboggle.utils.vtkviewer.VTKViewer.ReadLegacyVTK"><tt class="xref py py-obj docutils literal"><span class="pre">ReadLegacyVTK</span></tt></a>(file_name)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mindboggle.utils.vtkviewer.VTKViewer.ReadPDB" title="mindboggle.utils.vtkviewer.VTKViewer.ReadPDB"><tt class="xref py py-obj docutils literal"><span class="pre">ReadPDB</span></tt></a>(file_name)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mindboggle.utils.vtkviewer.VTKViewer.Start" title="mindboggle.utils.vtkviewer.VTKViewer.Start"><tt class="xref py py-obj docutils literal"><span class="pre">Start</span></tt></a>()</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mindboggle.utils.vtkviewer.VTKViewer.readDataSet" title="mindboggle.utils.vtkviewer.VTKViewer.readDataSet"><tt class="xref py py-obj docutils literal"><span class="pre">readDataSet</span></tt></a>(file_name,&nbsp;readerType)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mindboggle.utils.vtkviewer.VTKViewer.readPolyData" title="mindboggle.utils.vtkviewer.VTKViewer.readPolyData"><tt class="xref py py-obj docutils literal"><span class="pre">readPolyData</span></tt></a>(file_name,&nbsp;readerType)</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="mindboggle.utils.vtkviewer.VTKViewer.__init__">
+<tt class="descname">__init__</tt><big>(</big><big>)</big><a class="headerlink" href="#mindboggle.utils.vtkviewer.VTKViewer.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mindboggle.utils.vtkviewer.VTKViewer.AddFile">
+<tt class="descname">AddFile</tt><big>(</big><em>file_name</em>, <em>colorMap=None</em><big>)</big><a class="headerlink" href="#mindboggle.utils.vtkviewer.VTKViewer.AddFile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mindboggle.utils.vtkviewer.VTKViewer.AddPolyData">
+<tt class="descname">AddPolyData</tt><big>(</big><em>polyData</em>, <em>colorMap=None</em><big>)</big><a class="headerlink" href="#mindboggle.utils.vtkviewer.VTKViewer.AddPolyData" title="Permalink to this definition">¶</a></dt>
+<dd><p>colorMap should be a vtkScalarsToColors (or derived class) object</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="mindboggle.utils.vtkviewer.VTKViewer.ConvertDataSetToSurface">
+<em class="property">static </em><tt class="descname">ConvertDataSetToSurface</tt><big>(</big><em>algorithmOutputPort</em><big>)</big><a class="headerlink" href="#mindboggle.utils.vtkviewer.VTKViewer.ConvertDataSetToSurface" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="mindboggle.utils.vtkviewer.VTKViewer.GetDefaultColorMap">
+<em class="property">static </em><tt class="descname">GetDefaultColorMap</tt><big>(</big><em>dataRange</em><big>)</big><a class="headerlink" href="#mindboggle.utils.vtkviewer.VTKViewer.GetDefaultColorMap" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="mindboggle.utils.vtkviewer.VTKViewer.GetVTKStereoType">
+<em class="property">static </em><tt class="descname">GetVTKStereoType</tt><big>(</big><em>stereoType</em><big>)</big><a class="headerlink" href="#mindboggle.utils.vtkviewer.VTKViewer.GetVTKStereoType" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="mindboggle.utils.vtkviewer.VTKViewer.LoadColorMap">
+<em class="property">static </em><tt class="descname">LoadColorMap</tt><big>(</big><em>file_name</em><big>)</big><a class="headerlink" href="#mindboggle.utils.vtkviewer.VTKViewer.LoadColorMap" title="Permalink to this definition">¶</a></dt>
+<dd><p>ParaView has an XML colormap format:
+&lt;ColorMap space=&#8221;RGB&#8221;&gt;</p>
+<blockquote>
+<div>&lt;Point x=&#8221;0.0&#8221;  r=&#8221;0.0&#8221;      g=&#8221;0.0&#8221;      b=&#8221;0.0&#8221;/&gt;
+&lt;Point x=&#8221;0.4&#8221;  r=&#8221;0.901961&#8221; g=&#8221;0.0&#8221;      b=&#8221;0.0&#8221;/&gt;
+&lt;Point x=&#8221;0.8&#8221;  r=&#8221;0.901961&#8221; g=&#8221;0.901961&#8221; b=&#8221;0.0&#8221;/&gt;
+&lt;Point x=&#8221;1.0&#8221;  r=&#8221;1.0&#8221;      g=&#8221;1.0&#8221;      b=&#8221;1.0&#8221;/&gt;
+&lt;NaN            r=&#8221;0.0&#8221;      g=&#8221;0.498039&#8221; b=&#8221;1.0&#8221;/&gt;</div></blockquote>
+<p>&lt;/ColorMap&gt;</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="mindboggle.utils.vtkviewer.VTKViewer.ReadLegacyVTK">
+<em class="property">static </em><tt class="descname">ReadLegacyVTK</tt><big>(</big><em>file_name</em><big>)</big><a class="headerlink" href="#mindboggle.utils.vtkviewer.VTKViewer.ReadLegacyVTK" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="mindboggle.utils.vtkviewer.VTKViewer.ReadPDB">
+<em class="property">static </em><tt class="descname">ReadPDB</tt><big>(</big><em>file_name</em><big>)</big><a class="headerlink" href="#mindboggle.utils.vtkviewer.VTKViewer.ReadPDB" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mindboggle.utils.vtkviewer.VTKViewer.Start">
+<tt class="descname">Start</tt><big>(</big><big>)</big><a class="headerlink" href="#mindboggle.utils.vtkviewer.VTKViewer.Start" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="mindboggle.utils.vtkviewer.VTKViewer.readDataSet">
+<em class="property">static </em><tt class="descname">readDataSet</tt><big>(</big><em>file_name</em>, <em>readerType</em><big>)</big><a class="headerlink" href="#mindboggle.utils.vtkviewer.VTKViewer.readDataSet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="mindboggle.utils.vtkviewer.VTKViewer.readPolyData">
+<em class="property">static </em><tt class="descname">readPolyData</tt><big>(</big><em>file_name</em>, <em>readerType</em><big>)</big><a class="headerlink" href="#mindboggle.utils.vtkviewer.VTKViewer.readPolyData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<!-- Google Analytics -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-693862-13");
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+
+  </body>
+</html>

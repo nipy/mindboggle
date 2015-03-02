@@ -1,0 +1,171 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Mindboggle &mdash; Mindboggle</title>
+    
+    <link rel="stylesheet" href="_static/mindboggle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.0dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Mindboggle" href="index.html" />
+  <HTML><head><title>Mindboggle</title>
+  <meta http-equiv="Content-language" content="en">
+  <meta name="description" content="Mindboggle">
+  <meta name="keywords" content="Mindboggle, neuroimaging, brain imaging, python, neuroscience, labeling, parcellation, morphometry, shape analysis, MRI">
+  <meta name="author" content="mailto:arno&#64;mindboggle.info">
+  <meta name="dc.title" content="Mindboggle"> 
+  <meta name="dc.creator.address" content="arno&#64;mindboggle.info">
+  <meta name="dc.subject" content="Mindboggle">
+  <meta name="dc.type" content="text.homepage.academic"> 
+  <meta name="dc.format" content="text/html"> 
+  <meta name="dc.identifier" content="http://mindboggle.info/">
+
+  </head>
+  <body>
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+ <table>
+  <tr>
+   <td>
+
+ <a href="index.html">
+  <img src="shared/mindboggle_logo_small.jpg" alt="small mindboggle logo"  border="0" width="160"/></a>
+
+   </td>
+   <td>
+    <table>
+     <tr>
+ <a style="padding: 20px 20px 20px 20px; color: #b07613; text-decoration: none; font-size: 32px"
+  href="index.html">Mindboggle</a>
+     </tr>
+     <tr> <td height="18"></td>
+     </tr>
+     <tr>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="./users/README.html">Software</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="data.html">Data</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="papers.html">Papers</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="people.html">People</a>
+      </td>
+     </tr>
+    </table>
+   </td>
+  </tr>
+ </table>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body">
+            
+  <div class="section" id="how-to-write-documentation">
+<span id="howto-document"></span><h1>How to write documentation<a class="headerlink" href="#how-to-write-documentation" title="Permalink to this headline">¶</a></h1>
+<p><a class="reference external" href="http://mindboggle.info">Mindboggle</a> uses the <a class="reference external" href="http://sphinx.pocoo.org/">Sphinx</a> documentation generating tool.  Sphinx
+translates <a class="reference external" href="http://docutils.sourceforge.net/rst.html">reST</a> formatted documents into html and pdf documents.
+All our documents and docstrings are in reST format, which allows us
+to have both human-readable docstrings when viewed in <a class="reference external" href="http://ipython.scipy.org">ipython</a>, and
+web and print quality documentation.</p>
+<div class="section" id="building-the-documentation">
+<h2>Building the documentation<a class="headerlink" href="#building-the-documentation" title="Permalink to this headline">¶</a></h2>
+<p>You need to have <a class="reference external" href="http://sphinx.pocoo.org/">Sphinx</a> (version 0.6.2 or above) and <a class="reference external" href="http://www.graphviz.org/">graphviz</a> (version
+2.20 or greater).</p>
+<p>The <tt class="docutils literal"><span class="pre">Makefile</span></tt> (in the top-level doc directory) automates the
+generation of the documents.  To make the HTML documents:</p>
+<div class="highlight-python"><div class="highlight"><pre>make html
+</pre></div>
+</div>
+<p>For PDF documentation do:</p>
+<div class="highlight-python"><div class="highlight"><pre>make pdf
+</pre></div>
+</div>
+<p>The built documentation is then placed in a <tt class="docutils literal"><span class="pre">build/html</span></tt> or
+<tt class="docutils literal"><span class="pre">build/latex</span></tt> subdirectories.</p>
+<p>For more options, type:</p>
+<div class="highlight-python"><div class="highlight"><pre>make help
+</pre></div>
+</div>
+</div>
+<div class="section" id="viewing-the-documentation">
+<h2>Viewing the documentation<a class="headerlink" href="#viewing-the-documentation" title="Permalink to this headline">¶</a></h2>
+<p>We also build our documentation website using <a class="reference external" href="http://sphinx.pocoo.org/">sphinx</a>.
+All of the documentation in the <tt class="docutils literal"><span class="pre">docs</span></tt> directory is included
+on the website.  There are a few files that are website only
+and these are placed in the <tt class="docutils literal"><span class="pre">www</span></tt> directory.
+The easiest way to view the documentation while editing
+is to build the website and open the local build in your browser:</p>
+<div class="highlight-python"><div class="highlight"><pre>make web
+</pre></div>
+</div>
+<p>Then open <tt class="docutils literal"><span class="pre">www/build/html/index.html</span></tt> in your browser.</p>
+</div>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<p>Please have a look at our <em class="xref std std-ref">sphinx_helpers</em> for examples on using
+<a class="reference external" href="http://sphinx.pocoo.org/">Sphinx</a> and <a class="reference external" href="http://docutils.sourceforge.net/rst.html">reST</a> in our documentation.</p>
+<p>The Sphinx website also has an excellent <a class="reference external" href="http://sphinx.pocoo.org/rest.html">sphinx rest</a> primer.</p>
+<dl class="docutils">
+<dt>Additional reST references::</dt>
+<dd><ul class="first last simple">
+<li><a class="reference external" href="http://docutils.sourceforge.net/docs/user/rst/quickstart.html">reST primer</a></li>
+<li><a class="reference external" href="http://docutils.sourceforge.net/docs/user/rst/quickref.html">reST quick reference</a></li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="style">
+<h2>Style<a class="headerlink" href="#style" title="Permalink to this headline">¶</a></h2>
+<p>Mindboggle has adopted the <a class="reference external" href="http://www.scipy.org/NumPy">numpy</a> documentation standards.  The <a class="reference external" href="http://scipy.org/scipy/numpy/wiki/CodingStyleGuidelines">numpy
+coding style guideline</a> is the main reference for how to format the
+documentation in your code.  It&#8217;s also useful to look at the <a class="reference external" href="http://svn.scipy.org/svn/numpy/trunk/doc/HOWTO_DOCUMENT.txt">source
+reST file</a>
+that generates the coding style guideline.</p>
+<p>Numpy has a <a class="reference external" href="http://svn.scipy.org/svn/numpy/trunk/doc/EXAMPLE_DOCSTRING.txt">detailed example</a>
+for writing docstrings.</p>
+</div>
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<!-- Google Analytics -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-693862-13");
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+
+  </body>
+</html>
