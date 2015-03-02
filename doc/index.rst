@@ -4,8 +4,7 @@
 Welcome to Mindboggle!
 ======================
 
-<<<<<<< HEAD
-| We are developing Mindboggle to improve the accuracy, precision, and reliability
+< We are developing Mindboggle to improve the accuracy, precision, and reliability
 | of automated labeling and shape analysis of human brain image data, and to
 | promote open science by making all data, software, and documentation
 | freely and openly available.
@@ -82,8 +81,6 @@ Please see our software `FAQ`_, our `documentation`_, and our `glossary`_ to get
 .. _`FAQ`: http://mindboggle.info/faq/index.html
 .. _`documentation`: http://mindboggle.info/documentation.html
 .. _`glossary`: http://mindboggle.info/glossary.html
-
->>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
 *The Mingboggle team*
 
