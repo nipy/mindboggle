@@ -773,7 +773,7 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
                 print('{0} ({1}) volume={2:2.2f}, thickness={3:2.2f}mm'.
                       format(name, label, label_cortex_volume, thickness))
             else:
-                print('{0}, volume={2:2.2f}, thickness={3:2.2f}mm'.
+                print('{0}, volume={1:2.2f}, thickness={2:2.2f}mm'.
                       format(label, label_cortex_volume, thickness))
 
             if save_table:
