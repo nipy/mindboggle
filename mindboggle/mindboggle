@@ -234,8 +234,8 @@ if all_features_shapes:
     do_thickinthehead = True
     if spectra <= 0:
         spectra = 10
-    if moments <= 0:
-        moments = 10
+#    if moments <= 0:
+#        moments = 10
 do_spectra = False  # Measure Laplace-Beltrami spectra for labels/features
 do_zernike = False  # Compute Zernike moments for labels/features
 no_shapes = args.no_shapes
