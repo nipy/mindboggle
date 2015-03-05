@@ -1,6 +1,6 @@
+# Commands for building the api docs for the mindboggle website.
 
-
-# MASTER:
+# MASTER BRANCH:
 
 git checkout master
 cd doc
@@ -10,11 +10,10 @@ git add doc/build/html/api
 git add doc/build/html/faq 
 git add doc/build/html/genindex.html
 git add doc/build/html/documentation.html
-git commit -m "update api and faq for website"
+git commit -m "Update api and faq for website."
 git push origin master
 
-
-# PAGES:
+# GH-PAGES BRANCH:
 
 git checkout gh-pages
 git checkout master -- doc/build/html/api
