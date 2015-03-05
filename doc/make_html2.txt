@@ -4,36 +4,35 @@
 
 git checkout master
 cd doc
-bash make_html.sh
-git add build/html
-git commit -m "update html"
+make html
+cd ..
+git add doc/build/html/api 
+git add doc/build/html/faq 
+git add doc/build/html/genindex.html
+git add doc/build/html/documentation.html
+git commit -m "update api and faq for website"
 git push origin master
 
 
 # PAGES:
 
 git checkout gh-pages
-git checkout master -- build/html
-
-git rm -rf ../*
-git mv build/html/* ..
-cd ..
-git rm -rf doc
-
-git mv _static shared
-#git mv shared/new_index.html index.html
+git checkout master -- doc/build/html/api
+git checkout master -- doc/build/html/faq
+git checkout master -- doc/build/html/genindex.html
+git checkout master -- doc/build/html/documentation.html
 
 sed -i .bk 's/_static/shared/g' *.html
 rm *.bk
-cd users
-sed -i .bk 's/_static/shared/g' *.html
-rm *.bk
-cd ../faq
-sed -i .bk 's/_static/shared/g' *.html
-rm *.bk
-cd ..
+#cd users
+#sed -i .bk 's/_static/shared/g' *.html
+#rm *.bk
+#cd ../faq
+#sed -i .bk 's/_static/shared/g' *.html
+#rm *.bk
+#cd ..
 
-ga *
-gc -m "update html"
-gpop
+git add doc
+git commit -m "Update api and faq for website."
+git push origin gh-pages
 
