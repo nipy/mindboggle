@@ -8,8 +8,8 @@
     
     <title>Mindboggle &mdash; Mindboggle</title>
     
-    <link rel="stylesheet" href="../../_static/mindboggle.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../shared/mindboggle.css" type="text/css" />
+    <link rel="stylesheet" href="../../shared/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
@@ -20,9 +20,9 @@
         HAS_SOURCE:  true
       };
     </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../shared/jquery.js"></script>
+    <script type="text/javascript" src="../../shared/underscore.js"></script>
+    <script type="text/javascript" src="../../shared/doctools.js"></script>
     <link rel="top" title="Mindboggle" href="../../index.html" />
   <HTML><head><title>Mindboggle</title>
   <meta http-equiv="Content-language" content="en">
@@ -168,7 +168,7 @@
 
 <dl class="function">
 <dt id="mindboggle.utils.graph.weight_graph">
-<tt class="descclassname">mindboggle.utils.graph.</tt><tt class="descname">weight_graph</tt><big>(</big><em>Nodes</em>, <em>Indices</em>, <em>Meshes</em>, <em>kernel=&lt;function rbf_kernel at 0x10e3cac08&gt;</em>, <em>add_to_graph=True</em>, <em>G=&lt;networkx.classes.graph.Graph object at 0x10e3cb2d0&gt;</em>, <em>sigma=20</em><big>)</big><a class="headerlink" href="#mindboggle.utils.graph.weight_graph" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">mindboggle.utils.graph.</tt><tt class="descname">weight_graph</tt><big>(</big><em>Nodes</em>, <em>Indices</em>, <em>Meshes</em>, <em>kernel=&lt;function rbf_kernel at 0x10ecbdc80&gt;</em>, <em>add_to_graph=True</em>, <em>G=&lt;networkx.classes.graph.Graph object at 0x10ecbe510&gt;</em>, <em>sigma=20</em><big>)</big><a class="headerlink" href="#mindboggle.utils.graph.weight_graph" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct weighted edges of a graph and compute an affinity matrix.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />

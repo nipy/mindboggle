@@ -1,0 +1,381 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Mindboggle &mdash; Mindboggle</title>
+    
+    <link rel="stylesheet" href="../../_static/mindboggle.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1.0dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Mindboggle" href="../../index.html" />
+  <HTML><head><title>Mindboggle</title>
+  <meta http-equiv="Content-language" content="en">
+  <meta name="description" content="Mindboggle">
+  <meta name="keywords" content="Mindboggle, neuroimaging, brain imaging, python, neuroscience, labeling, parcellation, morphometry, shape analysis, MRI">
+  <meta name="author" content="mailto:arno&#64;mindboggle.info">
+  <meta name="dc.title" content="Mindboggle"> 
+  <meta name="dc.creator.address" content="arno&#64;mindboggle.info">
+  <meta name="dc.subject" content="Mindboggle">
+  <meta name="dc.type" content="text.homepage.academic"> 
+  <meta name="dc.format" content="text/html"> 
+  <meta name="dc.identifier" content="http://binarybottle.github.io/mindboggle/">
+
+  </head>
+  <body>
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+ <table>
+  <tr>
+   <td>
+
+ <a href="../../index.html">
+  <img src="../../shared/mindboggle_logo_small.jpg" alt="small mindboggle logo"  border="0" width="160"/></a>
+
+   </td>
+   <td>
+    <table>
+     <tr>
+ <a style="padding: 20px 20px 20px 20px; color: #b07613; text-decoration: none; font-size: 32px"
+  href="../../index.html">Mindboggle</a>
+     </tr>
+     <tr> <td height="18"></td>
+     </tr>
+     <tr>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="../../README.html">Software</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="../../data.html">Data</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="../../papers.html">Papers</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="../../people.html">People</a>
+      </td>
+     </tr>
+    </table>
+   </td>
+  </tr>
+ </table>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body">
+            
+  <div class="section" id="shapes-zernike-zernike">
+<h1>shapes.zernike.zernike<a class="headerlink" href="#shapes-zernike-zernike" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-mindboggle.shapes.zernike.zernike">
+<span id="module-shapes-zernike-zernike"></span><h2>Module: <tt class="xref py py-mod docutils literal"><span class="pre">shapes.zernike.zernike</span></tt><a class="headerlink" href="#module-mindboggle.shapes.zernike.zernike" title="Permalink to this headline">¶</a></h2>
+<p>Compute the Zernike moments of a collection of points.</p>
+<dl class="docutils">
+<dt>Authors:</dt>
+<dd><ul class="first last simple">
+<li>Arthur Mikhno, 2013, Columbia University (original MATLAB code)</li>
+<li>Brian Rossa, 2013, Tank Think Labs, LLC (port to Python)</li>
+<li>Arno Klein, 2013  (<a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>)  <a class="reference external" href="http://binarybottle.com">http://binarybottle.com</a></li>
+</ul>
+</dd>
+</dl>
+<p>Copyright 2013,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mindboggle.shapes.zernike.zernike.zernike_moments">
+<tt class="descclassname">mindboggle.shapes.zernike.zernike.</tt><tt class="descname">zernike_moments</tt><big>(</big><em>points</em>, <em>faces</em>, <em>order=10</em>, <em>scale_input=True</em>, <em>decimate_fraction=0</em>, <em>decimate_smooth=0</em>, <em>pl_cls=None</em><big>)</big><a class="headerlink" href="#mindboggle.shapes.zernike.zernike.zernike_moments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the Zernike moments of a surface patch of points and faces.</p>
+<p>Optionally decimate the input mesh.</p>
+<dl class="docutils">
+<dt>Note::</dt>
+<dd>Decimation sometimes leads to an error of &#8220;Segmentation fault: 11&#8221;
+(Twins-2-1 left label 14 gives such an error only when decimated.)</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>points</strong> : list of lists of 3 floats</p>
+<blockquote>
+<div><p>x,y,z coordinates for each vertex</p>
+</div></blockquote>
+<p><strong>faces</strong> : list of lists of 3 integers</p>
+<blockquote>
+<div><p>each list contains indices to vertices that form a triangle on a mesh</p>
+</div></blockquote>
+<p><strong>order</strong> : integer</p>
+<blockquote>
+<div><p>order of the moments being calculated</p>
+</div></blockquote>
+<p><strong>scale_input</strong> : Boolean</p>
+<blockquote>
+<div><p>translate and scale each object so it is bounded by a unit sphere?
+(this is the expected input to zernike_moments())</p>
+</div></blockquote>
+<p><strong>decimate_fraction</strong> : float</p>
+<blockquote>
+<div><p>fraction of mesh faces to remove for decimation (0 for no decimation)</p>
+</div></blockquote>
+<p><strong>decimate_smooth</strong> : integer</p>
+<blockquote>
+<div><p>number of smoothing steps for decimation</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>descriptors</strong> : list of floats</p>
+<blockquote class="last">
+<div><p>Zernike descriptors</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Example 1: simple cube (decimation results in a Segmentation Fault):</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.zernike.zernike</span> <span class="kn">import</span> <span class="n">zernike_moments</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">7</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">order</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scale_input</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zernike_moments</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">scale_input</span><span class="p">)</span>
+<span class="go">[0.0918881492369654,</span>
+<span class="go"> 0.09357431096617608,</span>
+<span class="go"> 0.04309029164656885,</span>
+<span class="go"> 0.06466432586854755,</span>
+<span class="go"> 0.03820155248327533,</span>
+<span class="go"> 0.04138011726544602]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Example 2: simple cube (with inner diagonal plane):</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># (decimation doesn&#39;t have any effect)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.utils.io_vtk</span> <span class="kn">import</span> <span class="n">read_vtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.zernike.zernike</span> <span class="kn">import</span> <span class="n">zernike_moments</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;cube.vtk&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span><span class="p">,</span> <span class="n">u1</span><span class="p">,</span><span class="n">u2</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">u3</span><span class="p">,</span><span class="n">u4</span><span class="p">,</span><span class="n">u5</span><span class="p">,</span><span class="n">u6</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">order</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scale_input</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zernike_moments</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">scale_input</span><span class="p">)</span>
+<span class="go">[0.0,</span>
+<span class="go"> 1.5444366221695725e-21,</span>
+<span class="go"> 0.0,</span>
+<span class="go"> 2.081366518964347e-21,</span>
+<span class="go"> 5.735003646768394e-05,</span>
+<span class="go"> 2.433866250546253e-21]</span>
+</pre></div>
+</div>
+<p>Arthur Mikhno&#8217;s result:
+0
+0
+0.2831
+10.6997
+2.1352
+11.8542
+&gt;&gt;&gt; # Example 2.5: Parallelepiped.vtk:
+&gt;&gt;&gt; import os
+&gt;&gt;&gt; from mindboggle.utils.io_vtk import read_vtk
+&gt;&gt;&gt; from mindboggle.shapes.zernike.zernike import zernike_moments
+&gt;&gt;&gt; path = os.environ[&#8216;MINDBOGGLE_DATA&#8217;]
+&gt;&gt;&gt; vtk_file = os.path.join(path, &#8216;Parallelepiped.vtk&#8217;)
+&gt;&gt;&gt; faces, u1,u2, points, u3,u4,u5,u6 = read_vtk(vtk_file)
+&gt;&gt;&gt; order = 3
+&gt;&gt;&gt; scale_input = True
+&gt;&gt;&gt; zernike_moments(points, faces, order, scale_input)
+[0.2652000150907399,</p>
+<blockquote>
+<div>0.27006648207389017,
+6.902814314591948e-09,
+7.901431343883835e-09,
+0.12685697496878662,
+5.560135951999606e-09]</div></blockquote>
+<p>Arthur Mikhno&#8217;s result:
+0.0251
+0.0310
+0.0255
+0.0451
+0.0189
+0.0133
+&gt;&gt;&gt; # Example 3: Twins-2-1 left postcentral pial surface &#8211; NO decimation:
+&gt;&gt;&gt; # (zernike_moments took 142 seconds for order = 3 with no decimation)
+&gt;&gt;&gt; import os
+&gt;&gt;&gt; from mindboggle.utils.io_vtk import read_vtk
+&gt;&gt;&gt; from mindboggle.utils.mesh import remove_faces
+&gt;&gt;&gt; from mindboggle.shapes.zernike.zernike import zernike_moments
+&gt;&gt;&gt; path = os.environ[&#8216;MINDBOGGLE_DATA&#8217;]
+&gt;&gt;&gt; label_file = os.path.join(path, &#8216;arno&#8217;, &#8216;labels&#8217;, &#8216;lh.labels.DKT31.manual.vtk&#8217;)
+&gt;&gt;&gt; faces, u1,u2, points, u3, labels, u4,u5 = read_vtk(label_file)
+&gt;&gt;&gt; I22 = [i for i,x in enumerate(labels) if x==22] # postcentral
+&gt;&gt;&gt; faces = remove_faces(faces, I22)
+&gt;&gt;&gt; order = 3
+&gt;&gt;&gt; scale_input = True
+&gt;&gt;&gt; zernike_moments(points, faces, order, scale_input)</p>
+<blockquote>
+<div>[0.005558794553842859,
+0.009838755429501177,
+0.003512500896236744,
+0.00899042745665395,
+0.001672289910738449,
+0.000919469614081582]</div></blockquote>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Example 5: left postcentral + pars triangularis pial surfaces:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.utils.io_vtk</span> <span class="kn">import</span> <span class="n">read_vtk</span><span class="p">,</span> <span class="n">write_vtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.utils.mesh</span> <span class="kn">import</span> <span class="n">remove_faces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.zernike.zernike</span> <span class="kn">import</span> <span class="n">zernike_moments</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">label_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;lh.labels.DKT31.manual.vtk&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span><span class="p">,</span> <span class="n">u1</span><span class="p">,</span><span class="n">u2</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">u3</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">u4</span><span class="p">,</span><span class="n">u5</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">label_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">I20</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span><span class="o">==</span><span class="mi">20</span><span class="p">]</span> <span class="c"># pars triangularis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">I22</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span><span class="o">==</span><span class="mi">22</span><span class="p">]</span> <span class="c"># postcentral</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">I22</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">I20</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="n">remove_faces</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">I22</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">order</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scale_input</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zernike_moments</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">scale_input</span><span class="p">)</span>
+<span class="go">[0.006591540793309832,</span>
+<span class="go"> 0.010749937070447451,</span>
+<span class="go"> 0.0034900573103799214,</span>
+<span class="go"> 0.008972460360983864,</span>
+<span class="go"> 0.0018220183025464518,</span>
+<span class="go"> 0.0016893113500293917]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># View both segments:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.utils.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">labels</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars</span><span class="p">[</span><span class="n">I22</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="s">&#39;test_two_labels.vtk&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">write_vtk</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="p">[],[],</span> <span class="n">faces</span><span class="p">,</span> <span class="n">scalars</span><span class="p">,</span> <span class="n">scalar_names</span><span class="o">=</span><span class="s">&#39;scalars&#39;</span><span class="p">,</span> <span class="n">scalar_type</span><span class="o">=</span><span class="s">&#39;int&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="mindboggle.shapes.zernike.zernike.zernike_moments_per_label">
+<tt class="descclassname">mindboggle.shapes.zernike.zernike.</tt><tt class="descname">zernike_moments_per_label</tt><big>(</big><em>vtk_file, order=10, exclude_labels=[-1], scale_input=True, decimate_fraction=0, decimate_smooth=25</em><big>)</big><a class="headerlink" href="#mindboggle.shapes.zernike.zernike.zernike_moments_per_label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the Zernike moments per labeled region in a file.</p>
+<p>Optionally decimate the input mesh.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>vtk_file</strong> : string</p>
+<blockquote>
+<div><p>name of VTK surface mesh file containing index scalars (labels)</p>
+</div></blockquote>
+<p><strong>order</strong> : integer</p>
+<blockquote>
+<div><p>number of moments to compute</p>
+</div></blockquote>
+<p><strong>exclude_labels</strong> : list of integers</p>
+<blockquote>
+<div><p>labels to be excluded</p>
+</div></blockquote>
+<p><strong>scale_input</strong> : Boolean</p>
+<blockquote>
+<div><p>translate and scale each object so it is bounded by a unit sphere?
+(this is the expected input to zernike_moments())</p>
+</div></blockquote>
+<p><strong>decimate_fraction</strong> : float</p>
+<blockquote>
+<div><p>fraction of mesh faces to remove for decimation (1 for no decimation)</p>
+</div></blockquote>
+<p><strong>decimate_smooth</strong> : integer</p>
+<blockquote>
+<div><p>number of smoothing steps for decimation</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>descriptors_lists</strong> : list of lists of floats</p>
+<blockquote>
+<div><p>Zernike descriptors per label</p>
+</div></blockquote>
+<p><strong>label_list</strong> : list of integers</p>
+<blockquote class="last">
+<div><p>list of unique labels for which moments are computed</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Uncomment &quot;if label==22:&quot; below to run example:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Twins-2-1 left postcentral (22) pial surface:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.zernike.zernike</span> <span class="kn">import</span> <span class="n">zernike_moments_per_label</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;HOME&#39;</span><span class="p">],</span> <span class="s">&#39;mindboggled&#39;</span><span class="p">,</span> <span class="s">&#39;OASIS-TRT-20-1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;left_surface&#39;</span><span class="p">,</span> <span class="s">&#39;relabeled_classifier.vtk&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">order</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exclude_labels</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scale_input</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zernike_moments_per_label</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">exclude_labels</span><span class="p">,</span> <span class="n">scale_input</span><span class="p">)</span>
+<span class="go">([[0.00528486237819844,</span>
+<span class="go">   0.009571754617699853,</span>
+<span class="go">   0.0033489494903015944,</span>
+<span class="go">   0.00875603468268444,</span>
+<span class="go">   0.0015879536633349918,</span>
+<span class="go">   0.0008080165707033097]],</span>
+<span class="go"> [22])</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>([[0.0018758013185778298,</dt>
+<dd><blockquote class="first">
+<div>0.001757973693050823,
+0.002352403177686726,
+0.0032281044369938286,
+0.002215900343702539,
+0.0019646380916703856]],</div></blockquote>
+<p class="last">[14.0])</p>
+</dd>
+</dl>
+<p>Arthur Mikhno&#8217;s result:
+1.0e+07 *
+0.0000
+0.0179
+0.0008
+4.2547
+0.0534
+4.4043</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<!-- Google Analytics -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-693862-13");
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+
+  </body>
+</html>
