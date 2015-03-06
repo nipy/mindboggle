@@ -1,0 +1,153 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Mindboggle &mdash; Mindboggle</title>
+    
+    <link rel="stylesheet" href="../../_static/mindboggle.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1.0dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Mindboggle" href="../../index.html" />
+  <HTML><head><title>Mindboggle</title>
+  <meta http-equiv="Content-language" content="en">
+  <meta name="description" content="Mindboggle">
+  <meta name="keywords" content="Mindboggle, neuroimaging, brain imaging, python, neuroscience, labeling, parcellation, morphometry, shape analysis, MRI">
+  <meta name="author" content="mailto:arno&#64;mindboggle.info">
+  <meta name="dc.title" content="Mindboggle"> 
+  <meta name="dc.creator.address" content="arno&#64;mindboggle.info">
+  <meta name="dc.subject" content="Mindboggle">
+  <meta name="dc.type" content="text.homepage.academic"> 
+  <meta name="dc.format" content="text/html"> 
+  <meta name="dc.identifier" content="http://binarybottle.github.io/mindboggle/">
+
+  </head>
+  <body>
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+ <table>
+  <tr>
+   <td>
+
+ <a href="../../index.html">
+  <img src="../../shared/mindboggle_logo_small.jpg" alt="small mindboggle logo"  border="0" width="160"/></a>
+
+   </td>
+   <td>
+    <table>
+     <tr>
+ <a style="padding: 20px 20px 20px 20px; color: #b07613; text-decoration: none; font-size: 32px"
+  href="../../index.html">Mindboggle</a>
+     </tr>
+     <tr> <td height="18"></td>
+     </tr>
+     <tr>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="http://www.mindboggle.info/users/README.html">Software</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="../../data.html">Data</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="../../papers.html">Papers</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="../../people.html">People</a>
+      </td>
+     </tr>
+    </table>
+   </td>
+  </tr>
+ </table>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body">
+            
+  <div class="section" id="data">
+<h1>DATA<a class="headerlink" href="#data" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-mindboggle.DATA">
+<span id="module-data"></span><h2>Module: <tt class="xref py py-mod docutils literal"><span class="pre">DATA</span></tt><a class="headerlink" href="#module-mindboggle.DATA" title="Permalink to this headline">¶</a></h2>
+<p>Functions related to Mindboggle data.</p>
+<dl class="docutils">
+<dt>Authors:</dt>
+<dd><ul class="first last simple">
+<li>Arno Klein, 2014  (<a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>)  <a class="reference external" href="http://binarybottle.com">http://binarybottle.com</a></li>
+</ul>
+</dd>
+</dl>
+<p>Copyright 2014,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
+<dl class="function">
+<dt id="mindboggle.DATA.hashes_url">
+<tt class="descclassname">mindboggle.DATA.</tt><tt class="descname">hashes_url</tt><big>(</big><big>)</big><a class="headerlink" href="#mindboggle.DATA.hashes_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hashes and URL to verify retrieved data used by the Mindboggle software.</p>
+<p>Data include atlases and templates required for registration and labeling.
+See get_hash() in io_uri.py to create new hashes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>hashes</strong> : dictionary</p>
+<blockquote>
+<div><p>dictionary of data file names and hashes for those files</p>
+</div></blockquote>
+<p><strong>url</strong> : string</p>
+<blockquote>
+<div><p>URL to Mindboggle data</p>
+</div></blockquote>
+<p><strong>cache_env</strong> : string</p>
+<blockquote>
+<div><p>cache environment variable</p>
+</div></blockquote>
+<p><strong>cache</strong> : string</p>
+<blockquote class="last">
+<div><p>default path to cache directory (in case not supplied elsewhere)</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<!-- Google Analytics -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-693862-13");
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+
+  </body>
+</html>
