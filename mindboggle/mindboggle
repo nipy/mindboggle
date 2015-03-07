@@ -771,7 +771,6 @@ if do_surface:
         ReindexLabels = Node(name='Reindex_labels',
                              interface=Fn(function=relabel_surface,
                                           input_names=['vtk_file',
-                                                       'hemi',
                                                        'old_labels',
                                                        'new_labels',
                                                        'erase_remaining',
