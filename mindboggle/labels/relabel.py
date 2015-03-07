@@ -336,8 +336,8 @@ def relabel_surface(vtk_file, old_labels=[], new_labels=[],
 
     # Raise an error if inputs set incorrectly:
     if (new_labels and not old_labels) or \
-            (len(old_labels) != len(new_labels)) or \
-            (erase_remaining and not old_labels):
+       (new_labels and len(old_labels) != len(new_labels)) or \
+       (erase_remaining and not old_labels):
         raise IOError("Please check inputs for relabel_surface().")
 
     # Loop through unique labels in scalars:
