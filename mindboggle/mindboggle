@@ -88,7 +88,7 @@ features_group.add_argument("--sulci", action='store_true',
                     help="extract, identify, and measure sulci")
 features_group.add_argument("--fundi", action='store_true',
                     help="extract, identify, and measure fundi "
-                         "[UNTESTED]")
+                         "[UNTESTED, not included in --all]")
 features_group.add_argument("--points", action='store_true',
                     help=("table of per-vertex surface shape measures"))
 features_group.add_argument("--xfm", action='store_true',
@@ -205,6 +205,7 @@ else:
     do_label = False
 all_features_shapes = args.all
 do_points = args.points
+do_fundi = False
 if all_features_shapes:
     save_folds = True
     do_sulci = True
