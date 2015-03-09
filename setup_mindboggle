@@ -153,15 +153,15 @@ else:
 # Installation script to include in Vagrant file
 #=============================================================================
 if args.build:
-    script = """#=============================================================================
-# Build script for Vagrantfile
-#=============================================================================
-$script = <<SCRIPT
-#-----------------------------------------------------------------------------
+    script = """#-----------------------------------------------------------------------------
 # Assign download and installation path arguments:
 #-----------------------------------------------------------------------------
+#DL_PREFIX=/home/arno/downloads
+#INSTALL_PREFIX=/home/arno/software/install
+#MB_ENV=/home/arno/.bash_profile
 DL_PREFIX=$1
 INSTALL_PREFIX=$2
+MB_ENV=$3
 
 #-----------------------------------------------------------------------------
 # System-wide dependencies:
@@ -172,8 +172,10 @@ apt-get install -y g++ git make xorg
 #-----------------------------------------------------------------------------
 # Anaconda's miniconda Python distribution for local installs:
 #-----------------------------------------------------------------------------
-CONDA_DL=${DL_PREFIX}/Miniconda-3.7.0-Linux-x86_64.sh
-wget http://repo.continuum.io/miniconda/Miniconda-3.7.0-Linux-x86_64.sh -P $DL_PREFIX
+CONDA_DL=${DL_PREFIX}/Miniconda-3.9.1-Linux-x86_64.sh
+wget http://repo.continuum.io/miniconda/Miniconda-3.9.1-Linux-x86_64.sh -P $DL_PREFIX
+#curl -O http://repo.continuum.io/miniconda/Miniconda-3.7.3-MacOSX-x86_64.sh
+#bash Miniconda-3.7.3-MacOSX-x86_64.sh -p /software/miniconda
 chmod +x $CONDA_DL
 $CONDA_DL -b -p $INSTALL_PREFIX
 # Setup PATH
@@ -188,8 +190,9 @@ conda install --yes cmake pip
 # Python packages:
 #-----------------------------------------------------------------------------
 conda install --yes numpy scipy matplotlib nose networkx traits vtk ipython
+#conda install --yes scikit-learn ipython-notebook mayavi pandas
 # Nipype: software pipeline framework; Nibabel: medical image read/write lib
-pip install nibabel nipype scikit-learn
+pip install nibabel nipype
 VTK_DIR=${INSTALL_PREFIX}/lib/vtk-5.10
 #pip install https://github.com/RDFLib/rdflib/archive/master.zip
 #pip install https://github.com/satra/prov/archive/rdf.zip
@@ -199,14 +202,12 @@ VTK_DIR=${INSTALL_PREFIX}/lib/vtk-5.10
 #-----------------------------------------------------------------------------
 MB_DL=${DL_PREFIX}/mindboggle
 git clone https://github.com/binarybottle/mindboggle.git $MB_DL
-cd $MB_DL
+mv ${MB_DL} ${INSTALL_PREFIX}
+cd ${INSTALL_PREFIX}/mindboggle
 python setup.py install --prefix=${INSTALL_PREFIX}
-cd ${MB_DL}/mindboggle_tools/bin
+cd ${INSTALL_PREFIX}/mindboggle/mindboggle_tools/bin
 cmake ../ -DVTK_DIR:STRING=${VTK_DIR}
 make
-cd $DL_PREFIX
-cp -r ${MB_DL}/mindboggle_tools ${INSTALL_PREFIX}
-
 #-----------------------------------------------------------------------------
 # ANTs (http://brianavants.wordpress.com/2012/04/13/
 #              updated-ants-compile-instructions-april-12-2012/)
@@ -220,15 +221,19 @@ cd $ANTS_DL
 git checkout tags/v2.1.0rc2
 mkdir ${INSTALL_PREFIX}/ants
 cd ${INSTALL_PREFIX}/ants
-cmake $ANTS_DL -DVTK_DIR:STRING=${VTK_DIR}
+cmake $ANTS_DL #-DVTK_DIR:STRING=${VTK_DIR}
 make
 cp -r ${ANTS_DL}/Scripts/* ${INSTALL_PREFIX}/ants/bin
+# Remove non-essential directories:
+mv ${INSTALL_PREFIX}/ants/bin ${INSTALL_PREFIX}/ants_bin
+rm -rf ${INSTALL_PREFIX}/ants/*
+mv ${INSTALL_PREFIX}/ants_bin ${INSTALL_PREFIX}/ants/bin
 
 #-----------------------------------------------------------------------------
 # Create a global environment sourcing script and set environment variables:
 #-----------------------------------------------------------------------------
-MB_ENV=/etc/profile.d/mb_env.sh
-touch $MB_ENV
+#MB_ENV=/etc/profile.d/mb_env.sh
+#touch $MB_ENV
 
 # -- Local install --
 echo "# Local install prefix" >> $MB_ENV
@@ -241,17 +246,15 @@ echo "export PATH=\$ANTSPATH:\$PATH" >> $MB_ENV
 
 # -- Mindboggle --
 echo "# Mindboggle" >> $MB_ENV
-echo "export MINDBOGGLE_TOOLS=${INSTALL_PREFIX}/mindboggle_tools/bin" >> $MB_ENV
+echo "export MINDBOGGLE_TOOLS=${INSTALL_PREFIX}/mindboggle/mindboggle_tools/bin" >> $MB_ENV
 echo "export PATH=\$MINDBOGGLE_TOOLS:\$PATH" >> $MB_ENV
+#echo "export DYLD_LIBRARY_PATH=\${INSTALL_PREFIX}/anaconda/lib/vtk-5.10:\${DYLD_LIBRARY_PATH}
 
 #-----------------------------------------------------------------------------
-# Finally, remove downloads directory and other non-essential directories:
+# Finally, remove non-essential directories:
 #-----------------------------------------------------------------------------
-rm_extras=1
+rm_extras=0
 if [ $rm_extras == 1 ]
-    mv ${INSTALL_PREFIX}/ants/bin ${INSTALL_PREFIX}/ants_bin
-    rm -r ${INSTALL_PREFIX}/ants/*
-    mv ${INSTALL_PREFIX}/ants_bin ${INSTALL_PREFIX}/ants/bin
     rm ${DL_PREFIX}/* -rf
 fi
 """
