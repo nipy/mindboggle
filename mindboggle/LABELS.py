@@ -195,10 +195,9 @@ class DKTprotocol:
     #-------------------------------------------------------------------------
     # Cerebral cortex label numbers (DKT31 protocol):
     #-------------------------------------------------------------------------
-    left_cerebrum_cortex_DKT31_list = \
-        [1002, 1003] + range(1005, 1032) + [1034, 1035]
-    right_cerebrum_cortex_DKT31_list = \
-        [2002, 2003] + range(2005, 2032) + [2034, 2035]
+    DKT31_numbers = [2, 3] + range(5, 32) + [34, 35]
+    left_cerebrum_cortex_DKT31_list = [1000 + x for x in DKT31_numbers]
+    right_cerebrum_cortex_DKT31_list = [2000 + x for x in DKT31_numbers]
 
     #-------------------------------------------------------------------------
     # Cerebral cortex label numbers (31 + duplicates):

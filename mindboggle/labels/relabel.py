@@ -280,7 +280,7 @@ def keep_volume_labels(input_file, labels_to_keep, output_file='',
     return output_file
 
 
-def relabel_surface(vtk_file, old_labels=[], new_labels=[],
+def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
                     erase_remaining=True, erase_labels=[], erase_value=-1,
                     output_file=''):
     """
@@ -288,12 +288,17 @@ def relabel_surface(vtk_file, old_labels=[], new_labels=[],
 
     Parameters
     ----------
-    vtk_file : string
-        input labeled VTK file
-    old_labels : list of integers
-        old labels (empty list if labels drawn from vtk scalars)
+     vtk_file : string
+         input labeled VTK file
+     hemi : string
+        hemisphere ('lh' or 'rh' or '')
+        if set, add 1000 to left and 2000 to right hemisphere labels;
+     old_labels : list of integers
+        old labels (empty list if labels drawn from vtk scalars);
+        may be used in conjunction with hemi
     new_labels : list of integers
-        new labels (empty list if labels drawn from vtk scalars)
+        new labels (empty list if labels drawn from vtk scalars);
+        may be used in conjunction with hemi
     erase_remaining : Boolean
         set all values not in old_labels to erase_value?
     erase_labels : list of integers
@@ -310,19 +315,23 @@ def relabel_surface(vtk_file, old_labels=[], new_labels=[],
 
     Examples
     --------
+    >>> import os
     >>> from mindboggle.labels.relabel import relabel_surface
     >>> from mindboggle.utils.plots import plot_surfaces
-    >>> vtk_file = 'rh.labels.DKT31.manual.vtk'
-    >>> old_labels = [10, 23, 26, 19, 20, 27]
-    >>> new_labels = [2, 2, 2, 18, 18, 3]
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> hemi = 'lh'
+    >>> old_labels = [1003,1009,1030]
+    >>> new_labels = [3,9,30]
     >>> erase_remaining = False
     >>> erase_labels = [0]
     >>> erase_value = -1
     >>> output_file = ''
     >>> #
-    >>> relabel_surface(vtk_file, old_labels, new_labels, erase_remaining, erase_labels, erase_value, output_file)
+    >>> relabel_surface(vtk_file, hemi, old_labels, new_labels, erase_remaining, erase_labels, erase_value, output_file)
     >>> # View
-    >>> plot_surfaces('relabeled_rh.labels.DKT31.manual.vtk')
+    >>> plot_surfaces('relabeled_FreeSurfer_cortex_labels.vtk')
+    >>> #plot_surfaces('relabeled_rh.labels.DKT31.manual.vtk')
 
     """
     import os
@@ -336,6 +345,7 @@ def relabel_surface(vtk_file, old_labels=[], new_labels=[],
 
     # Raise an error if inputs set incorrectly:
     if (new_labels and not old_labels) or \
+-      (hemi and hemi not in ['lh','rh']) or \
        (new_labels and len(old_labels) != len(new_labels)) or \
        (erase_remaining and not old_labels):
         raise IOError("Please check inputs for relabel_surface().")
@@ -349,9 +359,23 @@ def relabel_surface(vtk_file, old_labels=[], new_labels=[],
         if label in erase_labels:
             new_scalars[I] = erase_value
 
-        # If label in old_labels list, replace with corresponding new label:
-        elif label in old_labels:
-            new_scalars[I] = new_labels[old_labels.index(label)]
+        # If label in old_labels list, replace with corresponding new label,
+        # and if hemi set, add 1000 or 2000 to the new label:
+        elif label in old_labels and (len(old_labels) == len(new_labels)):
+            new_label = new_labels[old_labels.index(label)]
+            if hemi == 'lh':
+                new_scalars[I] = 1000 + new_label
+            elif hemi == 'rh':
+                new_scalars[I] = 2000 + new_label
+            else:
+                new_scalars[I] = new_label
+
+        # If labels not set then optionally add hemi value:
+        elif hemi and not new_labels:
+            if hemi == 'lh':
+                new_scalars[I] = 1000 + label
+            elif hemi == 'rh':
+                new_scalars[I] = 2000 + label
 
         # If label unaccounted for and erase_remaining, set to erase_value:
         elif erase_remaining:
