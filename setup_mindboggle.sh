@@ -6,11 +6,13 @@
 # (http://mindboggle.info/users/INSTALL.html).
 #
 # Usage:
-#     ./install_mindboggle <download_dir> <install_dir>
+#     ./install_mindboggle <download_dir> <install_dir> <env_file>
 #
 # Note:
-#     <download_dir> must already exist and <install_dir> must not exist,
-#     and both must be full paths.
+#     <download_dir> and <var_file> must already exist,
+#     <install_dir> must not exist, and all must be full paths.
+#     <env_file> is a global environment sourcing script 
+#     to set environment variables.
 #
 # Authors:
 #     - Daniel Clark, 2014
@@ -24,6 +26,7 @@
 #-----------------------------------------------------------------------------
 DL_PREFIX=$1
 INSTALL_PREFIX=$2
+MB_ENV=$3
 
 #-----------------------------------------------------------------------------
 # System-wide dependencies:
@@ -34,8 +37,8 @@ apt-get install -y g++ git make xorg
 #-----------------------------------------------------------------------------
 # Anaconda's miniconda Python distribution for local installs:
 #-----------------------------------------------------------------------------
-CONDA_DL=${DL_PREFIX}/Miniconda-3.7.0-Linux-x86_64.sh
-wget http://repo.continuum.io/miniconda/Miniconda-3.7.0-Linux-x86_64.sh -P $DL_PREFIX
+CONDA_DL=${DL_PREFIX}/Miniconda-3.9.1-Linux-x86_64.sh
+wget http://repo.continuum.io/miniconda/Miniconda-3.9.1-Linux-x86_64.sh -P $DL_PREFIX
 #curl -O http://repo.continuum.io/miniconda/Miniconda-3.7.3-MacOSX-x86_64.sh
 #bash Miniconda-3.7.3-MacOSX-x86_64.sh -p /software/miniconda
 chmod +x $CONDA_DL
@@ -87,12 +90,16 @@ cd ${INSTALL_PREFIX}/ants
 cmake $ANTS_DL #-DVTK_DIR:STRING=${VTK_DIR}
 make
 cp -r ${ANTS_DL}/Scripts/* ${INSTALL_PREFIX}/ants/bin
+# Remove non-essential directories:
+mv ${INSTALL_PREFIX}/ants/bin ${INSTALL_PREFIX}/ants_bin
+rm -rf ${INSTALL_PREFIX}/ants/*
+mv ${INSTALL_PREFIX}/ants_bin ${INSTALL_PREFIX}/ants/bin
 
 #-----------------------------------------------------------------------------
 # Create a global environment sourcing script and set environment variables:
 #-----------------------------------------------------------------------------
-MB_ENV=/etc/profile.d/mb_env.sh
-touch $MB_ENV
+#MB_ENV=/etc/profile.d/mb_env.sh
+#touch $MB_ENV
 
 # -- Local install --
 echo "# Local install prefix" >> $MB_ENV
@@ -109,12 +116,9 @@ echo "export MINDBOGGLE_TOOLS=${INSTALL_PREFIX}/mindboggle_tools/bin" >> $MB_ENV
 echo "export PATH=\$MINDBOGGLE_TOOLS:\$PATH" >> $MB_ENV
 
 #-----------------------------------------------------------------------------
-# Finally, remove downloads directory and other non-essential directories:
+# Finally, remove non-essential directories:
 #-----------------------------------------------------------------------------
-rm_extras=1
+rm_extras=0
 if [ $rm_extras == 1 ]
-    mv ${INSTALL_PREFIX}/ants/bin ${INSTALL_PREFIX}/ants_bin
-    rm -r ${INSTALL_PREFIX}/ants/*
-    mv ${INSTALL_PREFIX}/ants_bin ${INSTALL_PREFIX}/ants/bin
     rm ${DL_PREFIX}/* -rf
 fi
