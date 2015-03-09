@@ -6,7 +6,7 @@ Functions related to Mindboggle data.
 Authors:
     - Arno Klein, 2014  (arno@mindboggle.info)  http://binarybottle.com
 
-Copyright 2014,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2015,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -32,7 +32,7 @@ def hashes_url():
     import os
 
     hashes = {}
-    url = 'http://mindboggle.info/data/cache/'
+    url = 'http://media.mindboggle.info/data/cache/'
     cache_env = 'MINDBOGGLE_CACHE'
     cache = os.path.join(os.environ['HOME'], 'mindboggle_cache')
 
