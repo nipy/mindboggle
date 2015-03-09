@@ -345,7 +345,7 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
 
     # Raise an error if inputs set incorrectly:
     if (new_labels and not old_labels) or \
--      (hemi and hemi not in ['lh','rh']) or \
+       (hemi and hemi not in ['lh','rh']) or \
        (new_labels and len(old_labels) != len(new_labels)) or \
        (erase_remaining and not old_labels):
         raise IOError("Please check inputs for relabel_surface().")
