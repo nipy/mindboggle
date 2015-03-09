@@ -288,12 +288,12 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
 
     Parameters
     ----------
-     vtk_file : string
+    vtk_file : string
          input labeled VTK file
-     hemi : string
+    hemi : string
         hemisphere ('lh' or 'rh' or '')
         if set, add 1000 to left and 2000 to right hemisphere labels;
-     old_labels : list of integers
+    old_labels : list of integers
         old labels (empty list if labels drawn from vtk scalars);
         may be used in conjunction with hemi
     new_labels : list of integers
