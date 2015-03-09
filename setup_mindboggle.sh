@@ -122,7 +122,7 @@ echo "export PATH=\$ANTSPATH:\$PATH" >> $MB_ENV
 echo "# Mindboggle" >> $MB_ENV
 echo "export MINDBOGGLE_TOOLS=${INSTALL_PREFIX}/mindboggle/mindboggle_tools/bin" >> $MB_ENV
 echo "export PATH=\$MINDBOGGLE_TOOLS:\$PATH" >> $MB_ENV
-#echo "export DYLD_LIBRARY_PATH=\${INSTALL_PREFIX}/anaconda/lib/vtk-5.10:\${DYLD_LIBRARY_PATH}" >> $MB_ENV
+#echo "export DYLD_LIBRARY_PATH=\${INSTALL_PREFIX}/miniconda/lib/vtk-5.10:\${DYLD_LIBRARY_PATH}" >> $MB_ENV
 
 #-----------------------------------------------------------------------------
 # Finally, remove non-essential directories:
