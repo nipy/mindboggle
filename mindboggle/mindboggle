@@ -772,6 +772,7 @@ if do_surface:
         ReindexLabels = Node(name='Reindex_labels',
                              interface=Fn(function=relabel_surface,
                                           input_names=['vtk_file',
+                                                       'hemi',
                                                        'old_labels',
                                                        'new_labels',
                                                        'erase_remaining',
@@ -781,7 +782,9 @@ if do_surface:
                                           output_names=['output_file']))
         SurfLabelFlow.add_nodes([ReindexLabels])
         SurfLabelFlow.connect(plug1, plug2, ReindexLabels, 'vtk_file')
-        ReindexLabels.inputs.old_labels = dkt.cerebrum_cortex_DKT31_numbers
+        mbFlow.connect(InputHemis, 'hemi',
+                       SurfLabelFlow, 'Reindex_labels.hemi')
+        ReindexLabels.inputs.old_labels = dkt.DKT31_numbers
         ReindexLabels.inputs.new_labels = []
         ReindexLabels.inputs.erase_remaining = True
         ReindexLabels.inputs.erase_labels = [0]
