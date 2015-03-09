@@ -8,8 +8,13 @@
 # Usage:
 #     ./install_mindboggle <download_dir> <install_dir> <env_file>
 #
+#     For example:
+#     ./install_mindboggle /home/arno/downloads \
+#                          /home/arno/software/install \
+#                          /home/arno/.bash_profile
+#
 # Note:
-#     <download_dir> and <var_file> must already exist,
+#     <download_dir> and <env_file> must already exist,
 #     <install_dir> must not exist, and all must be full paths.
 #     <env_file> is a global environment sourcing script 
 #     to set environment variables.
@@ -72,8 +77,9 @@ python setup.py install --prefix=${INSTALL_PREFIX}
 cd ${MB_DL}/mindboggle_tools/bin
 cmake ../ -DVTK_DIR:STRING=${VTK_DIR}
 make
-cd $DL_PREFIX
-cp -r ${MB_DL}/mindboggle_tools ${INSTALL_PREFIX}
+#cp -r ${MB_DL}/mindboggle_tools ${INSTALL_PREFIX}
+cp -r $MB_DL ${INSTALL_PREFIX}
+cd $DL
 #-----------------------------------------------------------------------------
 # ANTs (http://brianavants.wordpress.com/2012/04/13/
 #              updated-ants-compile-instructions-april-12-2012/)
@@ -112,8 +118,9 @@ echo "export PATH=\$ANTSPATH:\$PATH" >> $MB_ENV
 
 # -- Mindboggle --
 echo "# Mindboggle" >> $MB_ENV
-echo "export MINDBOGGLE_TOOLS=${INSTALL_PREFIX}/mindboggle_tools/bin" >> $MB_ENV
+echo "export MINDBOGGLE_TOOLS=${INSTALL_PREFIX}/mindboggle/mindboggle_tools/bin" >> $MB_ENV
 echo "export PATH=\$MINDBOGGLE_TOOLS:\$PATH" >> $MB_ENV
+#echo "export DYLD_LIBRARY_PATH=${INSTALL_PREFIX}/anaconda/lib/vtk-5.10:${DYLD_LIBRARY_PATH}
 
 #-----------------------------------------------------------------------------
 # Finally, remove non-essential directories:
