@@ -29,9 +29,9 @@
 #-----------------------------------------------------------------------------
 # Assign download and installation path arguments:
 #-----------------------------------------------------------------------------
-#DL_PREFIX=/home/arno/downloads
-#INSTALL_PREFIX=/home/arno/software/install
-#MB_ENV=/home/arno/.bash_profile
+#DL_PREFIX=/homedir/downloads
+#INSTALL_PREFIX=/homedir/software/install
+#MB_ENV=/homedir/.bash_profile
 DL_PREFIX=$1
 INSTALL_PREFIX=$2
 MB_ENV=$3
@@ -47,10 +47,11 @@ apt-get install -y g++ git make xorg
 #-----------------------------------------------------------------------------
 CONDA_DL=${DL_PREFIX}/Miniconda-3.9.1-Linux-x86_64.sh
 wget http://repo.continuum.io/miniconda/Miniconda-3.9.1-Linux-x86_64.sh -P $DL_PREFIX
-#curl -O http://repo.continuum.io/miniconda/Miniconda-3.7.3-MacOSX-x86_64.sh
-#bash Miniconda-3.7.3-MacOSX-x86_64.sh -p /software/miniconda
 chmod +x $CONDA_DL
 $CONDA_DL -b -p $INSTALL_PREFIX
+#curl -O http://repo.continuum.io/miniconda/Miniconda-3.9.1-MacOSX-x86_64.sh
+#bash Miniconda-3.9.1-MacOSX-x86_64.sh -p /software/miniconda
+
 # Setup PATH
 export PATH=${INSTALL_PREFIX}/bin:$PATH
 
@@ -121,7 +122,7 @@ echo "export PATH=\$ANTSPATH:\$PATH" >> $MB_ENV
 echo "# Mindboggle" >> $MB_ENV
 echo "export MINDBOGGLE_TOOLS=${INSTALL_PREFIX}/mindboggle/mindboggle_tools/bin" >> $MB_ENV
 echo "export PATH=\$MINDBOGGLE_TOOLS:\$PATH" >> $MB_ENV
-#echo "export DYLD_LIBRARY_PATH=\${INSTALL_PREFIX}/anaconda/lib/vtk-5.10:\${DYLD_LIBRARY_PATH}
+#echo "export DYLD_LIBRARY_PATH=\${INSTALL_PREFIX}/miniconda/lib/vtk-5.10:\${DYLD_LIBRARY_PATH}" >> $MB_ENV
 
 #-----------------------------------------------------------------------------
 # Finally, remove non-essential directories:
