@@ -53,5 +53,5 @@ For help with other setup options::
 
     python setup_mindboggle --help
 
-See `README <http://http://mindboggle.info/users/README.html#set-up-mindboggle>`_
+See `README <http://mindboggle.info/users/README.html#set-up-mindboggle>`_
 for instructions on how to run Mindboggle with this setup!
