@@ -37,7 +37,7 @@
   <meta name="dc.identifier" content="http://binarybottle.github.io/mindboggle/">
 
   </head>
-  <body>
+  <body role="document">
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
  <table>
   <tr>
@@ -82,12 +82,12 @@
 
     <div class="document">
       <div class="documentwrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="labels-propagate-fundus-lines">
 <h1>labels.propagate_fundus_lines<a class="headerlink" href="#labels-propagate-fundus-lines" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-mindboggle.labels.propagate_fundus_lines">
-<span id="module-labels-propagate-fundus-lines"></span><h2>Module: <tt class="xref py py-mod docutils literal"><span class="pre">labels.propagate_fundus_lines</span></tt><a class="headerlink" href="#module-mindboggle.labels.propagate_fundus_lines" title="Permalink to this headline">¶</a></h2>
+<span id="module-labels-propagate-fundus-lines"></span><h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">labels.propagate_fundus_lines</span></code><a class="headerlink" href="#module-mindboggle.labels.propagate_fundus_lines" title="Permalink to this headline">¶</a></h2>
 <p>Functions for propagating fundus line endpoints to tile the surface.</p>
 <dl class="docutils">
 <dt>Authors:</dt>
@@ -102,12 +102,12 @@
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mindboggle.labels.propagate_fundus_lines.main">
-<tt class="descclassname">mindboggle.labels.propagate_fundus_lines.</tt><tt class="descname">main</tt><big>(</big><em>argv</em><big>)</big><a class="headerlink" href="#mindboggle.labels.propagate_fundus_lines.main" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.labels.propagate_fundus_lines.</code><code class="descname">main</code><span class="sig-paren">(</span><em>argv</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.labels.propagate_fundus_lines.main" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="mindboggle.labels.propagate_fundus_lines.propagate_fundus_lines">
-<tt class="descclassname">mindboggle.labels.propagate_fundus_lines.</tt><tt class="descname">propagate_fundus_lines</tt><big>(</big><em>points</em>, <em>faces</em>, <em>fundus_line_indices</em>, <em>thickness</em><big>)</big><a class="headerlink" href="#mindboggle.labels.propagate_fundus_lines.propagate_fundus_lines" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.labels.propagate_fundus_lines.</code><code class="descname">propagate_fundus_lines</code><span class="sig-paren">(</span><em>points</em>, <em>faces</em>, <em>fundus_line_indices</em>, <em>thickness</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.labels.propagate_fundus_lines.propagate_fundus_lines" title="Permalink to this definition">¶</a></dt>
 <dd><p>Propagate fundus lines to tile the surface.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -129,7 +129,7 @@
 
 <dl class="function">
 <dt>
-<tt class="descclassname">mindboggle.labels.propagate_fundus_lines.</tt><tt class="descname">propagate_fundus_lines</tt><big>(</big><em>points</em>, <em>faces</em>, <em>fundus_line_indices</em>, <em>thickness</em><big>)</big></dt>
+<code class="descclassname">mindboggle.labels.propagate_fundus_lines.</code><code class="descname">propagate_fundus_lines</code><span class="sig-paren">(</span><em>points</em>, <em>faces</em>, <em>fundus_line_indices</em>, <em>thickness</em><span class="sig-paren">)</span></dt>
 <dd><p>Propagate fundus lines to tile the surface.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />

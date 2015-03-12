@@ -37,7 +37,7 @@
   <meta name="dc.identifier" content="http://binarybottle.github.io/mindboggle/">
 
   </head>
-  <body>
+  <body role="document">
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
  <table>
   <tr>
@@ -82,12 +82,12 @@
 
     <div class="document">
       <div class="documentwrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="utils-compute">
 <h1>utils.compute<a class="headerlink" href="#utils-compute" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-mindboggle.utils.compute">
-<span id="module-utils-compute"></span><h2>Module: <tt class="xref py py-mod docutils literal"><span class="pre">utils.compute</span></tt><a class="headerlink" href="#module-mindboggle.utils.compute" title="Permalink to this headline">¶</a></h2>
+<span id="module-utils-compute"></span><h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">utils.compute</span></code><a class="headerlink" href="#module-mindboggle.utils.compute" title="Permalink to this headline">¶</a></h2>
 <p>Compute functions.</p>
 <dl class="docutils">
 <dt>Authors:</dt>
@@ -102,7 +102,7 @@
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mindboggle.utils.compute.compute_image_histogram">
-<tt class="descclassname">mindboggle.utils.compute.</tt><tt class="descname">compute_image_histogram</tt><big>(</big><em>infile</em>, <em>nbins=100</em>, <em>threshold=0.0</em><big>)</big><a class="headerlink" href="#mindboggle.utils.compute.compute_image_histogram" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.compute.</code><code class="descname">compute_image_histogram</code><span class="sig-paren">(</span><em>infile</em>, <em>nbins=100</em>, <em>threshold=0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.compute.compute_image_histogram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute histogram values from nibabel-readable image.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -142,7 +142,7 @@
 
 <dl class="function">
 <dt id="mindboggle.utils.compute.means_per_label">
-<tt class="descclassname">mindboggle.utils.compute.</tt><tt class="descname">means_per_label</tt><big>(</big><em>values</em>, <em>labels</em>, <em>include_labels=[]</em>, <em>exclude_labels=[]</em>, <em>areas=[]</em><big>)</big><a class="headerlink" href="#mindboggle.utils.compute.means_per_label" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.compute.</code><code class="descname">means_per_label</code><span class="sig-paren">(</span><em>values</em>, <em>labels</em>, <em>include_labels=[]</em>, <em>exclude_labels=[]</em>, <em>areas=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.compute.means_per_label" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the mean value across vertices per label,
 optionally taking into account surface area per vertex (UNTESTED).</p>
 <p>Formula:
@@ -235,7 +235,7 @@ where <em>a_i</em> and <em>v_i</em> are the area and value for each vertex <em>i
 
 <dl class="function">
 <dt id="mindboggle.utils.compute.median_abs_dev">
-<tt class="descclassname">mindboggle.utils.compute.</tt><tt class="descname">median_abs_dev</tt><big>(</big><em>X</em>, <em>W=[]</em>, <em>precision=1</em>, <em>c=1.0</em><big>)</big><a class="headerlink" href="#mindboggle.utils.compute.median_abs_dev" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.compute.</code><code class="descname">median_abs_dev</code><span class="sig-paren">(</span><em>X</em>, <em>W=[]</em>, <em>precision=1</em>, <em>c=1.0</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.compute.median_abs_dev" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the (weighted) median absolute deviation.</p>
 <p>mad = median(abs(x - median(x))) / c</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -284,7 +284,7 @@ c = 0.6745 is used to convert from mad to standard deviation</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.compute.pairwise_vector_distances">
-<tt class="descclassname">mindboggle.utils.compute.</tt><tt class="descname">pairwise_vector_distances</tt><big>(</big><em>vectors</em>, <em>save_file=False</em>, <em>normalize=False</em><big>)</big><a class="headerlink" href="#mindboggle.utils.compute.pairwise_vector_distances" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.compute.</code><code class="descname">pairwise_vector_distances</code><span class="sig-paren">(</span><em>vectors</em>, <em>save_file=False</em>, <em>normalize=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.compute.pairwise_vector_distances" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compare every pair of equal-sized vectors.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -327,7 +327,7 @@ c = 0.6745 is used to convert from mad to standard deviation</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.compute.point_distance">
-<tt class="descclassname">mindboggle.utils.compute.</tt><tt class="descname">point_distance</tt><big>(</big><em>point</em>, <em>points</em><big>)</big><a class="headerlink" href="#mindboggle.utils.compute.point_distance" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.compute.</code><code class="descname">point_distance</code><span class="sig-paren">(</span><em>point</em>, <em>points</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.compute.point_distance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the Euclidean distance from one point to a second (set) of points.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -371,7 +371,7 @@ scipy.spatial.distance.cdist is available in scipy v0.12 or later</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.compute.source_to_target_distances">
-<tt class="descclassname">mindboggle.utils.compute.</tt><tt class="descname">source_to_target_distances</tt><big>(</big><em>sourceIDs, targetIDs, points, segmentIDs=[], excludeIDs=[-1]</em><big>)</big><a class="headerlink" href="#mindboggle.utils.compute.source_to_target_distances" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.compute.</code><code class="descname">source_to_target_distances</code><span class="sig-paren">(</span><em>sourceIDs, targetIDs, points, segmentIDs=[], excludeIDs=[-1]</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.compute.source_to_target_distances" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Euclidean distance matrix between source and target points.</p>
 <p>Compute the Euclidean distance from each source point to
 its nearest target point, optionally within each segment.</p>
@@ -427,7 +427,7 @@ source/target distances are computed within each segment</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.compute.stats_per_label">
-<tt class="descclassname">mindboggle.utils.compute.</tt><tt class="descname">stats_per_label</tt><big>(</big><em>values</em>, <em>labels</em>, <em>include_labels=[]</em>, <em>exclude_labels=[]</em>, <em>weights=[]</em>, <em>precision=1</em><big>)</big><a class="headerlink" href="#mindboggle.utils.compute.stats_per_label" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.compute.</code><code class="descname">stats_per_label</code><span class="sig-paren">(</span><em>values</em>, <em>labels</em>, <em>include_labels=[]</em>, <em>exclude_labels=[]</em>, <em>weights=[]</em>, <em>precision=1</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.compute.stats_per_label" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute various statistical measures across vertices per label,
 optionally using weights (such as surface area per vertex).</p>
 <p>Example (area-weighted mean):
@@ -537,7 +537,7 @@ where <em>a_i</em> and <em>v_i</em> are the area and value for each vertex <em>i
 
 <dl class="function">
 <dt id="mindboggle.utils.compute.sum_per_label">
-<tt class="descclassname">mindboggle.utils.compute.</tt><tt class="descname">sum_per_label</tt><big>(</big><em>values</em>, <em>labels</em>, <em>include_labels=[]</em>, <em>exclude_labels=[]</em><big>)</big><a class="headerlink" href="#mindboggle.utils.compute.sum_per_label" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.compute.</code><code class="descname">sum_per_label</code><span class="sig-paren">(</span><em>values</em>, <em>labels</em>, <em>include_labels=[]</em>, <em>exclude_labels=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.compute.sum_per_label" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the sum value across vertices per label.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -592,7 +592,7 @@ where <em>a_i</em> and <em>v_i</em> are the area and value for each vertex <em>i
 
 <dl class="function">
 <dt id="mindboggle.utils.compute.vector_distance">
-<tt class="descclassname">mindboggle.utils.compute.</tt><tt class="descname">vector_distance</tt><big>(</big><em>vector1</em>, <em>vector2</em>, <em>normalize=False</em><big>)</big><a class="headerlink" href="#mindboggle.utils.compute.vector_distance" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.compute.</code><code class="descname">vector_distance</code><span class="sig-paren">(</span><em>vector1</em>, <em>vector2</em>, <em>normalize=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.compute.vector_distance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the Euclidean distance between two equal-sized vectors.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -633,7 +633,7 @@ where <em>a_i</em> and <em>v_i</em> are the area and value for each vertex <em>i
 
 <dl class="function">
 <dt id="mindboggle.utils.compute.volume_per_label">
-<tt class="descclassname">mindboggle.utils.compute.</tt><tt class="descname">volume_per_label</tt><big>(</big><em>input_file</em>, <em>include_labels=[]</em>, <em>exclude_labels=[]</em>, <em>label_names=[]</em>, <em>save_table=False</em>, <em>output_table=''</em><big>)</big><a class="headerlink" href="#mindboggle.utils.compute.volume_per_label" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.compute.</code><code class="descname">volume_per_label</code><span class="sig-paren">(</span><em>input_file</em>, <em>include_labels=[]</em>, <em>exclude_labels=[]</em>, <em>label_names=[]</em>, <em>save_table=False</em>, <em>output_table=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.compute.volume_per_label" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute volume per labeled region in a nibabel-readable image.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -697,7 +697,7 @@ where <em>a_i</em> and <em>v_i</em> are the area and value for each vertex <em>i
 
 <dl class="function">
 <dt id="mindboggle.utils.compute.weighted_median">
-<tt class="descclassname">mindboggle.utils.compute.</tt><tt class="descname">weighted_median</tt><big>(</big><em>X</em>, <em>W=[]</em>, <em>precision=1</em><big>)</big><a class="headerlink" href="#mindboggle.utils.compute.weighted_median" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.compute.</code><code class="descname">weighted_median</code><span class="sig-paren">(</span><em>X</em>, <em>W=[]</em>, <em>precision=1</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.compute.weighted_median" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute a weighted median.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -740,7 +740,7 @@ where <em>a_i</em> and <em>v_i</em> are the area and value for each vertex <em>i
 
 <dl class="function">
 <dt id="mindboggle.utils.compute.weighted_to_repeated_values">
-<tt class="descclassname">mindboggle.utils.compute.</tt><tt class="descname">weighted_to_repeated_values</tt><big>(</big><em>X</em>, <em>W=[]</em>, <em>precision=1</em><big>)</big><a class="headerlink" href="#mindboggle.utils.compute.weighted_to_repeated_values" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.compute.</code><code class="descname">weighted_to_repeated_values</code><span class="sig-paren">(</span><em>X</em>, <em>W=[]</em>, <em>precision=1</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.compute.weighted_to_repeated_values" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a list of repeated values from weighted values.</p>
 <p>This is useful for computing weighted statistics (ex: weighted median).</p>
 <dl class="docutils">

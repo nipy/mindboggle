@@ -37,7 +37,7 @@
   <meta name="dc.identifier" content="http://binarybottle.github.io/mindboggle/">
 
   </head>
-  <body>
+  <body role="document">
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
  <table>
   <tr>
@@ -82,12 +82,12 @@
 
     <div class="document">
       <div class="documentwrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="utils-paths">
 <h1>utils.paths<a class="headerlink" href="#utils-paths" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-mindboggle.utils.paths">
-<span id="module-utils-paths"></span><h2>Module: <tt class="xref py py-mod docutils literal"><span class="pre">utils.paths</span></tt><a class="headerlink" href="#module-mindboggle.utils.paths" title="Permalink to this headline">¶</a></h2>
+<span id="module-utils-paths"></span><h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">utils.paths</span></code><a class="headerlink" href="#module-mindboggle.utils.paths" title="Permalink to this headline">¶</a></h2>
 <p>Curves, tracks, skeletons connecting surface mesh vertices.</p>
 <dl class="docutils">
 <dt>Authors:</dt>
@@ -103,7 +103,7 @@
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mindboggle.utils.paths.connect_points_erosion">
-<tt class="descclassname">mindboggle.utils.paths.</tt><tt class="descname">connect_points_erosion</tt><big>(</big><em>S</em>, <em>neighbor_lists</em>, <em>outer_anchors</em>, <em>inner_anchors=[]</em>, <em>values=[]</em>, <em>erode_ratio=0.1</em>, <em>erode_min_size=10</em>, <em>save_steps=[]</em>, <em>save_vtk=''</em>, <em>background_value=-1</em><big>)</big><a class="headerlink" href="#mindboggle.utils.paths.connect_points_erosion" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.paths.</code><code class="descname">connect_points_erosion</code><span class="sig-paren">(</span><em>S</em>, <em>neighbor_lists</em>, <em>outer_anchors</em>, <em>inner_anchors=[]</em>, <em>values=[]</em>, <em>erode_ratio=0.1</em>, <em>erode_min_size=10</em>, <em>save_steps=[]</em>, <em>save_vtk=''</em>, <em>background_value=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.paths.connect_points_erosion" title="Permalink to this definition">¶</a></dt>
 <dd><p>Connect mesh vertices with a skeleton of 1-vertex-thick curves by erosion.</p>
 <p>This algorithm iteratively removes simple topological points and endpoints,
 optionally in order of lowest to highest values.</p>
@@ -225,7 +225,7 @@ in order of lowest to highest values</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.paths.connect_points_hmmf">
-<tt class="descclassname">mindboggle.utils.paths.</tt><tt class="descname">connect_points_hmmf</tt><big>(</big><em>indices_points</em>, <em>indices</em>, <em>L</em>, <em>neighbor_lists</em>, <em>wN_max=1.0</em>, <em>background_value=-1</em><big>)</big><a class="headerlink" href="#mindboggle.utils.paths.connect_points_hmmf" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.paths.</code><code class="descname">connect_points_hmmf</code><span class="sig-paren">(</span><em>indices_points</em>, <em>indices</em>, <em>L</em>, <em>neighbor_lists</em>, <em>wN_max=1.0</em>, <em>background_value=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.paths.connect_points_hmmf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Connect mesh vertices with a skeleton of 1-vertex-thick curves using HMMF.</p>
 <p>The goal of this algorithm is to assign each vertex a locally optimal
 Hidden Markov Measure Field (HMMF) value and to connect vertices according
@@ -239,9 +239,9 @@ threshold such that a H_step makes it cross the threshold,
 and the vertex is a &#8220;simple point&#8221; (its addition/removal alters topology).</p>
 <p>Parameters for computing the cost and cost gradients:</p>
 <blockquote>
-<div><tt class="docutils literal"><span class="pre">wL</span></tt>: weight influence of likelihood on the cost function
-<tt class="docutils literal"><span class="pre">wN</span></tt>: weight influence of neighbors on the cost function
-<tt class="docutils literal"><span class="pre">H_step</span></tt>: the amount that the HMMF values are incremented</div></blockquote>
+<div><code class="docutils literal"><span class="pre">wL</span></code>: weight influence of likelihood on the cost function
+<code class="docutils literal"><span class="pre">wN</span></code>: weight influence of neighbors on the cost function
+<code class="docutils literal"><span class="pre">H_step</span></code>: the amount that the HMMF values are incremented</div></blockquote>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -327,7 +327,7 @@ and the vertex is a &#8220;simple point&#8221; (its addition/removal alters topo
 
 <dl class="function">
 <dt id="mindboggle.utils.paths.find_max_values">
-<tt class="descclassname">mindboggle.utils.paths.</tt><tt class="descname">find_max_values</tt><big>(</big><em>points</em>, <em>values</em>, <em>min_separation=10</em>, <em>thr=0.5</em><big>)</big><a class="headerlink" href="#mindboggle.utils.paths.find_max_values" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.paths.</code><code class="descname">find_max_values</code><span class="sig-paren">(</span><em>points</em>, <em>values</em>, <em>min_separation=10</em>, <em>thr=0.5</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.paths.find_max_values" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find points with maximal values that are not too close together.</p>
 <p>Steps</p>
 <div class="highlight-python"><div class="highlight"><pre>1. Sort values and find values above the threshold.
@@ -412,7 +412,7 @@ and the vertex is a &#8220;simple point&#8221; (its addition/removal alters topo
 
 <dl class="function">
 <dt id="mindboggle.utils.paths.find_outer_anchors">
-<tt class="descclassname">mindboggle.utils.paths.</tt><tt class="descname">find_outer_anchors</tt><big>(</big><em>indices</em>, <em>neighbor_lists</em>, <em>values</em>, <em>values_seeding</em>, <em>min_separation=10</em><big>)</big><a class="headerlink" href="#mindboggle.utils.paths.find_outer_anchors" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.paths.</code><code class="descname">find_outer_anchors</code><span class="sig-paren">(</span><em>indices</em>, <em>neighbor_lists</em>, <em>values</em>, <em>values_seeding</em>, <em>min_separation=10</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.paths.find_outer_anchors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find vertices on the boundary of a surface mesh region that are the
 endpoints to multiple, high-value tracks from the region&#8217;s center.</p>
 <p>This algorithm propagates multiple tracks from seed vertices
@@ -526,7 +526,7 @@ of fundus curves running along the depths of a fold.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.paths.smooth_skeleton">
-<tt class="descclassname">mindboggle.utils.paths.</tt><tt class="descname">smooth_skeleton</tt><big>(</big><em>skeletons</em>, <em>bounds</em>, <em>vtk_file</em>, <em>likelihoods</em>, <em>wN_max=1.0</em>, <em>erode_again=False</em>, <em>save_file=False</em>, <em>background_value=-1</em><big>)</big><a class="headerlink" href="#mindboggle.utils.paths.smooth_skeleton" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.paths.</code><code class="descname">smooth_skeleton</code><span class="sig-paren">(</span><em>skeletons</em>, <em>bounds</em>, <em>vtk_file</em>, <em>likelihoods</em>, <em>wN_max=1.0</em>, <em>erode_again=False</em>, <em>save_file=False</em>, <em>background_value=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.paths.smooth_skeleton" title="Permalink to this definition">¶</a></dt>
 <dd><p>Smooth skeleton by dilation followed by connect_points_hmmf().</p>
 <dl class="docutils">
 <dt>Steps ::</dt>
@@ -626,7 +626,7 @@ of fundus curves running along the depths of a fold.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.paths.track_segments">
-<tt class="descclassname">mindboggle.utils.paths.</tt><tt class="descname">track_segments</tt><big>(</big><em>seed</em>, <em>segments</em>, <em>neighbor_lists</em>, <em>values</em>, <em>sink</em>, <em>background_value=-1</em><big>)</big><a class="headerlink" href="#mindboggle.utils.paths.track_segments" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.paths.</code><code class="descname">track_segments</code><span class="sig-paren">(</span><em>seed</em>, <em>segments</em>, <em>neighbor_lists</em>, <em>values</em>, <em>sink</em>, <em>background_value=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.paths.track_segments" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build a track from a seed vertex through concentric segments of a mesh.</p>
 <p>This function builds a track from an initial seed vertex through
 concentric segments along high-value vertices of a surface mesh
@@ -712,7 +712,7 @@ optionally terminating at any of a set of sink vertices.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.paths.track_values">
-<tt class="descclassname">mindboggle.utils.paths.</tt><tt class="descname">track_values</tt><big>(</big><em>seed</em>, <em>indices</em>, <em>neighbor_lists</em>, <em>values</em>, <em>sink=[]</em><big>)</big><a class="headerlink" href="#mindboggle.utils.paths.track_values" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.paths.</code><code class="descname">track_values</code><span class="sig-paren">(</span><em>seed</em>, <em>indices</em>, <em>neighbor_lists</em>, <em>values</em>, <em>sink=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.paths.track_values" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build a track from a seed vertex along increasing vertex values of a mesh.</p>
 <p>This function builds a track from an initial seed vertex through
 increasing value vertices of a surface mesh, optionally terminating

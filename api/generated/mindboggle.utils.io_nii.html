@@ -37,7 +37,7 @@
   <meta name="dc.identifier" content="http://binarybottle.github.io/mindboggle/">
 
   </head>
-  <body>
+  <body role="document">
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
  <table>
   <tr>
@@ -82,12 +82,12 @@
 
     <div class="document">
       <div class="documentwrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="utils-io-nii">
 <h1>utils.io_nii<a class="headerlink" href="#utils-io-nii" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-mindboggle.utils.io_nii">
-<span id="module-utils-io-nii"></span><h2>Module: <tt class="xref py py-mod docutils literal"><span class="pre">utils.io_nii</span></tt><a class="headerlink" href="#module-mindboggle.utils.io_nii" title="Permalink to this headline">¶</a></h2>
+<span id="module-utils-io-nii"></span><h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">utils.io_nii</span></code><a class="headerlink" href="#module-mindboggle.utils.io_nii" title="Permalink to this headline">¶</a></h2>
 <p>Functions for reading and writing nifti volume files.</p>
 <dl class="docutils">
 <dt>Authors:</dt>
@@ -102,7 +102,7 @@
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mindboggle.utils.io_nii.convert2nii">
-<tt class="descclassname">mindboggle.utils.io_nii.</tt><tt class="descname">convert2nii</tt><big>(</big><em>input_file</em>, <em>reference_file</em>, <em>output_file=''</em>, <em>interp='continuous'</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_nii.convert2nii" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_nii.</code><code class="descname">convert2nii</code><span class="sig-paren">(</span><em>input_file</em>, <em>reference_file</em>, <em>output_file=''</em>, <em>interp='continuous'</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_nii.convert2nii" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert volume from the input file format to the output file format.</p>
 <p>If output_file is empty, reslice to nifti format using nibabel and
 scipy.ndimage.affine_transform, after nilearn.image.resample_img:</p>
@@ -161,7 +161,7 @@ scipy.ndimage.affine_transform, after nilearn.image.resample_img:</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.io_nii.xyz2nii">
-<tt class="descclassname">mindboggle.utils.io_nii.</tt><tt class="descname">xyz2nii</tt><big>(</big><em>input_xyz_file</em>, <em>output_nii_file=''</em>, <em>origin=[]</em>, <em>pad=10</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_nii.xyz2nii" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_nii.</code><code class="descname">xyz2nii</code><span class="sig-paren">(</span><em>input_xyz_file</em>, <em>output_nii_file=''</em>, <em>origin=[]</em>, <em>pad=10</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_nii.xyz2nii" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert [x,y,z] coordinate file to nifti (nii.gz) volume file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />

@@ -37,7 +37,7 @@
   <meta name="dc.identifier" content="http://binarybottle.github.io/mindboggle/">
 
   </head>
-  <body>
+  <body role="document">
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
  <table>
   <tr>
@@ -82,12 +82,12 @@
 
     <div class="document">
       <div class="documentwrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="features-fundi">
 <h1>features.fundi<a class="headerlink" href="#features-fundi" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-mindboggle.features.fundi">
-<span id="module-features-fundi"></span><h2>Module: <tt class="xref py py-mod docutils literal"><span class="pre">features.fundi</span></tt><a class="headerlink" href="#module-mindboggle.features.fundi" title="Permalink to this headline">¶</a></h2>
+<span id="module-features-fundi"></span><h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">features.fundi</span></code><a class="headerlink" href="#module-mindboggle.features.fundi" title="Permalink to this headline">¶</a></h2>
 <p>Extract fundus curves from surface mesh patches (folds).</p>
 <p>Authors:
 Arno Klein, 2013  .  <a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>  .  www.binarybottle.com</p>
@@ -97,7 +97,7 @@ Arno Klein, 2013  .  <a class="reference external" href="mailto:arno&#37;&#52;&#
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mindboggle.features.fundi.extract_fundi">
-<tt class="descclassname">mindboggle.features.fundi.</tt><tt class="descname">extract_fundi</tt><big>(</big><em>folds</em>, <em>curv_file</em>, <em>depth_file</em>, <em>min_separation=10</em>, <em>erode_ratio=0.1</em>, <em>erode_min_size=1</em>, <em>save_file=False</em><big>)</big><a class="headerlink" href="#mindboggle.features.fundi.extract_fundi" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.features.fundi.</code><code class="descname">extract_fundi</code><span class="sig-paren">(</span><em>folds</em>, <em>curv_file</em>, <em>depth_file</em>, <em>min_separation=10</em>, <em>erode_ratio=0.1</em>, <em>erode_min_size=1</em>, <em>save_file=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.features.fundi.extract_fundi" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extract fundi from folds.</p>
 <p>A fundus is a branching curve that runs along the deepest and most
 highly curved portions of a fold.</p>
@@ -193,7 +193,7 @@ in connect_points_erosion()</p>
 
 <dl class="function">
 <dt id="mindboggle.features.fundi.segment_fundi">
-<tt class="descclassname">mindboggle.features.fundi.</tt><tt class="descname">segment_fundi</tt><big>(</big><em>fundus_per_fold</em>, <em>sulci=[]</em>, <em>vtk_file=''</em>, <em>save_file=False</em><big>)</big><a class="headerlink" href="#mindboggle.features.fundi.segment_fundi" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.features.fundi.</code><code class="descname">segment_fundi</code><span class="sig-paren">(</span><em>fundus_per_fold</em>, <em>sulci=[]</em>, <em>vtk_file=''</em>, <em>save_file=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.features.fundi.segment_fundi" title="Permalink to this definition">¶</a></dt>
 <dd><p>Segment fundi by sulcus definitions.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />

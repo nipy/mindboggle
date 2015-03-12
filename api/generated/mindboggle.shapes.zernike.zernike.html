@@ -37,7 +37,7 @@
   <meta name="dc.identifier" content="http://binarybottle.github.io/mindboggle/">
 
   </head>
-  <body>
+  <body role="document">
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
  <table>
   <tr>
@@ -82,12 +82,12 @@
 
     <div class="document">
       <div class="documentwrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="shapes-zernike-zernike">
 <h1>shapes.zernike.zernike<a class="headerlink" href="#shapes-zernike-zernike" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-mindboggle.shapes.zernike.zernike">
-<span id="module-shapes-zernike-zernike"></span><h2>Module: <tt class="xref py py-mod docutils literal"><span class="pre">shapes.zernike.zernike</span></tt><a class="headerlink" href="#module-mindboggle.shapes.zernike.zernike" title="Permalink to this headline">¶</a></h2>
+<span id="module-shapes-zernike-zernike"></span><h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">shapes.zernike.zernike</span></code><a class="headerlink" href="#module-mindboggle.shapes.zernike.zernike" title="Permalink to this headline">¶</a></h2>
 <p>Compute the Zernike moments of a collection of points.</p>
 <dl class="docutils">
 <dt>Authors:</dt>
@@ -104,7 +104,7 @@
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mindboggle.shapes.zernike.zernike.zernike_moments">
-<tt class="descclassname">mindboggle.shapes.zernike.zernike.</tt><tt class="descname">zernike_moments</tt><big>(</big><em>points</em>, <em>faces</em>, <em>order=10</em>, <em>scale_input=True</em>, <em>decimate_fraction=0</em>, <em>decimate_smooth=0</em>, <em>pl_cls=None</em><big>)</big><a class="headerlink" href="#mindboggle.shapes.zernike.zernike.zernike_moments" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.shapes.zernike.zernike.</code><code class="descname">zernike_moments</code><span class="sig-paren">(</span><em>points</em>, <em>faces</em>, <em>order=10</em>, <em>scale_input=True</em>, <em>decimate_fraction=0</em>, <em>decimate_smooth=0</em>, <em>pl_cls=None</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.zernike.zernike.zernike_moments" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the Zernike moments of a surface patch of points and faces.</p>
 <p>Optionally decimate the input mesh.</p>
 <dl class="docutils">
@@ -270,7 +270,7 @@
 
 <dl class="function">
 <dt id="mindboggle.shapes.zernike.zernike.zernike_moments_per_label">
-<tt class="descclassname">mindboggle.shapes.zernike.zernike.</tt><tt class="descname">zernike_moments_per_label</tt><big>(</big><em>vtk_file, order=10, exclude_labels=[-1], scale_input=True, decimate_fraction=0, decimate_smooth=25</em><big>)</big><a class="headerlink" href="#mindboggle.shapes.zernike.zernike.zernike_moments_per_label" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.shapes.zernike.zernike.</code><code class="descname">zernike_moments_per_label</code><span class="sig-paren">(</span><em>vtk_file, order=10, exclude_labels=[-1], scale_input=True, decimate_fraction=0, decimate_smooth=25</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.zernike.zernike.zernike_moments_per_label" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the Zernike moments per labeled region in a file.</p>
 <p>Optionally decimate the input mesh.</p>
 <table class="docutils field-list" frame="void" rules="none">

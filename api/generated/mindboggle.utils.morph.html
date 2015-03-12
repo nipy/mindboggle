@@ -37,7 +37,7 @@
   <meta name="dc.identifier" content="http://binarybottle.github.io/mindboggle/">
 
   </head>
-  <body>
+  <body role="document">
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
  <table>
   <tr>
@@ -82,12 +82,12 @@
 
     <div class="document">
       <div class="documentwrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="utils-morph">
 <h1>utils.morph<a class="headerlink" href="#utils-morph" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-mindboggle.utils.morph">
-<span id="module-utils-morph"></span><h2>Module: <tt class="xref py py-mod docutils literal"><span class="pre">utils.morph</span></tt><a class="headerlink" href="#module-mindboggle.utils.morph" title="Permalink to this headline">¶</a></h2>
+<span id="module-utils-morph"></span><h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">utils.morph</span></code><a class="headerlink" href="#module-mindboggle.utils.morph" title="Permalink to this headline">¶</a></h2>
 <p>Morphological image operations on surface mesh vertices.</p>
 <dl class="docutils">
 <dt>Authors:</dt>
@@ -103,7 +103,7 @@
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mindboggle.utils.morph.close_surface_pair">
-<tt class="descclassname">mindboggle.utils.morph.</tt><tt class="descname">close_surface_pair</tt><big>(</big><em>faces</em>, <em>points1</em>, <em>points2</em>, <em>scalars</em>, <em>background_value=-1</em><big>)</big><a class="headerlink" href="#mindboggle.utils.morph.close_surface_pair" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.morph.</code><code class="descname">close_surface_pair</code><span class="sig-paren">(</span><em>faces</em>, <em>points1</em>, <em>points2</em>, <em>scalars</em>, <em>background_value=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.morph.close_surface_pair" title="Permalink to this definition">¶</a></dt>
 <dd><p>Close a surface patch by connecting its border vertices with
 corresponding vertices in a second surface file.</p>
 <p>Assumes no lines or indices when reading VTK files in.</p>
@@ -215,7 +215,7 @@ on a surface mesh</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.morph.close_surface_pair_from_files">
-<tt class="descclassname">mindboggle.utils.morph.</tt><tt class="descname">close_surface_pair_from_files</tt><big>(</big><em>patch_surface1</em>, <em>whole_surface2</em>, <em>background_value=-1</em>, <em>output_vtk=''</em><big>)</big><a class="headerlink" href="#mindboggle.utils.morph.close_surface_pair_from_files" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.morph.</code><code class="descname">close_surface_pair_from_files</code><span class="sig-paren">(</span><em>patch_surface1</em>, <em>whole_surface2</em>, <em>background_value=-1</em>, <em>output_vtk=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.morph.close_surface_pair_from_files" title="Permalink to this definition">¶</a></dt>
 <dd><p>Close a surface patch by connecting its border vertices with
 corresponding vertices in a second surface file.</p>
 <p>Assumes no lines or indices when reading VTK files in.</p>
@@ -287,7 +287,7 @@ so connecting the vertices leads to intersecting faces.
 
 <dl class="function">
 <dt id="mindboggle.utils.morph.dilate">
-<tt class="descclassname">mindboggle.utils.morph.</tt><tt class="descname">dilate</tt><big>(</big><em>indices</em>, <em>nedges</em>, <em>neighbor_lists</em><big>)</big><a class="headerlink" href="#mindboggle.utils.morph.dilate" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.morph.</code><code class="descname">dilate</code><span class="sig-paren">(</span><em>indices</em>, <em>nedges</em>, <em>neighbor_lists</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.morph.dilate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dilate region on a surface mesh.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -346,7 +346,7 @@ so connecting the vertices leads to intersecting faces.
 
 <dl class="function">
 <dt id="mindboggle.utils.morph.erode">
-<tt class="descclassname">mindboggle.utils.morph.</tt><tt class="descname">erode</tt><big>(</big><em>indices</em>, <em>nedges</em>, <em>neighbor_lists</em><big>)</big><a class="headerlink" href="#mindboggle.utils.morph.erode" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.morph.</code><code class="descname">erode</code><span class="sig-paren">(</span><em>indices</em>, <em>nedges</em>, <em>neighbor_lists</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.morph.erode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Erode region on a surface mesh.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -405,7 +405,7 @@ so connecting the vertices leads to intersecting faces.
 
 <dl class="function">
 <dt id="mindboggle.utils.morph.extract_edge">
-<tt class="descclassname">mindboggle.utils.morph.</tt><tt class="descname">extract_edge</tt><big>(</big><em>indices</em>, <em>neighbor_lists</em><big>)</big><a class="headerlink" href="#mindboggle.utils.morph.extract_edge" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.morph.</code><code class="descname">extract_edge</code><span class="sig-paren">(</span><em>indices</em>, <em>neighbor_lists</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.morph.extract_edge" title="Permalink to this definition">¶</a></dt>
 <dd><p>Erode region on a surface mesh to extract the region&#8217;s edge.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -459,7 +459,7 @@ so connecting the vertices leads to intersecting faces.
 
 <dl class="function">
 <dt id="mindboggle.utils.morph.fill_holes">
-<tt class="descclassname">mindboggle.utils.morph.</tt><tt class="descname">fill_holes</tt><big>(</big><em>regions</em>, <em>neighbor_lists</em>, <em>values=[]</em>, <em>exclude_range=[]</em>, <em>background_value=-1</em><big>)</big><a class="headerlink" href="#mindboggle.utils.morph.fill_holes" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.morph.</code><code class="descname">fill_holes</code><span class="sig-paren">(</span><em>regions</em>, <em>neighbor_lists</em>, <em>values=[]</em>, <em>exclude_range=[]</em>, <em>background_value=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.morph.fill_holes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fill holes in regions on a surface mesh by using region boundaries.</p>
 <p>NOTE: assumes one set of connected vertices per region</p>
 <p>Steps</p>
@@ -596,7 +596,7 @@ so connecting the vertices leads to intersecting faces.
 
 <dl class="function">
 <dt id="mindboggle.utils.morph.topo_test">
-<tt class="descclassname">mindboggle.utils.morph.</tt><tt class="descname">topo_test</tt><big>(</big><em>index</em>, <em>values</em>, <em>neighbor_lists</em><big>)</big><a class="headerlink" href="#mindboggle.utils.morph.topo_test" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.morph.</code><code class="descname">topo_test</code><span class="sig-paren">(</span><em>index</em>, <em>values</em>, <em>neighbor_lists</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.morph.topo_test" title="Permalink to this definition">¶</a></dt>
 <dd><p>Test to see if vertex is a &#8220;simple point&#8221;.</p>
 <p>A simple point is a vertex that when added to or removed from an object
 (e.g., a curve) on a surface mesh does not alter the object&#8217;s topology.</p>

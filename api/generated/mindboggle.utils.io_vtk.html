@@ -37,7 +37,7 @@
   <meta name="dc.identifier" content="http://binarybottle.github.io/mindboggle/">
 
   </head>
-  <body>
+  <body role="document">
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
  <table>
   <tr>
@@ -82,12 +82,12 @@
 
     <div class="document">
       <div class="documentwrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="utils-io-vtk">
 <h1>utils.io_vtk<a class="headerlink" href="#utils-io-vtk" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-mindboggle.utils.io_vtk">
-<span id="module-utils-io-vtk"></span><h2>Module: <tt class="xref py py-mod docutils literal"><span class="pre">utils.io_vtk</span></tt><a class="headerlink" href="#module-mindboggle.utils.io_vtk" title="Permalink to this headline">¶</a></h2>
+<span id="module-utils-io-vtk"></span><h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">utils.io_vtk</span></code><a class="headerlink" href="#module-mindboggle.utils.io_vtk" title="Permalink to this headline">¶</a></h2>
 <p>Functions related to reading and writing VTK format files.</p>
 <dl class="docutils">
 <dt>Authors:</dt>
@@ -105,7 +105,7 @@
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mindboggle.utils.io_vtk.apply_affine_transforms">
-<tt class="descclassname">mindboggle.utils.io_vtk.</tt><tt class="descname">apply_affine_transforms</tt><big>(</big><em>transform_files</em>, <em>inverse_booleans</em>, <em>transform_format='itk'</em>, <em>vtk_or_points=[]</em>, <em>vtk_file_stem='affine_'</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_vtk.apply_affine_transforms" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_vtk.</code><code class="descname">apply_affine_transforms</code><span class="sig-paren">(</span><em>transform_files</em>, <em>inverse_booleans</em>, <em>transform_format='itk'</em>, <em>vtk_or_points=[]</em>, <em>vtk_file_stem='affine_'</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_vtk.apply_affine_transforms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Transform coordinates using an affine matrix.</p>
 <p>For use with ANTs, x and y columns are multiplied by -1 before and after
 applying the inverse affine transform because ITK uses a different
@@ -171,7 +171,7 @@ the origin need to be taken into account</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.io_vtk.explode_scalars">
-<tt class="descclassname">mindboggle.utils.io_vtk.</tt><tt class="descname">explode_scalars</tt><big>(</big><em>input_indices_vtk, input_values_vtk='', output_stem='', exclude_values=[-1], background_value=-1, output_scalar_name='scalars', remove_background_faces=True, reindex=True</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_vtk.explode_scalars" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_vtk.</code><code class="descname">explode_scalars</code><span class="sig-paren">(</span><em>input_indices_vtk, input_values_vtk='', output_stem='', exclude_values=[-1], background_value=-1, output_scalar_name='scalars', remove_background_faces=True, reindex=True</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_vtk.explode_scalars" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write out a separate VTK file for each integer (not in exclude_values)
 in (the first) scalar list of an input VTK file.
 Optionally write the values drawn from a second VTK file,
@@ -256,7 +256,7 @@ remove background values, and reindex indices.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.io_vtk.freesurfer_annot_to_vtk">
-<tt class="descclassname">mindboggle.utils.io_vtk.</tt><tt class="descname">freesurfer_annot_to_vtk</tt><big>(</big><em>annot_file</em>, <em>vtk_file</em>, <em>output_vtk=''</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_vtk.freesurfer_annot_to_vtk" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_vtk.</code><code class="descname">freesurfer_annot_to_vtk</code><span class="sig-paren">(</span><em>annot_file</em>, <em>vtk_file</em>, <em>output_vtk=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_vtk.freesurfer_annot_to_vtk" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load a FreeSurfer .annot file and save as a VTK format file.</p>
 <p>Note regarding current pip install nibabel (fixed in github master repo):</p>
 <div class="highlight-python"><div class="highlight"><pre>The &#39;True&#39; flag in nibabel.freesurfer.read_annot(annot_file, True)
@@ -318,7 +318,7 @@ the corresponding shape value</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.io_vtk.freesurfer_curvature_to_vtk">
-<tt class="descclassname">mindboggle.utils.io_vtk.</tt><tt class="descname">freesurfer_curvature_to_vtk</tt><big>(</big><em>surface_file</em>, <em>vtk_file</em>, <em>output_vtk</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_vtk.freesurfer_curvature_to_vtk" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_vtk.</code><code class="descname">freesurfer_curvature_to_vtk</code><span class="sig-paren">(</span><em>surface_file</em>, <em>vtk_file</em>, <em>output_vtk</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_vtk.freesurfer_curvature_to_vtk" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert FreeSurfer curvature, thickness, or convexity file to VTK format.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -365,7 +365,7 @@ the corresponding shape value</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.io_vtk.freesurfer_surface_to_vtk">
-<tt class="descclassname">mindboggle.utils.io_vtk.</tt><tt class="descname">freesurfer_surface_to_vtk</tt><big>(</big><em>surface_file</em>, <em>output_vtk</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_vtk.freesurfer_surface_to_vtk" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_vtk.</code><code class="descname">freesurfer_surface_to_vtk</code><span class="sig-paren">(</span><em>surface_file</em>, <em>output_vtk</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_vtk.freesurfer_surface_to_vtk" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert FreeSurfer surface file to VTK format.</p>
 <p>If a file named orig.mgz exists in &#8216;../mri&#8217;, the surface coordinates
 are transformed into scanner RAS space during format conversion
@@ -410,7 +410,7 @@ according to the vox2ras transform in that file.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.io_vtk.read_faces_points">
-<tt class="descclassname">mindboggle.utils.io_vtk.</tt><tt class="descname">read_faces_points</tt><big>(</big><em>filename</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_vtk.read_faces_points" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_vtk.</code><code class="descname">read_faces_points</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_vtk.read_faces_points" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load points and faces of a VTK surface file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -451,7 +451,7 @@ on a surface mesh</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.io_vtk.read_itk_transform">
-<tt class="descclassname">mindboggle.utils.io_vtk.</tt><tt class="descname">read_itk_transform</tt><big>(</big><em>transform_file</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_vtk.read_itk_transform" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_vtk.</code><code class="descname">read_itk_transform</code><span class="sig-paren">(</span><em>transform_file</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_vtk.read_itk_transform" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read ITK transform file and output transform array.</p>
 <p>Daniel Haehn&#8217;s implementation: <a class="reference external" href="https://gist.github.com/haehn/5614966">https://gist.github.com/haehn/5614966</a></p>
 <p>..ITK affine transform file format</p>
@@ -497,7 +497,7 @@ FixedParameters: -0.60936 21.1593 10.6148
 
 <dl class="function">
 <dt id="mindboggle.utils.io_vtk.read_itk_transform_old">
-<tt class="descclassname">mindboggle.utils.io_vtk.</tt><tt class="descname">read_itk_transform_old</tt><big>(</big><em>transform_file</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_vtk.read_itk_transform_old" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_vtk.</code><code class="descname">read_itk_transform_old</code><span class="sig-paren">(</span><em>transform_file</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_vtk.read_itk_transform_old" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read ITK transform file and output transform array.</p>
 <p>..ITK affine transform file format</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c">#Insight Transform File V1.0</span>
@@ -547,7 +547,7 @@ FixedParameters: -0.60936 21.1593 10.6148</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.io_vtk.read_lines">
-<tt class="descclassname">mindboggle.utils.io_vtk.</tt><tt class="descname">read_lines</tt><big>(</big><em>Filename</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_vtk.read_lines" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_vtk.</code><code class="descname">read_lines</code><span class="sig-paren">(</span><em>Filename</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_vtk.read_lines" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load LINES from a VTK file, along with the scalar values.</p>
 <p>The line that extracts vertices from a VTK
 iterates from 1 to Vrts.GetSize(), rather than from 0.</p>
@@ -578,7 +578,7 @@ defined in the POINTS section of the VTK file</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.io_vtk.read_points">
-<tt class="descclassname">mindboggle.utils.io_vtk.</tt><tt class="descname">read_points</tt><big>(</big><em>filename</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_vtk.read_points" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_vtk.</code><code class="descname">read_points</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_vtk.read_points" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load points of a VTK surface file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -602,7 +602,7 @@ defined in the POINTS section of the VTK file</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.io_vtk.read_scalars">
-<tt class="descclassname">mindboggle.utils.io_vtk.</tt><tt class="descname">read_scalars</tt><big>(</big><em>filename</em>, <em>return_first=True</em>, <em>return_array=False</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_vtk.read_scalars" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_vtk.</code><code class="descname">read_scalars</code><span class="sig-paren">(</span><em>filename</em>, <em>return_first=True</em>, <em>return_array=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_vtk.read_scalars" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load all scalar lookup tables from a VTK file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -646,7 +646,7 @@ defined in the POINTS section of the VTK file</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.io_vtk.read_vertices">
-<tt class="descclassname">mindboggle.utils.io_vtk.</tt><tt class="descname">read_vertices</tt><big>(</big><em>Filename</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_vtk.read_vertices" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_vtk.</code><code class="descname">read_vertices</code><span class="sig-paren">(</span><em>Filename</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_vtk.read_vertices" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load VERTICES segment from a VTK file (actually indices to vertices)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -679,7 +679,7 @@ It may not be the vertices in your 3-D surface.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.io_vtk.read_vtk">
-<tt class="descclassname">mindboggle.utils.io_vtk.</tt><tt class="descname">read_vtk</tt><big>(</big><em>input_vtk</em>, <em>return_first=True</em>, <em>return_array=False</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_vtk.read_vtk" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_vtk.</code><code class="descname">read_vtk</code><span class="sig-paren">(</span><em>input_vtk</em>, <em>return_first=True</em>, <em>return_array=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_vtk.read_vtk" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load faces, lines, indices, points, #points,
 and all scalar lookup tables from a VTK file.</p>
 <p>Note</p>
@@ -757,7 +757,7 @@ representing the 2 vertices of the edge</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.io_vtk.rewrite_scalars">
-<tt class="descclassname">mindboggle.utils.io_vtk.</tt><tt class="descname">rewrite_scalars</tt><big>(</big><em>input_vtk, output_vtk, new_scalars, new_scalar_names=['scalars'], filter_scalars=[], background_value=-1</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_vtk.rewrite_scalars" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_vtk.</code><code class="descname">rewrite_scalars</code><span class="sig-paren">(</span><em>input_vtk, output_vtk, new_scalars, new_scalar_names=['scalars'], filter_scalars=[], background_value=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_vtk.rewrite_scalars" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load VTK format file and save a subset of scalars into a new file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -823,7 +823,7 @@ representing the 2 vertices of the edge</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.io_vtk.scalars_checker">
-<tt class="descclassname">mindboggle.utils.io_vtk.</tt><tt class="descname">scalars_checker</tt><big>(</big><em>scalars</em>, <em>scalar_names</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_vtk.scalars_checker" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_vtk.</code><code class="descname">scalars_checker</code><span class="sig-paren">(</span><em>scalars</em>, <em>scalar_names</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_vtk.scalars_checker" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check whether input scalars and scalar_names are in acceptable format.
 If not, reformat.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -874,7 +874,7 @@ scalar_names, but only those that are likely to occur when using Mindboggle.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.io_vtk.transform_to_volume">
-<tt class="descclassname">mindboggle.utils.io_vtk.</tt><tt class="descname">transform_to_volume</tt><big>(</big><em>vtk_file</em>, <em>volume_file</em>, <em>output_volume=''</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_vtk.transform_to_volume" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_vtk.</code><code class="descname">transform_to_volume</code><span class="sig-paren">(</span><em>vtk_file</em>, <em>volume_file</em>, <em>output_volume=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_vtk.transform_to_volume" title="Permalink to this definition">¶</a></dt>
 <dd><p>Transform vtk coordinates to voxel index coordinates in a target
 volume by using the header transformation.</p>
 <p>This function assumes that the nibabel-readable volume has LPI orientation.</p>
@@ -922,7 +922,7 @@ volume by using the header transformation.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.io_vtk.write_faces">
-<tt class="descclassname">mindboggle.utils.io_vtk.</tt><tt class="descname">write_faces</tt><big>(</big><em>Fp</em>, <em>faces</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_vtk.write_faces" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_vtk.</code><code class="descname">write_faces</code><span class="sig-paren">(</span><em>Fp</em>, <em>faces</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_vtk.write_faces" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write indices to vertices forming triangular meshes or lines,
 the POLYGONS section in DATASET POLYDATA section:</p>
 <blockquote>
@@ -933,7 +933,7 @@ the POLYGONS section in DATASET POLYDATA section:</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.io_vtk.write_header">
-<tt class="descclassname">mindboggle.utils.io_vtk.</tt><tt class="descname">write_header</tt><big>(</big><em>Fp</em>, <em>Header='# vtk DataFile Version 2.0'</em>, <em>Title='Generated by Mindboggle (www.mindboggle.info)'</em>, <em>fileType='ASCII'</em>, <em>dataType='POLYDATA'</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_vtk.write_header" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_vtk.</code><code class="descname">write_header</code><span class="sig-paren">(</span><em>Fp</em>, <em>Header='# vtk DataFile Version 2.0'</em>, <em>Title='Generated by Mindboggle (www.mindboggle.info)'</em>, <em>fileType='ASCII'</em>, <em>dataType='POLYDATA'</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_vtk.write_header" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write header information for a VTK-format file:</p>
 <div class="highlight-python"><div class="highlight"><pre># vtk DataFile Version 2.0
 Generated by Mindboggle (www.mindboggle.info)
@@ -970,7 +970,7 @@ DATASET POLYDATA
 
 <dl class="function">
 <dt id="mindboggle.utils.io_vtk.write_lines">
-<tt class="descclassname">mindboggle.utils.io_vtk.</tt><tt class="descname">write_lines</tt><big>(</big><em>Fp</em>, <em>lines</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_vtk.write_lines" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_vtk.</code><code class="descname">write_lines</code><span class="sig-paren">(</span><em>Fp</em>, <em>lines</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_vtk.write_lines" title="Permalink to this definition">¶</a></dt>
 <dd><p>Save connected line segments to a VTK file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -993,7 +993,7 @@ representing the 2 vertices of the edge</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.io_vtk.write_points">
-<tt class="descclassname">mindboggle.utils.io_vtk.</tt><tt class="descname">write_points</tt><big>(</big><em>Fp</em>, <em>points</em>, <em>dataType='float'</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_vtk.write_points" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_vtk.</code><code class="descname">write_points</code><span class="sig-paren">(</span><em>Fp</em>, <em>points</em>, <em>dataType='float'</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_vtk.write_points" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write coordinates of points, the POINTS section in DATASET POLYDATA:</p>
 <div class="highlight-python"><div class="highlight"><pre>POINTS 150991 float
 -7.62268877029 -81.2403945923 -1.44539153576
@@ -1011,7 +1011,7 @@ p(n-1)x p(n-1)y p(n-1)z
 
 <dl class="function">
 <dt id="mindboggle.utils.io_vtk.write_scalars">
-<tt class="descclassname">mindboggle.utils.io_vtk.</tt><tt class="descname">write_scalars</tt><big>(</big><em>Fp</em>, <em>scalars</em>, <em>scalar_name</em>, <em>begin_scalars=True</em>, <em>scalar_type='float'</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_vtk.write_scalars" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_vtk.</code><code class="descname">write_scalars</code><span class="sig-paren">(</span><em>Fp</em>, <em>scalars</em>, <em>scalar_name</em>, <em>begin_scalars=True</em>, <em>scalar_type='float'</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_vtk.write_scalars" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write per-VERTEX values as a scalar lookup table into a VTK file:</p>
 <div class="highlight-python"><div class="highlight"><pre>POINT_DATA 150991
 SCALARS Max_(majority_labels) int 
@@ -1057,7 +1057,7 @@ LOOKUP_TABLE default
 
 <dl class="function">
 <dt id="mindboggle.utils.io_vtk.write_vertices">
-<tt class="descclassname">mindboggle.utils.io_vtk.</tt><tt class="descname">write_vertices</tt><big>(</big><em>Fp</em>, <em>indices</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_vtk.write_vertices" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_vtk.</code><code class="descname">write_vertices</code><span class="sig-paren">(</span><em>Fp</em>, <em>indices</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_vtk.write_vertices" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write indices to vertices, the VERTICES section
 in the DATASET POLYDATA section:</p>
 <div class="highlight-python"><div class="highlight"><pre>VERTICES 140200 420600
@@ -1080,7 +1080,7 @@ numPoints_[n-1] i_[n-1] j_[n-1] k_[n-1]
 
 <dl class="function">
 <dt id="mindboggle.utils.io_vtk.write_vtk">
-<tt class="descclassname">mindboggle.utils.io_vtk.</tt><tt class="descname">write_vtk</tt><big>(</big><em>output_vtk, points, indices=[], lines=[], faces=[], scalars=[], scalar_names=['scalars'], scalar_type='float'</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_vtk.write_vtk" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_vtk.</code><code class="descname">write_vtk</code><span class="sig-paren">(</span><em>output_vtk, points, indices=[], lines=[], faces=[], scalars=[], scalar_names=['scalars'], scalar_type='float'</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_vtk.write_vtk" title="Permalink to this definition">¶</a></dt>
 <dd><p>Save lists of scalars into the lookup table of a VTK-format file.</p>
 <p>Scalar definition includes specification of a lookup table.
 The definition of a lookup table is optional. If not specified,

@@ -37,7 +37,7 @@
   <meta name="dc.identifier" content="http://binarybottle.github.io/mindboggle/">
 
   </head>
-  <body>
+  <body role="document">
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
  <table>
   <tr>
@@ -82,12 +82,12 @@
 
     <div class="document">
       <div class="documentwrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="shapes-laplace-beltrami">
 <h1>shapes.laplace_beltrami<a class="headerlink" href="#shapes-laplace-beltrami" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-mindboggle.shapes.laplace_beltrami">
-<span id="module-shapes-laplace-beltrami"></span><h2>Module: <tt class="xref py py-mod docutils literal"><span class="pre">shapes.laplace_beltrami</span></tt><a class="headerlink" href="#module-mindboggle.shapes.laplace_beltrami" title="Permalink to this headline">¶</a></h2>
+<span id="module-shapes-laplace-beltrami"></span><h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">shapes.laplace_beltrami</span></code><a class="headerlink" href="#module-mindboggle.shapes.laplace_beltrami" title="Permalink to this headline">¶</a></h2>
 <p>Compute the Laplace-Beltrami spectrum using a linear finite element method.</p>
 <dl class="docutils">
 <dt>We follow the definitions and steps given in Martin Reuter et al.&#8217;s 2009 paper:</dt>
@@ -129,7 +129,7 @@ explained how eigenvalue problems are solved numerically.</li>
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mindboggle.shapes.laplace_beltrami.area_normalize">
-<tt class="descclassname">mindboggle.shapes.laplace_beltrami.</tt><tt class="descname">area_normalize</tt><big>(</big><em>points</em>, <em>faces</em>, <em>spectrum</em><big>)</big><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.area_normalize" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.shapes.laplace_beltrami.</code><code class="descname">area_normalize</code><span class="sig-paren">(</span><em>points</em>, <em>faces</em>, <em>spectrum</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.area_normalize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Normalize a spectrum using areas as suggested in Reuter et al. (2006)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -161,7 +161,7 @@ explained how eigenvalue problems are solved numerically.</li>
 
 <dl class="function">
 <dt id="mindboggle.shapes.laplace_beltrami.computeAB">
-<tt class="descclassname">mindboggle.shapes.laplace_beltrami.</tt><tt class="descname">computeAB</tt><big>(</big><em>points</em>, <em>faces</em><big>)</big><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.computeAB" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.shapes.laplace_beltrami.</code><code class="descname">computeAB</code><span class="sig-paren">(</span><em>points</em>, <em>faces</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.computeAB" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute matrices for the Laplace-Beltrami operator.</p>
 <p>The matrices correspond to A and B from Reuter&#8217;s 2009 article.</p>
 <dl class="docutils">
@@ -224,7 +224,7 @@ is generated when inverting D.</dd>
 
 <dl class="function">
 <dt id="mindboggle.shapes.laplace_beltrami.fem_laplacian">
-<tt class="descclassname">mindboggle.shapes.laplace_beltrami.</tt><tt class="descname">fem_laplacian</tt><big>(</big><em>points</em>, <em>faces</em>, <em>spectrum_size=10</em>, <em>normalization=None</em><big>)</big><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.fem_laplacian" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.shapes.laplace_beltrami.</code><code class="descname">fem_laplacian</code><span class="sig-paren">(</span><em>points</em>, <em>faces</em>, <em>spectrum_size=10</em>, <em>normalization=None</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.fem_laplacian" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute linear finite-element method Laplace-Beltrami spectrum
 after Martin Reuter&#8217;s MATLAB code.</p>
 <p>Note</p>
@@ -372,7 +372,7 @@ if &#8220;area&#8221;, use area of the 2D structure as in Reuter et al. 2006</p>
 
 <dl class="function">
 <dt id="mindboggle.shapes.laplace_beltrami.spectrum_from_file">
-<tt class="descclassname">mindboggle.shapes.laplace_beltrami.</tt><tt class="descname">spectrum_from_file</tt><big>(</big><em>vtk_file, spectrum_size=10, exclude_labels=[-1], normalization=None, area_file=''</em><big>)</big><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.spectrum_from_file" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.shapes.laplace_beltrami.</code><code class="descname">spectrum_from_file</code><span class="sig-paren">(</span><em>vtk_file, spectrum_size=10, exclude_labels=[-1], normalization=None, area_file=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.spectrum_from_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute Laplace-Beltrami spectrum of a 3D shape in a VTK file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -447,7 +447,7 @@ if &#8220;area&#8221;, use area of the 2D structure as in Reuter et al. 2006</p>
 
 <dl class="function">
 <dt id="mindboggle.shapes.laplace_beltrami.spectrum_of_largest">
-<tt class="descclassname">mindboggle.shapes.laplace_beltrami.</tt><tt class="descname">spectrum_of_largest</tt><big>(</big><em>points, faces, spectrum_size=10, exclude_labels=[-1], normalization=None, areas=None</em><big>)</big><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.spectrum_of_largest" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.shapes.laplace_beltrami.</code><code class="descname">spectrum_of_largest</code><span class="sig-paren">(</span><em>points, faces, spectrum_size=10, exclude_labels=[-1], normalization=None, areas=None</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.spectrum_of_largest" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute Laplace-Beltrami spectrum on largest connected segment.</p>
 <p>In case a surface patch is fragmented, we select the largest fragment,
 remove extraneous triangular faces, and reindex indices.</p>
@@ -534,7 +534,7 @@ if &#8220;area&#8221;, use area of the 2D structure as in Reuter et al. 2006</p>
 
 <dl class="function">
 <dt id="mindboggle.shapes.laplace_beltrami.spectrum_per_label">
-<tt class="descclassname">mindboggle.shapes.laplace_beltrami.</tt><tt class="descname">spectrum_per_label</tt><big>(</big><em>vtk_file, spectrum_size=10, exclude_labels=[-1], normalization='area', area_file='', largest_segment=True</em><big>)</big><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.spectrum_per_label" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.shapes.laplace_beltrami.</code><code class="descname">spectrum_per_label</code><span class="sig-paren">(</span><em>vtk_file, spectrum_size=10, exclude_labels=[-1], normalization='area', area_file='', largest_segment=True</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.spectrum_per_label" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute Laplace-Beltrami spectrum per labeled region in a file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -605,7 +605,7 @@ if &#8220;area&#8221;, use area of the 2D structure as in Reuter et al. 2006</p>
 
 <dl class="function">
 <dt id="mindboggle.shapes.laplace_beltrami.wesd">
-<tt class="descclassname">mindboggle.shapes.laplace_beltrami.</tt><tt class="descname">wesd</tt><big>(</big><em>EVAL1</em>, <em>EVAL2</em>, <em>Vol1</em>, <em>Vol2</em>, <em>show_error=False</em>, <em>N=3</em><big>)</big><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.wesd" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.shapes.laplace_beltrami.</code><code class="descname">wesd</code><span class="sig-paren">(</span><em>EVAL1</em>, <em>EVAL2</em>, <em>Vol1</em>, <em>Vol2</em>, <em>show_error=False</em>, <em>N=3</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.wesd" title="Permalink to this definition">¶</a></dt>
 <dd><p>Weighted Spectral Distance. See Konukoglu et al. (2012)</p>
 <dl class="docutils">
 <dt>Note ::</dt>

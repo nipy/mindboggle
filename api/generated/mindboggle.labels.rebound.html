@@ -37,7 +37,7 @@
   <meta name="dc.identifier" content="http://binarybottle.github.io/mindboggle/">
 
   </head>
-  <body>
+  <body role="document">
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
  <table>
   <tr>
@@ -82,13 +82,13 @@
 
     <div class="document">
       <div class="documentwrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="labels-rebound">
 <h1>labels.rebound<a class="headerlink" href="#labels-rebound" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-labels-rebound">
-<h2>Module: <tt class="xref py py-mod docutils literal"><span class="pre">labels.rebound</span></tt><a class="headerlink" href="#module-labels-rebound" title="Permalink to this headline">¶</a></h2>
-<p>Inheritance diagram for <tt class="docutils literal"><span class="pre">mindboggle.labels.rebound</span></tt>:</p>
+<h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">labels.rebound</span></code><a class="headerlink" href="#module-labels-rebound" title="Permalink to this headline">¶</a></h2>
+<p>Inheritance diagram for <code class="docutils literal"><span class="pre">mindboggle.labels.rebound</span></code>:</p>
 <span class="target" id="module-mindboggle.labels.rebound"></span><p>Python module for adjusting label borders on a surface mesh.</p>
 <p>Authors:
 Eliezer Stavsky, 2012  .  <a class="reference external" href="mailto:eli&#46;stavsky&#37;&#52;&#48;gmail&#46;com">eli<span>&#46;</span>stavsky<span>&#64;</span>gmail<span>&#46;</span>com</a>
@@ -98,10 +98,10 @@ Arno Klein, 2012-2013  .  <a class="reference external" href="mailto:arno&#37;&#
 </ol>
 </div>
 <div class="section" id="bounds">
-<h2><a class="reference internal" href="#mindboggle.labels.rebound.Bounds" title="mindboggle.labels.rebound.Bounds"><tt class="xref py py-class docutils literal"><span class="pre">Bounds</span></tt></a><a class="headerlink" href="#bounds" title="Permalink to this headline">¶</a></h2>
+<h2><a class="reference internal" href="#mindboggle.labels.rebound.Bounds" title="mindboggle.labels.rebound.Bounds"><code class="xref py py-class docutils literal"><span class="pre">Bounds</span></code></a><a class="headerlink" href="#bounds" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="mindboggle.labels.rebound.Bounds">
-<em class="property">class </em><tt class="descclassname">mindboggle.labels.rebound.</tt><tt class="descname">Bounds</tt><a class="headerlink" href="#mindboggle.labels.rebound.Bounds" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">mindboggle.labels.rebound.</code><code class="descname">Bounds</code><a class="headerlink" href="#mindboggle.labels.rebound.Bounds" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bounds class:
 VTK I/O methods (to supplement io_vtk.py functions)
 Label propagation methods
@@ -114,77 +114,77 @@ Finding label boundaries</p>
 <col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.analyze_label_polylines_intersections" title="mindboggle.labels.rebound.Bounds.analyze_label_polylines_intersections"><tt class="xref py py-obj docutils literal"><span class="pre">analyze_label_polylines_intersections</span></tt></a>()</td>
+<tr class="row-odd"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.analyze_label_polylines_intersections" title="mindboggle.labels.rebound.Bounds.analyze_label_polylines_intersections"><code class="xref py py-obj docutils literal"><span class="pre">analyze_label_polylines_intersections</span></code></a>()</td>
 <td>Find polyline vertices which intersect label boundary, and determine whether they belong to the same fundus curve.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.assign_max_prob_label" title="mindboggle.labels.rebound.Bounds.assign_max_prob_label"><tt class="xref py py-obj docutils literal"><span class="pre">assign_max_prob_label</span></tt></a>()</td>
+<tr class="row-even"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.assign_max_prob_label" title="mindboggle.labels.rebound.Bounds.assign_max_prob_label"><code class="xref py py-obj docutils literal"><span class="pre">assign_max_prob_label</span></code></a>()</td>
 <td>Assign hard labels to vertices by finding the highest probability label of self.learned_matrix.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.assign_realigned_labels" title="mindboggle.labels.rebound.Bounds.assign_realigned_labels"><tt class="xref py py-obj docutils literal"><span class="pre">assign_realigned_labels</span></tt></a>(filename[,&nbsp;threshold])</td>
+<tr class="row-odd"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.assign_realigned_labels" title="mindboggle.labels.rebound.Bounds.assign_realigned_labels"><code class="xref py py-obj docutils literal"><span class="pre">assign_realigned_labels</span></code></a>(filename[,&nbsp;threshold])</td>
 <td>Reassign labels to vertices after realignment.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.build_label_matrix" title="mindboggle.labels.rebound.Bounds.build_label_matrix"><tt class="xref py py-obj docutils literal"><span class="pre">build_label_matrix</span></tt></a>()</td>
+<tr class="row-even"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.build_label_matrix" title="mindboggle.labels.rebound.Bounds.build_label_matrix"><code class="xref py py-obj docutils literal"><span class="pre">build_label_matrix</span></code></a>()</td>
 <td>Construct a vertices x labels array of vertex label assignment values.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.build_label_segment_matrix" title="mindboggle.labels.rebound.Bounds.build_label_segment_matrix"><tt class="xref py py-obj docutils literal"><span class="pre">build_label_segment_matrix</span></tt></a>()</td>
+<tr class="row-odd"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.build_label_segment_matrix" title="mindboggle.labels.rebound.Bounds.build_label_segment_matrix"><code class="xref py py-obj docutils literal"><span class="pre">build_label_segment_matrix</span></code></a>()</td>
 <td>Construct a vertices x label segments array of vertex label segment assignment values.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.check_for_polylines" title="mindboggle.labels.rebound.Bounds.check_for_polylines"><tt class="xref py py-obj docutils literal"><span class="pre">check_for_polylines</span></tt></a>(dict_of_vertices[,&nbsp;...])</td>
+<tr class="row-even"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.check_for_polylines" title="mindboggle.labels.rebound.Bounds.check_for_polylines"><code class="xref py py-obj docutils literal"><span class="pre">check_for_polylines</span></code></a>(dict_of_vertices[,&nbsp;...])</td>
 <td>Check which groups of vertices contain a sufficient number that border polylines.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.determine_appropriate_segments" title="mindboggle.labels.rebound.Bounds.determine_appropriate_segments"><tt class="xref py py-obj docutils literal"><span class="pre">determine_appropriate_segments</span></tt></a>([proportion,&nbsp;...])</td>
+<tr class="row-odd"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.determine_appropriate_segments" title="mindboggle.labels.rebound.Bounds.determine_appropriate_segments"><code class="xref py py-obj docutils literal"><span class="pre">determine_appropriate_segments</span></code></a>([proportion,&nbsp;...])</td>
 <td>Determine which label boundary segments should propagate their labels.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.find_intersections" title="mindboggle.labels.rebound.Bounds.find_intersections"><tt class="xref py py-obj docutils literal"><span class="pre">find_intersections</span></tt></a>(segment,&nbsp;endpoint)</td>
+<tr class="row-even"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.find_intersections" title="mindboggle.labels.rebound.Bounds.find_intersections"><code class="xref py py-obj docutils literal"><span class="pre">find_intersections</span></code></a>(segment,&nbsp;endpoint)</td>
 <td>Find the terminal vertices which are at the intersection         of the polylines and label boundary.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.find_label_boundary" title="mindboggle.labels.rebound.Bounds.find_label_boundary"><tt class="xref py py-obj docutils literal"><span class="pre">find_label_boundary</span></tt></a>(output_filename[,&nbsp;...])</td>
+<tr class="row-odd"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.find_label_boundary" title="mindboggle.labels.rebound.Bounds.find_label_boundary"><code class="xref py py-obj docutils literal"><span class="pre">find_label_boundary</span></code></a>(output_filename[,&nbsp;...])</td>
 <td>Find the vertices for all boundaries between different labels in a mesh.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.find_label_boundary_per_label" title="mindboggle.labels.rebound.Bounds.find_label_boundary_per_label"><tt class="xref py py-obj docutils literal"><span class="pre">find_label_boundary_per_label</span></tt></a>()</td>
+<tr class="row-even"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.find_label_boundary_per_label" title="mindboggle.labels.rebound.Bounds.find_label_boundary_per_label"><code class="xref py py-obj docutils literal"><span class="pre">find_label_boundary_per_label</span></code></a>()</td>
 <td>Find label boundary for each label.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.find_label_boundary_segments" title="mindboggle.labels.rebound.Bounds.find_label_boundary_segments"><tt class="xref py py-obj docutils literal"><span class="pre">find_label_boundary_segments</span></tt></a>()</td>
+<tr class="row-odd"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.find_label_boundary_segments" title="mindboggle.labels.rebound.Bounds.find_label_boundary_segments"><code class="xref py py-obj docutils literal"><span class="pre">find_label_boundary_segments</span></code></a>()</td>
 <td>Break up the label boundaries into segments (corresponding to same-label pairs).</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.find_polylines_flanks" title="mindboggle.labels.rebound.Bounds.find_polylines_flanks"><tt class="xref py py-obj docutils literal"><span class="pre">find_polylines_flanks</span></tt></a>()</td>
+<tr class="row-even"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.find_polylines_flanks" title="mindboggle.labels.rebound.Bounds.find_polylines_flanks"><code class="xref py py-obj docutils literal"><span class="pre">find_polylines_flanks</span></code></a>()</td>
 <td>Find vertices that flank the polylines.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.graph_based_learning" title="mindboggle.labels.rebound.Bounds.graph_based_learning"><tt class="xref py py-obj docutils literal"><span class="pre">graph_based_learning</span></tt></a>([method,&nbsp;realign,&nbsp;...])</td>
+<tr class="row-odd"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.graph_based_learning" title="mindboggle.labels.rebound.Bounds.graph_based_learning"><code class="xref py py-obj docutils literal"><span class="pre">graph_based_learning</span></code></a>([method,&nbsp;realign,&nbsp;...])</td>
 <td>Main function to perform graph-based learning, such as label propagation.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.initialize_seed_labels" title="mindboggle.labels.rebound.Bounds.initialize_seed_labels"><tt class="xref py py-obj docutils literal"><span class="pre">initialize_seed_labels</span></tt></a>([init,&nbsp;fraction,&nbsp;...])</td>
+<tr class="row-even"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.initialize_seed_labels" title="mindboggle.labels.rebound.Bounds.initialize_seed_labels"><code class="xref py py-obj docutils literal"><span class="pre">initialize_seed_labels</span></code></a>([init,&nbsp;fraction,&nbsp;...])</td>
 <td>Initialize a set of seed labels for relabeling or label propagation.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.neighbors" title="mindboggle.labels.rebound.Bounds.neighbors"><tt class="xref py py-obj docutils literal"><span class="pre">neighbors</span></tt></a>(vertex)</td>
+<tr class="row-odd"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.neighbors" title="mindboggle.labels.rebound.Bounds.neighbors"><code class="xref py py-obj docutils literal"><span class="pre">neighbors</span></code></a>(vertex)</td>
 <td>Take a vertex as input and return an array of the vertex&#8217;s neighbors, as defined by self.Faces.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.propagate_labels" title="mindboggle.labels.rebound.Bounds.propagate_labels"><tt class="xref py py-obj docutils literal"><span class="pre">propagate_labels</span></tt></a>(realign,&nbsp;max_iters,&nbsp;tol[,&nbsp;vis])</td>
+<tr class="row-even"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.propagate_labels" title="mindboggle.labels.rebound.Bounds.propagate_labels"><code class="xref py py-obj docutils literal"><span class="pre">propagate_labels</span></code></a>(realign,&nbsp;max_iters,&nbsp;tol[,&nbsp;vis])</td>
 <td>Run iterative weighted average algorithm to propagate labels to unlabeled vertices.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.realign_label_boundary" title="mindboggle.labels.rebound.Bounds.realign_label_boundary"><tt class="xref py py-obj docutils literal"><span class="pre">realign_label_boundary</span></tt></a>(surface_file,&nbsp;...)</td>
+<tr class="row-odd"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.realign_label_boundary" title="mindboggle.labels.rebound.Bounds.realign_label_boundary"><code class="xref py py-obj docutils literal"><span class="pre">realign_label_boundary</span></code></a>(surface_file,&nbsp;...)</td>
 <td>Complete method to realign the label boundaries.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.resolve_label_ambiguity" title="mindboggle.labels.rebound.Bounds.resolve_label_ambiguity"><tt class="xref py py-obj docutils literal"><span class="pre">resolve_label_ambiguity</span></tt></a>(dict_of_vertices)</td>
+<tr class="row-even"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.resolve_label_ambiguity" title="mindboggle.labels.rebound.Bounds.resolve_label_ambiguity"><code class="xref py py-obj docutils literal"><span class="pre">resolve_label_ambiguity</span></code></a>(dict_of_vertices)</td>
 <td>Resolve competing labels for two groups of vertices that have some vertices in common.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.resolve_label_front" title="mindboggle.labels.rebound.Bounds.resolve_label_front"><tt class="xref py py-obj docutils literal"><span class="pre">resolve_label_front</span></tt></a>(dict_of_vertices)</td>
+<tr class="row-odd"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.resolve_label_front" title="mindboggle.labels.rebound.Bounds.resolve_label_front"><code class="xref py py-obj docutils literal"><span class="pre">resolve_label_front</span></code></a>(dict_of_vertices)</td>
 <td>Resolve which group of vertices on either side of a label boundary         is to be relabeled.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.same_boundary" title="mindboggle.labels.rebound.Bounds.same_boundary"><tt class="xref py py-obj docutils literal"><span class="pre">same_boundary</span></tt></a>(vertex1,&nbsp;vertex2)</td>
+<tr class="row-even"><td><a class="reference internal" href="#mindboggle.labels.rebound.Bounds.same_boundary" title="mindboggle.labels.rebound.Bounds.same_boundary"><code class="xref py py-obj docutils literal"><span class="pre">same_boundary</span></code></a>(vertex1,&nbsp;vertex2)</td>
 <td>Determines whether two label boundary vertices belong to the same label boundary.</td>
 </tr>
 </tbody>
 </table>
 <dl class="method">
 <dt id="mindboggle.labels.rebound.Bounds.__init__">
-<tt class="descname">__init__</tt><big>(</big><big>)</big><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize attributes of object.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="mindboggle.labels.rebound.Bounds.analyze_label_polylines_intersections">
-<tt class="descname">analyze_label_polylines_intersections</tt><big>(</big><big>)</big><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.analyze_label_polylines_intersections" title="Permalink to this definition">¶</a></dt>
+<code class="descname">analyze_label_polylines_intersections</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.analyze_label_polylines_intersections" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
 <div>Find polyline vertices which intersect label boundary, and determine whether they belong to the same fundus curve.</div></blockquote>
 <p>#        NOTE:  Requires sequential vertices for fundus or label boundary
@@ -209,7 +209,7 @@ This list may change as the algorithm for propagation gets more sophisticated.</
 
 <dl class="method">
 <dt id="mindboggle.labels.rebound.Bounds.assign_max_prob_label">
-<tt class="descname">assign_max_prob_label</tt><big>(</big><big>)</big><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.assign_max_prob_label" title="Permalink to this definition">¶</a></dt>
+<code class="descname">assign_max_prob_label</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.assign_max_prob_label" title="Permalink to this definition">¶</a></dt>
 <dd><p>Assign hard labels to vertices by finding the highest probability label
 of self.learned_matrix. Output results to a VTK file.</p>
 <p>This method takes self.learned_matrix and determines the most
@@ -231,7 +231,7 @@ max_prob_label, which contains one label for each vertex.</p>
 
 <dl class="method">
 <dt id="mindboggle.labels.rebound.Bounds.assign_realigned_labels">
-<tt class="descname">assign_realigned_labels</tt><big>(</big><em>filename</em>, <em>threshold=0.5</em><big>)</big><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.assign_realigned_labels" title="Permalink to this definition">¶</a></dt>
+<code class="descname">assign_realigned_labels</code><span class="sig-paren">(</span><em>filename</em>, <em>threshold=0.5</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.assign_realigned_labels" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
 <div><p>Reassign labels to vertices after realignment.</p>
 <p>Take the self.learned_matrix weight matrix
@@ -262,7 +262,7 @@ that contains one label for each vertex.</p>
 
 <dl class="method">
 <dt id="mindboggle.labels.rebound.Bounds.build_label_matrix">
-<tt class="descname">build_label_matrix</tt><big>(</big><big>)</big><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.build_label_matrix" title="Permalink to this definition">¶</a></dt>
+<code class="descname">build_label_matrix</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.build_label_matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a vertices x labels array of vertex label assignment values.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -290,7 +290,7 @@ that contains one label for each vertex.</p>
 
 <dl class="method">
 <dt id="mindboggle.labels.rebound.Bounds.build_label_segment_matrix">
-<tt class="descname">build_label_segment_matrix</tt><big>(</big><big>)</big><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.build_label_segment_matrix" title="Permalink to this definition">¶</a></dt>
+<code class="descname">build_label_segment_matrix</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.build_label_segment_matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a vertices x label segments array of vertex label segment assignment values.</p>
 <p>This method is analogous to build_label_matrix but contains values
 associating vertices with label pairs rather than with labels.</p>
@@ -333,7 +333,7 @@ value:  list of vertices with the assigned label</p>
 
 <dl class="method">
 <dt id="mindboggle.labels.rebound.Bounds.check_for_polylines">
-<tt class="descname">check_for_polylines</tt><big>(</big><em>dict_of_vertices</em>, <em>threshold=15</em><big>)</big><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.check_for_polylines" title="Permalink to this definition">¶</a></dt>
+<code class="descname">check_for_polylines</code><span class="sig-paren">(</span><em>dict_of_vertices</em>, <em>threshold=15</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.check_for_polylines" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check which groups of vertices contain a sufficient number that border polylines.</p>
 <dl class="docutils">
 <dt>Problem:  A group of vertices is considered for label reassignment</dt>
@@ -370,7 +370,7 @@ value:  list of vertices to be reassigned to the label</p>
 
 <dl class="method">
 <dt id="mindboggle.labels.rebound.Bounds.determine_appropriate_segments">
-<tt class="descname">determine_appropriate_segments</tt><big>(</big><em>proportion=1</em>, <em>dist_threshold=8</em>, <em>lb_fundus_threshold=16</em>, <em>num_good_vertices=5</em>, <em>eps=1e-07</em>, <em>spread_tol=6</em><big>)</big><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.determine_appropriate_segments" title="Permalink to this definition">¶</a></dt>
+<code class="descname">determine_appropriate_segments</code><span class="sig-paren">(</span><em>proportion=1</em>, <em>dist_threshold=8</em>, <em>lb_fundus_threshold=16</em>, <em>num_good_vertices=5</em>, <em>eps=1e-07</em>, <em>spread_tol=6</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.determine_appropriate_segments" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
 <div>Determine which label boundary segments should propagate their labels.</div></blockquote>
 <p>#       NOTE:  Face validity but not directed to do what we need at present.</p>
@@ -404,7 +404,7 @@ And the polylines should run somewhat parallel to the label boundary.</p>
 
 <dl class="method">
 <dt id="mindboggle.labels.rebound.Bounds.find_intersections">
-<tt class="descname">find_intersections</tt><big>(</big><em>segment</em>, <em>endpoint</em><big>)</big><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.find_intersections" title="Permalink to this definition">¶</a></dt>
+<code class="descname">find_intersections</code><span class="sig-paren">(</span><em>segment</em>, <em>endpoint</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.find_intersections" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
 <div>Find the terminal vertices which are at the intersection
 of the polylines and label boundary.</div></blockquote>
@@ -431,7 +431,7 @@ of the polylines and label boundary.</div></blockquote>
 
 <dl class="method">
 <dt id="mindboggle.labels.rebound.Bounds.find_label_boundary">
-<tt class="descname">find_label_boundary</tt><big>(</big><em>output_filename</em>, <em>realigned_labels=False</em><big>)</big><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.find_label_boundary" title="Permalink to this definition">¶</a></dt>
+<code class="descname">find_label_boundary</code><span class="sig-paren">(</span><em>output_filename</em>, <em>realigned_labels=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.find_label_boundary" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the vertices for all boundaries between different labels in a mesh.</p>
 <p>Label boundaries are the set of all vertices
 whose neighbors do not share the same label.</p>
@@ -457,7 +457,7 @@ whose neighbors do not share the same label.</p>
 
 <dl class="method">
 <dt id="mindboggle.labels.rebound.Bounds.find_label_boundary_per_label">
-<tt class="descname">find_label_boundary_per_label</tt><big>(</big><big>)</big><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.find_label_boundary_per_label" title="Permalink to this definition">¶</a></dt>
+<code class="descname">find_label_boundary_per_label</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.find_label_boundary_per_label" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find label boundary for each label.</p>
 <p>This is a helper method for find_label_boundary_segments.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -472,7 +472,7 @@ whose neighbors do not share the same label.</p>
 
 <dl class="method">
 <dt id="mindboggle.labels.rebound.Bounds.find_label_boundary_segments">
-<tt class="descname">find_label_boundary_segments</tt><big>(</big><big>)</big><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.find_label_boundary_segments" title="Permalink to this definition">¶</a></dt>
+<code class="descname">find_label_boundary_segments</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.find_label_boundary_segments" title="Permalink to this definition">¶</a></dt>
 <dd><p>Break up the label boundaries into segments (corresponding to same-label pairs).</p>
 <p>This method will output a dictionary to store label boundary segments (and subsegments).
 The key is a tuple of the currently assigned label and the adjacent label.
@@ -496,7 +496,7 @@ so we call these &#8220;label cosegments&#8221;.</p>
 
 <dl class="method">
 <dt id="mindboggle.labels.rebound.Bounds.find_polylines_flanks">
-<tt class="descname">find_polylines_flanks</tt><big>(</big><big>)</big><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.find_polylines_flanks" title="Permalink to this definition">¶</a></dt>
+<code class="descname">find_polylines_flanks</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.find_polylines_flanks" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find vertices that flank the polylines.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -510,7 +510,7 @@ so we call these &#8220;label cosegments&#8221;.</p>
 
 <dl class="method">
 <dt id="mindboggle.labels.rebound.Bounds.graph_based_learning">
-<tt class="descname">graph_based_learning</tt><big>(</big><em>method='propagate_labels'</em>, <em>realign=False</em>, <em>kernel=&lt;function rbf_kernel at 0x110170410&gt;</em>, <em>sigma=10</em>, <em>max_iters=200</em>, <em>tol=0.001</em>, <em>vis=False</em><big>)</big><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.graph_based_learning" title="Permalink to this definition">¶</a></dt>
+<code class="descname">graph_based_learning</code><span class="sig-paren">(</span><em>method='propagate_labels'</em>, <em>realign=False</em>, <em>kernel=&lt;function rbf_kernel&gt;</em>, <em>sigma=10</em>, <em>max_iters=200</em>, <em>tol=0.001</em>, <em>vis=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.graph_based_learning" title="Permalink to this definition">¶</a></dt>
 <dd><p>Main function to perform graph-based learning, such as label propagation.</p>
 <p>Other methods include &#8220;jacobi iteration&#8221; and &#8220;label spreading&#8221;</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -539,7 +539,7 @@ so we call these &#8220;label cosegments&#8221;.</p>
 
 <dl class="method">
 <dt id="mindboggle.labels.rebound.Bounds.initialize_seed_labels">
-<tt class="descname">initialize_seed_labels</tt><big>(</big><em>init='lines'</em>, <em>fraction=0.05</em>, <em>output_filename=''</em><big>)</big><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.initialize_seed_labels" title="Permalink to this definition">¶</a></dt>
+<code class="descname">initialize_seed_labels</code><span class="sig-paren">(</span><em>init='lines'</em>, <em>fraction=0.05</em>, <em>output_filename=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.initialize_seed_labels" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
 <div><p>Initialize a set of seed labels for relabeling or label propagation.</p>
 <p>Options include:
@@ -554,14 +554,14 @@ so we call these &#8220;label cosegments&#8221;.</p>
 
 <dl class="method">
 <dt id="mindboggle.labels.rebound.Bounds.neighbors">
-<tt class="descname">neighbors</tt><big>(</big><em>vertex</em><big>)</big><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.neighbors" title="Permalink to this definition">¶</a></dt>
+<code class="descname">neighbors</code><span class="sig-paren">(</span><em>vertex</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.neighbors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Take a vertex as input and return an array of the vertex&#8217;s neighbors,
 as defined by self.Faces.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="mindboggle.labels.rebound.Bounds.propagate_labels">
-<tt class="descname">propagate_labels</tt><big>(</big><em>realign</em>, <em>max_iters</em>, <em>tol</em>, <em>vis=True</em><big>)</big><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.propagate_labels" title="Permalink to this definition">¶</a></dt>
+<code class="descname">propagate_labels</code><span class="sig-paren">(</span><em>realign</em>, <em>max_iters</em>, <em>tol</em>, <em>vis=True</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.propagate_labels" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run iterative weighted average algorithm to propagate labels to unlabeled vertices.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -590,7 +590,7 @@ as defined by self.Faces.</p>
 
 <dl class="method">
 <dt id="mindboggle.labels.rebound.Bounds.realign_label_boundary">
-<tt class="descname">realign_label_boundary</tt><big>(</big><em>surface_file</em>, <em>polylines_file</em>, <em>label_boundary_filename</em>, <em>output_file_regions</em>, <em>output_file_boundaries</em>, <em>max_iters</em><big>)</big><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.realign_label_boundary" title="Permalink to this definition">¶</a></dt>
+<code class="descname">realign_label_boundary</code><span class="sig-paren">(</span><em>surface_file</em>, <em>polylines_file</em>, <em>label_boundary_filename</em>, <em>output_file_regions</em>, <em>output_file_boundaries</em>, <em>max_iters</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.realign_label_boundary" title="Permalink to this definition">¶</a></dt>
 <dd><p>Complete method to realign the label boundaries.
 Calls all necessary subroutines.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -620,7 +620,7 @@ Calls all necessary subroutines.</p>
 
 <dl class="method">
 <dt id="mindboggle.labels.rebound.Bounds.resolve_label_ambiguity">
-<tt class="descname">resolve_label_ambiguity</tt><big>(</big><em>dict_of_vertices</em><big>)</big><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.resolve_label_ambiguity" title="Permalink to this definition">¶</a></dt>
+<code class="descname">resolve_label_ambiguity</code><span class="sig-paren">(</span><em>dict_of_vertices</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.resolve_label_ambiguity" title="Permalink to this definition">¶</a></dt>
 <dd><p>Resolve competing labels for two groups of vertices that have some
 vertices in common.</p>
 <dl class="docutils">
@@ -656,7 +656,7 @@ value:  list of vertices to be reassigned to the label</p>
 
 <dl class="method">
 <dt id="mindboggle.labels.rebound.Bounds.resolve_label_front">
-<tt class="descname">resolve_label_front</tt><big>(</big><em>dict_of_vertices</em><big>)</big><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.resolve_label_front" title="Permalink to this definition">¶</a></dt>
+<code class="descname">resolve_label_front</code><span class="sig-paren">(</span><em>dict_of_vertices</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.resolve_label_front" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
 <div><p>Resolve which group of vertices on either side of a label boundary
 is to be relabeled.</p>
@@ -705,7 +705,7 @@ value:  list of vertices to be reassigned to the label</p>
 
 <dl class="method">
 <dt id="mindboggle.labels.rebound.Bounds.same_boundary">
-<tt class="descname">same_boundary</tt><big>(</big><em>vertex1</em>, <em>vertex2</em><big>)</big><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.same_boundary" title="Permalink to this definition">¶</a></dt>
+<code class="descname">same_boundary</code><span class="sig-paren">(</span><em>vertex1</em>, <em>vertex2</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.labels.rebound.Bounds.same_boundary" title="Permalink to this definition">¶</a></dt>
 <dd><p>Determines whether two label boundary vertices belong to the same label boundary.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />

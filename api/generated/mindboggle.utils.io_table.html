@@ -37,7 +37,7 @@
   <meta name="dc.identifier" content="http://binarybottle.github.io/mindboggle/">
 
   </head>
-  <body>
+  <body role="document">
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
  <table>
   <tr>
@@ -82,12 +82,12 @@
 
     <div class="document">
       <div class="documentwrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="utils-io-table">
 <h1>utils.io_table<a class="headerlink" href="#utils-io-table" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-mindboggle.utils.io_table">
-<span id="module-utils-io-table"></span><h2>Module: <tt class="xref py py-mod docutils literal"><span class="pre">utils.io_table</span></tt><a class="headerlink" href="#module-mindboggle.utils.io_table" title="Permalink to this headline">¶</a></h2>
+<span id="module-utils-io-table"></span><h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">utils.io_table</span></code><a class="headerlink" href="#module-mindboggle.utils.io_table" title="Permalink to this headline">¶</a></h2>
 <p>Functions for reading and writing tables.</p>
 <dl class="docutils">
 <dt>Authors:</dt>
@@ -103,7 +103,7 @@
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mindboggle.utils.io_table.alternate_columns_from_tables">
-<tt class="descclassname">mindboggle.utils.io_table.</tt><tt class="descname">alternate_columns_from_tables</tt><big>(</big><em>table_files</em>, <em>write_table=True</em>, <em>output_table=''</em>, <em>delimiter='</em>, <em>'</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_table.alternate_columns_from_tables" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_table.</code><code class="descname">alternate_columns_from_tables</code><span class="sig-paren">(</span><em>table_files</em>, <em>write_table=True</em>, <em>output_table=''</em>, <em>delimiter='</em>, <em>'</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_table.alternate_columns_from_tables" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alternate columns from a list of tables and make a new table.</p>
 <p>This program assumes that the tables consist of only numbers.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -154,7 +154,7 @@
 
 <dl class="function">
 <dt id="mindboggle.utils.io_table.concatenate_mindboggle_tables">
-<tt class="descclassname">mindboggle.utils.io_table.</tt><tt class="descname">concatenate_mindboggle_tables</tt><big>(</big><em>subjects</em>, <em>hemi</em>, <em>tables_dir</em>, <em>table_name</em>, <em>delimiter='</em>, <em>'</em>, <em>is_surface_table=True</em>, <em>output_table=''</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_table.concatenate_mindboggle_tables" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_table.</code><code class="descname">concatenate_mindboggle_tables</code><span class="sig-paren">(</span><em>subjects</em>, <em>hemi</em>, <em>tables_dir</em>, <em>table_name</em>, <em>delimiter='</em>, <em>'</em>, <em>is_surface_table=True</em>, <em>output_table=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_table.concatenate_mindboggle_tables" title="Permalink to this definition">¶</a></dt>
 <dd><p>Concatenate specified Mindboggle surface shape tables across subjects.</p>
 <p>This function concatenates specified surface tables, with the first row
 written only once at top, and &#8216;Subject: &lt;subject name&gt;&#8217; preceding each
@@ -227,7 +227,7 @@ Or:
 
 <dl class="function">
 <dt id="mindboggle.utils.io_table.read_columns">
-<tt class="descclassname">mindboggle.utils.io_table.</tt><tt class="descname">read_columns</tt><big>(</big><em>filename</em>, <em>n_columns=1</em>, <em>trail=False</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_table.read_columns" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_table.</code><code class="descname">read_columns</code><span class="sig-paren">(</span><em>filename</em>, <em>n_columns=1</em>, <em>trail=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_table.read_columns" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read n-column text file. Assumes space(s) as delimiter.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -250,7 +250,7 @@ Or:
 
 <dl class="function">
 <dt id="mindboggle.utils.io_table.select_column_from_mindboggle_tables">
-<tt class="descclassname">mindboggle.utils.io_table.</tt><tt class="descname">select_column_from_mindboggle_tables</tt><big>(</big><em>subjects</em>, <em>hemi</em>, <em>tables_dir</em>, <em>table_name</em>, <em>column_name</em>, <em>label_name='label'</em>, <em>is_surface_table=True</em>, <em>write_table=True</em>, <em>output_table=''</em>, <em>delimiter='</em>, <em>'</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_table.select_column_from_mindboggle_tables" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_table.</code><code class="descname">select_column_from_mindboggle_tables</code><span class="sig-paren">(</span><em>subjects</em>, <em>hemi</em>, <em>tables_dir</em>, <em>table_name</em>, <em>column_name</em>, <em>label_name='label'</em>, <em>is_surface_table=True</em>, <em>write_table=True</em>, <em>output_table=''</em>, <em>delimiter='</em>, <em>'</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_table.select_column_from_mindboggle_tables" title="Permalink to this definition">¶</a></dt>
 <dd><p>Select column from Mindboggle shape tables and make a new table.</p>
 <p>For example, extract the median travel depth column for the label regions
 across a set of subjects, and make a new table.</p>
@@ -371,7 +371,7 @@ across a set of subjects, and make a new table.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.io_table.select_column_from_tables">
-<tt class="descclassname">mindboggle.utils.io_table.</tt><tt class="descname">select_column_from_tables</tt><big>(</big><em>tables</em>, <em>column_name</em>, <em>label_name=''</em>, <em>write_table=True</em>, <em>output_table=''</em>, <em>delimiter='</em>, <em>'</em>, <em>compute_stats=True</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_table.select_column_from_tables" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_table.</code><code class="descname">select_column_from_tables</code><span class="sig-paren">(</span><em>tables</em>, <em>column_name</em>, <em>label_name=''</em>, <em>write_table=True</em>, <em>output_table=''</em>, <em>delimiter='</em>, <em>'</em>, <em>compute_stats=True</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_table.select_column_from_tables" title="Permalink to this definition">¶</a></dt>
 <dd><p>Select column from list of tables, make a new table, compute statistics.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -466,7 +466,7 @@ across a set of subjects, and make a new table.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.io_table.write_average_face_values_per_label">
-<tt class="descclassname">mindboggle.utils.io_table.</tt><tt class="descname">write_average_face_values_per_label</tt><big>(</big><em>input_indices_vtk, input_values_vtk='', area_file='', output_stem='', exclude_values=[-1], background_value=-1</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_table.write_average_face_values_per_label" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_table.</code><code class="descname">write_average_face_values_per_label</code><span class="sig-paren">(</span><em>input_indices_vtk, input_values_vtk='', area_file='', output_stem='', exclude_values=[-1], background_value=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_table.write_average_face_values_per_label" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write out a separate VTK file for each integer
 in (the first) scalar list of an input VTK file.
 Optionally write the values drawn from a second VTK file.</p>
@@ -526,7 +526,7 @@ Optionally write the values drawn from a second VTK file.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.io_table.write_columns">
-<tt class="descclassname">mindboggle.utils.io_table.</tt><tt class="descname">write_columns</tt><big>(</big><em>columns</em>, <em>column_names</em>, <em>delimiter='</em>, <em>'</em>, <em>quote=True</em>, <em>input_table=''</em>, <em>output_table=''</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_table.write_columns" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_table.</code><code class="descname">write_columns</code><span class="sig-paren">(</span><em>columns</em>, <em>column_names</em>, <em>delimiter='</em>, <em>'</em>, <em>quote=True</em>, <em>input_table=''</em>, <em>output_table=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_table.write_columns" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write table with columns and column names.  Assumes space(s) as delimiter.</p>
 <p>If there is an input table file to append to, assume a one-line header.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -588,7 +588,7 @@ Optionally write the values drawn from a second VTK file.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.io_table.write_face_vertex_averages">
-<tt class="descclassname">mindboggle.utils.io_table.</tt><tt class="descname">write_face_vertex_averages</tt><big>(</big><em>input_file</em>, <em>output_table=''</em>, <em>area_file=''</em>, <em>delimiter='</em>, <em>'</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_table.write_face_vertex_averages" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_table.</code><code class="descname">write_face_vertex_averages</code><span class="sig-paren">(</span><em>input_file</em>, <em>output_table=''</em>, <em>area_file=''</em>, <em>delimiter='</em>, <em>'</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_table.write_face_vertex_averages" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make table of average vertex values per face.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -638,7 +638,7 @@ Optionally write the values drawn from a second VTK file.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.io_table.write_rows">
-<tt class="descclassname">mindboggle.utils.io_table.</tt><tt class="descname">write_rows</tt><big>(</big><em>filename</em>, <em>list_of_lines</em>, <em>header=''</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_table.write_rows" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_table.</code><code class="descname">write_rows</code><span class="sig-paren">(</span><em>filename</em>, <em>list_of_lines</em>, <em>header=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_table.write_rows" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write a list to a file, one line per list element.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -670,7 +670,7 @@ Optionally write the values drawn from a second VTK file.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.io_table.write_shape_stats">
-<tt class="descclassname">mindboggle.utils.io_table.</tt><tt class="descname">write_shape_stats</tt><big>(</big><em>labels_or_file=[], sulci=[], fundi=[], affine_transform_files=[], inverse_booleans=[], transform_format='itk', area_file='', normalize_by_area=False, mean_curvature_file='', travel_depth_file='', geodesic_depth_file='', freesurfer_thickness_file='', freesurfer_curvature_file='', freesurfer_sulc_file='', labels_spectra=[], labels_spectra_IDs=[], sulci_spectra=[], sulci_spectra_IDs=[], labels_zernike=[], labels_zernike_IDs=[], sulci_zernike=[], sulci_zernike_IDs=[], exclude_labels=[-1], delimiter=','</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_table.write_shape_stats" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_table.</code><code class="descname">write_shape_stats</code><span class="sig-paren">(</span><em>labels_or_file=[], sulci=[], fundi=[], affine_transform_files=[], inverse_booleans=[], transform_format='itk', area_file='', normalize_by_area=False, mean_curvature_file='', travel_depth_file='', geodesic_depth_file='', freesurfer_thickness_file='', freesurfer_curvature_file='', freesurfer_sulc_file='', labels_spectra=[], labels_spectra_IDs=[], sulci_spectra=[], sulci_spectra_IDs=[], labels_zernike=[], labels_zernike_IDs=[], sulci_zernike=[], sulci_zernike_IDs=[], exclude_labels=[-1], delimiter=','</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_table.write_shape_stats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make tables of shape statistics per label, sulcus, and/or fundus.</p>
 <dl class="docutils">
 <dt>Note ::</dt>
@@ -847,7 +847,7 @@ Ex: &#8216;txt&#8217; for text, &#8216;itk&#8217; for ITK, and &#8216;mat&#8217;
 
 <dl class="function">
 <dt id="mindboggle.utils.io_table.write_vertex_measures">
-<tt class="descclassname">mindboggle.utils.io_table.</tt><tt class="descname">write_vertex_measures</tt><big>(</big><em>output_table</em>, <em>labels_or_file</em>, <em>sulci=[]</em>, <em>fundi=[]</em>, <em>affine_transform_files=[]</em>, <em>inverse_booleans=[]</em>, <em>transform_format='itk'</em>, <em>area_file=''</em>, <em>mean_curvature_file=''</em>, <em>travel_depth_file=''</em>, <em>geodesic_depth_file=''</em>, <em>freesurfer_thickness_file=''</em>, <em>freesurfer_curvature_file=''</em>, <em>freesurfer_sulc_file=''</em>, <em>delimiter='</em>, <em>'</em><big>)</big><a class="headerlink" href="#mindboggle.utils.io_table.write_vertex_measures" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.io_table.</code><code class="descname">write_vertex_measures</code><span class="sig-paren">(</span><em>output_table</em>, <em>labels_or_file</em>, <em>sulci=[]</em>, <em>fundi=[]</em>, <em>affine_transform_files=[]</em>, <em>inverse_booleans=[]</em>, <em>transform_format='itk'</em>, <em>area_file=''</em>, <em>mean_curvature_file=''</em>, <em>travel_depth_file=''</em>, <em>geodesic_depth_file=''</em>, <em>freesurfer_thickness_file=''</em>, <em>freesurfer_curvature_file=''</em>, <em>freesurfer_sulc_file=''</em>, <em>delimiter='</em>, <em>'</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.io_table.write_vertex_measures" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make a table of shape values per vertex.</p>
 <dl class="docutils">
 <dt>Note ::</dt>

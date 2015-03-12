@@ -37,7 +37,7 @@
   <meta name="dc.identifier" content="http://binarybottle.github.io/mindboggle/">
 
   </head>
-  <body>
+  <body role="document">
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
  <table>
   <tr>
@@ -82,12 +82,12 @@
 
     <div class="document">
       <div class="documentwrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="utils-ants">
 <h1>utils.ants<a class="headerlink" href="#utils-ants" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-mindboggle.utils.ants">
-<span id="module-utils-ants"></span><h2>Module: <tt class="xref py py-mod docutils literal"><span class="pre">utils.ants</span></tt><a class="headerlink" href="#module-mindboggle.utils.ants" title="Permalink to this headline">¶</a></h2>
+<span id="module-utils-ants"></span><h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">utils.ants</span></code><a class="headerlink" href="#module-mindboggle.utils.ants" title="Permalink to this headline">¶</a></h2>
 <p>Functions that call ANTs (UPenn&#8217;s PICSL group) commands.</p>
 <p>Mindboggle functions call the following ANTs functions</p>
 <div class="highlight-python"><div class="highlight"><pre>ImageMath:
@@ -115,7 +115,7 @@ Arno Klein, 2011-2014  .  <a class="reference external" href="mailto:arno&#37;&#
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mindboggle.utils.ants.ImageMath">
-<tt class="descclassname">mindboggle.utils.ants.</tt><tt class="descname">ImageMath</tt><big>(</big><em>volume1</em>, <em>volume2</em>, <em>operator='m'</em>, <em>output_file=''</em><big>)</big><a class="headerlink" href="#mindboggle.utils.ants.ImageMath" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.ants.</code><code class="descname">ImageMath</code><span class="sig-paren">(</span><em>volume1</em>, <em>volume2</em>, <em>operator='m'</em>, <em>output_file=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.ants.ImageMath" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use the ImageMath function in ANTs to perform operation on two volumes:</p>
 <div class="highlight-python"><div class="highlight"><pre>m         : Multiply ---  use vm for vector multiply
 +         : Add ---  use v+ for vector add
@@ -181,7 +181,7 @@ Neg       : Produce image negative
 
 <dl class="function">
 <dt id="mindboggle.utils.ants.PropagateLabelsThroughMask">
-<tt class="descclassname">mindboggle.utils.ants.</tt><tt class="descname">PropagateLabelsThroughMask</tt><big>(</big><em>mask</em>, <em>labels</em>, <em>mask_index=None</em>, <em>output_file=''</em>, <em>binarize=True</em>, <em>stopvalue=''</em><big>)</big><a class="headerlink" href="#mindboggle.utils.ants.PropagateLabelsThroughMask" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.ants.</code><code class="descname">PropagateLabelsThroughMask</code><span class="sig-paren">(</span><em>mask</em>, <em>labels</em>, <em>mask_index=None</em>, <em>output_file=''</em>, <em>binarize=True</em>, <em>stopvalue=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.ants.PropagateLabelsThroughMask" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use ANTs to fill a binary volume mask with initial labels.</p>
 <p>This program uses ThresholdImage and the ImageMath
 PropagateLabelsThroughMask functions in ANTs.</p>
@@ -250,7 +250,7 @@ speed/binaryimagemask.nii.gz initiallabelimage.nii.gz ...</dd>
 
 <dl class="function">
 <dt id="mindboggle.utils.ants.ThresholdImage">
-<tt class="descclassname">mindboggle.utils.ants.</tt><tt class="descname">ThresholdImage</tt><big>(</big><em>volume</em>, <em>output_file=''</em>, <em>threshlo=1</em>, <em>threshhi=10000</em><big>)</big><a class="headerlink" href="#mindboggle.utils.ants.ThresholdImage" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.ants.</code><code class="descname">ThresholdImage</code><span class="sig-paren">(</span><em>volume</em>, <em>output_file=''</em>, <em>threshlo=1</em>, <em>threshhi=10000</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.ants.ThresholdImage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use the ThresholdImage function in ANTs to threshold image volume:</p>
 <dl class="docutils">
 <dt>Usage: ThresholdImage ImageDimension ImageIn.ext outImage.ext</dt>
@@ -304,7 +304,7 @@ speed/binaryimagemask.nii.gz initiallabelimage.nii.gz ...</dd>
 
 <dl class="function">
 <dt id="mindboggle.utils.ants.antsApplyTransformsToPoints">
-<tt class="descclassname">mindboggle.utils.ants.</tt><tt class="descname">antsApplyTransformsToPoints</tt><big>(</big><em>points, transform_files, inverse_booleans=[0]</em><big>)</big><a class="headerlink" href="#mindboggle.utils.ants.antsApplyTransformsToPoints" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.ants.</code><code class="descname">antsApplyTransformsToPoints</code><span class="sig-paren">(</span><em>points, transform_files, inverse_booleans=[0]</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.ants.antsApplyTransformsToPoints" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run ANTs antsApplyTransformsToPoints function to transform points.
 (Creates pre- and post-transformed .csv points files for ANTs.)</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -348,7 +348,7 @@ speed/binaryimagemask.nii.gz initiallabelimage.nii.gz ...</dd>
 
 <dl class="function">
 <dt id="mindboggle.utils.ants.fetch_ants_data">
-<tt class="descclassname">mindboggle.utils.ants.</tt><tt class="descname">fetch_ants_data</tt><big>(</big><em>segmented_file</em>, <em>use_ants_transforms=True</em><big>)</big><a class="headerlink" href="#mindboggle.utils.ants.fetch_ants_data" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.ants.</code><code class="descname">fetch_ants_data</code><span class="sig-paren">(</span><em>segmented_file</em>, <em>use_ants_transforms=True</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.ants.fetch_ants_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fetch antsCorticalThickness.sh output.</p>
 <p>The input argument &#8220;segmented_file&#8221; is one of the relevant
 antsCorticalThickness.sh output files called by Mindboggle
@@ -416,7 +416,7 @@ with the -k argument.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.ants.fill_volume_with_surface_labels">
-<tt class="descclassname">mindboggle.utils.ants.</tt><tt class="descname">fill_volume_with_surface_labels</tt><big>(</big><em>hemi</em>, <em>left_mask</em>, <em>right_mask</em>, <em>surface_files</em>, <em>mask_index=None</em>, <em>output_file=''</em>, <em>binarize=False</em><big>)</big><a class="headerlink" href="#mindboggle.utils.ants.fill_volume_with_surface_labels" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.ants.</code><code class="descname">fill_volume_with_surface_labels</code><span class="sig-paren">(</span><em>hemi</em>, <em>left_mask</em>, <em>right_mask</em>, <em>surface_files</em>, <em>mask_index=None</em>, <em>output_file=''</em>, <em>binarize=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.ants.fill_volume_with_surface_labels" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use ANTs to fill a volume mask with surface mesh labels.</p>
 <p>Note</p>
 <div class="highlight-python"><div class="highlight"><pre>- This uses PropagateLabelsThroughMask in the ANTs ImageMath function.
@@ -490,7 +490,7 @@ with the -k argument.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.ants.thickinthehead">
-<tt class="descclassname">mindboggle.utils.ants.</tt><tt class="descname">thickinthehead</tt><big>(</big><em>segmented_file</em>, <em>labeled_file</em>, <em>cortex_value=2</em>, <em>noncortex_value=3</em>, <em>labels=[]</em>, <em>names=[]</em>, <em>resize=True</em>, <em>propagate=True</em>, <em>output_dir=''</em>, <em>save_table=False</em>, <em>output_table=''</em><big>)</big><a class="headerlink" href="#mindboggle.utils.ants.thickinthehead" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.ants.</code><code class="descname">thickinthehead</code><span class="sig-paren">(</span><em>segmented_file</em>, <em>labeled_file</em>, <em>cortex_value=2</em>, <em>noncortex_value=3</em>, <em>labels=[]</em>, <em>names=[]</em>, <em>resize=True</em>, <em>propagate=True</em>, <em>output_dir=''</em>, <em>save_table=False</em>, <em>output_table=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.ants.thickinthehead" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute a simple thickness measure for each labeled cortex region.</p>
 <p>Note:</p>
 <div class="highlight-python"><div class="highlight"><pre>- Cortex, noncortex, &amp; label files are from the same coregistered brain.

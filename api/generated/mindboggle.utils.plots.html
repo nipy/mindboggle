@@ -37,7 +37,7 @@
   <meta name="dc.identifier" content="http://binarybottle.github.io/mindboggle/">
 
   </head>
-  <body>
+  <body role="document">
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
  <table>
   <tr>
@@ -82,12 +82,12 @@
 
     <div class="document">
       <div class="documentwrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="utils-plots">
 <h1>utils.plots<a class="headerlink" href="#utils-plots" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-mindboggle.utils.plots">
-<span id="module-utils-plots"></span><h2>Module: <tt class="xref py py-mod docutils literal"><span class="pre">utils.plots</span></tt><a class="headerlink" href="#module-mindboggle.utils.plots" title="Permalink to this headline">¶</a></h2>
+<span id="module-utils-plots"></span><h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">utils.plots</span></code><a class="headerlink" href="#module-mindboggle.utils.plots" title="Permalink to this headline">¶</a></h2>
 <p>Plotting functions.</p>
 <dl class="docutils">
 <dt>Authors:</dt>
@@ -107,7 +107,7 @@
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mindboggle.utils.plots.boxplots_of_lists">
-<tt class="descclassname">mindboggle.utils.plots.</tt><tt class="descname">boxplots_of_lists</tt><big>(</big><em>columns</em>, <em>xlabel=''</em>, <em>ylabel=''</em>, <em>ylimit=None</em>, <em>title=''</em><big>)</big><a class="headerlink" href="#mindboggle.utils.plots.boxplots_of_lists" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.plots.</code><code class="descname">boxplots_of_lists</code><span class="sig-paren">(</span><em>columns</em>, <em>xlabel=''</em>, <em>ylabel=''</em>, <em>ylimit=None</em>, <em>title=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.plots.boxplots_of_lists" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a box plot for each table column.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -152,7 +152,7 @@
 
 <dl class="function">
 <dt id="mindboggle.utils.plots.histogram_of_vtk_scalars">
-<tt class="descclassname">mindboggle.utils.plots.</tt><tt class="descname">histogram_of_vtk_scalars</tt><big>(</big><em>vtk_file</em>, <em>nbins=100</em><big>)</big><a class="headerlink" href="#mindboggle.utils.plots.histogram_of_vtk_scalars" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.plots.</code><code class="descname">histogram_of_vtk_scalars</code><span class="sig-paren">(</span><em>vtk_file</em>, <em>nbins=100</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.plots.histogram_of_vtk_scalars" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot histogram of VTK surface mesh scalar values.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -182,7 +182,7 @@
 
 <dl class="function">
 <dt id="mindboggle.utils.plots.histograms_of_lists">
-<tt class="descclassname">mindboggle.utils.plots.</tt><tt class="descname">histograms_of_lists</tt><big>(</big><em>columns</em>, <em>column_name=''</em>, <em>ignore_columns=[]</em>, <em>nbins=100</em>, <em>axis_limits=[]</em>, <em>titles=[]</em><big>)</big><a class="headerlink" href="#mindboggle.utils.plots.histograms_of_lists" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.plots.</code><code class="descname">histograms_of_lists</code><span class="sig-paren">(</span><em>columns</em>, <em>column_name=''</em>, <em>ignore_columns=[]</em>, <em>nbins=100</em>, <em>axis_limits=[]</em>, <em>titles=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.plots.histograms_of_lists" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a histogram for each table column.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -235,7 +235,7 @@
 
 <dl class="function">
 <dt id="mindboggle.utils.plots.plot_mask_surface">
-<tt class="descclassname">mindboggle.utils.plots.</tt><tt class="descname">plot_mask_surface</tt><big>(</big><em>vtk_file</em>, <em>mask_file=''</em>, <em>nonmask_value=-1</em>, <em>masked_output=''</em>, <em>remove_nonmask=False</em>, <em>program='vtkviewer'</em>, <em>use_colormap=False</em>, <em>colormap_file=''</em><big>)</big><a class="headerlink" href="#mindboggle.utils.plots.plot_mask_surface" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.plots.</code><code class="descname">plot_mask_surface</code><span class="sig-paren">(</span><em>vtk_file</em>, <em>mask_file=''</em>, <em>nonmask_value=-1</em>, <em>masked_output=''</em>, <em>remove_nonmask=False</em>, <em>program='vtkviewer'</em>, <em>use_colormap=False</em>, <em>colormap_file=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.plots.plot_mask_surface" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use vtkviewer or mayavi2 to visualize VTK surface mesh data.</p>
 <p>If a mask_file is provided, a temporary masked file is saved,
 and it is this file that is viewed.</p>
@@ -301,7 +301,7 @@ use_colormap==True, use file set by $COLORMAP environment variable</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.plots.plot_surfaces">
-<tt class="descclassname">mindboggle.utils.plots.</tt><tt class="descname">plot_surfaces</tt><big>(</big><em>vtk_files</em>, <em>use_colormap=False</em>, <em>colormap_file=''</em><big>)</big><a class="headerlink" href="#mindboggle.utils.plots.plot_surfaces" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.plots.</code><code class="descname">plot_surfaces</code><span class="sig-paren">(</span><em>vtk_files</em>, <em>use_colormap=False</em>, <em>colormap_file=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.plots.plot_surfaces" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use vtkviewer to visualize one or more VTK surface files.</p>
 <p>Optionally provide colormap file or set $COLORMAP environment variable.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -340,7 +340,7 @@ use_colormap==True, use file set by $COLORMAP environment variable</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.plots.plot_volumes">
-<tt class="descclassname">mindboggle.utils.plots.</tt><tt class="descname">plot_volumes</tt><big>(</big><em>volume_files</em>, <em>command='fslview'</em><big>)</big><a class="headerlink" href="#mindboggle.utils.plots.plot_volumes" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.plots.</code><code class="descname">plot_volumes</code><span class="sig-paren">(</span><em>volume_files</em>, <em>command='fslview'</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.plots.plot_volumes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use fslview to visualize image volume data.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -374,7 +374,7 @@ use_colormap==True, use file set by $COLORMAP environment variable</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.plots.scatterplot_list_pairs">
-<tt class="descclassname">mindboggle.utils.plots.</tt><tt class="descname">scatterplot_list_pairs</tt><big>(</big><em>columns</em>, <em>ignore_first_column=False</em>, <em>plot_line=True</em>, <em>connect_markers=True</em>, <em>mstyle='o'</em>, <em>msize=1</em>, <em>mcolor=''</em>, <em>title=''</em>, <em>x_label=''</em>, <em>y_label=''</em>, <em>limit=None</em>, <em>legend=True</em>, <em>legend_labels=[]</em><big>)</big><a class="headerlink" href="#mindboggle.utils.plots.scatterplot_list_pairs" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.plots.</code><code class="descname">scatterplot_list_pairs</code><span class="sig-paren">(</span><em>columns</em>, <em>ignore_first_column=False</em>, <em>plot_line=True</em>, <em>connect_markers=True</em>, <em>mstyle='o'</em>, <em>msize=1</em>, <em>mcolor=''</em>, <em>title=''</em>, <em>x_label=''</em>, <em>y_label=''</em>, <em>limit=None</em>, <em>legend=True</em>, <em>legend_labels=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.plots.scatterplot_list_pairs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Scatter plot pairs of columns.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -460,7 +460,7 @@ use_colormap==True, use file set by $COLORMAP environment variable</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.plots.scatterplot_lists">
-<tt class="descclassname">mindboggle.utils.plots.</tt><tt class="descname">scatterplot_lists</tt><big>(</big><em>y_columns</em>, <em>x_column</em>, <em>ignore_columns=[]</em>, <em>plot_line=True</em>, <em>connect_markers=True</em>, <em>mstyle='o'</em>, <em>msize=1</em>, <em>title=''</em>, <em>x_label=''</em>, <em>y_label=''</em>, <em>legend=True</em>, <em>legend_labels=[]</em><big>)</big><a class="headerlink" href="#mindboggle.utils.plots.scatterplot_lists" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.plots.</code><code class="descname">scatterplot_lists</code><span class="sig-paren">(</span><em>y_columns</em>, <em>x_column</em>, <em>ignore_columns=[]</em>, <em>plot_line=True</em>, <em>connect_markers=True</em>, <em>mstyle='o'</em>, <em>msize=1</em>, <em>title=''</em>, <em>x_label=''</em>, <em>y_label=''</em>, <em>legend=True</em>, <em>legend_labels=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.plots.scatterplot_lists" title="Permalink to this definition">¶</a></dt>
 <dd><p>Scatter plot columns against the values of one of the columns.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />

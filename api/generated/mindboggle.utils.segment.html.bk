@@ -37,7 +37,7 @@
   <meta name="dc.identifier" content="http://binarybottle.github.io/mindboggle/">
 
   </head>
-  <body>
+  <body role="document">
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
  <table>
   <tr>
@@ -82,12 +82,12 @@
 
     <div class="document">
       <div class="documentwrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="utils-segment">
 <h1>utils.segment<a class="headerlink" href="#utils-segment" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-mindboggle.utils.segment">
-<span id="module-utils-segment"></span><h2>Module: <tt class="xref py py-mod docutils literal"><span class="pre">utils.segment</span></tt><a class="headerlink" href="#module-mindboggle.utils.segment" title="Permalink to this headline">¶</a></h2>
+<span id="module-utils-segment"></span><h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">utils.segment</span></code><a class="headerlink" href="#module-mindboggle.utils.segment" title="Permalink to this headline">¶</a></h2>
 <p>Functions for segmenting a surface mesh.</p>
 <dl class="docutils">
 <dt>Authors:</dt>
@@ -103,7 +103,7 @@
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mindboggle.utils.segment.combine_2labels_in_2volumes">
-<tt class="descclassname">mindboggle.utils.segment.</tt><tt class="descname">combine_2labels_in_2volumes</tt><big>(</big><em>file1</em>, <em>file2</em>, <em>label1=3</em>, <em>label2=2</em>, <em>output_file=''</em><big>)</big><a class="headerlink" href="#mindboggle.utils.segment.combine_2labels_in_2volumes" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.segment.</code><code class="descname">combine_2labels_in_2volumes</code><span class="sig-paren">(</span><em>file1</em>, <em>file2</em>, <em>label1=3</em>, <em>label2=2</em>, <em>output_file=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.segment.combine_2labels_in_2volumes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combine the voxels of one label from two files and overlay them
 on the second label combined from the two files.</p>
 <p>An example application is to combine two segmentation volumes,
@@ -177,7 +177,7 @@ with labels in {label1, label2}</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.segment.extract_borders">
-<tt class="descclassname">mindboggle.utils.segment.</tt><tt class="descname">extract_borders</tt><big>(</big><em>indices</em>, <em>labels</em>, <em>neighbor_lists</em>, <em>ignore_values=[]</em>, <em>return_label_pairs=False</em><big>)</big><a class="headerlink" href="#mindboggle.utils.segment.extract_borders" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.segment.</code><code class="descname">extract_borders</code><span class="sig-paren">(</span><em>indices</em>, <em>labels</em>, <em>neighbor_lists</em>, <em>ignore_values=[]</em>, <em>return_label_pairs=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.segment.extract_borders" title="Permalink to this definition">¶</a></dt>
 <dd><p>Detect the label borders in a collection of vertices such as a region.</p>
 <p>Label borders are the set of all vertices
 whose neighbors do not share the same label.</p>
@@ -257,7 +257,7 @@ whose neighbors do not share the same label.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.segment.extract_borders_2nd_surface">
-<tt class="descclassname">mindboggle.utils.segment.</tt><tt class="descname">extract_borders_2nd_surface</tt><big>(</big><em>labels_file</em>, <em>mask_file=''</em>, <em>values_file=''</em>, <em>background_value=-1</em><big>)</big><a class="headerlink" href="#mindboggle.utils.segment.extract_borders_2nd_surface" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.segment.</code><code class="descname">extract_borders_2nd_surface</code><span class="sig-paren">(</span><em>labels_file</em>, <em>mask_file=''</em>, <em>values_file=''</em>, <em>background_value=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.segment.extract_borders_2nd_surface" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extract borders (between labels) on a surface.
 Options: Mask out values; extract border values on a second surface.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -314,7 +314,7 @@ Options: Mask out values; extract border values on a second surface.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.segment.propagate">
-<tt class="descclassname">mindboggle.utils.segment.</tt><tt class="descname">propagate</tt><big>(</big><em>points</em>, <em>faces</em>, <em>region</em>, <em>seeds</em>, <em>labels</em>, <em>max_iters=500</em>, <em>tol=0.001</em>, <em>sigma=10</em>, <em>background_value=-1</em><big>)</big><a class="headerlink" href="#mindboggle.utils.segment.propagate" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.segment.</code><code class="descname">propagate</code><span class="sig-paren">(</span><em>points</em>, <em>faces</em>, <em>region</em>, <em>seeds</em>, <em>labels</em>, <em>max_iters=500</em>, <em>tol=0.001</em>, <em>sigma=10</em>, <em>background_value=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.segment.propagate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Propagate labels to segment surface into contiguous regions,
 starting from seed vertices.</p>
 <p>Imports : mindboggle.labels.rebound</p>
@@ -417,7 +417,7 @@ starting from seed vertices.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.segment.segment">
-<tt class="descclassname">mindboggle.utils.segment.</tt><tt class="descname">segment</tt><big>(</big><em>vertices_to_segment</em>, <em>neighbor_lists</em>, <em>min_region_size=1</em>, <em>seed_lists=[]</em>, <em>keep_seeding=False</em>, <em>spread_within_labels=False</em>, <em>labels=[]</em>, <em>label_lists=[]</em>, <em>values=[]</em>, <em>max_steps=''</em>, <em>verbose=False</em>, <em>background_value=-1</em><big>)</big><a class="headerlink" href="#mindboggle.utils.segment.segment" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.segment.</code><code class="descname">segment</code><span class="sig-paren">(</span><em>vertices_to_segment</em>, <em>neighbor_lists</em>, <em>min_region_size=1</em>, <em>seed_lists=[]</em>, <em>keep_seeding=False</em>, <em>spread_within_labels=False</em>, <em>labels=[]</em>, <em>label_lists=[]</em>, <em>values=[]</em>, <em>max_steps=''</em>, <em>verbose=False</em>, <em>background_value=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.segment.segment" title="Permalink to this definition">¶</a></dt>
 <dd><p>Segment vertices of surface into contiguous regions by seed growing,
 starting from zero or more lists of seed vertices.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -530,7 +530,7 @@ starting from zero or more lists of seed vertices.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.segment.segment_by_filling_borders">
-<tt class="descclassname">mindboggle.utils.segment.</tt><tt class="descname">segment_by_filling_borders</tt><big>(</big><em>regions</em>, <em>neighbor_lists</em>, <em>background_value=-1</em><big>)</big><a class="headerlink" href="#mindboggle.utils.segment.segment_by_filling_borders" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.segment.</code><code class="descname">segment_by_filling_borders</code><span class="sig-paren">(</span><em>regions</em>, <em>neighbor_lists</em>, <em>background_value=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.segment.segment_by_filling_borders" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fill borders (contours) on a surface mesh
 to segment vertices into contiguous regions.</p>
 <dl class="docutils">
@@ -608,7 +608,7 @@ to segment vertices into contiguous regions.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.segment.segment_rings">
-<tt class="descclassname">mindboggle.utils.segment.</tt><tt class="descname">segment_rings</tt><big>(</big><em>region</em>, <em>seeds</em>, <em>neighbor_lists</em>, <em>step=1</em>, <em>background_value=-1</em><big>)</big><a class="headerlink" href="#mindboggle.utils.segment.segment_rings" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.segment.</code><code class="descname">segment_rings</code><span class="sig-paren">(</span><em>region</em>, <em>seeds</em>, <em>neighbor_lists</em>, <em>step=1</em>, <em>background_value=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.segment.segment_rings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Iteratively segment a region of surface mesh as concentric segments.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -704,7 +704,7 @@ to segment vertices into contiguous regions.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.segment.select_largest">
-<tt class="descclassname">mindboggle.utils.segment.</tt><tt class="descname">select_largest</tt><big>(</big><em>points, faces, exclude_labels=[-1], areas=None, reindex=True</em><big>)</big><a class="headerlink" href="#mindboggle.utils.segment.select_largest" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.segment.</code><code class="descname">select_largest</code><span class="sig-paren">(</span><em>points, faces, exclude_labels=[-1], areas=None, reindex=True</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.segment.select_largest" title="Permalink to this definition">¶</a></dt>
 <dd><p>Select the largest segment (connected set of indices) in a mesh.</p>
 <p>In case a surface patch is fragmented, we select the largest fragment,
 remove extraneous triangular faces, and reindex indices.</p>
@@ -782,7 +782,7 @@ remove extraneous triangular faces, and reindex indices.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.segment.split_brain">
-<tt class="descclassname">mindboggle.utils.segment.</tt><tt class="descname">split_brain</tt><big>(</big><em>image_file</em>, <em>label_file</em>, <em>left_labels</em>, <em>right_labels</em><big>)</big><a class="headerlink" href="#mindboggle.utils.segment.split_brain" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.segment.</code><code class="descname">split_brain</code><span class="sig-paren">(</span><em>image_file</em>, <em>label_file</em>, <em>left_labels</em>, <em>right_labels</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.segment.split_brain" title="Permalink to this definition">¶</a></dt>
 <dd><p>Split a brain using left/right labels.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -838,7 +838,7 @@ remove extraneous triangular faces, and reindex indices.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.segment.watershed">
-<tt class="descclassname">mindboggle.utils.segment.</tt><tt class="descname">watershed</tt><big>(</big><em>depths</em>, <em>points</em>, <em>indices</em>, <em>neighbor_lists</em>, <em>min_size=1</em>, <em>depth_factor=0.25</em>, <em>depth_ratio=0.1</em>, <em>tolerance=0.01</em>, <em>regrow=True</em>, <em>background_value=-1</em><big>)</big><a class="headerlink" href="#mindboggle.utils.segment.watershed" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.segment.</code><code class="descname">watershed</code><span class="sig-paren">(</span><em>depths</em>, <em>points</em>, <em>indices</em>, <em>neighbor_lists</em>, <em>min_size=1</em>, <em>depth_factor=0.25</em>, <em>depth_ratio=0.1</em>, <em>tolerance=0.01</em>, <em>regrow=True</em>, <em>background_value=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.segment.watershed" title="Permalink to this definition">¶</a></dt>
 <dd><p>Segment vertices of a surface mesh into contiguous &#8220;watershed basins&#8221;
 by seed growing from an iterative selection of the deepest vertices.</p>
 <p>Steps</p>

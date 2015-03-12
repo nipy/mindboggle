@@ -37,7 +37,7 @@
   <meta name="dc.identifier" content="http://binarybottle.github.io/mindboggle/">
 
   </head>
-  <body>
+  <body role="document">
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
  <table>
   <tr>
@@ -82,12 +82,12 @@
 
     <div class="document">
       <div class="documentwrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="shapes-likelihood">
 <h1>shapes.likelihood<a class="headerlink" href="#shapes-likelihood" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-mindboggle.shapes.likelihood">
-<span id="module-shapes-likelihood"></span><h2>Module: <tt class="xref py py-mod docutils literal"><span class="pre">shapes.likelihood</span></tt><a class="headerlink" href="#module-mindboggle.shapes.likelihood" title="Permalink to this headline">¶</a></h2>
+<span id="module-shapes-likelihood"></span><h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">shapes.likelihood</span></code><a class="headerlink" href="#module-mindboggle.shapes.likelihood" title="Permalink to this headline">¶</a></h2>
 <p>Compute (fundus) likelihood values that highlight deep and highly curved
 portions of a surface mesh.</p>
 <p>Compute likelihood values for a VTK surface mesh:</p>
@@ -130,7 +130,7 @@ Arno Klein, 2012-2013  .  <a class="reference external" href="mailto:arno&#37;&#
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mindboggle.shapes.likelihood.compute_likelihood">
-<tt class="descclassname">mindboggle.shapes.likelihood.</tt><tt class="descname">compute_likelihood</tt><big>(</big><em>trained_file</em>, <em>depth_file</em>, <em>curvature_file</em>, <em>folds</em>, <em>save_file=False</em><big>)</big><a class="headerlink" href="#mindboggle.shapes.likelihood.compute_likelihood" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.shapes.likelihood.</code><code class="descname">compute_likelihood</code><span class="sig-paren">(</span><em>trained_file</em>, <em>depth_file</em>, <em>curvature_file</em>, <em>folds</em>, <em>save_file=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.likelihood.compute_likelihood" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute likelihoods based on input values, folds, and estimated parameters.</p>
 <p>Compute likelihood values for a given VTK surface mesh file, after training
 on distributions of depth and curvature values from multiple files.</p>
@@ -201,7 +201,7 @@ on distributions of depth and curvature values from multiple files.</p>
 
 <dl class="function">
 <dt id="mindboggle.shapes.likelihood.concatenate_sulcus_scalars">
-<tt class="descclassname">mindboggle.shapes.likelihood.</tt><tt class="descname">concatenate_sulcus_scalars</tt><big>(</big><em>scalar_files</em>, <em>fold_files</em>, <em>label_files</em><big>)</big><a class="headerlink" href="#mindboggle.shapes.likelihood.concatenate_sulcus_scalars" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.shapes.likelihood.</code><code class="descname">concatenate_sulcus_scalars</code><span class="sig-paren">(</span><em>scalar_files</em>, <em>fold_files</em>, <em>label_files</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.likelihood.concatenate_sulcus_scalars" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prepare data for estimating scalar distributions along and outside fundi.</p>
 <p>Extract (e.g., depth, curvature) scalar values in folds, along sulcus
 label boundaries as well as outside the sulcus label boundaries.
@@ -255,7 +255,7 @@ Concatenate these scalar values across multiple files.</p>
 
 <dl class="function">
 <dt id="mindboggle.shapes.likelihood.estimate_distribution">
-<tt class="descclassname">mindboggle.shapes.likelihood.</tt><tt class="descname">estimate_distribution</tt><big>(</big><em>scalar_files</em>, <em>scalar_range</em>, <em>fold_files</em>, <em>label_files</em><big>)</big><a class="headerlink" href="#mindboggle.shapes.likelihood.estimate_distribution" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.shapes.likelihood.</code><code class="descname">estimate_distribution</code><span class="sig-paren">(</span><em>scalar_files</em>, <em>scalar_range</em>, <em>fold_files</em>, <em>label_files</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.likelihood.estimate_distribution" title="Permalink to this definition">¶</a></dt>
 <dd><p>Estimate sulcus label border scalar distributions from VTK files.</p>
 <p>Estimate distribution means, sigmas (standard deviations), and weights
 for VTK surface mesh scalars (e.g., depth, curvature) along and outside
@@ -360,7 +360,7 @@ sulcus label borders within folds.</p>
 
 <dl class="function">
 <dt id="mindboggle.shapes.likelihood.fit_normals_to_histogram">
-<tt class="descclassname">mindboggle.shapes.likelihood.</tt><tt class="descname">fit_normals_to_histogram</tt><big>(</big><em>data</em>, <em>x</em><big>)</big><a class="headerlink" href="#mindboggle.shapes.likelihood.fit_normals_to_histogram" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.shapes.likelihood.</code><code class="descname">fit_normals_to_histogram</code><span class="sig-paren">(</span><em>data</em>, <em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.likelihood.fit_normals_to_histogram" title="Permalink to this definition">¶</a></dt>
 <dd><p>This Estimation-Maximization method returns estimated means, sigmas
 (standard deviations) and weights, each of length k (number of classes).</p>
 <table class="docutils field-list" frame="void" rules="none">

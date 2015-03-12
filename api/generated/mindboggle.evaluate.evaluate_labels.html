@@ -37,7 +37,7 @@
   <meta name="dc.identifier" content="http://binarybottle.github.io/mindboggle/">
 
   </head>
-  <body>
+  <body role="document">
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
  <table>
   <tr>
@@ -82,12 +82,12 @@
 
     <div class="document">
       <div class="documentwrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="evaluate-evaluate-labels">
 <h1>evaluate.evaluate_labels<a class="headerlink" href="#evaluate-evaluate-labels" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-mindboggle.evaluate.evaluate_labels">
-<span id="module-evaluate-evaluate-labels"></span><h2>Module: <tt class="xref py py-mod docutils literal"><span class="pre">evaluate.evaluate_labels</span></tt><a class="headerlink" href="#module-mindboggle.evaluate.evaluate_labels" title="Permalink to this headline">¶</a></h2>
+<span id="module-evaluate-evaluate-labels"></span><h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">evaluate.evaluate_labels</span></code><a class="headerlink" href="#module-mindboggle.evaluate.evaluate_labels" title="Permalink to this headline">¶</a></h2>
 <p>Compute surface and volume label overlaps.</p>
 <p>Compute the Dice and Jaccard overlap measures for each labeled region
 of two labeled surfaces or image volumes, for example one that has been
@@ -106,15 +106,15 @@ manually labeled and one that has been automatically labeled.</p>
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mindboggle.evaluate.evaluate_labels.measure_surface_overlap">
-<tt class="descclassname">mindboggle.evaluate.evaluate_labels.</tt><tt class="descname">measure_surface_overlap</tt><big>(</big><em>command</em>, <em>labels_file1</em>, <em>labels_file2</em><big>)</big><a class="headerlink" href="#mindboggle.evaluate.evaluate_labels.measure_surface_overlap" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.evaluate.evaluate_labels.</code><code class="descname">measure_surface_overlap</code><span class="sig-paren">(</span><em>command</em>, <em>labels_file1</em>, <em>labels_file2</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.evaluate.evaluate_labels.measure_surface_overlap" title="Permalink to this definition">¶</a></dt>
 <dd><p>Measure surface overlap using Joachim Giard&#8217;s code.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>command</strong> : surface overlap C++ executable command</p>
-<p><strong>labels_file1</strong> : <tt class="docutils literal"><span class="pre">vtk</span> <span class="pre">file</span></tt> with index labels for scalar values</p>
-<p><strong>labels_file2</strong> : <tt class="docutils literal"><span class="pre">vtk</span> <span class="pre">file</span></tt> with index labels for scalar values</p>
+<p><strong>labels_file1</strong> : <code class="docutils literal"><span class="pre">vtk</span> <span class="pre">file</span></code> with index labels for scalar values</p>
+<p><strong>labels_file2</strong> : <code class="docutils literal"><span class="pre">vtk</span> <span class="pre">file</span></code> with index labels for scalar values</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>overlap_file</strong> : string</p>
@@ -145,7 +145,7 @@ manually labeled and one that has been automatically labeled.</p>
 
 <dl class="function">
 <dt id="mindboggle.evaluate.evaluate_labels.measure_volume_overlap">
-<tt class="descclassname">mindboggle.evaluate.evaluate_labels.</tt><tt class="descname">measure_volume_overlap</tt><big>(</big><em>labels</em>, <em>file1</em>, <em>file2</em><big>)</big><a class="headerlink" href="#mindboggle.evaluate.evaluate_labels.measure_volume_overlap" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.evaluate.evaluate_labels.</code><code class="descname">measure_volume_overlap</code><span class="sig-paren">(</span><em>labels</em>, <em>file1</em>, <em>file2</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.evaluate.evaluate_labels.measure_volume_overlap" title="Permalink to this definition">¶</a></dt>
 <dd><p>Measure overlap between individual label regions
 in source and target nifti (nii.gz) images.</p>
 <table class="docutils field-list" frame="void" rules="none">
