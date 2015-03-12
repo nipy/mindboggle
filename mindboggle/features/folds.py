@@ -325,7 +325,8 @@ def extract_subfolds(depth_file, folds, min_size=10, depth_factor=0.25,
     # Load depth values for all vertices
     #-------------------------------------------------------------------------
     faces, lines, indices, points, npoints, depths, \
-        name, input_vtk = read_vtk(depth_file, return_first=True, return_array=True)
+        name, input_vtk = read_vtk(depth_file, return_first=True,
+                                   return_array=True)
 
     #-------------------------------------------------------------------------
     # Find neighbors for each vertex
@@ -350,7 +351,8 @@ def extract_subfolds(depth_file, folds, min_size=10, depth_factor=0.25,
     #-------------------------------------------------------------------------
     if save_file:
         subfolds_file = os.path.join(os.getcwd(), 'subfolds.vtk')
-        rewrite_scalars(depth_file, subfolds_file, subfolds, 'subfolds', subfolds)
+        rewrite_scalars(depth_file, subfolds_file,
+                        subfolds, 'subfolds', subfolds)
 
         if not os.path.exists(subfolds_file):
             raise(IOError(subfolds_file + " not found"))
