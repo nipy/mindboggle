@@ -32,6 +32,8 @@ mv doc/build/html/* .
 # Replace '_static' with 'shared' in files:
 sed -i .bk 's/_static/shared/g' *.html
 sed -i .bk 's/_static/shared/g' api/generated/*.html
+sed -i .bk 's/_static/shared/g' faq/*.html
+sed -i .bk 's/_static/shared/g' users/*.html
 rm *.bk
 
 # Push changes:
