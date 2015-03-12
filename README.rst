@@ -3,31 +3,29 @@
 ==============================================================================
 Software -- NOTE: MINDBOGGLE IS STILL IN PRE-RELEASE AND IS UNDERGOING CHANGES
 ==============================================================================
-| 1. `Introduction`_
-| 2. `Help with Mindboggle`_
-| 3. `Set up Mindboggle`_
-| 4. `Example Mindboggle commands`_
-| 5. `Mindboggle input files`_
-| 6. `Mindboggle processing steps`_
-| 7. `Mindboggle output files`_
+| 1. `Introduction and help`_
+| 2. `Set up Mindboggle`_
+| 3. `Example Mindboggle commands`_
+| 4. `FreeSurfer and ANTs preprocessing`_
+| 5. `Mindboggle processing steps`_
+| 6. `Mindboggle output files`_
 
 ------------------------------------------------------------------------------
-_`Introduction`
+_`Introduction and help`
 ------------------------------------------------------------------------------
 The Mindboggle software package automates shape analysis of anatomical labels
-and features extracted from human brain MR image data.
+and features extracted from human brain MR image data (read the
+`story <http://http://mindboggle.info/faq/why_mindboggle.html>`_).
 Mindboggle can be run as a single command, and can be
 easily installed as a cross-platform virtual machine for convenience and
 reproducibility of results. Behind the scenes, open source
 Python and C++ code run within a Nipype pipeline framework.
 
-------------------------------------------------------------------------------
-_`Help with Mindboggle`
-------------------------------------------------------------------------------
-- Help in a terminal window (see below for inputs and outputs)::
+- For help in a terminal window (see below for inputs and outputs)::
 
     mindboggle -h
 
+- `FAQs <http://www.mindboggle.info/faq/>`_
 - `Documentation <http://mindboggle.info/documentation.html>`_
 - `Installation <http://mindboggle.info/users/INSTALL.html>`_
 - `GitHub <http://github.com/binarybottle/mindboggle>`_
@@ -71,7 +69,7 @@ To compute all shape measures on all labels and features using 8 processors
     mindboggle SUBJECT --ants SEGMENTS --all -p 8
 
 ------------------------------------------------------------------------------
-_`Mindboggle input files`
+_`FreeSurfer and ANTs preprocessing`
 ------------------------------------------------------------------------------
 Mindboggle currently takes output from `FreeSurfer <http://surfer.nmr.mgh.harvard.edu>`_
 (preferably v5.3 and above) and the latest `ANTs <http://stnava.github.io/ANTs/>`_ software packages.
