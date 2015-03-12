@@ -75,13 +75,17 @@ and VirtualBox (http://www.virtualbox.org) installed, as well as a good
 Internet connection.
 
 Ex: python setup_mindboggle
-    --out /Users/arno/setup_mindboggle
+    --out /Users/arno/mindboggled
     --freesurfer /Applications/freesurfer/subjects
     --ants /data/antsCorticalThickness
     --proc 6 --mem 4096 --cpu 75 """,
     formatter_class = lambda prog:
     argparse.HelpFormatter(prog, max_help_position=40))
 
+parser.add_argument("--script",
+                    help=("setup script (full path); default: "
+                          "./setup_mindboggle.sh"),
+                    metavar='STR')
 parser.add_argument("--out",
                     help=("Output directory (default: $HOME/mindboggled)"),
                     metavar='STR')
@@ -152,127 +156,30 @@ else:
 #=============================================================================
 # Installation script to include in Vagrant file
 #=============================================================================
+script_text = ''
 if args.build:
-    script = """#-----------------------------------------------------------------------------
-# Assign download and installation path arguments:
-#-----------------------------------------------------------------------------
-#DL_PREFIX=/home/arno/downloads
-#INSTALL_PREFIX=/home/arno/software/install
-#MB_ENV=/home/arno/.bash_profile
-DL_PREFIX=$1
-INSTALL_PREFIX=$2
-MB_ENV=$3
-
-#-----------------------------------------------------------------------------
-# System-wide dependencies:
-#-----------------------------------------------------------------------------
-apt-get update
-apt-get install -y g++ git make xorg
-
-#-----------------------------------------------------------------------------
-# Anaconda's miniconda Python distribution for local installs:
-#-----------------------------------------------------------------------------
-CONDA_DL=${DL_PREFIX}/Miniconda-3.9.1-Linux-x86_64.sh
-wget http://repo.continuum.io/miniconda/Miniconda-3.9.1-Linux-x86_64.sh -P $DL_PREFIX
-#curl -O http://repo.continuum.io/miniconda/Miniconda-3.7.3-MacOSX-x86_64.sh
-#bash Miniconda-3.7.3-MacOSX-x86_64.sh -p /software/miniconda
-chmod +x $CONDA_DL
-$CONDA_DL -b -p $INSTALL_PREFIX
-# Setup PATH
-export PATH=${INSTALL_PREFIX}/bin:$PATH
-
-#-----------------------------------------------------------------------------
-# Additional resources for installing packages:
-#-----------------------------------------------------------------------------
-conda install --yes cmake pip
-
-#-----------------------------------------------------------------------------
-# Python packages:
-#-----------------------------------------------------------------------------
-conda install --yes numpy scipy matplotlib nose networkx traits vtk ipython
-#conda install --yes scikit-learn ipython-notebook mayavi pandas
-# Nipype: software pipeline framework; Nibabel: medical image read/write lib
-pip install nibabel nipype
-VTK_DIR=${INSTALL_PREFIX}/lib/vtk-5.10
-#pip install https://github.com/RDFLib/rdflib/archive/master.zip
-#pip install https://github.com/satra/prov/archive/rdf.zip
-
-#-----------------------------------------------------------------------------
-# Mindboggle:
-#-----------------------------------------------------------------------------
-MB_DL=${DL_PREFIX}/mindboggle
-git clone https://github.com/binarybottle/mindboggle.git $MB_DL
-mv ${MB_DL} ${INSTALL_PREFIX}
-cd ${INSTALL_PREFIX}/mindboggle
-python setup.py install --prefix=${INSTALL_PREFIX}
-cd ${INSTALL_PREFIX}/mindboggle/mindboggle_tools/bin
-cmake ../ -DVTK_DIR:STRING=${VTK_DIR}
-make
-#-----------------------------------------------------------------------------
-# ANTs (http://brianavants.wordpress.com/2012/04/13/
-#              updated-ants-compile-instructions-april-12-2012/)
-# antsCorticalThickness.h pipeline optionally provides tissue segmentation,
-# affine registration to standard space, and nonlinear registration for
-# whole-brain labeling, to improve and extend Mindboggle results.
-#-----------------------------------------------------------------------------
-ANTS_DL=${DL_PREFIX}/ants
-git clone https://github.com/stnava/ANTs.git $ANTS_DL
-cd $ANTS_DL
-git checkout tags/v2.1.0rc2
-mkdir ${INSTALL_PREFIX}/ants
-cd ${INSTALL_PREFIX}/ants
-cmake $ANTS_DL #-DVTK_DIR:STRING=${VTK_DIR}
-make
-cp -r ${ANTS_DL}/Scripts/* ${INSTALL_PREFIX}/ants/bin
-# Remove non-essential directories:
-mv ${INSTALL_PREFIX}/ants/bin ${INSTALL_PREFIX}/ants_bin
-rm -rf ${INSTALL_PREFIX}/ants/*
-mv ${INSTALL_PREFIX}/ants_bin ${INSTALL_PREFIX}/ants/bin
-
-#-----------------------------------------------------------------------------
-# Create a global environment sourcing script and set environment variables:
-#-----------------------------------------------------------------------------
-#MB_ENV=/etc/profile.d/mb_env.sh
-#touch $MB_ENV
-
-# -- Local install --
-echo "# Local install prefix" >> $MB_ENV
-echo "export PATH=${INSTALL_PREFIX}/bin:\$PATH" >> $MB_ENV
-
-# -- ANTs --
-echo "# ANTs" >> $MB_ENV
-echo "export ANTSPATH=${INSTALL_PREFIX}/ants/bin" >> $MB_ENV
-echo "export PATH=\$ANTSPATH:\$PATH" >> $MB_ENV
-
-# -- Mindboggle --
-echo "# Mindboggle" >> $MB_ENV
-echo "export MINDBOGGLE_TOOLS=${INSTALL_PREFIX}/mindboggle/mindboggle_tools/bin" >> $MB_ENV
-echo "export PATH=\$MINDBOGGLE_TOOLS:\$PATH" >> $MB_ENV
-#echo "export DYLD_LIBRARY_PATH=\${INSTALL_PREFIX}/anaconda/lib/vtk-5.10:\${DYLD_LIBRARY_PATH}
-
-#-----------------------------------------------------------------------------
-# Finally, remove non-essential directories:
-#-----------------------------------------------------------------------------
-rm_extras=0
-if [ $rm_extras == 1 ]
-    rm ${DL_PREFIX}/* -rf
-fi
-"""
-
-else:
-    script = ''
+    if args.script:
+        script_name = args.script
+    else:
+        script_name = './setup_mindboggle.sh'
+    if os.path.isfile(script_name):
+        f = open(script_name)
+        script_text = [x.strip('\n') for x in f.readlines()]
+    else:
+        raise(IOError('{0} script is not a file.'.format(args.script)))
 
 #=============================================================================
 # Create Vagrantfile
 #=============================================================================
-vagrant_file = """# Vagrantfile (http://www.vagrantup.com)
+f = open('Vagrantfile', 'w')
+f.write("# Vagrantfile (http://www.vagrantup.com)")
+for script_line in script_text:
+    f.write(script_line + '\n')
 
-{0}
-
-#=============================================================================
+vagrant_file = """#=============================================================================
 # Configure Vagrantfile
 #=============================================================================
-Vagrant.configure({1}) do |config|
+Vagrant.configure({0}) do |config|
 
     #-------------------------------------------------------------------------
     # Build a Vagrant base box and install software as per the above script
@@ -303,8 +210,8 @@ Vagrant.configure({1}) do |config|
         # Build from the mindboggle.box Vagrant virtual box
         # (VirtualBox caches it so you only download once):
         install_config.vm.box = "mindboggle"
-        install_config.vm.box_url = "mindboggle.{2}.box"
-        #http://mindboggle.info/vm/mindboggle.{2}.box"
+        install_config.vm.box_url = "mindboggle.{1}.box"
+        #http://mindboggle.info/vm/mindboggle.{1}.box"
         install_config.vm.hostname = "mindboggler"
 
         # Create a forwarded port mapping to allow access to a specific port
@@ -318,27 +225,26 @@ Vagrant.configure({1}) do |config|
         # the path on the host to the actual folder. The second argument is
         # the path on the guest to mount the folder.
         # Ex: install_config.vm.synced_folder "../data", "/vagrant_data"
+        {2}
         {3}
         {4}
         {5}
-        {6}
 
         # Configure %CPU, memory, #CPUs
         install_config.vm.provider :virtualbox do |vb|
-          vb.customize ["modifyvm", :id, "--cpuexecutioncap", "{7}"]
-          vb.customize ["modifyvm", :id, "--memory", "{8}"]
-          vb.customize ["modifyvm", :id, "--cpus", "{9}"]
+          vb.customize ["modifyvm", :id, "--cpuexecutioncap", "{6}"]
+          vb.customize ["modifyvm", :id, "--memory", "{7}"]
+          vb.customize ["modifyvm", :id, "--cpus", "{8}"]
           vb.customize ["modifyvm", :id, "--ioapic", "on"]
         end
     end
 end
-""".format(script, vagrantfile_api_version, mindboggle_version,
+""".format(vagrantfile_api_version, mindboggle_version,
            out_string, freesurfer_string, ants_string, atlases_string,
            args.cpu, args.mem, args.proc)
 
 #=============================================================================
 # Write Vagrantfile with substitutions
 #=============================================================================
-f = open('Vagrantfile', 'w')
 f.write(vagrant_file)
 f.close()
