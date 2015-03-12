@@ -1,0 +1,98 @@
+.. This (-*- rst -*-) format file contains commonly used link targets
+   and name substitutions.  It may be included in many files,
+   therefore it should only contain link targets and name
+   substitutions.  Try grepping for "^\.\. _" to find plausible
+   candidates for this list.  
+   (This file was adapted from nipy_'s documentation.)
+
+.. NOTE: reST targets are
+   __not_case_sensitive__, so only one target definition is needed for
+   mindboggle, MINDBOGGLE, Mindboggle, etc...
+
+.. _mindboggle: http://mindboggle.info
+.. _documentation: http://mindboggle.info/documentation.html
+.. _`Github repository`: https://github.com/binarybottle/mindboggle
+.. _`available releases`: https://github.com/binarybottle/mindboggle/downloads
+.. _bugs: https://github.com/binarybottle/mindboggle/issues
+
+.. Documentation tools
+.. _graphviz: http://www.graphviz.org/
+.. _sphinx: http://sphinx.pocoo.org/
+.. _`Sphinx reST`: http://sphinx.pocoo.org/rest.html
+.. _reST: http://docutils.sourceforge.net/rst.html
+.. _docutils: http://docutils.sourceforge.net
+
+.. Licenses
+.. _`Apache v2.0`: http://www.apache.org/licenses/LICENSE-2.0
+.. _GPL: http://www.gnu.org/licenses/gpl.html
+.. _BSD: http://www.opensource.org/licenses/bsd-license.php
+.. _LGPL: http://www.gnu.org/copyleft/lesser.html
+.. _MIT License: http://www.opensource.org/licenses/mit-license.php
+.. _`Creative Commons Attribution 3.0 License`: http://creativecommons.org/licenses/by/3.0/
+
+.. Operating systems and distributions
+.. _Debian: http://www.debian.org
+.. _NeuroDebian: http://neuro.debian.net
+.. _Ubuntu: http://www.ubuntu.com
+
+.. Code support stuff
+.. _git: http://git.com
+.. _github: http://github.com
+.. _cmake: http://cmake.org/
+.. _gcc: http://gcc.gnu.org
+.. _xcode: http://developer.apple.com/TOOLS/xcode
+.. _doctest-mode: http://www.cis.upenn.edu/~edloper/projects/doctestmode/
+.. _nose: http://somethingaboutorange.com/mrl/projects/nose
+.. _`python coverage tester`: http://nedbatchelder.com/code/modules/coverage.html
+.. _vagrant: http://www.vagrantup.com/downloads.html
+.. _virtualbox: https://www.virtualbox.org/wiki/Downloads
+
+.. Other python projects
+.. _nipype: http://nipy.org/nipype/
+.. _nibabel: http://nipy.org/nibabel
+.. _nipy: http://nipy.org
+.. _numpy: http://www.scipy.org/NumPy
+.. _scipy: http://www.scipy.org
+.. _cython: http://www.cython.org/
+.. _ipython: http://ipython.scipy.org
+.. _`ipython manual`: http://ipython.scipy.org/doc/manual/html
+.. _matplotlib: http://matplotlib.sourceforge.net
+.. _python: http://www.python.org
+.. _mayavi: http://mayavi.sourceforge.net/
+.. _networkx: http://networkx.lanl.gov/
+.. _pythonxy: http://www.pythonxy.com/
+.. _canopy: https://www.enthought.com/products/canopy/
+.. _anaconda: https://store.continuum.io/cshop/anaconda/
+.. _vtkviewer: https://github.com/HalCanary/vtkviewer
+
+.. Non-python brain imaging software
+.. _ANTS: http://stnava.github.io/ANTs/
+.. _`ANTS download`: http://brianavants.wordpress.com/2012/04/13/updated-ants-compile-instructions-april-12-2012/
+.. _FSL: http://www.fmrib.ox.ac.uk/fsl
+.. _FreeSurfer: http://surfer.nmr.mgh.harvard.edu
+.. _`FreeSurfer download`: http://surfer.nmr.mgh.harvard.edu/fswiki/Download
+
+.. Visualization
+.. _vtk: http://www.vtk.org/
+.. _Visualization Toolkit: http://www.vtk.org/
+
+.. Other organizations
+.. _`Sage`: http://sagebase.org
+.. _`Sage Bionetworks`: http://sagebase.org
+.. _Enthought: http://www.enthought.com
+.. _Kitware: http://www.kitware.com
+
+.. Miscellaneous
+.. _nifti: http://nifti.nimh.nih.gov
+
+.. People
+.. _Arno: http://binarybottle.com
+.. _`Arno Klein`: http://binarybottle.com
+.. _`CV`: http://binarybottle.com/cv.php
+.. _`projects`: http://binarybottle.com/projects.php
+.. _`Satrajit Ghosh`: http://mit.edu/~satra
+.. _`Forrest Bao`: https://sites.google.com/site/forrestbao/
+.. _`Joachim Giard`: https://sites.google.com/site/joachimgiard/home
+.. _`Nolan Nichols`: http://www.linkedin.com/in/nolannichols
+.. _`Martin Reuter`: http://reuter.mit.edu/
+.. _`Hal Canary`: http://cs.unc.edu/~hal/
