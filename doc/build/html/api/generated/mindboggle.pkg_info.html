@@ -37,7 +37,7 @@
   <meta name="dc.identifier" content="http://binarybottle.github.io/mindboggle/">
 
   </head>
-  <body>
+  <body role="document">
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
  <table>
   <tr>
@@ -82,18 +82,18 @@
 
     <div class="document">
       <div class="documentwrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="pkg-info">
 <h1>pkg_info<a class="headerlink" href="#pkg-info" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-mindboggle.pkg_info">
-<span id="module-pkg-info"></span><h2>Module: <tt class="xref py py-mod docutils literal"><span class="pre">pkg_info</span></tt><a class="headerlink" href="#module-mindboggle.pkg_info" title="Permalink to this headline">¶</a></h2>
+<span id="module-pkg-info"></span><h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">pkg_info</span></code><a class="headerlink" href="#module-mindboggle.pkg_info" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="functions">
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mindboggle.pkg_info.get_pkg_info">
-<tt class="descclassname">mindboggle.pkg_info.</tt><tt class="descname">get_pkg_info</tt><big>(</big><em>pkg_path</em><big>)</big><a class="headerlink" href="#mindboggle.pkg_info.get_pkg_info" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.pkg_info.</code><code class="descname">get_pkg_info</code><span class="sig-paren">(</span><em>pkg_path</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.pkg_info.get_pkg_info" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return dict describing the context of this package</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -117,17 +117,17 @@
 
 <dl class="function">
 <dt id="mindboggle.pkg_info.pkg_commit_hash">
-<tt class="descclassname">mindboggle.pkg_info.</tt><tt class="descname">pkg_commit_hash</tt><big>(</big><em>pkg_path</em><big>)</big><a class="headerlink" href="#mindboggle.pkg_info.pkg_commit_hash" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.pkg_info.</code><code class="descname">pkg_commit_hash</code><span class="sig-paren">(</span><em>pkg_path</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.pkg_info.pkg_commit_hash" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get short form of commit hash given directory <cite>pkg_path</cite></p>
 <p>There should be a file called &#8216;info_commit.txt&#8217; in <cite>pkg_path</cite>.  This is a
-file in INI file format, with at least one section: <tt class="docutils literal"><span class="pre">commit</span> <span class="pre">hash</span></tt>, and two
-variables <tt class="docutils literal"><span class="pre">archive_subst_hash</span></tt> and <tt class="docutils literal"><span class="pre">install_hash</span></tt>.  The first has a
+file in INI file format, with at least one section: <code class="docutils literal"><span class="pre">commit</span> <span class="pre">hash</span></code>, and two
+variables <code class="docutils literal"><span class="pre">archive_subst_hash</span></code> and <code class="docutils literal"><span class="pre">install_hash</span></code>.  The first has a
 substitution pattern in it which may have been filled by the execution of
-<tt class="docutils literal"><span class="pre">git</span> <span class="pre">archive</span></tt> if this is an archive generated that way.  The second is
+<code class="docutils literal"><span class="pre">git</span> <span class="pre">archive</span></code> if this is an archive generated that way.  The second is
 filled in by the installation, if the installation is from a git archive.</p>
 <p>We get the commit hash from (in order of preference):</p>
 <ul class="simple">
-<li>A substituted value in <tt class="docutils literal"><span class="pre">archive_subst_hash</span></tt></li>
+<li>A substituted value in <code class="docutils literal"><span class="pre">archive_subst_hash</span></code></li>
 <li>A written commit hash value in <a href="#id1"><span class="problematic" id="id2">``</span></a>install_hash`</li>
 <li>git&#8217;s output, if we are in a git repository</li>
 </ul>
