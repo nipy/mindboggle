@@ -1,13 +1,4 @@
-include mindboggle/COMMIT_INFO.txt
+include *.rst
+include setup_mindboggle
+include setup_mindboggle.sh
 #recursive-include mindboggle_tools
-include mindboggle_vagrant.py
-include INSTALL
-include INSTALL2
-include LABELS
-include LICENSE
-include MANIFEST.in
-include README
-include STORY
-include THANKS
-include setup.py
-include setup_egg.py
