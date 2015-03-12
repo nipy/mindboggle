@@ -37,7 +37,7 @@
   <meta name="dc.identifier" content="http://binarybottle.github.io/mindboggle/">
 
   </head>
-  <body>
+  <body role="document">
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
  <table>
   <tr>
@@ -82,12 +82,12 @@
 
     <div class="document">
       <div class="documentwrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="evaluate-evaluate-features">
 <h1>evaluate.evaluate_features<a class="headerlink" href="#evaluate-evaluate-features" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-mindboggle.evaluate.evaluate_features">
-<span id="module-evaluate-evaluate-features"></span><h2>Module: <tt class="xref py py-mod docutils literal"><span class="pre">evaluate.evaluate_features</span></tt><a class="headerlink" href="#module-mindboggle.evaluate.evaluate_features" title="Permalink to this headline">¶</a></h2>
+<span id="module-evaluate-evaluate-features"></span><h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">evaluate.evaluate_features</span></code><a class="headerlink" href="#module-mindboggle.evaluate.evaluate_features" title="Permalink to this headline">¶</a></h2>
 <p>Evaluate deep surface features by computing the minimum distance from each
 label border vertex to all of the feature vertices in the same sulcus.
 The label borders run along the deepest parts of many sulci and
@@ -107,7 +107,7 @@ correspond to fundi in the DKT cortical labeling protocol.</p>
 </div>
 <dl class="function">
 <dt id="mindboggle.evaluate.evaluate_features.evaluate_deep_features">
-<tt class="descclassname">mindboggle.evaluate.evaluate_features.</tt><tt class="descname">evaluate_deep_features</tt><big>(</big><em>features_file, labels_file, sulci_file='', hemi='', excludeIDs=[-1], output_vtk_name='', verbose=True</em><big>)</big><a class="headerlink" href="#mindboggle.evaluate.evaluate_features.evaluate_deep_features" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.evaluate.evaluate_features.</code><code class="descname">evaluate_deep_features</code><span class="sig-paren">(</span><em>features_file, labels_file, sulci_file='', hemi='', excludeIDs=[-1], output_vtk_name='', verbose=True</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.evaluate.evaluate_features.evaluate_deep_features" title="Permalink to this definition">¶</a></dt>
 <dd><p>Evaluate deep surface features by computing the minimum distance from each
 label border vertex to all of the feature vertices in the same sulcus,
 and from each feature vertex to all of the label border vertices in the

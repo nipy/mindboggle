@@ -37,7 +37,7 @@
   <meta name="dc.identifier" content="http://binarybottle.github.io/mindboggle/">
 
   </head>
-  <body>
+  <body role="document">
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
  <table>
   <tr>
@@ -82,12 +82,12 @@
 
     <div class="document">
       <div class="documentwrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="utils-mesh">
 <h1>utils.mesh<a class="headerlink" href="#utils-mesh" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-mindboggle.utils.mesh">
-<span id="module-utils-mesh"></span><h2>Module: <tt class="xref py py-mod docutils literal"><span class="pre">utils.mesh</span></tt><a class="headerlink" href="#module-mindboggle.utils.mesh" title="Permalink to this headline">¶</a></h2>
+<span id="module-utils-mesh"></span><h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">utils.mesh</span></code><a class="headerlink" href="#module-mindboggle.utils.mesh" title="Permalink to this headline">¶</a></h2>
 <p>Operations on surface mesh vertices.</p>
 <dl class="docutils">
 <dt>Authors:</dt>
@@ -103,7 +103,7 @@
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mindboggle.utils.mesh.area_of_faces">
-<tt class="descclassname">mindboggle.utils.mesh.</tt><tt class="descname">area_of_faces</tt><big>(</big><em>points</em>, <em>faces</em><big>)</big><a class="headerlink" href="#mindboggle.utils.mesh.area_of_faces" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.mesh.</code><code class="descname">area_of_faces</code><span class="sig-paren">(</span><em>points</em>, <em>faces</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.mesh.area_of_faces" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the areas of all triangles on the mesh.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -131,7 +131,7 @@
 
 <dl class="function">
 <dt id="mindboggle.utils.mesh.decimate">
-<tt class="descclassname">mindboggle.utils.mesh.</tt><tt class="descname">decimate</tt><big>(</big><em>points</em>, <em>faces</em>, <em>reduction=0.75</em>, <em>smooth_steps=25</em>, <em>scalars=[]</em>, <em>save_vtk=False</em>, <em>output_vtk=''</em><big>)</big><a class="headerlink" href="#mindboggle.utils.mesh.decimate" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.mesh.</code><code class="descname">decimate</code><span class="sig-paren">(</span><em>points</em>, <em>faces</em>, <em>reduction=0.75</em>, <em>smooth_steps=25</em>, <em>scalars=[]</em>, <em>save_vtk=False</em>, <em>output_vtk=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.mesh.decimate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Decimate vtk triangular mesh with vtk.vtkDecimatePro.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -222,7 +222,7 @@ on a surface mesh</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.mesh.decimate_file">
-<tt class="descclassname">mindboggle.utils.mesh.</tt><tt class="descname">decimate_file</tt><big>(</big><em>input_vtk</em>, <em>reduction=0.5</em>, <em>smooth_steps=100</em>, <em>save_vtk=False</em>, <em>output_vtk=''</em><big>)</big><a class="headerlink" href="#mindboggle.utils.mesh.decimate_file" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.mesh.</code><code class="descname">decimate_file</code><span class="sig-paren">(</span><em>input_vtk</em>, <em>reduction=0.5</em>, <em>smooth_steps=100</em>, <em>save_vtk=False</em>, <em>output_vtk=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.mesh.decimate_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Decimate vtk triangular mesh file with vtk.vtkDecimatePro.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -278,7 +278,7 @@ on a surface mesh</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.mesh.find_adjacent_faces">
-<tt class="descclassname">mindboggle.utils.mesh.</tt><tt class="descname">find_adjacent_faces</tt><big>(</big><em>faces</em><big>)</big><a class="headerlink" href="#mindboggle.utils.mesh.find_adjacent_faces" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.mesh.</code><code class="descname">find_adjacent_faces</code><span class="sig-paren">(</span><em>faces</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.mesh.find_adjacent_faces" title="Permalink to this definition">¶</a></dt>
 <dd><p>For each face in a list of faces, find adjacent faces.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -326,7 +326,7 @@ adjacent_faces[i][0] = [face0, face1, face2]:</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.mesh.find_complete_faces">
-<tt class="descclassname">mindboggle.utils.mesh.</tt><tt class="descname">find_complete_faces</tt><big>(</big><em>indices</em>, <em>faces</em><big>)</big><a class="headerlink" href="#mindboggle.utils.mesh.find_complete_faces" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.mesh.</code><code class="descname">find_complete_faces</code><span class="sig-paren">(</span><em>indices</em>, <em>faces</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.mesh.find_complete_faces" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a set of vertices, find the ones that make complete faces.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -362,7 +362,7 @@ adjacent_faces[i][0] = [face0, face1, face2]:</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.mesh.find_edges">
-<tt class="descclassname">mindboggle.utils.mesh.</tt><tt class="descname">find_edges</tt><big>(</big><em>faces</em><big>)</big><a class="headerlink" href="#mindboggle.utils.mesh.find_edges" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.mesh.</code><code class="descname">find_edges</code><span class="sig-paren">(</span><em>faces</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.mesh.find_edges" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find all edges on a mesh</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -394,7 +394,7 @@ adjacent_faces[i][0] = [face0, face1, face2]:</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.mesh.find_endpoints">
-<tt class="descclassname">mindboggle.utils.mesh.</tt><tt class="descname">find_endpoints</tt><big>(</big><em>indices</em>, <em>neighbor_lists</em><big>)</big><a class="headerlink" href="#mindboggle.utils.mesh.find_endpoints" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.mesh.</code><code class="descname">find_endpoints</code><span class="sig-paren">(</span><em>indices</em>, <em>neighbor_lists</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.mesh.find_endpoints" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extract endpoints from connected set of vertices.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -456,7 +456,7 @@ adjacent_faces[i][0] = [face0, face1, face2]:</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.mesh.find_faces_at_edges">
-<tt class="descclassname">mindboggle.utils.mesh.</tt><tt class="descname">find_faces_at_edges</tt><big>(</big><em>faces</em><big>)</big><a class="headerlink" href="#mindboggle.utils.mesh.find_faces_at_edges" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.mesh.</code><code class="descname">find_faces_at_edges</code><span class="sig-paren">(</span><em>faces</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.mesh.find_faces_at_edges" title="Permalink to this definition">¶</a></dt>
 <dd><p>For each edge on the mesh, find the two faces that share the edge.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -509,7 +509,7 @@ adjacent_faces[i][0] = [face0, face1, face2]:</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.mesh.find_faces_at_vertices">
-<tt class="descclassname">mindboggle.utils.mesh.</tt><tt class="descname">find_faces_at_vertices</tt><big>(</big><em>faces</em>, <em>npoints</em><big>)</big><a class="headerlink" href="#mindboggle.utils.mesh.find_faces_at_vertices" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.mesh.</code><code class="descname">find_faces_at_vertices</code><span class="sig-paren">(</span><em>faces</em>, <em>npoints</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.mesh.find_faces_at_vertices" title="Permalink to this definition">¶</a></dt>
 <dd><p>For each vertex, find all faces containing this vertex.
 Note: faces do not have to be triangles.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -547,7 +547,7 @@ Note: faces do not have to be triangles.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.mesh.find_faces_with_vertex">
-<tt class="descclassname">mindboggle.utils.mesh.</tt><tt class="descname">find_faces_with_vertex</tt><big>(</big><em>index</em>, <em>faces</em><big>)</big><a class="headerlink" href="#mindboggle.utils.mesh.find_faces_with_vertex" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.mesh.</code><code class="descname">find_faces_with_vertex</code><span class="sig-paren">(</span><em>index</em>, <em>faces</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.mesh.find_faces_with_vertex" title="Permalink to this definition">¶</a></dt>
 <dd><p>For a given vertex, find all faces containing this vertex.
 Note: faces do not have to be triangles.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -585,7 +585,7 @@ Note: faces do not have to be triangles.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.mesh.find_neighborhood">
-<tt class="descclassname">mindboggle.utils.mesh.</tt><tt class="descname">find_neighborhood</tt><big>(</big><em>neighbor_lists</em>, <em>indices</em>, <em>nedges=1</em><big>)</big><a class="headerlink" href="#mindboggle.utils.mesh.find_neighborhood" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.mesh.</code><code class="descname">find_neighborhood</code><span class="sig-paren">(</span><em>neighbor_lists</em>, <em>indices</em>, <em>nedges=1</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.mesh.find_neighborhood" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find neighbors in the neighborhood of given surface mesh vertices.</p>
 <p>For indices to surface mesh vertices, find unique indices for
 vertices in the neighborhood of the vertices.</p>
@@ -627,7 +627,7 @@ vertices in the neighborhood of the vertices.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.mesh.find_neighbors">
-<tt class="descclassname">mindboggle.utils.mesh.</tt><tt class="descname">find_neighbors</tt><big>(</big><em>faces</em>, <em>npoints</em><big>)</big><a class="headerlink" href="#mindboggle.utils.mesh.find_neighbors" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.mesh.</code><code class="descname">find_neighbors</code><span class="sig-paren">(</span><em>faces</em>, <em>npoints</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.mesh.find_neighbors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate the list of unique, sorted indices of neighboring vertices
 for all vertices in the faces of a triangular mesh.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -686,7 +686,7 @@ for all vertices in the faces of a triangular mesh.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.mesh.find_neighbors_from_file">
-<tt class="descclassname">mindboggle.utils.mesh.</tt><tt class="descname">find_neighbors_from_file</tt><big>(</big><em>input_vtk</em><big>)</big><a class="headerlink" href="#mindboggle.utils.mesh.find_neighbors_from_file" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.mesh.</code><code class="descname">find_neighbors_from_file</code><span class="sig-paren">(</span><em>input_vtk</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.mesh.find_neighbors_from_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate the list of unique, sorted indices of neighboring vertices
 for all vertices in the faces of a triangular mesh in a VTK file.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -731,7 +731,7 @@ for all vertices in the faces of a triangular mesh in a VTK file.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.mesh.find_neighbors_vertex">
-<tt class="descclassname">mindboggle.utils.mesh.</tt><tt class="descname">find_neighbors_vertex</tt><big>(</big><em>faces</em>, <em>index</em><big>)</big><a class="headerlink" href="#mindboggle.utils.mesh.find_neighbors_vertex" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.mesh.</code><code class="descname">find_neighbors_vertex</code><span class="sig-paren">(</span><em>faces</em>, <em>index</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.mesh.find_neighbors_vertex" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find neighbors to a surface mesh vertex.</p>
 <p>For a set of surface mesh faces and the index of a surface vertex,
 find unique indices for neighboring vertices.</p>
@@ -769,7 +769,7 @@ find unique indices for neighboring vertices.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.mesh.reindex_faces_0to1">
-<tt class="descclassname">mindboggle.utils.mesh.</tt><tt class="descname">reindex_faces_0to1</tt><big>(</big><em>faces</em><big>)</big><a class="headerlink" href="#mindboggle.utils.mesh.reindex_faces_0to1" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.mesh.</code><code class="descname">reindex_faces_0to1</code><span class="sig-paren">(</span><em>faces</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.mesh.reindex_faces_0to1" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert 0-indices (Python) to 1-indices (Matlab) for all face indices.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -802,7 +802,7 @@ on a surface mesh</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.mesh.reindex_faces_points">
-<tt class="descclassname">mindboggle.utils.mesh.</tt><tt class="descname">reindex_faces_points</tt><big>(</big><em>faces</em>, <em>points=[]</em><big>)</big><a class="headerlink" href="#mindboggle.utils.mesh.reindex_faces_points" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.mesh.</code><code class="descname">reindex_faces_points</code><span class="sig-paren">(</span><em>faces</em>, <em>points=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.mesh.reindex_faces_points" title="Permalink to this definition">¶</a></dt>
 <dd><p>Renumber indices in faces and remove points (coordinates) not in faces.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -855,7 +855,7 @@ that form a face on a surface mesh</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.mesh.remove_faces">
-<tt class="descclassname">mindboggle.utils.mesh.</tt><tt class="descname">remove_faces</tt><big>(</big><em>faces</em>, <em>indices</em><big>)</big><a class="headerlink" href="#mindboggle.utils.mesh.remove_faces" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.mesh.</code><code class="descname">remove_faces</code><span class="sig-paren">(</span><em>faces</em>, <em>indices</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.mesh.remove_faces" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove surface mesh faces whose three vertices are not all in &#8220;indices&#8221;.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -892,7 +892,7 @@ that form a face on a surface mesh</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.mesh.remove_neighbor_lists">
-<tt class="descclassname">mindboggle.utils.mesh.</tt><tt class="descname">remove_neighbor_lists</tt><big>(</big><em>neighbor_lists</em>, <em>indices</em><big>)</big><a class="headerlink" href="#mindboggle.utils.mesh.remove_neighbor_lists" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.mesh.</code><code class="descname">remove_neighbor_lists</code><span class="sig-paren">(</span><em>neighbor_lists</em>, <em>indices</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.mesh.remove_neighbor_lists" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove all but a given set of indices from surface mesh neighbor lists.</p>
 <p>Note :: SLOW!</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -929,7 +929,7 @@ that form a face on a surface mesh</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.mesh.rescale_by_label">
-<tt class="descclassname">mindboggle.utils.mesh.</tt><tt class="descname">rescale_by_label</tt><big>(</big><em>input_vtk</em>, <em>labels_or_file</em>, <em>save_file=False</em>, <em>output_filestring='rescaled_scalars'</em><big>)</big><a class="headerlink" href="#mindboggle.utils.mesh.rescale_by_label" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.mesh.</code><code class="descname">rescale_by_label</code><span class="sig-paren">(</span><em>input_vtk</em>, <em>labels_or_file</em>, <em>save_file=False</em>, <em>output_filestring='rescaled_scalars'</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.mesh.rescale_by_label" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rescale scalars for each label (such as depth values within each fold).</p>
 <p>Default is to normalize the scalar values of a VTK file by
 a percentile value in each vertex&#8217;s surface mesh for each label.</p>
@@ -995,7 +995,7 @@ a percentile value in each vertex&#8217;s surface mesh for each label.</p>
 
 <dl class="function">
 <dt id="mindboggle.utils.mesh.rescale_by_neighborhood">
-<tt class="descclassname">mindboggle.utils.mesh.</tt><tt class="descname">rescale_by_neighborhood</tt><big>(</big><em>input_vtk</em>, <em>indices=[]</em>, <em>nedges=10</em>, <em>p=99</em>, <em>set_max_to_1=True</em>, <em>save_file=False</em>, <em>output_filestring='rescaled_scalars'</em>, <em>background_value=-1</em><big>)</big><a class="headerlink" href="#mindboggle.utils.mesh.rescale_by_neighborhood" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.utils.mesh.</code><code class="descname">rescale_by_neighborhood</code><span class="sig-paren">(</span><em>input_vtk</em>, <em>indices=[]</em>, <em>nedges=10</em>, <em>p=99</em>, <em>set_max_to_1=True</em>, <em>save_file=False</em>, <em>output_filestring='rescaled_scalars'</em>, <em>background_value=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.utils.mesh.rescale_by_neighborhood" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rescale the scalar values of a VTK file by a percentile value
 in each vertex&#8217;s surface mesh neighborhood.</p>
 <table class="docutils field-list" frame="void" rules="none">
