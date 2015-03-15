@@ -1,0 +1,176 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Mindboggle &mdash; Mindboggle</title>
+    
+    <link rel="stylesheet" href="../_static/mindboggle.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1.0dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Mindboggle" href="../index.html" />
+  <HTML><head><title>Mindboggle</title>
+  <meta http-equiv="Content-language" content="en">
+  <meta name="description" content="Mindboggle">
+  <meta name="keywords" content="Mindboggle, neuroimaging, brain imaging, python, neuroscience, labeling, parcellation, morphometry, shape analysis, MRI">
+  <meta name="author" content="mailto:arno&#64;mindboggle.info">
+  <meta name="dc.title" content="Mindboggle"> 
+  <meta name="dc.creator.address" content="arno&#64;mindboggle.info">
+  <meta name="dc.subject" content="Mindboggle">
+  <meta name="dc.type" content="text.homepage.academic"> 
+  <meta name="dc.format" content="text/html"> 
+  <meta name="dc.identifier" content="http://binarybottle.github.io/mindboggle/">
+
+  </head>
+  <body role="document">
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+ <table>
+  <tr>
+   <td>
+
+ <a href="../index.html">
+  <img src="http://binarybottle.github.io/mindboggle/shared/mindboggle_logo_small.jpg" alt="small mindboggle logo"  border="0" width="160"/></a>
+
+   </td>
+   <td>
+    <table>
+     <tr>
+ <a style="padding: 20px 20px 20px 20px; color: #b07613; text-decoration: none; font-size: 32px"
+  href="../index.html">Mindboggle</a>
+     </tr>
+     <tr> <td height="18"></td>
+     </tr>
+     <tr>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="http://binarybottle.github.io/mindboggle/users/README.html">Software</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="../data.html">Data</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="../papers.html">Papers</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="../people.html">People</a>
+      </td>
+     </tr>
+    </table>
+   </td>
+  </tr>
+ </table>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="why-mindboggle">
+<span id="id1"></span><h1>Why Mindboggle?<a class="headerlink" href="#why-mindboggle" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="purpose">
+<span id="story"></span><h2>Purpose<a class="headerlink" href="#purpose" title="Permalink to this headline">¶</a></h2>
+<p>The purpose of Mindboggle is to improve the accuracy, precision, and
+consistency of labeling and morphometry of brain imaging data,
+and to promote open science by making all data, software, and documentation
+freely and openly available.</p>
+</div>
+<div class="section" id="motivation">
+<h2>Motivation<a class="headerlink" href="#motivation" title="Permalink to this headline">¶</a></h2>
+<p>There is a strong tendency for neuroscientists who are not software developers
+to assume that questions of brain image &#8220;preprocessing&#8221;, including registration
+and labeling, have been satisfactorily resolved or are not even worthy of mention
+(<a class="reference internal" href="#carp2012" id="id2">[carp2012]</a>).  We believe that conventional methods do not establish
+reasonable correspondences across brain images and threaten to undermine the
+credibility of the science and the scientists who use them in the service of
+answering the neuroscientific and clinical questions that interest them.</p>
+<table class="docutils citation" frame="void" id="carp2012" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[carp2012]</a></td><td>Carp, J. (2012) <em>The secret lives of experiments:
+Methods reporting in the fMRI literature</em>. NeuroImage, 63(1), 289–300.
+doi:10.1016/j.neuroimage.2012.07.004</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="history">
+<h2>History<a class="headerlink" href="#history" title="Permalink to this headline">¶</a></h2>
+<p>Back in 1998, <a class="reference external" href="http://binarybottle.com">Arno Klein</a>
+left Caltech to visit Cornell Medical School for a summer,
+to learn a bit about human brain imaging.  Within a day of arriving in New York,
+he witnessed two medical students arguing over what regions of a patient&#8217;s brain
+were active according to fMRI BOLD data printed on some sheets of paper.
+To do this, they compared locations of BOLD signal in the young man&#8217;s
+brain with what appeared to them to be corresponding topographical locations
+in the 2-D slices of a dead, 60-year French woman&#8217;s half cerebrum from 20 years prior,
+the venerable Talairach atlas.  That clinched it.
+Arno stayed on to create the initial Mindboggle software package in Matlab
+as part of his doctoral dissertation.</p>
+<p>In 2007, Arno was invited to join the faculty at Columbia University
+to continue its development, whereupon he started writing proposals.</p>
+<p>In 2009, with generous funding from the National Institute of Mental Health
+(3-year NIMH R01 #MH084029), he assembled a team to tackle the problem anew.
+People who have contributed to the codebase during this period include:</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference external" href="https://sites.google.com/site/forrestbao/">Forrest Bao</a></li>
+<li><a class="reference external" href="http://mit.edu/~satra">Satrajit Ghosh</a></li>
+<li>Joachim Giard</li>
+<li>Yrjö Häme</li>
+<li>Eliezer Stavsky</li>
+</ul>
+</div></blockquote>
+<p>In 2012, the NIMH funded a 1-year U01 supplement to expand this work to
+integrate multiple imaging modalities (fMRI and dMRI) with the structural MRI
+shape analysis.  Tank Think Labs joined this effort:</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference external" href="http://mit.edu/~satra">Satrajit Ghosh</a></li>
+<li><a class="reference external" href="http://www.linkedin.com/in/nolannichols">Nolan Nichols</a></li>
+<li>Brian Rossa</li>
+<li>Oliver Hinds</li>
+</ul>
+</div></blockquote>
+<p>Please see our updated list of
+<a class="reference external" href="http://mindboggle.info/users/THANKS.html">contributors</a>
+and Mindboggle <a class="reference external" href="http://mindboggle.info/people.html">team page</a>.</p>
+</div>
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<!-- Google Analytics -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-693862-13");
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+
+  </body>
+</html>
