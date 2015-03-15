@@ -25,8 +25,46 @@ Copyright 2015,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 import os
 import argparse
-import warnings
-warnings.filterwarnings("ignore")
+#-----------------------------------------------------------------------------
+# Nipype libraries
+#-----------------------------------------------------------------------------
+from nipype import config, logging
+from nipype.pipeline.engine import Workflow, Node, JoinNode
+from nipype.interfaces.io import DataGrabber, DataSink
+from nipype.interfaces.utility import Function as Fn
+from nipype.interfaces.utility import IdentityInterface
+from nipype.interfaces.ants import ApplyTransforms
+#-----------------------------------------------------------------------------
+# Mindboggle libraries
+#-----------------------------------------------------------------------------
+from mindboggle.LABELS import DKTprotocol
+from mindboggle.DATA import hashes_url
+#from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
+#    measure_volume_overlap
+from mindboggle.features.folds import extract_folds
+from mindboggle.features.fundi import extract_fundi, segment_fundi
+from mindboggle.features.sulci import extract_sulci
+from mindboggle.labels.relabel import relabel_surface, relabel_volume, \
+    keep_volume_labels, remove_volume_labels, overwrite_volume_labels
+from mindboggle.shapes.laplace_beltrami import spectrum_per_label
+from mindboggle.shapes.likelihood import compute_likelihood
+from mindboggle.shapes.shape_tools import area, travel_depth, \
+    geodesic_depth, curvature
+from mindboggle.shapes.zernike.zernike import zernike_moments_per_label
+from mindboggle.utils.ants import fetch_ants_data, \
+    PropagateLabelsThroughMask, thickinthehead
+from mindboggle.utils.compute import volume_per_label
+from mindboggle.utils.io_nii import convert2nii
+from mindboggle.utils.io_table import write_shape_stats, \
+    write_vertex_measures
+from mindboggle.utils.io_uri import retrieve_data
+from mindboggle.utils.io_vtk import read_vtk, apply_affine_transforms, \
+    freesurfer_surface_to_vtk, freesurfer_curvature_to_vtk, \
+    freesurfer_annot_to_vtk
+from mindboggle.utils.mesh import rescale_by_neighborhood
+from mindboggle.utils.paths import smooth_skeleton
+from mindboggle.utils.segment import split_brain, combine_2labels_in_2volumes
+from mindboggle.utils.utils import list_strings
 
 #=============================================================================
 #
@@ -41,12 +79,10 @@ parser = argparse.ArgumentParser(description="""
                      formatter_class = lambda prog:
                      argparse.HelpFormatter(prog, max_help_position=40))
 
-ants_group = parser.add_argument_group('ANTs inputs')
 features_group = parser.add_argument_group('more features (or --all)')
 shapes_group = parser.add_argument_group('more shapes (or --all)')
 inputs_group = parser.add_argument_group('modify inputs')
 outputs_group = parser.add_argument_group('modify outputs')
-#extras_group = parser.add_argument_group('extras')
 
 # "positional arguments":
 parser.add_argument("SUBJECT",
@@ -82,21 +118,20 @@ parser.add_argument("-g", "--graph",
                     choices=['hier', 'flat', 'exec'], metavar='STR')
 parser.add_argument("-v", "--version", help="mindboggle version number",
                     action='version', version='%(prog)s 0.1')
-
 features_group.add_argument("--folds", action='store_true',
                     help="save all (unidentified) folds")
 features_group.add_argument("--sulci", action='store_true',
-                    help="extract, identify, and measure sulci")
+                    help="extract, identify, and measure sulci in folds")
 features_group.add_argument("--fundi", action='store_true',
-                    help="extract, identify, and measure fundi"
+                    help="extract, identify, and measure fundi in sulci"
                          " [UNTESTED, not included in --all]")
 features_group.add_argument("--points", action='store_true',
                     help=("table of per-vertex surface shape measures"))
 features_group.add_argument("--surfaces_in_mni", action='store_true',
                     help="cortical surfaces in MNI152 space")
-
 shapes_group.add_argument("--thickness", action='store_true',
-                    help="cortical label thicknesses [UNTESTED]")
+                    help="cortical label thicknesses computed from volume,"
+                         " not surface data (volume divided by middle area)")
 shapes_group.add_argument("--moments",
                     help="Zernike moments order per label/feature"
                          " (ex: 10) [not included in --all"
@@ -106,8 +141,6 @@ shapes_group.add_argument("--spectra",
                     help="Laplace-Beltrami spectrum eigenvalues"
                          " per label/feature (ex: 10)",
                     default=0, type=int, metavar='INT')
-
-# Alternative labeling atlas (in MNI152 space):
 inputs_group.add_argument("--my_atlas",
                     help=("alternate atlas to OASIS-TRT-20 jointfusion atlas;"
                           " must follow DKT31 cortical and CMA noncortical"
@@ -115,18 +148,23 @@ inputs_group.add_argument("--my_atlas",
                           " and should correspond to Atropos template used"
                           " in antsCorticalThickness.sh"),
                     metavar='STR')
-inputs_group.add_argument("--my_atlases", help=("extra labeling volume"
-                                                " atlas(es) in MNI152 space"),
+inputs_group.add_argument("--my_atlases",
+                    help=("extra labeling volume atlas(es) in MNI152 space;"
+                          " use any label numbers (disregard names) in"
+                          " LUT.py's return_numbers_names_colors() function"),
                     nargs='+', metavar='')
 inputs_group.add_argument("--my_segments",
-                          help=("use this segmented file (must call --ants)"),
+                          help=("use this non/cortex-segmented file,"
+                                " for example when running Mindboggle on"
+                                " edited version of FreeSurfer-ANTs hybrid"
+                                " segmentation generated by Mindboggle"
+                                " (must still call --ants for transforms)"
+                                " "),
                     metavar='STR')
-# Volume labels: "wmparc" (default) or "aparc+aseg"
 inputs_group.add_argument("--volume_labels",
                     help=(argparse.SUPPRESS),
                     choices=['wmparc', 'aparc+aseg'],
                     default='wmparc', metavar='STR')
-# Surface labels: "freesurfer" (default), "atlas" or "manual"
 inputs_group.add_argument("--surface_labels",
                     help=(argparse.SUPPRESS),
                     choices=['freesurfer', 'manual'],
@@ -137,22 +175,17 @@ inputs_group.add_argument("--my_transform",
                           " template was not used in antsCorticalThickness.sh"
                           " (format should match antsAffine.sh ITK transform)"),
                     metavar='STR')
-inputs_group.add_argument("--no_transforms", action='store_true',
-                    help="no transforms (antsCorticalThickness.sh"
-                         " run without -t, for example), so no volume"
-                         " outputs, and no data registered to MNI152 space")
-
 outputs_group.add_argument("--out",
-                    help='output directory (default: $HOME/mindboggled)',
+                    help='output folder (if not $HOME/mindboggled)',
                     default=os.path.join(os.environ['HOME'],
                                          'mindboggled'), metavar='STR')
 outputs_group.add_argument("--working",
-                    help="working directory"
-                         " (default: $HOME/mindboggle_working)",
+                    help="working folder"
+                         " (if not $HOME/mindboggle_working)",
                     default=os.path.join(os.environ['HOME'],
                                          'mindboggle_working'), metavar='STR')
-outputs_group.add_argument("--cache", help='download directory '
-                                    '(default: $HOME/mindboggle_cache)',
+outputs_group.add_argument("--cache", help='download folder '
+                                    '(if not $HOME/mindboggle_cache)',
                     default=os.path.join(os.environ['HOME'],
                                          'mindboggle_cache'), metavar='STR')
 outputs_group.add_argument("--no_volumes", action='store_true',
@@ -164,8 +197,7 @@ outputs_group.add_argument("--no_labels", action='store_true',
 outputs_group.add_argument("--no_shapes", action='store_true',
                     help="no shape tables of surface labels or features")
 outputs_group.add_argument("--save_only_tables", action='store_true',
-                    help="no surfaces or volumes, just tables")
-
+                    help="save only tables to free up space")
 args = parser.parse_args()
 
 #-----------------------------------------------------------------------------
@@ -178,11 +210,6 @@ if not subjects_dir:
         subjects_dir = os.environ['SUBJECTS_DIR']
     else:
         raise(IOError('Please set "subjects_dir" or $SUBJECTS_DIR variable.'))
-if args.ants:
-    ants_segments = args.ants
-    use_ants_segments = True
-else:
-    use_ants_segments = False
 if args.my_atlas:
     my_atlas = args.my_atlas
 else:
@@ -195,40 +222,28 @@ if args.my_transform:
     my_transform = args.my_transform
 else:
     my_transform = None
-if not args.no_transforms:
-    use_ants_transforms = True
-else:
-    use_ants_transforms = False
-#-----------------------------------------------------------------------------
-# Non-FreeSurfer data arguments:
-#-----------------------------------------------------------------------------
 use_FS_inputs = True
 do_input_vtk = False  # Load VTK surfaces directly (not FreeSurfer surfaces)
 do_input_fs_labels = False  # Load nifti (not FreeSurfer mgh file)
+
 #-----------------------------------------------------------------------------
 # Label, feature, and shape arguments:
 #-----------------------------------------------------------------------------
-# Check to see if any of the "not_" arguments were set:
-no_surfaces = args.no_surfaces
-if not no_surfaces:
-    do_surface = True
+volume_labels = args.volume_labels
+surface_labels = args.surface_labels
+if args.ants:
+    ants_seg = args.ants
+    use_ants = True
 else:
-    do_surface = False
-no_volumes = args.no_volumes
-if not no_volumes:
-    do_volumes = True
-else:
-    do_volumes = False
-no_labels = args.no_labels
-if not no_labels:
-    do_label = True
-else:
+    use_ants = False
+if args.no_labels:
     do_label = False
-no_shapes = args.no_shapes
-if not no_shapes:
-    do_shapes = True
 else:
+    do_label = True
+if args.no_shapes:
     do_shapes = False
+else:
+    do_shapes = True
 if args.save_only_tables:
     save_all = False
 else:
@@ -249,6 +264,8 @@ all_features_shapes = args.all
 do_fundi = args.fundi
 spectra = args.spectra
 moments = args.moments
+if moments > 0:
+    do_moments = True
 if all_features_shapes:
     save_folds = True
     do_sulci = True
@@ -256,10 +273,13 @@ if all_features_shapes:
     do_points = True
     do_surfaces_in_mni = True
     do_thickinthehead = True
+    # Set defaults for spectra and moments if not supplied and --all is set
     if spectra <= 0:
         spectra = 10
+    do_spectra = True
 #    if moments <= 0:
 #        moments = 10
+#    do_moments = True
 else:
     save_folds = args.folds
     do_sulci = args.sulci
@@ -267,75 +287,26 @@ else:
     do_points = args.points
     do_surfaces_in_mni = args.surfaces_in_mni
     do_thickinthehead = args.thickness
+    do_spectra = False
+#    do_moments = False
 
-# Set defaults for spectra and moments if not supplied and --all is set
-do_spectra = False  # Measure Laplace-Beltrami spectra for labels/features
-do_zernike = False  # Compute Zernike moments for labels/features
-if do_shapes and (do_label or do_sulci or do_fundi):
-    if spectra > 0:
-        do_spectra = True
-    if moments > 0:
-        do_zernike = True
+# Extra labeling atlases in MNI space:
+atlases = args.my_atlases
+add_atlas_names = []
+if atlases:
+    if isinstance(atlases, str):
+        atlases = [atlases]
+    for add_atlas in atlases:
+        add_atlas_names.append(os.path.basename(add_atlas).split('.')[0])
 
-# Hidden arguments:
-volume_labels = args.volume_labels
-surface_labels = args.surface_labels
+#=============================================================================
+#
+#   Hidden arguments: paths, labels and template data
+#
+#=============================================================================
 overwrite_cerebrum_with_cerebellum = True
 fill_noncortex_with_ants_labels = False
 do_smooth_fundi = False
-
-#=============================================================================
-#
-#   Import Nipype and Mindboggle libraries
-#
-#=============================================================================
-#-----------------------------------------------------------------------------
-# Nipype libraries
-#-----------------------------------------------------------------------------
-from nipype import config, logging
-from nipype.pipeline.engine import Workflow, Node, JoinNode
-from nipype.interfaces.io import DataGrabber, DataSink
-from nipype.interfaces.utility import Function as Fn
-from nipype.interfaces.utility import IdentityInterface
-from nipype.interfaces.ants import ApplyTransforms
-#-----------------------------------------------------------------------------
-# Mindboggle libraries
-#-----------------------------------------------------------------------------
-from mindboggle.LABELS import DKTprotocol
-from mindboggle.DATA import hashes_url
-#from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
-#    measure_volume_overlap
-from mindboggle.features.folds import extract_folds
-from mindboggle.features.fundi import extract_fundi, segment_fundi
-from mindboggle.features.sulci import extract_sulci
-from mindboggle.labels.relabel import relabel_surface, relabel_volume, \
-    keep_volume_labels, remove_volume_labels, overwrite_volume_labels
-from mindboggle.shapes.laplace_beltrami import spectrum_per_label
-from mindboggle.shapes.likelihood import compute_likelihood
-from mindboggle.shapes.shape_tools import area, travel_depth, \
-    geodesic_depth, curvature
-from mindboggle.shapes.zernike.zernike import zernike_moments_per_label
-from mindboggle.utils.ants import fetch_ants_data, \
-    ImageMath, PropagateLabelsThroughMask, fill_volume_with_surface_labels, \
-    thickinthehead
-from mindboggle.utils.compute import volume_per_label
-from mindboggle.utils.io_nii import convert2nii
-from mindboggle.utils.io_table import write_shape_stats, \
-    write_vertex_measures
-from mindboggle.utils.io_uri import retrieve_data
-from mindboggle.utils.io_vtk import read_vtk, apply_affine_transforms, \
-    freesurfer_surface_to_vtk, freesurfer_curvature_to_vtk, \
-    freesurfer_annot_to_vtk
-from mindboggle.utils.mesh import rescale_by_neighborhood
-from mindboggle.utils.paths import smooth_skeleton
-from mindboggle.utils.segment import split_brain, combine_2labels_in_2volumes
-from mindboggle.utils.utils import list_strings
-
-#=============================================================================
-#
-#   Hidden arguments: paths, label and template data
-#
-#=============================================================================
 #-----------------------------------------------------------------------------
 # Path to C++ code:
 #-----------------------------------------------------------------------------
@@ -367,32 +338,22 @@ if not os.path.isdir(cache):
 dkt = DKTprotocol()
 atlas_volume = 'OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152_v2.nii.gz'
 atropos_to_MNI152_affine = 'OASIS-30_Atropos_template_to_MNI152_affine.txt'
-
-atlases = args.my_atlases
-add_atlas_names = []
-if atlases:
-    if isinstance(atlases, str):
-        atlases = [atlases]
-    for add_atlas in atlases:
-        add_atlas_names.append(os.path.basename(add_atlas).split('.')[0])
-
 #-----------------------------------------------------------------------------
 # Surface atlas labels:
 # - 'manual': manual edits
 # - FUTURE: <'adjusted': manual edits after automated alignment to fundi>
 #-----------------------------------------------------------------------------
-surface_classifier = 'DKTatlas40'
 surface_atlas_type = 'manual'
-modify_surface_labels = False
+#modify_surface_labels = False
 #-----------------------------------------------------------------------------
-# Evaluation
+# Evaluation:
 #-----------------------------------------------------------------------------
 do_evaluate_surf_labels = False  # Surface overlap: auto vs. manual labels
 do_evaluate_vol_labels = False  # Volume overlap: auto vs. manual labels
 
 #=============================================================================
 #
-#    Basic functions
+#   Basic functions
 #
 #=============================================================================
 def split_list_pair(List):
@@ -464,38 +425,44 @@ Sink.inputs.substitutions = [ ('lh.', ''), ('rh.', ''),
 Sink.inputs.regexp_substitutions = [
     (r'/_atlas_(.*)/ANTs_added_atlas_labels.nii.gz',
      r'/\1_labels.nii.gz'),
-    (r'/_atlas_(.*)/volumes.csv',
+    (r'/_atlas_(.*)/volumes_added_labels.csv',
      r'/\1_labels_volumes.csv')]
 
 #-----------------------------------------------------------------------------
-# ANTs transforms for saving MNI152-transformed coordinates and for labeling
+# Affine transform from Atropos template to MNI152 space:
 #-----------------------------------------------------------------------------
-if use_ants_transforms and use_ants_segments:
-    #-------------------------------------------------------------------------
-    # Retrieve atlas path:
-    #-------------------------------------------------------------------------
-    if not my_atlas:
-        FetchAtlas = Node(name='Fetch_atlas',
-                          interface=Fn(function=retrieve_data,
-                                       input_names=['data_file',
-                                                    'url',
-                                                    'hashes',
-                                                    'cache_env',
-                                                    'cache',
-                                                    'return_missing',
-                                                    'lookup'],
-                                       output_names=['data_path']))
-        mbFlow.add_nodes([FetchAtlas])
-        FetchAtlas.inputs.data_file = atlas_volume
-        FetchAtlas.inputs.url = url
-        FetchAtlas.inputs.hashes = hashes
-        FetchAtlas.inputs.cache_env = cache_env
-        FetchAtlas.inputs.cache = cache
-        FetchAtlas.inputs.return_missing = False
-        FetchAtlas.inputs.lookup = True
-    #-------------------------------------------------------------------------
-    # Retrieve ANTs data:
-    #-------------------------------------------------------------------------
+if my_transform:
+    affine_template2mni = my_transform
+else:
+    affine_template2mni = retrieve_data(atropos_to_MNI152_affine,
+                                        url, hashes, cache_env, cache)
+#-----------------------------------------------------------------------------
+# Atlas labels:
+#-----------------------------------------------------------------------------
+if do_label and not my_atlas:
+    FetchAtlas = Node(name='Fetch_atlas',
+                      interface=Fn(function=retrieve_data,
+                                   input_names=['data_file',
+                                                'url',
+                                                'hashes',
+                                                'cache_env',
+                                                'cache',
+                                                'return_missing',
+                                                'lookup'],
+                                   output_names=['data_path']))
+    mbFlow.add_nodes([FetchAtlas])
+    FetchAtlas.inputs.data_file = atlas_volume
+    FetchAtlas.inputs.url = url
+    FetchAtlas.inputs.hashes = hashes
+    FetchAtlas.inputs.cache_env = cache_env
+    FetchAtlas.inputs.cache = cache
+    FetchAtlas.inputs.return_missing = False
+    FetchAtlas.inputs.lookup = True
+
+#-----------------------------------------------------------------------------
+# ANTs data:
+#-----------------------------------------------------------------------------
+if use_ants:
     FetchANTs = Node(name='Fetch_ants_data',
                      interface=Fn(function=fetch_ants_data,
                                   input_names=['segmented_file',
@@ -507,74 +474,60 @@ if use_ants_transforms and use_ants_segments:
                                                 'affine_template2subject',
                                                 'warp_template2subject']))
     mbFlow.add_nodes([FetchANTs])
-    FetchANTs.inputs.segmented_file = ants_segments
-    FetchANTs.inputs.use_ants_transforms = use_ants_transforms
+    FetchANTs.inputs.segmented_file = ants_seg
+    FetchANTs.inputs.use_ants_transforms = True
     #-------------------------------------------------------------------------
-    # Use registration transforms generated by antsCorticalThickness.sh:
+    # For transforming volume labels --
+    # Make list of ANTs MNI152-to-subject nonlinear transforms
+    # to use antsApplyTransforms:
+    #
+    # Note regarding antsApplyTransforms:
+    # To warp the subject image to the template, one would call
+    # antsApplyTransforms...-i ${subject} -r ${template}
+    #                       -t ${prefix}SubjectToTemplate1Warp.nii.gz
+    #                       -t ${prefix}SubjectToTemplate0GenericAffine.mat
+    # To warp the template image to the subject, one would call
+    # antsApplyTransforms...-i ${template} -r ${subject}
+    #                       -t ${prefix}TemplateToSubject1GenericAffine.mat
+    #                       -t ${prefix}TemplateToSubject0Warp.nii.gz
     #-------------------------------------------------------------------------
-    if use_ants_transforms:
-        if (do_shapes and do_surface) or do_label:
-
-            if my_transform:
-                affine_template2mni = my_transform
-            else:
-                affine_template2mni = retrieve_data(atropos_to_MNI152_affine,
-                                                    url, hashes, cache_env, cache)
-
-        #---------------------------------------------------------------------
-        # For transforming volume labels --
-        # Make list of ANTs MNI152-to-subject nonlinear transforms
-        # to use antsApplyTransforms:
-        #
-        # Note regarding antsApplyTransforms:
-        # To warp the subject image to the template, one would call
-        # antsApplyTransforms...-i ${subject} -r ${template}
-        #                       -t ${prefix}SubjectToTemplate1Warp.nii.gz
-        #                       -t ${prefix}SubjectToTemplate0GenericAffine.mat
-        # To warp the template image to the subject, one would call
-        # antsApplyTransforms...-i ${template} -r ${subject}
-        #                       -t ${prefix}TemplateToSubject1GenericAffine.mat
-        #                       -t ${prefix}TemplateToSubject0Warp.nii.gz
-        #---------------------------------------------------------------------
-        if do_label:
-            WarpToSubjectFileList = Node(name='Merge_warp_file_list',
-                                         interface=Fn(function=list_strings,
-                                              input_names=['string1',
-                                                           'string2',
-                                                           'string3',
-                                                           'string4'],
-                                              output_names=['string_list']))
-            mbFlow.connect(FetchANTs, 'affine_template2subject',
-                           WarpToSubjectFileList, 'string1')
-            mbFlow.connect(FetchANTs, 'warp_template2subject',
-                           WarpToSubjectFileList, 'string2')
-            WarpToSubjectFileList.inputs.string3 = affine_template2mni
-            WarpToSubjectFileList.inputs.string4 = ''
-            warp_inverse_Booleans = [False, False, True]  # Boolean list
-        #---------------------------------------------------------------------
-        # For transforming surface points --
-        # Make list of subject-to-MNI affine transforms
-        # to use antsApplyTransformsToPoints:
-        #
-        # Note regarding antsApplyTransformsToPoints:
-        # Points are transformed in the OPPOSITE direction of images,
-        # so you pass the inverse of what is needed to warp the images.
-        # Note 2: Don't forget to switch the order of the affine transforms!
-        #---------------------------------------------------------------------
-        if do_shapes and do_surface:
-            AffineFileList = Node(name='Affine_file_list',
-                                  interface=Fn(function=list_strings,
-                                               input_names=['string1',
-                                                            'string2',
-                                                            'string3',
-                                                            'string4'],
-                                               output_names=['string_list']))
-            mbFlow.connect(FetchANTs, 'affine_subject2template',
-                           AffineFileList, 'string1')
-            AffineFileList.inputs.string2 = affine_template2mni
-            AffineFileList.inputs.string3 = ''
-            AffineFileList.inputs.string4 = ''
-            inverse_Booleans = [1, 1]  # list of ones/zeros for True/False
+    WarpToSubjectFileList = Node(name='Merge_warp_file_list',
+                                 interface=Fn(function=list_strings,
+                                      input_names=['string1',
+                                                   'string2',
+                                                   'string3',
+                                                   'string4'],
+                                      output_names=['string_list']))
+    mbFlow.connect(FetchANTs, 'affine_template2subject',
+                   WarpToSubjectFileList, 'string1')
+    mbFlow.connect(FetchANTs, 'warp_template2subject',
+                   WarpToSubjectFileList, 'string2')
+    WarpToSubjectFileList.inputs.string3 = affine_template2mni
+    WarpToSubjectFileList.inputs.string4 = ''
+    warp_inverse_Booleans = [False, False, True]  # Boolean list
+    #-------------------------------------------------------------------------
+    # For transforming surface points --
+    # Make list of subject-to-MNI affine transforms
+    # to use antsApplyTransformsToPoints:
+    #
+    # Note regarding antsApplyTransformsToPoints:
+    # Points are transformed in the OPPOSITE direction of images,
+    # so you pass the inverse of what is needed to warp the images.
+    # Note 2: Don't forget to switch the order of the affine transforms!
+    #-------------------------------------------------------------------------
+    AffineFileList = Node(name='Affine_file_list',
+                          interface=Fn(function=list_strings,
+                                       input_names=['string1',
+                                                    'string2',
+                                                    'string3',
+                                                    'string4'],
+                                       output_names=['string_list']))
+    mbFlow.connect(FetchANTs, 'affine_subject2template',
+                   AffineFileList, 'string1')
+    AffineFileList.inputs.string2 = affine_template2mni
+    AffineFileList.inputs.string3 = ''
+    AffineFileList.inputs.string4 = ''
+    inverse_Booleans = [1, 1]  # list of ones/zeros for True/False
 
 #=============================================================================
 #-----------------------------------------------------------------------------
@@ -583,7 +536,7 @@ if use_ants_transforms and use_ants_segments:
 #
 #-----------------------------------------------------------------------------
 #=============================================================================
-if do_surface:
+if not args.no_surfaces:
     #-------------------------------------------------------------------------
     # Location and structure of the surface inputs:
     #-------------------------------------------------------------------------
@@ -663,6 +616,7 @@ if do_surface:
         # NOTE: This can now be done by running FreeSurfer's recon-all
         #       with "-gcs DKTatlas40.gcs"
         #=====================================================================
+        # surface_classifier = DKTatlas40
         # if surface_labels == 'atlas' and use_FS_inputs:
         #     #---------------------------------------------------------------
         #     # Label brain with DKT atlas using FreeSurfer's mris_ca_label:
@@ -722,7 +676,7 @@ if do_surface:
             #-----------------------------------------------------------------
             # Location and structure of the FreeSurfer label inputs:
             #-----------------------------------------------------------------
-            if do_label and surface_labels == 'freesurfer':
+            if surface_labels == 'freesurfer':
                 Annot = Node(name='annot',
                              interface=DataGrabber(infields=['subject',
                                                              'hemi'],
@@ -1224,7 +1178,7 @@ if do_surface:
         #=====================================================================
         # Compute Zernike moments
         #=====================================================================
-        if do_zernike:
+        if do_moments:
             #-----------------------------------------------------------------
             # Measure Zernike moments of labeled regions:
             #-----------------------------------------------------------------
@@ -1322,7 +1276,7 @@ if do_surface:
             mbFlow.connect(SurfFeatureFlow,
                            'Fundus_per_sulcus.fundus_per_sulcus',
                            ShapeTables, 'fundi')
-        if use_ants_transforms and use_ants_segments:
+        if use_ants:
             mbFlow.connect(AffineFileList, 'string_list',
                            ShapeTables, 'affine_transform_files')
             ShapeTables.inputs.inverse_booleans = inverse_Booleans
@@ -1362,7 +1316,7 @@ if do_surface:
                 ShapeTables.inputs.sulci_spectra_IDs = []
 
         # Zernike moments:
-        if do_zernike:
+        if do_moments:
             mbFlow.connect(SurfFeatureShapeFlow,
                            'Zernike_labels.descriptors_lists',
                            ShapeTables, 'labels_zernike')
@@ -1430,7 +1384,7 @@ if do_surface:
                                'Fundus_per_sulcus.fundus_per_sulcus',
                                VertexTable, 'fundi')
 
-            if use_ants_transforms and use_ants_segments:
+            if use_ants:
                 mbFlow.connect(AffineFileList, 'string_list',
                                VertexTable, 'affine_transform_files')
                 VertexTable.inputs.inverse_booleans = inverse_Booleans
@@ -1463,7 +1417,7 @@ if do_surface:
         #---------------------------------------------------------------------
         # Apply affine transform to surface coordinates:
         #---------------------------------------------------------------------
-        if use_ants_transforms and use_ants_segments and do_surfaces_in_mni:
+        if use_ants and do_surfaces_in_mni:
             TransformVTK = Node(name='Transform_surface_points',
                                 interface=Fn(function=apply_affine_transforms,
                                              input_names=['transform_files',
@@ -1481,8 +1435,9 @@ if do_surface:
             TransformVTK.inputs.inverse_booleans = inverse_Booleans
             TransformVTK.inputs.transform_format = 'itk'
             TransformVTK.inputs.vtk_file_stem = 'affine_'
-            mbFlow.connect(TransformVTK, 'output_file',
-                           Sink, 'features.@surface_in_MNI152')
+            if save_all:
+                mbFlow.connect(TransformVTK, 'output_file',
+                               Sink, 'features.@surface_in_MNI152')
 
 
 #=============================================================================
@@ -1492,7 +1447,7 @@ if do_surface:
 #
 #-----------------------------------------------------------------------------
 #=============================================================================
-if do_volumes and do_label:
+if do_label and not args.no_volumes:
 
     #=========================================================================
     #
@@ -1652,7 +1607,7 @@ if do_volumes and do_label:
         #---------------------------------------------------------------------
         # Convert ANTs Atropos-segmented volume to non/cortex segments:
         #---------------------------------------------------------------------
-        if use_ants_segments:
+        if use_ants:
             ANTsSegments = FSsegments.clone('Relabel_ANTs_segments')
             VolLabelFlow.add_nodes([ANTsSegments])
             mbFlow.connect(FetchANTs, 'segments', VolLabelFlow,
@@ -1704,40 +1659,40 @@ if do_volumes and do_label:
     #=========================================================================
     # Split segmented brain into two sides (without medial regions)
     #=========================================================================
-    if modify_surface_labels:
-        #---------------------------------------------------------------------
-        # Split brain by masking with left or right labels:
-        #---------------------------------------------------------------------
-        SplitBrainSegs = Node(name='Split_brain',
-                              interface=Fn(function=split_brain,
-                                           input_names=['image_file',
-                                                        'label_file',
-                                                        'left_labels',
-                                                        'right_labels'],
-                                           output_names=['left_brain',
-                                                         'right_brain']))
-        VolLabelFlow.add_nodes([SplitBrainSegs])
-        if my_segments:
-            SplitBrainSegs.inputs.image_file = my_segments
-        else:
-            if use_ants_segments:
-                if overwrite_cerebrum_with_cerebellum:
-                    VolLabelFlow.connect(RemoveCerebellum, 'output_file',
-                                         SplitBrainSegs, 'image_file')
-                else:
-                    VolLabelFlow.connect(JoinSegs, 'output_file',
-                                         SplitBrainSegs, 'image_file')
-            else:
-                VolLabelFlow.connect(FSsegments, 'output_file',
-                                     SplitBrainSegs, 'image_file')
-        if do_input_fs_labels:
-            mbFlow.connect(labelsNifti, 'labels', VolLabelFlow,
-                           'Split_brain.label_file')
-        else:
-            mbFlow.connect(labelsMGH2Nifti, 'output_file', VolLabelFlow,
-                           'Split_brain.label_file')
-        SplitBrainSegs.inputs.left_labels = dkt.left_cerebrum_numbers
-        SplitBrainSegs.inputs.right_labels = dkt.right_cerebrum_numbers
+    # if modify_surface_labels:
+    #     #---------------------------------------------------------------------
+    #     # Split brain by masking with left or right labels:
+    #     #---------------------------------------------------------------------
+    #     SplitBrainSegs = Node(name='Split_brain',
+    #                           interface=Fn(function=split_brain,
+    #                                        input_names=['image_file',
+    #                                                     'label_file',
+    #                                                     'left_labels',
+    #                                                     'right_labels'],
+    #                                        output_names=['left_brain',
+    #                                                      'right_brain']))
+    #     VolLabelFlow.add_nodes([SplitBrainSegs])
+    #     if my_segments:
+    #         SplitBrainSegs.inputs.image_file = my_segments
+    #     else:
+    #         if use_ants:
+    #             if overwrite_cerebrum_with_cerebellum:
+    #                 VolLabelFlow.connect(RemoveCerebellum, 'output_file',
+    #                                      SplitBrainSegs, 'image_file')
+    #             else:
+    #                 VolLabelFlow.connect(JoinSegs, 'output_file',
+    #                                      SplitBrainSegs, 'image_file')
+    #         else:
+    #             VolLabelFlow.connect(FSsegments, 'output_file',
+    #                                  SplitBrainSegs, 'image_file')
+    #     if do_input_fs_labels:
+    #         mbFlow.connect(labelsNifti, 'labels', VolLabelFlow,
+    #                        'Split_brain.label_file')
+    #     else:
+    #         mbFlow.connect(labelsMGH2Nifti, 'output_file', VolLabelFlow,
+    #                        'Split_brain.label_file')
+    #     SplitBrainSegs.inputs.left_labels = dkt.left_cerebrum_numbers
+    #     SplitBrainSegs.inputs.right_labels = dkt.right_cerebrum_numbers
 
     #=========================================================================
     # Fill cerebrum segmentation volumes with FreeSurfer labels
@@ -1781,7 +1736,7 @@ if do_volumes and do_label:
     if my_segments:
         FSFillNoncortex.inputs.mask = my_segments
     else:
-        if use_ants_segments:
+        if use_ants:
             if overwrite_cerebrum_with_cerebellum:
                 VolLabelFlow.connect(RemoveCerebellum, 'output_file',
                                      FSFillNoncortex, 'mask')
@@ -1800,103 +1755,99 @@ if do_volumes and do_label:
     #-------------------------------------------------------------------------
     # Propagate FreeSurfer surface labels through whole-brain cortex:
     #-------------------------------------------------------------------------
-    if do_surface and modify_surface_labels:
-
-        print('NOTE: Reevaluate surface-to-volume label propagation '
-              'when surface label modification algorithm complete.')
-
-        #---------------------------------------------------------------------
-        # Propagate surface labels through each hemisphere's cortex:
-        #---------------------------------------------------------------------
-        FSsurfFillCortex = Node(
-                    name='Fill_cortex_with_FreeSurfer_surface_labels',
-                    interface=Fn(function=fill_volume_with_surface_labels,
-                                 input_names=['hemi',
-                                              'left_mask',
-                                              'right_mask',
-                                              'surface_files',
-                                              'mask_index',
-                                              'output_file',
-                                              'binarize'],
-                                 output_names=['output_file']))
-        VolLabelFlow.add_nodes([FSsurfFillCortex])
-        mbFlow.connect(InputHemis, 'hemi', VolLabelFlow,
-                       'Fill_cortex_with_FreeSurfer_surface_labels.hemi')
-        VolLabelFlow.connect(SplitBrainSegs, 'left_brain',
-                             FSsurfFillCortex, 'left_mask')
-        VolLabelFlow.connect(SplitBrainSegs, 'right_brain',
-                             FSsurfFillCortex, 'right_mask')
-        mbFlow.connect(SurfLabelFlow, 'Reindex_labels.output_file',
-            VolLabelFlow,
-            'Fill_cortex_with_FreeSurfer_surface_labels.surface_files')
-        FSsurfFillCortex.inputs.mask_index = 2
-        FSsurfFillCortex.inputs.output_file = ''
-        FSsurfFillCortex.inputs.binarize = False
-        #---------------------------------------------------------------------
-        # Combine left and right cortical labels:
-        #---------------------------------------------------------------------
-        SplitHemiList = JoinNode(name='Split_hemisphere_list',
-                                 interface=Fn(function=split_list_pair,
-                                              input_names=['List'],
-                                              output_names=['element1',
-                                                            'element2']),
-                                 joinsource="Input_hemispheres",
-                                 joinfield="List")
-        LRcortex = Node(name='Combine_left_right_cortex_labels',
-                        interface=Fn(function=ImageMath,
-                                     input_names=['volume1',
-                                                  'volume2',
-                                                  'operator',
-                                                  'output_file'],
-                                     output_names=['output_file']))
-        VolLabelFlow.add_nodes([SplitHemiList, LRcortex])
-        VolLabelFlow.connect(FSsurfFillCortex, 'output_file',
-                             SplitHemiList, 'List')
-        VolLabelFlow.connect(SplitHemiList, 'element1', LRcortex, 'volume1')
-        VolLabelFlow.connect(SplitHemiList, 'element2', LRcortex, 'volume2')
-        LRcortex.inputs.operator = '+'
-        LRcortex.inputs.output_file = ''
+    # if modify_surface_labels:
+    #
+    #     print('NOTE: Evaluate surface-to-volume label propagation'
+    #           ' when surface label modification algorithm complete.')
+    #
+    #     #---------------------------------------------------------------------
+    #     # Propagate surface labels through each hemisphere's cortex:
+    #     #---------------------------------------------------------------------
+    #     FSsurfFillCortex = Node(
+    #                 name='Fill_cortex_with_FreeSurfer_surface_labels',
+    #                 interface=Fn(function=fill_volume_with_surface_labels,
+    #                              input_names=['hemi',
+    #                                           'left_mask',
+    #                                           'right_mask',
+    #                                           'surface_files',
+    #                                           'mask_index',
+    #                                           'output_file',
+    #                                           'binarize'],
+    #                              output_names=['output_file']))
+    #     VolLabelFlow.add_nodes([FSsurfFillCortex])
+    #     mbFlow.connect(InputHemis, 'hemi', VolLabelFlow,
+    #                    'Fill_cortex_with_FreeSurfer_surface_labels.hemi')
+    #     VolLabelFlow.connect(SplitBrainSegs, 'left_brain',
+    #                          FSsurfFillCortex, 'left_mask')
+    #     VolLabelFlow.connect(SplitBrainSegs, 'right_brain',
+    #                          FSsurfFillCortex, 'right_mask')
+    #     mbFlow.connect(SurfLabelFlow, 'Reindex_labels.output_file',
+    #         VolLabelFlow,
+    #         'Fill_cortex_with_FreeSurfer_surface_labels.surface_files')
+    #     FSsurfFillCortex.inputs.mask_index = 2
+    #     FSsurfFillCortex.inputs.output_file = ''
+    #     FSsurfFillCortex.inputs.binarize = False
+    #     #---------------------------------------------------------------------
+    #     # Combine left and right cortical labels:
+    #     #---------------------------------------------------------------------
+    #     SplitHemiList = JoinNode(name='Split_hemisphere_list',
+    #                              interface=Fn(function=split_list_pair,
+    #                                           input_names=['List'],
+    #                                           output_names=['element1',
+    #                                                         'element2']),
+    #                              joinsource="Input_hemispheres",
+    #                              joinfield="List")
+    #     LRcortex = Node(name='Combine_left_right_cortex_labels',
+    #                     interface=Fn(function=ImageMath,
+    #                                  input_names=['volume1',
+    #                                               'volume2',
+    #                                               'operator',
+    #                                               'output_file'],
+    #                                  output_names=['output_file']))
+    #     VolLabelFlow.add_nodes([SplitHemiList, LRcortex])
+    #     VolLabelFlow.connect(FSsurfFillCortex, 'output_file',
+    #                          SplitHemiList, 'List')
+    #     VolLabelFlow.connect(SplitHemiList, 'element1', LRcortex, 'volume1')
+    #     VolLabelFlow.connect(SplitHemiList, 'element2', LRcortex, 'volume2')
+    #     LRcortex.inputs.operator = '+'
+    #     LRcortex.inputs.output_file = ''
+    #else:
     #-------------------------------------------------------------------------
     # Propagate FreeSurfer volume labels through whole-brain cortex:
     #-------------------------------------------------------------------------
+    # Extract FreeSurfer cerebrum cortical volume labels:
+    FScortex = FSnoncortex.clone('Extract_FreeSurfer_cortex_labels')
+    VolLabelFlow.add_nodes([FScortex])
+    if do_input_fs_labels:
+        mbFlow.connect(labelsNifti, 'labels', VolLabelFlow,
+                       'Extract_FreeSurfer_cortex_labels.input_file')
     else:
-        #---------------------------------------------------------------------
-        # Extract FreeSurfer cerebrum cortical volume labels:
-        #---------------------------------------------------------------------
-        FScortex = FSnoncortex.clone('Extract_FreeSurfer_cortex_labels')
-        VolLabelFlow.add_nodes([FScortex])
-        if do_input_fs_labels:
-            mbFlow.connect(labelsNifti, 'labels', VolLabelFlow,
-                           'Extract_FreeSurfer_cortex_labels.input_file')
-        else:
-            mbFlow.connect(labelsMGH2Nifti, 'output_file', VolLabelFlow,
-                           'Extract_FreeSurfer_cortex_labels.input_file')
-        FScortex.inputs.labels_to_keep = dkt.cerebrum_cortex_numbers
-        FScortex.inputs.output_file = ''
-        FScortex.inputs.second_file = ''
+        mbFlow.connect(labelsMGH2Nifti, 'output_file', VolLabelFlow,
+                       'Extract_FreeSurfer_cortex_labels.input_file')
+    FScortex.inputs.labels_to_keep = dkt.cerebrum_cortex_numbers
+    FScortex.inputs.output_file = ''
+    FScortex.inputs.second_file = ''
 
-        #---------------------------------------------------------------------
-        # Propagate volume labels through whole-brain cortex:
-        #---------------------------------------------------------------------
-        FSFillCortex = FSFillNoncortex.clone(
-                            'Fill_cortex_with_FreeSurfer_labels')
-        VolLabelFlow.add_nodes([FSFillCortex])
-        if my_segments:
-            FSFillCortex.inputs.mask = my_segments
-        else:
-            if use_ants_segments:
-                if overwrite_cerebrum_with_cerebellum:
-                    VolLabelFlow.connect(RemoveCerebellum, 'output_file',
-                                         FSFillCortex, 'mask')
-                else:
-                    VolLabelFlow.connect(JoinSegs, 'output_file',
-                                         FSFillCortex, 'mask')
-            else:
-                VolLabelFlow.connect(FSsegments, 'output_file',
+    # Propagate volume labels through whole-brain cortex:
+    FSFillCortex = FSFillNoncortex.clone(
+                        'Fill_cortex_with_FreeSurfer_labels')
+    VolLabelFlow.add_nodes([FSFillCortex])
+    if my_segments:
+        FSFillCortex.inputs.mask = my_segments
+    else:
+        if use_ants:
+            if overwrite_cerebrum_with_cerebellum:
+                VolLabelFlow.connect(RemoveCerebellum, 'output_file',
                                      FSFillCortex, 'mask')
-        VolLabelFlow.connect(FScortex, 'output_file',
-                             FSFillCortex, 'labels')
-        FSFillCortex.inputs.mask_index = 2
+            else:
+                VolLabelFlow.connect(JoinSegs, 'output_file',
+                                     FSFillCortex, 'mask')
+        else:
+            VolLabelFlow.connect(FSsegments, 'output_file',
+                                 FSFillCortex, 'mask')
+    VolLabelFlow.connect(FScortex, 'output_file',
+                         FSFillCortex, 'labels')
+    FSFillCortex.inputs.mask_index = 2
     #-------------------------------------------------------------------------
     # Combine FreeSurfer label-filled whole-brain cortex and noncortex:
     #-------------------------------------------------------------------------
@@ -1912,12 +1863,12 @@ if do_volumes and do_label:
     VolLabelFlow.add_nodes([CombineFSLabels])
     VolLabelFlow.connect(FSFillNoncortex, 'output_file',
                          CombineFSLabels, 'source')
-    if modify_surface_labels:
-        VolLabelFlow.connect(LRcortex, 'output_file',
-                             CombineFSLabels, 'target')
-    else:
-        VolLabelFlow.connect(FSFillCortex, 'output_file',
-                             CombineFSLabels, 'target')
+    #if modify_surface_labels:
+    #    VolLabelFlow.connect(LRcortex, 'output_file',
+    #                         CombineFSLabels, 'target')
+    #else:
+    VolLabelFlow.connect(FSFillCortex, 'output_file',
+                         CombineFSLabels, 'target')
     CombineFSLabels.inputs.output_file = ''
     CombineFSLabels.inputs.ignore_labels = [0]
     CombineFSLabels.inputs.erase_labels = False
@@ -1929,7 +1880,7 @@ if do_volumes and do_label:
     #=========================================================================
     # Fill whole-brain segmentation volumes with ANTs labels
     #=========================================================================
-    if use_ants_segments and use_ants_transforms:
+    if use_ants:
         #---------------------------------------------------------------------
         # Mask brain volume:
         #---------------------------------------------------------------------
@@ -2074,7 +2025,7 @@ if do_volumes and do_label:
         #---------------------------------------------------------------------
         # ...to ANTs cerebrum labels:
         #---------------------------------------------------------------------
-        if use_ants_segments and use_ants_transforms:
+        if use_ants:
             AddFScerebellum2ANTs = AddFScerebellum.clone(
                 'FreeSurfer_cerebellum_ANTs_cerebrum')
             VolLabelFlow.add_nodes([AddFScerebellum2ANTs])
@@ -2091,9 +2042,11 @@ if do_volumes and do_label:
                        Sink, 'labels.@ants_filled_and_cerebellum')
 
     #=========================================================================
+    #
     # Transform labels from added atlas(es) in MNI152 to subject
+    #
     #=========================================================================
-    if use_ants_transforms and add_atlas_names:
+    if add_atlas_names and use_ants:
         #---------------------------------------------------------------------
         # Find atlas path that contains atlas name:
         #---------------------------------------------------------------------
@@ -2126,7 +2079,9 @@ if do_volumes and do_label:
                            Sink, 'labels.@added_atlases')
 
     ##=========================================================================
+    ##
     ## Evaluate label volume overlaps
+    ##
     ##=========================================================================
     #if do_evaluate_vol_labels:
     #
@@ -2156,7 +2111,7 @@ if do_volumes and do_label:
     #    EvalVolLabels.inputs.labels = dkt.label_numbers
     #    VolLabelFlow.connect(VolAtlas, 'atlas_vol_file',
     #                         EvalVolLabels, 'file2')
-    #    if use_ants_transforms: # and use_ants_segments:
+    #    if use_ants:
     #        VolLabelFlow.connect(ANTSwFSg, 'output_file',
     #                             EvalVolLabels, 'file1')
     #    else:
@@ -2200,7 +2155,7 @@ if do_volumes and do_label:
         mbFlow.connect(VolShapeFlow,
                        'FreeSurfer_filled_label_volumes.output_table',
                        Sink, 'tables.@volumes_of_FreeSurfer_labels')
-        if use_ants_transforms and use_ants_segments:
+        if use_ants:
             #-----------------------------------------------------------------
             # Volumes of the ANTs filled labels:
             #-----------------------------------------------------------------
@@ -2228,15 +2183,14 @@ if do_volumes and do_label:
                     'Added_atlas_label_volumes')
                 VolShapeFlow.add_nodes([antsLabelVolumes2])
                 antsLabelVolumes2.inputs.label_names = []
+                antsLabelVolumes2.inputs.include_labels = dkt.label_numbers
                 antsLabelVolumes2.inputs.exclude_labels = [-1,0]
+                antsLabelVolumes2.inputs.output_table = \
+                    'volumes_added_labels.csv'
                 mbFlow.connect(VolLabelFlow,
                                'Transform_added_atlases.output_image',
                                VolShapeFlow,
                                'Added_atlas_label_volumes.input_file')
-                mbFlow.connect(VolLabelFlow,
-                               'Transform_added_atlases.output_image',
-                               VolShapeFlow,
-                               'Added_atlas_label_volumes.output_table')
                 # Save table:
                 mbFlow.connect(VolShapeFlow,
                                'Added_atlas_label_volumes.output_table',
@@ -2269,7 +2223,7 @@ if do_volumes and do_label:
             if my_segments:
                 FSthicknesses.inputs.segmented_file = my_segments
             else:
-                if use_ants_segments:
+                if use_ants:
                     if overwrite_cerebrum_with_cerebellum:
                         mbFlow.connect(VolLabelFlow,
                             'Remove_cerebrum_cerebellum_overlap.output_file',
@@ -2309,7 +2263,7 @@ if do_volumes and do_label:
             #-----------------------------------------------------------------
             # Thicknesses of the ANTs cortical labels:
             #-----------------------------------------------------------------
-            if use_ants_transforms and use_ants_segments:
+            if use_ants:
                 ANTsThicknesses = FSthicknesses.\
                     clone('ANTs_filled_cortex_label_thicknesses')
                 VolShapeFlow.add_nodes([ANTsThicknesses])
