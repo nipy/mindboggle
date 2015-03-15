@@ -1,0 +1,198 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Mindboggle &mdash; Mindboggle</title>
+    
+    <link rel="stylesheet" href="../../_static/mindboggle.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1.0dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Mindboggle" href="../../index.html" />
+  <HTML><head><title>Mindboggle</title>
+  <meta http-equiv="Content-language" content="en">
+  <meta name="description" content="Mindboggle">
+  <meta name="keywords" content="Mindboggle, neuroimaging, brain imaging, python, neuroscience, labeling, parcellation, morphometry, shape analysis, MRI">
+  <meta name="author" content="mailto:arno&#64;mindboggle.info">
+  <meta name="dc.title" content="Mindboggle"> 
+  <meta name="dc.creator.address" content="arno&#64;mindboggle.info">
+  <meta name="dc.subject" content="Mindboggle">
+  <meta name="dc.type" content="text.homepage.academic"> 
+  <meta name="dc.format" content="text/html"> 
+  <meta name="dc.identifier" content="http://binarybottle.github.io/mindboggle/">
+
+  </head>
+  <body role="document">
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+ <table>
+  <tr>
+   <td>
+
+ <a href="../../index.html">
+  <img src="http://binarybottle.github.io/mindboggle/shared/mindboggle_logo_small.jpg" alt="small mindboggle logo"  border="0" width="160"/></a>
+
+   </td>
+   <td>
+    <table>
+     <tr>
+ <a style="padding: 20px 20px 20px 20px; color: #b07613; text-decoration: none; font-size: 32px"
+  href="../../index.html">Mindboggle</a>
+     </tr>
+     <tr> <td height="18"></td>
+     </tr>
+     <tr>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="http://binarybottle.github.io/mindboggle/users/README.html">Software</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="../../data.html">Data</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="../../papers.html">Papers</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="../../people.html">People</a>
+      </td>
+     </tr>
+    </table>
+   </td>
+  </tr>
+ </table>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="evaluate-evaluate-features">
+<h1>evaluate.evaluate_features<a class="headerlink" href="#evaluate-evaluate-features" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-mindboggle.evaluate.evaluate_features">
+<span id="module-evaluate-evaluate-features"></span><h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">evaluate.evaluate_features</span></code><a class="headerlink" href="#module-mindboggle.evaluate.evaluate_features" title="Permalink to this headline">¶</a></h2>
+<p>Evaluate deep surface features by computing the minimum distance from each
+label border vertex to all of the feature vertices in the same sulcus.
+The label borders run along the deepest parts of many sulci and
+correspond to fundi in the DKT cortical labeling protocol.</p>
+<div class="section" id="examples">
+<h3>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h3>
+<p>$ python evaluate_features.py</p>
+<dl class="docutils">
+<dt>Authors:</dt>
+<dd><ul class="first last simple">
+<li>Yrjo Hame, 2012  (<a class="reference external" href="mailto:yrjo&#46;hame&#37;&#52;&#48;gmail&#46;com">yrjo<span>&#46;</span>hame<span>&#64;</span>gmail<span>&#46;</span>com</a>)</li>
+<li>Arno Klein, 2012-2014  (<a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>)  <a class="reference external" href="http://binarybottle.com">http://binarybottle.com</a></li>
+</ul>
+</dd>
+</dl>
+<p>Copyright 2014,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
+</div>
+<dl class="function">
+<dt id="mindboggle.evaluate.evaluate_features.evaluate_deep_features">
+<code class="descclassname">mindboggle.evaluate.evaluate_features.</code><code class="descname">evaluate_deep_features</code><span class="sig-paren">(</span><em>features_file, labels_file, sulci_file='', hemi='', excludeIDs=[-1], output_vtk_name='', verbose=True</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.evaluate.evaluate_features.evaluate_deep_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate deep surface features by computing the minimum distance from each
+label border vertex to all of the feature vertices in the same sulcus,
+and from each feature vertex to all of the label border vertices in the
+same sulcus.  The label borders run along the deepest parts of sulci
+and correspond to fundi in the DKT cortical labeling protocol.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>features_file</strong> : string</p>
+<blockquote>
+<div><p>VTK surface file with feature numbers for vertex scalars</p>
+</div></blockquote>
+<p><strong>labels_file</strong> : string</p>
+<blockquote>
+<div><p>VTK surface file with label numbers for vertex scalars</p>
+</div></blockquote>
+<p><strong>sulci_file</strong> : string</p>
+<blockquote>
+<div><p>VTK surface file with sulcus numbers for vertex scalars</p>
+</div></blockquote>
+<p><strong>excludeIDs</strong> : list of integers</p>
+<blockquote>
+<div><p>feature/sulcus/label IDs to exclude (background set to -1)</p>
+</div></blockquote>
+<p><strong>output_vtk_name</strong> : Boolean</p>
+<blockquote>
+<div><p>if not empty, output a VTK file beginning with output_vtk_name that
+contains a surface with mean distances as scalars</p>
+</div></blockquote>
+<p><strong>verbose</strong> : Boolean</p>
+<blockquote>
+<div><p>print mean distances to standard output?</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>feature_to_border_mean_distances</strong> : numpy array [number of features x 1]</p>
+<blockquote>
+<div><p>mean distance from each feature to sulcus label border</p>
+</div></blockquote>
+<p><strong>feature_to_border_sd_distances</strong> : numpy array [number of features x 1]</p>
+<blockquote>
+<div><p>standard deviations of feature-to-border distances</p>
+</div></blockquote>
+<p><strong>feature_to_border_distances_vtk</strong> : string</p>
+<blockquote>
+<div><p>VTK surface file containing feature-to-border distances</p>
+</div></blockquote>
+<p><strong>border_to_feature_mean_distances</strong> : numpy array [number of features x 1]</p>
+<blockquote>
+<div><p>mean distances from each sulcus label border to feature</p>
+</div></blockquote>
+<p><strong>border_to_feature_sd_distances</strong> : numpy array [number of features x 1]</p>
+<blockquote>
+<div><p>standard deviations of border-to-feature distances</p>
+</div></blockquote>
+<p><strong>border_to_feature_distances_vtk</strong> : string</p>
+<blockquote class="last">
+<div><p>VTK surface file containing border-to-feature distances</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<!-- Google Analytics -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-693862-13");
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+
+  </body>
+</html>

@@ -6,11 +6,11 @@ git checkout master
 cd doc
 make html
 cd ..
-git add doc/build/html/api 
-git add doc/build/html/faq 
-git add doc/build/html/users
-git add doc/build/html/genindex.html
-git add doc/build/html/documentation.html
+git add -f doc/build/html/api 
+git add -f doc/build/html/faq 
+git add -f doc/build/html/users
+git add -f doc/build/html/genindex.html
+git add -f doc/build/html/documentation.html
 git commit -m "Update documentation for website."
 git push origin master
 
