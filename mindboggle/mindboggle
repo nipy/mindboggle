@@ -401,7 +401,11 @@ ants_str = 'ants_labels.nii.gz'
 fs_filled_fs = '{0}_to_{0}_through_{0}_to_{0}_through_{0}'.format(mgz)
 fs_filled = '{0}_to_{0}_through_{1}_to_{0}_through_{1}'.format(mgz, seg_in)
 ants_filled_ants = '{0}_to_{1}_to_{1}_through_{0}'.format(mgz, ants_str)
+
+
 ants_filled = '{0}_to_{1}_to_{1}_through_{2}'.format(mgz, ants_str, seg_in)
+
+
 fs_filled_fs_rename = 'freesurfer_' + volume_labels + \
                       '_filled_labels_in_freesurfer_segmentation.nii.gz'
 fs_filled_rename = 'freesurfer_' + volume_labels + '_filled_labels.nii.gz'
@@ -1828,8 +1832,7 @@ if do_label and not args.no_volumes:
     FScortex.inputs.second_file = ''
 
     # Propagate volume labels through whole-brain cortex:
-    FSFillCortex = FSFillNoncortex.clone(
-                        'Fill_cortex_with_FreeSurfer_labels')
+    FSFillCortex = FSFillNoncortex.clone('Fill_cortex_with_FreeSurfer_labels')
     VolLabelFlow.add_nodes([FSFillCortex])
     if my_segments:
         FSFillCortex.inputs.mask = my_segments
