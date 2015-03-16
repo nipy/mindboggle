@@ -876,9 +876,9 @@ def volume_per_label(input_file, include_labels=[], exclude_labels=[],
             output_table = os.path.join(os.getcwd(), 'volume_per_label.csv')
         fid = open(output_table, 'w')
         if len(label_names) == len(label_list):
-            fid.write("Label name,Label number,Volume\n")
+            fid.write("name, ID, volume\n")
         else:
-            fid.write("Label number,Volume\n")
+            fid.write("ID, volume\n")
     else:
         output_table = ''
 
@@ -895,10 +895,10 @@ def volume_per_label(input_file, include_labels=[], exclude_labels=[],
 
         if save_table:
             if len(label_names) == len(label_list):
-                fid.write('{0}, {1}, {2:2.4f}\n'.format(label_names[ilabel],
-                    label, volume))
+                fid.write('{0}, {1}, {2:2.3f}\n'.format(
+                          label_names[ilabel], label, volume))
             else:
-                fid.write('{0}, {1:2.4f}\n'.format(label, volume))
+                fid.write('{0}, {1:2.3f}\n'.format(label, volume))
 
     labels_volumes = [label_list, volumes.tolist()]
 
