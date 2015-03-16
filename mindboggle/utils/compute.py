@@ -811,6 +811,9 @@ def volume_per_label(input_file, include_labels=[], exclude_labels=[],
     """
     Compute volume per labeled region in a nibabel-readable image.
 
+    Note: Results are truncated at three decimal places because we found that
+    volume label propagation led to differences in the third decimal place.
+
     Parameters
     ----------
     input_file : string

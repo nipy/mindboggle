@@ -364,8 +364,8 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
     from mindboggle.utils.utils import execute
 
     if not output_file:
-        output_file = os.path.join(os.getcwd(),
-                                   'PropagateLabelsThroughMask.nii.gz')
+        #output_file = os.path.join(os.getcwd(),
+        #                           'PropagateLabelsThroughMask.nii.gz')
         output_file = os.path.join(os.getcwd(),
                                    os.path.basename(labels) + '_through_' +
                                    os.path.basename(mask))
