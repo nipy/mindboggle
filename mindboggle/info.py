@@ -6,10 +6,10 @@ In setup.py we execute this file, so it cannot import mindboggle.
 
 # Mindboggle version information.  An empty _version_extra corresponds to a
 # full release.  '.dev' as a _version_extra string means a development version
-_version_major = 0
-_version_minor = 1
+_version_major = 1
+_version_minor = 0
 _version_micro = 0
-_version_extra = 'dev'
+_version_extra = ''
 #_version_extra = ''
 
 # Format expected by setup.py and doc/source/conf.py: string of form "X.Y.Z"
@@ -26,7 +26,7 @@ CLASSIFIERS = ["Development Status :: 3 - Alpha",
                "Programming Language :: Python",
                "Topic :: Scientific/Engineering"]
 
-description  = "Automated human brain image anatomical labeling and shape analysis"
+description  = "Automated human brain image feature extraction, labeling, and shape analysis"
 
 # Note: this long_description is actually a copy/paste from the top-level
 # README.rst, so that it shows up nicely on PyPI.  So please remember to edit
@@ -36,8 +36,8 @@ long_description = """
 Mindboggle
 ==========
 
-Mindboggle is a package for automated anatomical labeling and morphometry
-of human brain images.
+Mindboggle is a package for automated feature extraction, anatomical labeling, and morphometry
+of human brain magnetic resonance images.
 
 Website
 =======
@@ -56,8 +56,8 @@ You can find our sources and single-click downloads:
 * Download as a tar/zip file the `current trunk`_.
 * Downloads of all `available releases`_.
 
+.. _Documentation: http://mindboggle.info/documentation.html
 .. _main repository: http://github.com/binarybottle/mindboggle
-.. _Documentation: http://mindboggle.info
 .. _available releases: http://github.com/binarybottle/mindboggle/downloads
 
 License
