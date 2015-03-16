@@ -310,8 +310,8 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars
     >>> from mindboggle.utils.io_table import write_shape_stats
-    >>> path = os.path.join(os.environ['HOME'], 'mindboggled', 'OASIS-TRT-20-1')
-    >>> labels_or_file = os.path.join(path, 'labels', 'left_surface', 'relabeled_classifier.vtk')
+    >>> path = os.path.join(os.environ['HOME'], 'mindboggled', 'Twins-2-1')
+    >>> labels_or_file = os.path.join(path, 'labels', 'left_surface', 'FreeSurfer_cortex_labels.vtk')
     >>> sulci_file = os.path.join(path, 'features', 'left_surface', 'sulci.vtk')
     >>> fundi_file = os.path.join(path, 'features', 'left_surface', 'fundus_per_sulcus.vtk')
     >>> sulci, name = read_scalars(sulci_file)
@@ -320,7 +320,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     >>> inverse_booleans = []
     >>> #transform_format = 'mat'
     >>> transform_format = 'itk'
-    >>> area_file = os.path.join(path, 'arno', 'shapes', 'left_surface', 'area.vtk')
+    >>> area_file = os.path.join(path, 'shapes', 'left_surface', 'area.vtk')
     >>> normalize_by_area = False
     >>> mean_curvature_file = os.path.join(path, 'shapes', 'left_surface', 'mean_curvature.vtk')
     >>> travel_depth_file = os.path.join(path, 'shapes', 'left_surface', 'travel_depth.vtk')
@@ -459,6 +459,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
             label_names = []
             label_title = ''
         include_labels = label_numbers
+        nlabels = len(label_numbers)
 
         #---------------------------------------------------------------------
         # For each feature, construct a table of average shape values:
@@ -517,9 +518,11 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
             positions, sdevs, label_list, foo = means_per_label(points,
                 feature_list, include_labels, exclude_labels, use_area)
 
-            # Append mean position per feature to columns:
-            column_names.append('mean position')
-            columns.append(positions)
+            # Append mean x,y,z position per feature to columns:
+            xyz_positions = np.asarray(positions)
+            for ixyz, xyz in enumerate(['x','y','z']):
+                column_names.append('mean position: {0}'.format(xyz))
+                columns.append(xyz_positions[:, ixyz].tolist())
 
             #-----------------------------------------------------------------
             # Mean positions in standard space:
@@ -530,9 +533,12 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                 foo = means_per_label(affine_points,
                     feature_list, include_labels, exclude_labels, use_area)
 
-                # Append standard space mean position per feature to columns:
-                column_names.append('mean position in standard space')
-                columns.append(standard_positions)
+                # Append standard space x,y,z position per feature to columns:
+                xyz_std_positions = np.asarray(standard_positions)
+                for ixyz, xyz in enumerate(['x','y','z']):
+                    column_names.append('mean position in standard space:'
+                                        ' {0}'.format(xyz))
+                    columns.append(xyz_std_positions[:, ixyz].tolist())
 
             #-----------------------------------------------------------------
             # Laplace-Beltrami spectra:
@@ -542,18 +548,19 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                 if spectra:
                     spectra_IDs = spectra_ID_lists[itable]
 
-                    # Order spectra into a list:
-                    spectrum_list = []
-                    for label in include_labels:
+                    # Construct a matrix of spectra:
+                    len_spectrum = len(spectra[0])
+                    spectrum_matrix = np.zeros((nlabels, len_spectrum))
+                    for ilabel, label in enumerate(include_labels):
                         if label in spectra_IDs:
                             spectrum = spectra[spectra_IDs.index(label)]
-                            spectrum_list.append(spectrum)
-                        else:
-                            spectrum_list.append('')
+                            spectrum_matrix[ilabel, 0:len_spectrum] = spectrum
 
-                    # Append spectral shape name and values to relevant columns:
-                    columns.append(spectrum_list)
-                    column_names.append('Laplace-Beltrami spectra')
+                    # Append spectral shape name and values to columns:
+                    for ispec in range(0, len_spectrum):
+                        columns.append(spectrum_matrix[:, ispec].tolist())
+                        column_names.append('Laplace-Beltrami spectrum:'
+                                            ' component {0}'.format(ispec+1))
 
             #-----------------------------------------------------------------
             # Zernike moments:
@@ -563,18 +570,19 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                 if zernike:
                     zernike_IDs = zernike_ID_lists[itable]
 
-                    # Order Zernike moments into a list:
-                    moments_list = []
-                    for label in include_labels:
+                    # Construct a matrix of Zernike moments:
+                    len_moments = len(zernike[0])
+                    moments_matrix = np.zeros((nlabels, len_moments))
+                    for ilabel, label in enumerate(include_labels):
                         if label in zernike_IDs:
                             moments = zernike[zernike_IDs.index(label)]
-                            moments_list.append(moments)
-                        else:
-                            moments_list.append('')
+                            moments_matrix[ilabel, 0:len_moments] = moments
 
-                    # Append Zernike shape name and values to relevant columns:
-                    columns.append(moments_list)
-                    column_names.append('Zernike moments')
+                    # Append Zernike shape name and values to columns:
+                    for imoment in range(0, len_moments):
+                        columns.append(moments_matrix[:, imoment].tolist())
+                        column_names.append('Zernike moments: component {0}'.
+                                            format(imoment+1))
 
             #-----------------------------------------------------------------
             # Write labels/IDs and values to table:
