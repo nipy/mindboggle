@@ -397,36 +397,35 @@ if my_segments:
 else:
     seg_in = 'combined_segmentations.nii.gz'
 mgz = volume_labels + '.mgz.nii.gz'
-
+ants_str = 'ants_labels.nii.gz'
 fs_filled_fs = '{0}_to_{0}_through_{0}_to_{0}_through_{0}'.format(mgz)
 fs_filled = '{0}_to_{0}_through_{1}_to_{0}_through_{1}'.format(mgz, seg_in)
-ants_filled_ants = '{0}_to_ANTs_labels.nii.gz' \
-                   '_to_ANTs_labels.nii.gz_through_{0}'.format(mgz)
-ants_filled = '{0}_to_ANTs_labels.nii.gz' \
-              '_to_ANTs_labels.nii.gz_through_{1}'.format(mgz, seg_in)
-fs_filled_fs_rename = 'FreeSurfer_' + volume_labels + \
-                      '_filled_labels_in_FreeSurfer_segmentation.nii.gz'
-fs_filled_rename = 'FreeSurfer_' + volume_labels + '_filled_labels.nii.gz'
-ants_filled_ants_rename = 'ANTs_filled_labels_in_ants_segmentation.nii.gz'
-ants_filled_rename = 'ANTs_filled_labels.nii.gz'
+ants_filled_ants = '{0}_to_{1}_to_{1}_through_{0}'.format(mgz, ants_str)
+ants_filled = '{0}_to_{1}_to_{1}_through_{2}'.format(mgz, ants_str, seg_in)
+fs_filled_fs_rename = 'freesurfer_' + volume_labels + \
+                      '_filled_labels_in_freesurfer_segmentation.nii.gz'
+fs_filled_rename = 'freesurfer_' + volume_labels + '_filled_labels.nii.gz'
+ants_filled_ants_rename = 'ants_filled_labels_in_ants_segmentation.nii.gz'
+ants_filled_rename = 'ants_filled_labels.nii.gz'
 
 Sink.inputs.substitutions = [ ('lh.', ''), ('rh.', ''),
     ('_hemi_lh', 'left_surface'), ('_hemi_rh', 'right_surface'),
     ('pial.', ''),
-    ('thickness.vtk', 'FreeSurfer_thickness.vtk'),
-    ('curv.vtk', 'FreeSurfer_curvature.vtk'),
-    ('sulc.vtk', 'FreeSurfer_sulc.vtk'),
-    ('relabeled_aparc.vtk', 'FreeSurfer_cortex_labels.vtk'),
+    ('thickness.vtk', 'freesurfer_thickness.vtk'),
+    ('curv.vtk', 'freesurfer_curvature.vtk'),
+    ('sulc.vtk', 'freesurfer_sulc.vtk'),
+    ('relabeled_aparc.vtk', 'freesurfer_cortex_labels.vtk'),
     (fs_filled_fs, fs_filled_fs_rename),
     (fs_filled, fs_filled_rename),
     (ants_filled_ants, ants_filled_ants_rename),
     (ants_filled, ants_filled_rename),
     ('smooth_skeletons.vtk', 'smooth_fundi.vtk')]
+# Substitutions for additional atlas names:
 Sink.inputs.regexp_substitutions = [
-    (r'/_atlas_(.*)/ANTs_added_atlas_labels.nii.gz',
+    (r'/_atlas_(.*)/ants_added_atlas_labels.nii.gz',
      r'/\1_labels.nii.gz'),
     (r'/_atlas_(.*)/volumes_added_labels.csv',
-     r'/\1_labels_volumes.csv')]
+     r'/volumes_\1_labels.csv')]
 
 #-----------------------------------------------------------------------------
 # Affine transform from Atropos template to MNI152 space:
@@ -1906,7 +1905,7 @@ if do_label and not args.no_volumes:
         xfm.inputs.default_value = 0
         xfm.inputs.interpolation = 'NearestNeighbor'
         xfm.inputs.invert_transform_flags = warp_inverse_Booleans
-        xfm.inputs.output_image = 'ANTs_labels.nii.gz'
+        xfm.inputs.output_image = 'ants_labels.nii.gz'
         if my_segments:
             xfm.inputs.reference_image = my_segments
         else:
@@ -2064,7 +2063,7 @@ if do_label and not args.no_volumes:
         #---------------------------------------------------------------------
         xfm2 = xfm.clone('Transform_added_atlases')
         VolLabelFlow.add_nodes([xfm2])
-        xfm2.inputs.output_image = 'ANTs_added_atlas_labels.nii.gz'
+        xfm2.inputs.output_image = 'ants_added_atlas_labels.nii.gz'
         VolLabelFlow.connect(MatchAtlas, 'first_matching_string',
                              xfm2, 'input_image')
         if my_segments:
@@ -2148,13 +2147,13 @@ if do_label and not args.no_volumes:
         FSlabelVolumes.inputs.exclude_labels = []
         FSlabelVolumes.inputs.label_names = dkt.label_names
         FSlabelVolumes.inputs.save_table = True
-        FSlabelVolumes.inputs.output_table = 'volumes_FreeSurfer_labels.csv'
+        FSlabelVolumes.inputs.output_table = 'volumes_freesurfer_labels.csv'
         mbFlow.connect(VolLabelFlow,
                'Combine_FreeSurfer_cortex_noncortex_labels.output_file',
                VolShapeFlow, 'FreeSurfer_filled_label_volumes.input_file')
         mbFlow.connect(VolShapeFlow,
                        'FreeSurfer_filled_label_volumes.output_table',
-                       Sink, 'tables.@volumes_of_FreeSurfer_labels')
+                       Sink, 'tables.@volumes_of_freesurfer_labels')
         if use_ants:
             #-----------------------------------------------------------------
             # Volumes of the ANTs filled labels:
@@ -2163,7 +2162,7 @@ if do_label and not args.no_volumes:
                 'ANTs_filled_label_volumes')
             VolShapeFlow.add_nodes([antsLabelVolumes])
             antsLabelVolumes.inputs.exclude_labels = [-1,0]
-            antsLabelVolumes.inputs.output_table = 'volumes_ANTs_labels.csv'
+            antsLabelVolumes.inputs.output_table = 'volumes_ants_labels.csv'
             if overwrite_cerebrum_with_cerebellum:
                 mbFlow.connect(VolLabelFlow,
                        'FreeSurfer_cerebellum_ANTs_cerebrum.output_file',
@@ -2174,7 +2173,7 @@ if do_label and not args.no_volumes:
                        VolShapeFlow, 'ANTs_filled_label_volumes.input_file')
             mbFlow.connect(VolShapeFlow,
                            'ANTs_filled_label_volumes.output_table',
-                           Sink, 'tables.@volumes_of_ANTs_labels')
+                           Sink, 'tables.@volumes_of_ants_labels')
             #-----------------------------------------------------------------
             # Volumes of labels in additional atlases transformed to subject:
             #-----------------------------------------------------------------
@@ -2255,11 +2254,11 @@ if do_label and not args.no_volumes:
             FSthicknesses.inputs.propagate = False
             FSthicknesses.inputs.output_dir = ''
             FSthicknesses.inputs.save_table = True
-            FSthicknesses.inputs.output_table = 'thickinthehead_FreeSurfer_labels.csv'
+            FSthicknesses.inputs.output_table = 'thickinthehead_freesurfer_labels.csv'
             # Save table:
             mbFlow.connect(VolShapeFlow,
             'FreeSurfer_filled_cortex_label_thicknesses.output_table',
-            Sink, 'tables.@thicknesses_of_FreeSurfer_labels')
+            Sink, 'tables.@thicknesses_of_freesurfer_labels')
             #-----------------------------------------------------------------
             # Thicknesses of the ANTs cortical labels:
             #-----------------------------------------------------------------
@@ -2295,11 +2294,11 @@ if do_label and not args.no_volumes:
                     'ANTs_filled_cortex_label_thicknesses.labeled_file')
                 ANTsThicknesses.inputs.labels = dkt.cerebrum_cortex_numbers
                 ANTsThicknesses.inputs.names = dkt.cerebrum_cortex_names
-                ANTsThicknesses.inputs.output_table = 'thickinthehead_ANTs_labels.csv'
+                ANTsThicknesses.inputs.output_table = 'thickinthehead_ants_labels.csv'
                 # Save table:
                 mbFlow.connect(VolShapeFlow,
                    'ANTs_filled_cortex_label_thicknesses.output_table',
-                   Sink, 'tables.@thicknesses_of_ANTs_filled_cortex_labels')
+                   Sink, 'tables.@thicknesses_of_ants_filled_cortex_labels')
 
 
 #=============================================================================

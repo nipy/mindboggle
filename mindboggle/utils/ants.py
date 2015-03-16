@@ -509,7 +509,8 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
         thickinthehead() and volumes computed by volume_per_label();
         in 31 of 600+ ADNI 1.5T images, some volume_per_label() volumes
         were slightly larger (in the third decimal place), presumably due to
-        label propagation through the cortex.
+        label propagation through the cortex in thickinthehead().
+        This is more pronounced in ANTs vs. FreeSurfer-labeled volumes.
 
     Example preprocessing steps ::
 
@@ -642,9 +643,9 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
             output_table = os.path.join(os.getcwd(), 'thickinthehead_per_label.csv')
         fid = open(output_table, 'w')
         if names:
-            fid.write("Label name,Label number,Volume,Thickness (thickinthehead)\n")
+            fid.write("name, ID, thickness (thickinthehead)\n")
         else:
-            fid.write("Label number,Volume,Thickness (thickinthehead)\n")
+            fid.write("ID, thickness (thickinthehead)\n")
     else:
         output_table = ''
 
@@ -770,19 +771,17 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
             #      format(name, label, label_cortex_volume, label_inner_edge_volume,
             #      label_outer_edge_volume, label_area, thickness))
             if names:
-                print('{0} ({1}) volume={2:2.2f}, thickness={3:2.2f}mm'.
-                      format(name, label, label_cortex_volume, thickness))
+                print('{0} ({1}) thickness={2:2.2f}mm'.
+                      format(name, label, thickness))
             else:
-                print('{0}, volume={1:2.2f}, thickness={2:2.2f}mm'.
-                      format(label, label_cortex_volume, thickness))
+                print('{0}, thickness={1:2.2f}mm'.format(label, thickness))
 
             if save_table:
                 if names:
-                    fid.write('{0}, {1}, {2:2.4f}, {3:2.4f}\n'.format(name,
-                                label, label_cortex_volume, thickness))
+                    fid.write('{0}, {1}, {2:2.3f}\n'.format(
+                              name, label, thickness))
                 else:
-                    fid.write('{0}, {1:2.4f}, {2:2.4f}\n'.format(label,
-                                label_cortex_volume, thickness))
+                    fid.write('{0}, {1:2.3f}\n'.format(label, thickness))
 
     label_volume_thickness = label_volume_thickness.transpose().tolist()
 

@@ -397,8 +397,8 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
 
     # Shape names corresponding to shape files below:
     shape_names = ['area', 'travel depth', 'geodesic depth',
-                   'mean curvature', 'FreeSurfer curvature',
-                   'FreeSurfer thickness', 'FreeSurfer convexity (sulc)']
+                   'mean curvature', 'freesurfer curvature',
+                   'freesurfer thickness', 'freesurfer convexity (sulc)']
 
     # Load shape files as a list of numpy arrays of per-vertex shape values:
     shape_files = [area_file, travel_depth_file, geodesic_depth_file,
@@ -449,15 +449,15 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
         if itable == 0:
             label_numbers = dkt.cerebrum_cortex_DKT31_numbers
             label_names = dkt.cerebrum_cortex_DKT31_names
-            label_title = 'Label name'
+            label_title = 'name'
         elif itable in [1, 2]:
             label_numbers = dkt.sulcus_numbers
             label_names = dkt.sulcus_names
-            label_title = 'Sulcus name'
+            label_title = 'name'
         else:
             label_numbers = []
             label_names = []
-            label_title = ''
+            label_title = 'name'
         include_labels = label_numbers
         nlabels = len(label_numbers)
 
@@ -594,11 +594,11 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                 output_table = write_columns(label_names, label_title,
                     delimiter, quote=True, input_table='',
                     output_table=output_table)
-                write_columns(include_labels, feature_name,
+                write_columns(include_labels, 'ID',
                     delimiter, quote=True, input_table=output_table,
                     output_table=output_table)
             else:
-                output_table = write_columns(include_labels, feature_name,
+                output_table = write_columns(include_labels, 'ID',
                     delimiter, quote=True, input_table='',
                     output_table=output_table)
 
@@ -730,13 +730,13 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
         sys.exit('No feature data to tabulate in write_vertex_measures().')
 
     # Feature names and corresponding feature lists:
-    feature_names = ['Label', 'Sulcus', 'Fundus']
+    feature_names = ['label ID', 'sulcus ID', 'fundus ID']
     feature_lists = [labels, sulci, fundi]
 
     # Shape names corresponding to shape files below:
     shape_names = ['area', 'travel depth', 'geodesic depth',
-                   'mean curvature', 'FreeSurfer curvature',
-                   'FreeSurfer thickness', 'FreeSurfer convexity (sulc)']
+                   'mean curvature', 'freesurfer curvature',
+                   'freesurfer thickness', 'freesurfer convexity (sulc)']
 
     # Load shape files as a list of numpy arrays of per-vertex shape values:
     shape_files = [area_file, travel_depth_file, geodesic_depth_file,
@@ -755,17 +755,26 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     for ishape, shape_file in enumerate(shape_files):
         if os.path.exists(shape_file):
             if first_pass:
+
+                # Append x,y,z position per vertex to columns:
                 u1, u2, u3, points, u4, scalars, u5, u6 = read_vtk(shape_file)
-                columns.append(points)
-                column_names.append('coordinates')
+                xyz_positions = np.asarray(points)
+                for ixyz, xyz in enumerate(['x','y','z']):
+                    column_names.append('position: {0}'.format(xyz))
+                    columns.append(xyz_positions[:, ixyz].tolist())
                 first_pass = False
+
+                # Append standard space x,y,z position to columns:
                 if affine_transform_files and transform_format:
                     affine_points, \
                         foo1 = apply_affine_transforms(affine_transform_files,
                                     inverse_booleans, transform_format,
                                     points, vtk_file_stem='')
-                    columns.append(affine_points.tolist())
-                    column_names.append('coordinates in standard space')
+                    xyz_std_positions = affine_points
+                    for ixyz, xyz in enumerate(['x','y','z']):
+                        column_names.append('position in standard space:'
+                                            ' {0}'.format(xyz))
+                        columns.append(xyz_std_positions[:, ixyz].tolist())
             else:
                 scalars, name = read_scalars(shape_file)
             if len(scalars):
@@ -775,7 +784,7 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     # Prepend with column of indices and write table
     if not output_table:
         output_table = os.path.join(os.getcwd(), 'vertices.csv')
-    write_columns(range(len(columns[0])), 'Index', delimiter, quote=True,
+    write_columns(range(len(columns[0])), 'index', delimiter, quote=True,
                   input_table='', output_table=output_table)
     write_columns(columns, column_names, delimiter, quote=True,
                   input_table=output_table, output_table=output_table)
