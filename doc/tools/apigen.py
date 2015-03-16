@@ -82,9 +82,9 @@ class ApiDocWriter(object):
         >>> import sphinx
         >>> docwriter.root_path == sphinx.__path__[0]
         True
-        >>> docwriter.package_name = 'docutils'
-        >>> import docutils
-        >>> docwriter.root_path == docutils.__path__[0]
+        >>> docwriter.package_name = 'docguts'
+        >>> import docguts
+        >>> docwriter.root_path == docguts.__path__[0]
         True
         '''
         # It's also possible to imagine caching the module parsing here

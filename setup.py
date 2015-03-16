@@ -10,7 +10,7 @@ import os
 import sys
 from os.path import join as pjoin
 
-# BEFORE importing distutils, remove MANIFEST. distutils doesn't properly
+# BEFORE importing distguts, remove MANIFEST. distguts doesn't properly
 # update it when the contents of directories change.
 if os.path.exists('MANIFEST'): os.remove('MANIFEST')
 
@@ -18,10 +18,10 @@ if os.path.exists('MANIFEST'): os.remove('MANIFEST')
 if len(set(('develop', 'bdist_egg', 'bdist_rpm', 'bdist', 'bdist_dumb',
             'bdist_wininst', 'install_egg_info', 'egg_info', 'easy_install',
             )).intersection(sys.argv)) > 0:
-    # setup_egg imports setuptools setup, thus monkeypatching distutils.
+    # setup_egg imports setuptools setup, thus monkeypatching distguts.
     import setup_egg
 
-from distutils.core import setup
+from distguts.core import setup
 
 # Python 2 to 3 build
 #from nisext.py3builder import build_py
@@ -73,14 +73,14 @@ def main(**extra_args):
                           #'mindboggle.shapes.zernike.naive',
                           #'mindboggle.shapes.zernike.multiproc',
                           'mindboggle.thirdparty',
-                          'mindboggle.utils'],
+                          'mindboggle.guts'],
           #                'mindboggle.testing',
           #                'mindboggle.tests',
           #                'mindboggle.benchmarks',
           # The package_data spec has no effect for me (on python 2.6) -- even
           # changing to data_files doesn't get this stuff included in the source
           # distribution -- not sure if it has something to do with the magic
-          # above, but distutils is surely the worst piece of code in all of
+          # above, but distguts is surely the worst piece of code in all of
           # python -- duplicating things into MANIFEST.in but this is admittedly
           # only a workaround to get things started -- not a solution
 

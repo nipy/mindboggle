@@ -63,7 +63,7 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     >>> # Example 2: simple cube (with inner diagonal plane):
     >>> # (decimation doesn't have any effect)
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_vtk
+    >>> from mindboggle.io.vtk import read_vtk
     >>> from mindboggle.shapes.zernike.zernike import zernike_moments
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'cube.vtk')
@@ -87,7 +87,7 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     11.8542
     >>> # Example 2.5: Parallelepiped.vtk:
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_vtk
+    >>> from mindboggle.io.vtk import read_vtk
     >>> from mindboggle.shapes.zernike.zernike import zernike_moments
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'Parallelepiped.vtk')
@@ -111,8 +111,8 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     >>> # Example 3: Twins-2-1 left postcentral pial surface -- NO decimation:
     >>> # (zernike_moments took 142 seconds for order = 3 with no decimation)
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_vtk
-    >>> from mindboggle.utils.mesh import remove_faces
+    >>> from mindboggle.io.vtk import read_vtk
+    >>> from mindboggle.guts.mesh import remove_faces
     >>> from mindboggle.shapes.zernike.zernike import zernike_moments
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
@@ -130,8 +130,8 @@ def zernike_moments(points, faces, order=10, scale_input=True,
      0.000919469614081582]
     >>> # Example 5: left postcentral + pars triangularis pial surfaces:
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_vtk, write_vtk
-    >>> from mindboggle.utils.mesh import remove_faces
+    >>> from mindboggle.io.vtk import read_vtk, write_vtk
+    >>> from mindboggle.guts.mesh import remove_faces
     >>> from mindboggle.shapes.zernike.zernike import zernike_moments
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
@@ -150,7 +150,7 @@ def zernike_moments(points, faces, order=10, scale_input=True,
      0.0018220183025464518,
      0.0016893113500293917]
     >>> # View both segments:
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> scalars = -1*np.ones(np.shape(labels))
     >>> scalars[I22] = 1
     >>> vtk_file = 'test_two_labels.vtk'
@@ -160,8 +160,8 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     """
     import numpy as np
 
-    from mindboggle.utils.mesh import reindex_faces_0to1
-    from mindboggle.utils.mesh import decimate
+    from mindboggle.guts.mesh import reindex_faces_0to1
+    from mindboggle.guts.mesh import decimate
     if pl_cls is None:
         from .pipelines import DefaultPipeline as ZernikePipeline
     else:
@@ -292,8 +292,8 @@ def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
 
     """
     import numpy as np
-    from mindboggle.utils.io_vtk import read_vtk
-    from mindboggle.utils.mesh import remove_faces
+    from mindboggle.io.vtk import read_vtk
+    from mindboggle.guts.mesh import remove_faces
     from mindboggle.shapes.zernike.zernike import zernike_moments
 
     min_points_faces = 4

@@ -35,10 +35,10 @@ def dilate(indices, nedges, neighbor_lists):
     --------
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.utils.mesh import find_neighbors_from_file
-    >>> from mindboggle.utils.morph import dilate
-    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.guts.mesh import find_neighbors_from_file
+    >>> from mindboggle.guts.morph import dilate
+    >>> from mindboggle.io.vtk import read_scalars, rewrite_scalars
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
@@ -59,7 +59,7 @@ def dilate(indices, nedges, neighbor_lists):
     >>> plot_surfaces('dilate.vtk')
 
     """
-    from mindboggle.utils.mesh import find_neighborhood
+    from mindboggle.guts.mesh import find_neighborhood
 
     N = find_neighborhood(neighbor_lists, indices, nedges)
 
@@ -93,10 +93,10 @@ def erode(indices, nedges, neighbor_lists):
     --------
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.utils.mesh import find_neighbors_from_file
-    >>> from mindboggle.utils.morph import erode
-    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.guts.mesh import find_neighbors_from_file
+    >>> from mindboggle.guts.morph import erode
+    >>> from mindboggle.io.vtk import read_scalars, rewrite_scalars
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
@@ -117,7 +117,7 @@ def erode(indices, nedges, neighbor_lists):
     >>> plot_surfaces('erode.vtk')
 
     """
-    from mindboggle.utils.mesh import find_neighborhood
+    from mindboggle.guts.mesh import find_neighborhood
 
     N1 = find_neighborhood(neighbor_lists, indices, nedges=1)
     N2 = find_neighborhood(neighbor_lists, N1, nedges)
@@ -149,10 +149,10 @@ def extract_edge(indices, neighbor_lists):
     --------
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.utils.mesh import find_neighbors_from_file
-    >>> from mindboggle.utils.morph import extract_edge
-    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.guts.mesh import find_neighbors_from_file
+    >>> from mindboggle.guts.morph import extract_edge
+    >>> from mindboggle.io.vtk import read_scalars, rewrite_scalars
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
@@ -172,7 +172,7 @@ def extract_edge(indices, neighbor_lists):
     >>> plot_surfaces('extract_edge.vtk')
 
     """
-    from mindboggle.utils.mesh import find_neighborhood
+    from mindboggle.guts.mesh import find_neighborhood
 
     N1 = find_neighborhood(neighbor_lists, indices, nedges=1)
     N2 = find_neighborhood(neighbor_lists, N1, nedges=1)
@@ -221,9 +221,9 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[],
     --------
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.utils.mesh import find_neighbors, remove_faces
-    >>> from mindboggle.utils.morph import fill_holes
-    >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, write_vtk
+    >>> from mindboggle.guts.mesh import find_neighbors, remove_faces
+    >>> from mindboggle.guts.morph import fill_holes
+    >>> from mindboggle.io.vtk import read_scalars, read_vtk, write_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> #
     >>> background_value = -1
@@ -288,7 +288,7 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[],
     >>> indices = [i for i,x in enumerate(holes) if x != background_value]
     >>> write_vtk('holes.vtk', points, indices, lines,
     >>>           remove_faces(faces, indices), [holes.tolist()], ['holes'], 'int')
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> plot_surfaces('holes.vtk')
     >>> #
     >>> # Fill Hole 1 but not Hole 2:
@@ -301,12 +301,12 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[],
     >>> indices = [i for i,x in enumerate(regions) if x != background_value]
     >>> write_vtk('fill_holes.vtk', points, indices, lines,
     >>>           remove_faces(faces, indices), regions.tolist(), 'regions', 'int')
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> plot_surfaces('fill_holes.vtk')
 
     """
     import numpy as np
-    from mindboggle.utils.segment import segment
+    from mindboggle.guts.segment import segment
 
     # Make sure argument is a numpy array
     if not isinstance(regions, np.ndarray):
@@ -468,9 +468,9 @@ def close_surface_pair(faces, points1, points2, scalars, background_value=-1):
     --------
     >>> # Example 1: build a cube by closing two parallel planes:
     >>> import os
-    >>> from mindboggle.utils.morph import close_surface_pair
-    >>> from mindboggle.utils.plots import plot_surfaces
-    >>> from mindboggle.utils.io_vtk import write_vtk
+    >>> from mindboggle.guts.morph import close_surface_pair
+    >>> from mindboggle.io.plot import plot_surfaces
+    >>> from mindboggle.io.vtk import write_vtk
     >>> # Build plane:
     >>> background_value = -1
     >>> n = 10  # plane edge length
@@ -497,9 +497,9 @@ def close_surface_pair(faces, points1, points2, scalars, background_value=-1):
     >>> #
     >>> # Example 2: Gray and white cortical brain surfaces:
     >>> import os
-    >>> from mindboggle.utils.morph import close_surface_pair
-    >>> from mindboggle.utils.plots import plot_surfaces
-    >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, read_points, write_vtk
+    >>> from mindboggle.guts.morph import close_surface_pair
+    >>> from mindboggle.io.plot import plot_surfaces
+    >>> from mindboggle.io.vtk import read_scalars, read_vtk, read_points, write_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> patch_surface1 = 'fold.pial.vtk'
     >>> whole_surface2 = 'fold.white.vtk'
@@ -521,8 +521,8 @@ def close_surface_pair(faces, points1, points2, scalars, background_value=-1):
     import sys
     import numpy as np
 
-    from mindboggle.utils.mesh import find_neighbors, remove_faces
-    from mindboggle.utils.segment import extract_borders
+    from mindboggle.guts.mesh import find_neighbors, remove_faces
+    from mindboggle.guts.segment import extract_borders
 
     if isinstance(scalars, list):
         scalars = np.array(scalars)
@@ -603,9 +603,9 @@ def close_surface_pair_from_files(patch_surface1, whole_surface2,
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.morph import close_surface_pair_from_files
-    >>> from mindboggle.utils.plots import plot_surfaces
-    >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, read_points, write_vtk
+    >>> from mindboggle.guts.morph import close_surface_pair_from_files
+    >>> from mindboggle.io.plot import plot_surfaces
+    >>> from mindboggle.io.vtk import read_scalars, read_vtk, read_points, write_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> patch_surface1 = 'fold.pial.vtk'
     >>> whole_surface2 = 'fold.white.vtk'
@@ -629,8 +629,8 @@ def close_surface_pair_from_files(patch_surface1, whole_surface2,
     import os
     import numpy as np
 
-    from mindboggle.utils.io_vtk import read_vtk, write_vtk
-    from mindboggle.utils.morph import close_surface_pair
+    from mindboggle.io.vtk import read_vtk, write_vtk
+    from mindboggle.guts.morph import close_surface_pair
 
     # Read VTK surface mesh files:
     u1, u2, u3, points1, N, scalars, name, u4 = read_vtk(patch_surface1,

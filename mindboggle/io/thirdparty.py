@@ -52,7 +52,7 @@ def fetch_ants_data(segmented_file, use_ants_transforms=True):
 
     Examples
     --------
-    >>> from mindboggle.utils.ants import fetch_ants_data
+    >>> from mindboggle.guts.ants import fetch_ants_data
     >>> segmented_file = 'ants_subjects/OASIS-TRT-20-1/tmpBrainSegmentation.nii.gz'
     >>> fetch_ants_data(segmented_file)
 

@@ -14,7 +14,7 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 import networkx as nx
 
-from mindboggle.utils.kernels import rbf_kernel
+from mindboggle.guts.kernels import rbf_kernel
 
 
 #-----------------------------------------------------------------------------
@@ -85,7 +85,7 @@ def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
     """
     import numpy as np
     from scipy.sparse import lil_matrix
-    from mindboggle.utils.kernels import rbf_kernel, cotangent_kernel, inverse_distance
+    from mindboggle.guts.kernels import rbf_kernel, cotangent_kernel, inverse_distance
 
     if kernel is rbf_kernel or kernel is inverse_distance:
         if kernel is rbf_kernel:

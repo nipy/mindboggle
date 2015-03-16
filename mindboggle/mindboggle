@@ -37,35 +37,34 @@ from nipype.interfaces.ants import ApplyTransforms
 #-----------------------------------------------------------------------------
 # Mindboggle libraries
 #-----------------------------------------------------------------------------
-from mindboggle.LABELS import DKTprotocol
-from mindboggle.DATA import hashes_url
+from mindboggle.labels import DKTprotocol
+from mindboggle.data import hashes_url
 #from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
 #    measure_volume_overlap
 from mindboggle.features.folds import extract_folds
 from mindboggle.features.fundi import extract_fundi, segment_fundi
 from mindboggle.features.sulci import extract_sulci
-from mindboggle.labels.relabel import relabel_surface, relabel_volume, \
+from mindboggle.guts.ants import PropagateLabelsThroughMask
+from mindboggle.guts.compute import volume_per_label
+from mindboggle.guts.mesh import rescale_by_neighborhood
+from mindboggle.guts.paths import smooth_skeleton
+from mindboggle.guts.relabel import relabel_surface, relabel_volume, \
     keep_volume_labels, remove_volume_labels, overwrite_volume_labels
-from mindboggle.shapes.laplace_beltrami import spectrum_per_label
-from mindboggle.shapes.likelihood import compute_likelihood
-from mindboggle.shapes.shape_tools import area, travel_depth, \
-    geodesic_depth, curvature
-from mindboggle.shapes.thickinthehead import thickinthehead
-from mindboggle.shapes.zernike.zernike import zernike_moments_per_label
-from mindboggle.utils.ants import PropagateLabelsThroughMask
-from mindboggle.utils.compute import volume_per_label
-from mindboggle.utils.io_nii import convert2nii
-from mindboggle.utils.io_table import write_shape_stats, \
-    write_vertex_measures
-from mindboggle.utils.io_thirdparty import fetch_ants_data
-from mindboggle.utils.io_uri import retrieve_data
-from mindboggle.utils.io_vtk import read_vtk, apply_affine_transforms, \
+from mindboggle.guts.segment import combine_2labels_in_2volumes
+from mindboggle.guts.utilities import list_strings
+from mindboggle.io.nifti import convert2nii
+from mindboggle.io.table import write_shape_stats, write_vertex_measures
+from mindboggle.io.thirdparty import fetch_ants_data
+from mindboggle.io.uri import retrieve_data
+from mindboggle.io.vtk import read_vtk, apply_affine_transforms, \
     freesurfer_surface_to_vtk, freesurfer_curvature_to_vtk, \
     freesurfer_annot_to_vtk
-from mindboggle.utils.mesh import rescale_by_neighborhood
-from mindboggle.utils.paths import smooth_skeleton
-from mindboggle.utils.segment import split_brain, combine_2labels_in_2volumes
-from mindboggle.utils.utils import list_strings
+from mindboggle.shapes.laplace_beltrami import spectrum_per_label
+from mindboggle.shapes.likelihood import compute_likelihood
+from mindboggle.shapes.shape_tools import area, curvature, travel_depth, \
+    geodesic_depth
+from mindboggle.shapes.thickinthehead import thickinthehead
+from mindboggle.shapes.zernike.zernike import zernike_moments_per_label
 
 #=============================================================================
 #

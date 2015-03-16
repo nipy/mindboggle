@@ -75,9 +75,9 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
     >>> import numpy as np
     >>> import pylab
     >>> from scipy.ndimage.filters import gaussian_filter1d
-    >>> from mindboggle.utils.io_vtk import read_scalars
-    >>> from mindboggle.utils.mesh import find_neighbors_from_file
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.io.vtk import read_scalars
+    >>> from mindboggle.guts.mesh import find_neighbors_from_file
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> from mindboggle.features.folds import extract_folds
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = 'travel_depth.vtk' #os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
@@ -110,10 +110,10 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
     import numpy as np
     from time import time
     from scipy.ndimage.filters import gaussian_filter1d
-    from mindboggle.utils.io_vtk import rewrite_scalars, read_vtk
-    from mindboggle.utils.mesh import find_neighbors
-    from mindboggle.utils.morph import fill_holes
-    from mindboggle.utils.segment import segment
+    from mindboggle.io.vtk import rewrite_scalars, read_vtk
+    from mindboggle.guts.mesh import find_neighbors
+    from mindboggle.guts.morph import fill_holes
+    from mindboggle.guts.segment import segment
 
     print("Extract folds in surface mesh")
     t0 = time()
@@ -290,10 +290,10 @@ def extract_subfolds(depth_file, folds, min_size=10, depth_factor=0.25,
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> from mindboggle.utils.mesh import find_neighbors_from_file
+    >>> from mindboggle.io.vtk import read_scalars, rewrite_scalars
+    >>> from mindboggle.guts.mesh import find_neighbors_from_file
     >>> from mindboggle.features.folds import extract_subfolds
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
@@ -314,9 +314,9 @@ def extract_subfolds(depth_file, folds, min_size=10, depth_factor=0.25,
     import os
     import numpy as np
     from time import time
-    from mindboggle.utils.io_vtk import rewrite_scalars, read_vtk
-    from mindboggle.utils.mesh import find_neighbors
-    from mindboggle.utils.segment import segment, propagate, watershed
+    from mindboggle.io.vtk import rewrite_scalars, read_vtk
+    from mindboggle.guts.mesh import find_neighbors
+    from mindboggle.guts.segment import segment, propagate, watershed
 
     print("Segment folds into subfolds")
     t0 = time()

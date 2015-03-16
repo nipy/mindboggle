@@ -7,8 +7,8 @@ try:
 except ImportError:
     from md5 import md5
 
-from docutils import nodes
-from docutils.parsers.rst import directives
+from docguts import nodes
+from docguts.parsers.rst import directives
 import warnings
 
 from matplotlib import rcParams

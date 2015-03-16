@@ -53,9 +53,9 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+    >>> from mindboggle.io.vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.features.sulci import extract_sulci
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> # Load labels, folds, neighbor lists, and sulcus names and label pairs
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'relabeled_lh.DKTatlas40.gcs.vtk')
@@ -74,10 +74,10 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     from time import time
     import numpy as np
 
-    from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
-    from mindboggle.utils.mesh import find_neighbors
-    from mindboggle.utils.segment import extract_borders, propagate, segment
-    from mindboggle.LABELS import DKTprotocol
+    from mindboggle.io.vtk import read_scalars, read_vtk, rewrite_scalars
+    from mindboggle.guts.mesh import find_neighbors
+    from mindboggle.guts.segment import extract_borders, propagate, segment
+    from mindboggle.labels import DKTprotocol
 
 
     # Load fold numbers if folds_or_file is a string:

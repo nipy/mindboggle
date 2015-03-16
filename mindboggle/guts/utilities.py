@@ -23,7 +23,7 @@ def execute(cmd, type='os'):
 
     Examples
     --------
-    >>> from mindboggle.utils.utils import execute
+    >>> from mindboggle.guts.utilities import execute
     >>> cmd = ['ls', '-l', '-a', '.']
     >>> type = 'subprocess'
     >>> execute(cmd, type)

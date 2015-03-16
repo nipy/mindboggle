@@ -34,7 +34,7 @@ def point_distance(point, points):
 
     Examples
     --------
-    >>> from mindboggle.utils.compute import point_distance
+    >>> from mindboggle.guts.compute import point_distance
     >>> point = [1,2,3]
     >>> points = [[10,2.0,3], [0,1.5,2]]
     >>> point_distance(point, points)
@@ -97,7 +97,7 @@ def vector_distance(vector1, vector2, normalize=False):
     Examples
     --------
     >>> import numpy as np
-    >>> from mindboggle.utils.compute import vector_distance
+    >>> from mindboggle.guts.compute import vector_distance
     >>> vector1 = np.array([1.,2.,3.])
     >>> vector2 = np.array([0,1,5])
     >>> vector_distance(vector1, vector2)
@@ -146,7 +146,7 @@ def pairwise_vector_distances(vectors, save_file=False, normalize=False):
 
     Examples
     --------
-    >>> from mindboggle.utils.compute import pairwise_vector_distances
+    >>> from mindboggle.guts.compute import pairwise_vector_distances
     >>> pairwise_vector_distances([[1,2,3],[0,3,5],[0,3.5,5],[1,1,1]])
         (array([[ 0.        ,  0.81649658,  0.89752747,  0.74535599],
                [ 0.        ,  0.        ,  0.16666667,  1.52752523],
@@ -157,7 +157,7 @@ def pairwise_vector_distances(vectors, save_file=False, normalize=False):
     """
     import os
     import numpy as np
-    from mindboggle.utils.compute import vector_distance
+    from mindboggle.guts.compute import vector_distance
 
     # Make sure argument is a numpy array
     if not isinstance(vectors, np.ndarray):
@@ -231,7 +231,7 @@ def source_to_target_distances(sourceIDs, targetIDs, points,
 
     """
     import numpy as np
-    from mindboggle.utils.compute import point_distance
+    from mindboggle.guts.compute import point_distance
 
     if isinstance(points, list):
         points = np.asarray(points)
@@ -303,7 +303,7 @@ def weighted_to_repeated_values(X, W=[], precision=1):
     Examples
     --------
     >>> import numpy as np
-    >>> from mindboggle.utils.compute import weighted_to_repeated_values
+    >>> from mindboggle.guts.compute import weighted_to_repeated_values
     >>> X = np.array([1,2,4,7,8])
     >>> W = np.array([.1,.1,.3,.2,.3])
     >>> precision = 1
@@ -365,7 +365,7 @@ def weighted_median(X, W=[], precision=1):
     Examples
     --------
     >>> import numpy as np
-    >>> from mindboggle.utils.compute import weighted_median
+    >>> from mindboggle.guts.compute import weighted_median
     >>> X = np.array([1,2,4,7,8])
     >>> W = np.array([.1,.1,.3,.2,.3])
     >>> precision = 1
@@ -375,7 +375,7 @@ def weighted_median(X, W=[], precision=1):
 
     """
     import numpy as np
-    from mindboggle.utils.compute import weighted_to_repeated_values
+    from mindboggle.guts.compute import weighted_to_repeated_values
 
     # Make sure arguments have the correct type:
     if not isinstance(X, np.ndarray):
@@ -415,7 +415,7 @@ def median_abs_dev(X, W=[], precision=1, c=1.0):
     Examples
     --------
     >>> import numpy as np
-    >>> from mindboggle.utils.compute import median_abs_dev
+    >>> from mindboggle.guts.compute import median_abs_dev
     >>> X = np.array([1,2,4,7,8])
     >>> W = np.array([.1,.1,.3,.2,.3])
     >>> precision = 1
@@ -425,7 +425,7 @@ def median_abs_dev(X, W=[], precision=1, c=1.0):
 
     """
     import numpy as np
-    from mindboggle.utils.compute import weighted_to_repeated_values
+    from mindboggle.guts.compute import weighted_to_repeated_values
 
     # Make sure arguments have the correct type:
     if not isinstance(X, np.ndarray):
@@ -484,8 +484,8 @@ def means_per_label(values, labels, include_labels=[], exclude_labels=[], areas=
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk
-    >>> from mindboggle.utils.compute import means_per_label
+    >>> from mindboggle.io.vtk import read_scalars, read_vtk
+    >>> from mindboggle.guts.compute import means_per_label
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> values_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> area_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.area.vtk')
@@ -594,8 +594,8 @@ def sum_per_label(values, labels, include_labels=[], exclude_labels=[]):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk
-    >>> from mindboggle.utils.compute import sum_per_label
+    >>> from mindboggle.io.vtk import read_scalars, read_vtk
+    >>> from mindboggle.guts.compute import sum_per_label
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> values_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.area.vtk')
     >>> labels_file = os.path.join(data_path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
@@ -689,8 +689,8 @@ def stats_per_label(values, labels, include_labels=[], exclude_labels=[],
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_scalars
-    >>> from mindboggle.utils.compute import stats_per_label
+    >>> from mindboggle.io.vtk import read_scalars
+    >>> from mindboggle.guts.compute import stats_per_label
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> values_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> area_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.area.vtk')
@@ -707,7 +707,7 @@ def stats_per_label(values, labels, include_labels=[], exclude_labels=[],
     """
     import numpy as np
     from scipy.stats import skew, kurtosis, scoreatpercentile
-    from mindboggle.utils.compute import weighted_to_repeated_values, median_abs_dev
+    from mindboggle.guts.compute import weighted_to_repeated_values, median_abs_dev
 
     # Make sure arguments are numpy arrays:
     if not isinstance(values, np.ndarray):
@@ -840,8 +840,8 @@ def volume_per_label(input_file, include_labels=[], exclude_labels=[],
     Examples
     --------
     >>> import os
-    >>> from mindboggle.LABELS import DKTprotocol
-    >>> from mindboggle.utils.compute import volume_per_label
+    >>> from mindboggle.labels import DKTprotocol
+    >>> from mindboggle.guts.compute import volume_per_label
     >>> input_file = os.path.join(os.environ['HOME'], 'mindboggled', 'OASIS-TRT-20-1', 'labels', 'ANTs_filled_labels.nii.gz')
     >>> dkt = DKTprotocol()
     >>> include_labels = dkt.label_numbers
@@ -927,7 +927,7 @@ def compute_image_histogram(infile, nbins=100, threshold=0.0):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.compute import compute_image_histogram
+    >>> from mindboggle.guts.compute import compute_image_histogram
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> infile = os.path.join(path, 'arno', 'mri', 't1weighted.nii.gz')
     >>> compute_image_histogram(infile, nbins=100, threshold=0.1)
