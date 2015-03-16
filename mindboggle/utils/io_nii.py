@@ -134,7 +134,7 @@ def xyz2nii(input_xyz_file, output_nii_file='', origin=[], pad=10):
 
     Examples
     --------
-    >>> from mindboggle.utils.io_table import xyz2nii
+    >>> from mindboggle.utils.io_nii import xyz2nii
     >>> input_xyz_file = '/Users/arno/Dropbox/MSSM/Nebojsa/face.xyz.txt'
     >>> origin = []
     >>> pad = 10
