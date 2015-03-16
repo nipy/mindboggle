@@ -1,6 +1,6 @@
 from . import zernike_moments
 from .test.multiproc import MultiprocPipeline
-from mindboggle.utils.io_vtk import read_vtk
+from mindboggle.io.vtk import read_vtk
 import numpy as np
 
 import argparse

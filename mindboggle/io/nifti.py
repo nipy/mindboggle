@@ -44,14 +44,14 @@ def convert2nii(input_file, reference_file, output_file='', interp='continuous')
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_nii import convert2nii
+    >>> from mindboggle.io.nifti import convert2nii
     >>> subject = 'Twins-2-1'
     >>> input_file = os.path.join(os.environ['SUBJECTS_DIR'],subject,'mri','aparc+aseg.mgz')
     >>> reference_file = os.path.join(os.environ['SUBJECTS_DIR'],subject,'mri','orig','001.mgz')
     >>> output_file = ''
     >>> interp = 'nearest'
     >>> output_file = convert2nii(input_file, reference_file, output_file, interp)
-    >>> #from mindboggle.utils.plots import plot_volumes
+    >>> #from mindboggle.io.plot import plot_volumes
     >>> #command = '/Applications/ITK-SNAP.app/Contents/MacOS/InsightSNAP'
     >>> #plot_volumes('orig.mgz.nii.gz', command=command)
 
@@ -134,7 +134,7 @@ def xyz2nii(input_xyz_file, output_nii_file='', origin=[], pad=10):
 
     Examples
     --------
-    >>> from mindboggle.utils.io_nii import xyz2nii
+    >>> from mindboggle.io.nifti import xyz2nii
     >>> input_xyz_file = '/Users/arno/Dropbox/MSSM/Nebojsa/face.xyz.txt'
     >>> origin = []
     >>> pad = 10

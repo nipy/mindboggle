@@ -30,9 +30,9 @@ def find_neighbors_from_file(input_vtk):
     --------
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.utils.mesh import find_neighbors_from_file
-    >>> from mindboggle.utils.io_vtk import rewrite_scalars
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.guts.mesh import find_neighbors_from_file
+    >>> from mindboggle.io.vtk import rewrite_scalars
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
     >>> #
@@ -47,8 +47,8 @@ def find_neighbors_from_file(input_vtk):
     >>> plot_surfaces('find_neighbors_from_file.vtk')
 
     """
-    from mindboggle.utils.io_vtk import read_faces_points
-    from mindboggle.utils.mesh import find_neighbors
+    from mindboggle.io.vtk import read_faces_points
+    from mindboggle.guts.mesh import find_neighbors
 
     faces, points, npoints = read_faces_points(input_vtk)
 
@@ -77,7 +77,7 @@ def find_neighbors(faces, npoints):
     Examples
     --------
     >>> # Simple example:
-    >>> from mindboggle.utils.mesh import find_neighbors
+    >>> from mindboggle.guts.mesh import find_neighbors
     >>> faces = [[0,1,2],[0,2,3],[0,3,4],[0,1,4],[4,3,1]]
     >>> npoints = 5
     >>> find_neighbors(faces, npoints)
@@ -86,8 +86,8 @@ def find_neighbors(faces, npoints):
     >>> # Real example:
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.utils.mesh import find_neighbors
-    >>> from mindboggle.utils.io_vtk import read_faces_points, rewrite_scalars
+    >>> from mindboggle.guts.mesh import find_neighbors
+    >>> from mindboggle.io.vtk import read_faces_points, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
     >>> faces, points, npoints = read_faces_points(vtk_file)
@@ -100,7 +100,7 @@ def find_neighbors(faces, npoints):
     >>> IDs[index] = 1
     >>> IDs[neighbor_lists[index]] = 2
     >>> rewrite_scalars(vtk_file, 'find_neighbors.vtk', IDs, 'neighbors', IDs)
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> plot_surfaces('find_neighbors.vtk')
 
     """
@@ -148,7 +148,7 @@ def find_neighbors_vertex(faces, index):
 
     Examples
     --------
-    >>> from mindboggle.utils.mesh import find_neighbors_vertex
+    >>> from mindboggle.guts.mesh import find_neighbors_vertex
     >>> faces = [[0,1,2],[0,2,3],[0,3,4],[0,1,4]]
     >>> index = 1
     >>> find_neighbors_vertex(faces, index)
@@ -197,7 +197,7 @@ def find_neighborhood(neighbor_lists, indices, nedges=1):
 
     Examples
     --------
-    >>> from mindboggle.utils.mesh import find_neighborhood
+    >>> from mindboggle.guts.mesh import find_neighborhood
     >>> neighbor_lists = [[0,1],[0,2],[1,4,5],[2],[],[0,1,4,5]]
     >>> indices = [1,3,4]
     >>> find_neighborhood(neighbor_lists, indices, 2)
@@ -251,10 +251,10 @@ def find_endpoints(indices, neighbor_lists):
     >>> # Extract endpoints from a track in a fold:
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> from mindboggle.utils.mesh import find_neighbors_from_file, find_endpoints
-    >>> from mindboggle.utils.paths import track_values
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.io.vtk import read_scalars, rewrite_scalars
+    >>> from mindboggle.guts.mesh import find_neighbors_from_file, find_endpoints
+    >>> from mindboggle.guts.paths import track_values
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> # Select a single fold:
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
@@ -307,7 +307,7 @@ def find_edges(faces):
     Examples
     --------
     >>> # Simple example:
-    >>> from mindboggle.utils.mesh import find_edges
+    >>> from mindboggle.guts.mesh import find_edges
     >>> faces=[[0,1,2], [0,1,4], [1,2,3], [0,2,5]]
     >>> find_edges(faces)
     [[0, 1], [1, 2], [0, 2], [1, 4], [0, 4], [2, 3], [1, 3], [2, 5], [0, 5]]
@@ -339,7 +339,7 @@ def find_faces_at_edges(faces):
     Examples
     --------
     >>> # Simple example:
-    >>> from mindboggle.utils.mesh import find_faces_at_edges
+    >>> from mindboggle.guts.mesh import find_faces_at_edges
     >>> faces=[[0,1,2], [0,1,4], [1,2,3], [0,2,5]]
     >>> find_faces_at_edges(faces)
         {(0, 1): [0, 1],
@@ -395,7 +395,7 @@ def find_faces_with_vertex(index, faces):
     Examples
     --------
     >>> # Simple example:
-    >>> from mindboggle.utils.mesh import find_faces_with_vertex
+    >>> from mindboggle.guts.mesh import find_faces_with_vertex
     >>> faces = [[0,1,2],[0,2,3],[0,3,4],[0,1,4],[4,3,1]]
     >>> index = 3
     >>> find_faces_with_vertex(index, faces)
@@ -427,7 +427,7 @@ def find_faces_at_vertices(faces, npoints):
     Examples
     --------
     >>> # Simple example:
-    >>> from mindboggle.utils.mesh import find_faces_at_vertices
+    >>> from mindboggle.guts.mesh import find_faces_at_vertices
     >>> faces = [[0,1,2],[0,2,3],[0,3,4],[0,1,4],[4,3,1]]
     >>> npoints = 5
     >>> find_faces_at_vertices(faces, npoints)
@@ -466,7 +466,7 @@ def find_adjacent_faces(faces):
     Examples
     --------
     >>> # Simple example:
-    >>> from mindboggle.utils.mesh import find_adjacent_faces
+    >>> from mindboggle.guts.mesh import find_adjacent_faces
     >>> faces = [[0,1,2],[0,2,3],[0,3,4],[0,1,4],[4,3,1]]
     >>> find_adjacent_faces(faces)
         [[[-1, 1, 3], [-1, 3, 4]],
@@ -539,7 +539,7 @@ def find_complete_faces(indices, faces):
 
     Examples
     --------
-    >>> from mindboggle.utils.mesh import find_complete_faces
+    >>> from mindboggle.guts.mesh import find_complete_faces
     >>> faces = [[0,2,3], [2,3,7], [4,7,8], [3,2,5]]
     >>> indices = [3,7,2,5,9,4]
     >>> find_complete_faces(indices, faces)
@@ -576,7 +576,7 @@ def remove_faces(faces, indices):
 
     Examples
     --------
-    >>> from mindboggle.utils.mesh import remove_faces
+    >>> from mindboggle.guts.mesh import remove_faces
     >>> faces = [[1,2,3], [2,3,7], [4,7,8], [3,2,5]]
     >>> indices = [0,1,2,3,4,5]
     >>> remove_faces(faces, indices)
@@ -621,8 +621,8 @@ def reindex_faces_points(faces, points=[]):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_faces_points
-    >>> from mindboggle.utils.mesh import reindex_faces_points
+    >>> from mindboggle.io.vtk import read_faces_points
+    >>> from mindboggle.guts.mesh import reindex_faces_points
     >>> # Reindex faces:
     >>> faces = [[8,2,3], [2,3,7], [4,7,8], [3,2,5]]
     >>> reindex_faces_points(faces, points=[])
@@ -673,7 +673,7 @@ def remove_neighbor_lists(neighbor_lists, indices):
 
     Examples
     --------
-    >>> from mindboggle.utils.mesh import remove_neighbor_lists
+    >>> from mindboggle.guts.mesh import remove_neighbor_lists
     >>> neighbor_lists = [[1,2,3], [2,3,7], [12,43], [4,7,8], [3,2,5]]
     >>> indices = [0,1,2,3,4,5]
     >>> remove_neighbor_lists(neighbor_lists, indices)
@@ -705,7 +705,7 @@ def reindex_faces_0to1(faces):
 
     Examples
     --------
-    >>> from mindboggle.utils.mesh import reindex_faces_0to1
+    >>> from mindboggle.guts.mesh import reindex_faces_0to1
     >>> faces = [[0,2,3], [2,3,7], [4,7,8], [3,2,5]]
     >>> reindex_faces_0to1(faces)
     [[1, 3, 4], [3, 4, 8], [5, 8, 9], [4, 3, 6]]
@@ -755,9 +755,9 @@ def decimate(points, faces, reduction=0.75, smooth_steps=25,
     --------
     >>> # Example: Twins-2-1 left postcentral pial surface, 0.75 decimation:
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_vtk, write_vtk
-    >>> from mindboggle.utils.mesh import remove_faces, decimate
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.io.vtk import read_vtk, write_vtk
+    >>> from mindboggle.guts.mesh import remove_faces, decimate
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
     >>> faces, u1,u2, points, u3, scalars, u4,u5 = read_vtk(label_file)
@@ -910,8 +910,8 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100,
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.mesh import decimate_file
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.guts.mesh import decimate_file
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> input_vtk = os.path.join(path, 'arno', 'labels', 'label22.vtk')
     >>> #input_vtk='/drop/MB/data/arno/labels/lh.labels.DKT31.manual.vtk'
@@ -924,8 +924,8 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100,
     >>> plot_surfaces('decimated.vtk') # doctest: +SKIP
 
     """
-    from mindboggle.utils.io_vtk import read_vtk
-    from mindboggle.utils.mesh import decimate
+    from mindboggle.io.vtk import read_vtk
+    from mindboggle.guts.mesh import decimate
 
     # Read VTK surface mesh file:
     faces, u1, u2, points, u4, scalars, u5, u6 = read_vtk(input_vtk)
@@ -973,9 +973,9 @@ def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.mesh import rescale_by_neighborhood
-    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.guts.mesh import rescale_by_neighborhood
+    >>> from mindboggle.io.vtk import read_scalars, rewrite_scalars
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> indices = []
@@ -1000,8 +1000,8 @@ def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
     """
     import os
     import numpy as np
-    from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    from mindboggle.utils.mesh import find_neighbors_from_file, find_neighborhood
+    from mindboggle.io.vtk import read_scalars, rewrite_scalars
+    from mindboggle.guts.mesh import find_neighbors_from_file, find_neighborhood
 
     # Load scalars and vertex neighbor lists:
     scalars, name = read_scalars(input_vtk, True, True)
@@ -1075,9 +1075,9 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
     --------
     >>> # Rescale depths by neighborhood within each label:
     >>> import os
-    >>> from mindboggle.utils.mesh import rescale_by_label
-    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.guts.mesh import rescale_by_label
+    >>> from mindboggle.io.vtk import read_scalars, rewrite_scalars
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> labels_or_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
@@ -1098,7 +1098,7 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
     """
     import os
     import numpy as np
-    from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+    from mindboggle.io.vtk import read_scalars, rewrite_scalars
 
     # Load scalars and vertex neighbor lists:
     scalars, name = read_scalars(input_vtk, True, True)

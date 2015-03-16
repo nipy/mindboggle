@@ -149,7 +149,7 @@ def read_faces_points(filename):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_faces_points
+    >>> from mindboggle.io.vtk import read_faces_points
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> faces, points, npoints = read_faces_points(folds_file)
@@ -200,7 +200,7 @@ def read_scalars(filename, return_first=True, return_array=False):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_scalars
+    >>> from mindboggle.io.vtk import read_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> mean_curvatures, name = read_scalars(curv_file)
@@ -297,7 +297,7 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_vtk
+    >>> from mindboggle.io.vtk import read_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(input_vtk)
@@ -593,8 +593,8 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     --------
     >>> # Toy example
     >>> import random, os
-    >>> from mindboggle.utils.io_vtk import write_vtk
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.io.vtk import write_vtk
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> points = [[random.random() for i in [1,2,3]] for j in range(4)]
     >>> indices = [1,2,3,0]
     >>> lines = [[1,2],[3,4]]
@@ -609,8 +609,8 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     >>> #
     >>> # Write vtk file with curvature values and view:
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_vtk, write_vtk
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.io.vtk import read_vtk, write_vtk
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> faces, lines, indices, points, npoints, scalars, scalar_names, input_vtk = read_vtk(input_vtk)
@@ -624,7 +624,7 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     import os
     import numpy as np
 
-    from mindboggle.utils.io_vtk import write_header, write_points, \
+    from mindboggle.io.vtk import write_header, write_points, \
         write_vertices, write_faces, write_scalars, scalars_checker
 
     # Convert numpy arrays to lists
@@ -699,7 +699,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     --------
     >>> # Write vtk file with curvature values on sulci
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+    >>> from mindboggle.io.vtk import read_scalars, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
@@ -714,15 +714,15 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     >>> rewrite_scalars(input_vtk, output_vtk, new_scalars, new_scalar_names, filter_scalars, background_value)
     >>> #
     >>> # View:
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> plot_surfaces('rewrite_scalars.vtk')
 
     """
     import os
     import numpy as np
 
-    from mindboggle.utils.mesh import remove_faces
-    from mindboggle.utils.io_vtk import write_header, write_points, \
+    from mindboggle.guts.mesh import remove_faces
+    from mindboggle.io.vtk import write_header, write_points, \
         write_vertices, write_faces, write_scalars, read_vtk, scalars_checker
 
     # Convert numpy arrays to lists
@@ -827,8 +827,8 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     --------
     >>> # Example 1:  explode sulci with thickness values
     >>> import os
-    >>> from mindboggle.utils.io_vtk import explode_scalars
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.io.vtk import explode_scalars
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> input_indices_vtk = os.path.join(path, 'arno', 'features', 'sulci.vtk')
     >>> input_values_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
@@ -842,8 +842,8 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     >>> #
     >>> # Example 2:  explode labels
     >>> import os
-    >>> from mindboggle.utils.io_vtk import explode_scalars
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.io.vtk import explode_scalars
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> input_values_vtk = os.path.join(path, 'arno', 'labels',
     >>>                                 'lh.labels.DKT25.manual.vtk')
@@ -865,8 +865,8 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     """
     import os
     import numpy as np
-    from mindboggle.utils.io_vtk import read_scalars, read_vtk, write_vtk
-    from mindboggle.utils.mesh import reindex_faces_points, remove_faces
+    from mindboggle.io.vtk import read_scalars, read_vtk, write_vtk
+    from mindboggle.guts.mesh import reindex_faces_points, remove_faces
 
     # Load VTK file:
     faces, lines, indices, points, npoints, scalars, scalar_names, \
@@ -951,7 +951,7 @@ def scalars_checker(scalars, scalar_names):
     Examples
     --------
     >>> import numpy as np
-    >>> from mindboggle.utils.io_vtk import scalars_checker
+    >>> from mindboggle.io.vtk import scalars_checker
     >>> scalars_checker([[1,2],[3,4]], ["list1", "list2"])
       ([[1, 2], [3, 4]], ['list1', 'list2'])
     >>> scalars_checker([[1,2],[3,4]], "")
@@ -1073,7 +1073,7 @@ def read_itk_transform_old(transform_file):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_itk_transform
+    >>> from mindboggle.io.vtk import read_itk_transform
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> transform_file = os.path.join(path, 'arno', 'mri',
     >>>                               't1weighted_brain.MNI152Affine.txt')
@@ -1137,7 +1137,7 @@ def read_itk_transform(transform_file):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_itk_transform
+    >>> from mindboggle.io.vtk import read_itk_transform
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> transform_file = os.path.join(path, 'arno', 'mri',
     >>>                               't1weighted_brain.MNI152Affine.txt')
@@ -1227,8 +1227,8 @@ def apply_affine_transforms(transform_files, inverse_booleans,
 
     Examples
     --------
-    >>> from mindboggle.utils.io_vtk import apply_affine_transforms
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.io.vtk import apply_affine_transforms
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> transform_files = ['/Users/arno/mindboggle_working/OASIS-TRT-20-1/Mindboggle/Compose_affine_transform/affine.txt']
     >>> inverse_booleans = [1]
     >>> transform_format = 'itk'
@@ -1243,8 +1243,8 @@ def apply_affine_transforms(transform_files, inverse_booleans,
     import numpy as np
     #from scipy.io import loadmat
 
-    from mindboggle.utils.ants import antsApplyTransformsToPoints
-    from mindboggle.utils.io_vtk import read_vtk, write_vtk
+    from mindboggle.guts.ants import antsApplyTransformsToPoints
+    from mindboggle.io.vtk import read_vtk, write_vtk
                                         #read_itk_transform
     transform_format = 'itk'
 
@@ -1335,8 +1335,8 @@ def transform_to_volume(vtk_file, volume_file, output_volume=''):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import transform_to_volume
-    >>> from mindboggle.utils.plots import plot_volumes
+    >>> from mindboggle.io.vtk import transform_to_volume
+    >>> from mindboggle.io.plot import plot_volumes
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> volume_file = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
@@ -1352,7 +1352,7 @@ def transform_to_volume(vtk_file, volume_file, output_volume=''):
     import numpy as np
     import nibabel as nb
 
-    from mindboggle.utils.io_vtk import read_vtk
+    from mindboggle.io.vtk import read_vtk
 
     # Read vtk file:
     u1, u2, u3, xyz, npoints, scalars, u4, u5 = read_vtk(vtk_file)
@@ -1415,7 +1415,7 @@ def freesurfer_surface_to_vtk(surface_file, output_vtk):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import freesurfer_surface_to_vtk
+    >>> from mindboggle.io.vtk import freesurfer_surface_to_vtk
     >>> path = os.environ['SUBJECTS_DIR']
     >>> surface_file = os.path.join(path, 'OASIS-TRT-20-1', 'surf', 'lh.pial')
     >>> output_vtk = ''
@@ -1423,14 +1423,14 @@ def freesurfer_surface_to_vtk(surface_file, output_vtk):
     >>> freesurfer_surface_to_vtk(surface_file, output_vtk)
     >>> #
     >>> # View:
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> plot_surfaces('lh.pial.vtk')
 
     """
     import os
     import nibabel as nb
 
-    from mindboggle.utils.io_vtk import write_header, write_points, write_faces
+    from mindboggle.io.vtk import write_header, write_points, write_faces
 
     surf = nb.freesurfer.read_geometry(surface_file)
     points = surf[0]
@@ -1494,7 +1494,7 @@ def freesurfer_curvature_to_vtk(surface_file, vtk_file, output_vtk):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import freesurfer_curvature_to_vtk
+    >>> from mindboggle.io.vtk import freesurfer_curvature_to_vtk
     >>> surface_file = 'lh.thickness'
     >>> vtk_file = 'lh.pial.vtk'
     >>> output_vtk = ''
@@ -1502,14 +1502,14 @@ def freesurfer_curvature_to_vtk(surface_file, vtk_file, output_vtk):
     >>> freesurfer_curvature_to_vtk(surface_file, vtk_file, output_vtk)
     >>> #
     >>> # View:
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> plot_surfaces('lh.thickness.vtk')
 
     """
     import os
     import nibabel as nb
 
-    from mindboggle.utils.io_vtk import rewrite_scalars
+    from mindboggle.io.vtk import rewrite_scalars
 
     curvature_values = nb.freesurfer.read_morph_data(surface_file)
     scalar_names = os.path.basename(surface_file)
@@ -1558,7 +1558,7 @@ def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk=''):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import freesurfer_annot_to_vtk
+    >>> from mindboggle.io.vtk import freesurfer_annot_to_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> annot_file = os.path.join(path, 'arno', 'freesurfer', 'lh.aparc.annot')
     >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
@@ -1567,7 +1567,7 @@ def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk=''):
     >>> labels, output_vtk = freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk)
     >>> #
     >>> # View:
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> plot_surfaces(output_vtk)
 
     """
@@ -1575,7 +1575,7 @@ def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk=''):
     import nibabel as nb
     import numpy as np
 
-    from mindboggle.utils.io_vtk import rewrite_scalars
+    from mindboggle.io.vtk import rewrite_scalars
 
     labels, ctab, names = nb.freesurfer.read_annot(annot_file)
 

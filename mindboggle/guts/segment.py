@@ -19,7 +19,7 @@ def propagate(points, faces, region, seeds, labels,
     Propagate labels to segment surface into contiguous regions,
     starting from seed vertices.
 
-    Imports : mindboggle.labels.rebound
+    Imports : mindboggle.guts.rebound
 
     Parameters
     ----------
@@ -52,12 +52,12 @@ def propagate(points, faces, region, seeds, labels,
     >>> # Propagate labels between label boundary segments in a single fold:
     >>> import os
     >>> import numpy as np
-    >>> import mindboggle.labels.rebound as rb
-    >>> from mindboggle.utils.mesh import find_neighbors
-    >>> from mindboggle.utils.segment import extract_borders
-    >>> from mindboggle.utils.segment import propagate
-    >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
-    >>> from mindboggle.LABELS import DKTprotocol
+    >>> import mindboggle.guts.rebound as rb
+    >>> from mindboggle.guts.mesh import find_neighbors
+    >>> from mindboggle.guts.segment import extract_borders
+    >>> from mindboggle.guts.segment import propagate
+    >>> from mindboggle.io.vtk import read_scalars, read_vtk, rewrite_scalars
+    >>> from mindboggle.labels import DKTprotocol
     >>> dkt = DKTprotocol()
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
@@ -89,14 +89,14 @@ def propagate(points, faces, region, seeds, labels,
     >>> # Write results to vtk file and view:
     >>> rewrite_scalars(labels_file, 'propagate.vtk',
     >>>                 segments, 'segments', segments)
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> plot_surfaces('propagate.vtk')
 
     """
     import numpy as np
-    from mindboggle.utils.mesh import remove_faces
-    import mindboggle.utils.kernels as kernels
-    import mindboggle.labels.rebound as rb
+    from mindboggle.guts.mesh import remove_faces
+    import mindboggle.guts.kernels as kernels
+    import mindboggle.guts.rebound as rb
 
     # Make sure arguments are numpy arrays:
     if not isinstance(seeds, np.ndarray):
@@ -201,11 +201,11 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> # Segment deep regions with or without seeds:
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.utils.mesh import find_neighbors
-    >>> from mindboggle.utils.segment import segment
-    >>> from mindboggle.utils.segment import extract_borders
-    >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.guts.mesh import find_neighbors
+    >>> from mindboggle.guts.segment import segment
+    >>> from mindboggle.guts.segment import extract_borders
+    >>> from mindboggle.io.vtk import read_vtk, rewrite_scalars
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
@@ -220,7 +220,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> plot_surfaces('segment.vtk')
     >>> #
     >>> # Example 2: with seed lists
-    >>> from mindboggle.LABELS import DKTprotocol
+    >>> from mindboggle.labels import DKTprotocol
     >>> dkt = DKTprotocol()
     >>> label_lists = [np.unique(np.ravel(x)) for x in dkt.sulcus_label_pair_lists]
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
@@ -483,9 +483,9 @@ def segment_by_filling_borders(regions, neighbor_lists, background_value=-1):
     >>> # Segment folds by extracting their borders and filling them in separately:
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.utils.mesh import find_neighbors
-    >>> from mindboggle.utils.segment import segment_by_filling_borders
-    >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
+    >>> from mindboggle.guts.mesh import find_neighbors
+    >>> from mindboggle.guts.segment import segment_by_filling_borders
+    >>> from mindboggle.io.vtk import read_vtk, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
@@ -499,13 +499,13 @@ def segment_by_filling_borders(regions, neighbor_lists, background_value=-1):
     >>> #
     >>> # Write results to vtk file and view:
     >>> rewrite_scalars(depth_file, 'segment_by_filling_borders.vtk', folds, 'folds', folds)
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> plot_surfaces('segment_by_filling_borders.vtk')
 
     """
     import numpy as np
-    from mindboggle.utils.segment import extract_borders
-    from mindboggle.utils.segment import segment
+    from mindboggle.guts.segment import extract_borders
+    from mindboggle.guts.segment import segment
 
     include_boundary = False
 
@@ -605,11 +605,11 @@ def segment_rings(region, seeds, neighbor_lists, step=1, background_value=-1):
     --------
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> from mindboggle.utils.mesh import find_neighbors_from_file
-    >>> from mindboggle.utils.segment import extract_borders
-    >>> from mindboggle.utils.segment import segment_rings
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.io.vtk import read_scalars, rewrite_scalars
+    >>> from mindboggle.guts.mesh import find_neighbors_from_file
+    >>> from mindboggle.guts.segment import extract_borders
+    >>> from mindboggle.guts.segment import segment_rings
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> values_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
     >>> values, name = read_scalars(values_file, True, True)
@@ -658,7 +658,7 @@ def segment_rings(region, seeds, neighbor_lists, step=1, background_value=-1):
     >>> #pickle.dump(segments, open(output_file, "wb" ))
 
     """
-    from mindboggle.utils.segment import segment
+    from mindboggle.guts.segment import segment
 
     segments = []
     while seeds:
@@ -747,10 +747,10 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
     >>> # Perform watershed segmentation on the deeper portions of a surface:
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.utils.mesh import find_neighbors
-    >>> from mindboggle.utils.plots import plot_surfaces
-    >>> from mindboggle.utils.segment import watershed, segment
-    >>> from mindboggle.utils.io_vtk import read_vtk, read_scalars, rewrite_scalars
+    >>> from mindboggle.guts.mesh import find_neighbors
+    >>> from mindboggle.io.plot import plot_surfaces
+    >>> from mindboggle.guts.segment import watershed, segment
+    >>> from mindboggle.io.vtk import read_vtk, read_scalars, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
@@ -783,9 +783,9 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
     """
     import numpy as np
     from time import time
-    from mindboggle.utils.segment import extract_borders
-    from mindboggle.utils.segment import segment
-    from mindboggle.utils.compute import point_distance
+    from mindboggle.guts.segment import extract_borders
+    from mindboggle.guts.segment import segment
+    from mindboggle.guts.compute import point_distance
 
     # Make sure argument is a list
     if isinstance(indices, np.ndarray):
@@ -1066,9 +1066,9 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
     >>> # Two surface patches:
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, write_vtk
-    >>> from mindboggle.utils.mesh import remove_faces
-    >>> from mindboggle.utils.segment import select_largest
+    >>> from mindboggle.io.vtk import read_scalars, read_vtk, write_vtk
+    >>> from mindboggle.guts.mesh import remove_faces
+    >>> from mindboggle.guts.segment import select_largest
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
@@ -1085,7 +1085,7 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
     >>> points2, faces2 = select_largest(points, faces, exclude_labels, areas,
     >>>                                  reindex)
     >>> # View:
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> scalars = np.zeros(np.shape(labels))
     >>> scalars[I28] = 1
     >>> vtk_file = 'test_two_labels.vtk'
@@ -1096,9 +1096,9 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
     """
     import numpy as np
 
-    from mindboggle.utils.mesh import find_neighbors, remove_faces, \
+    from mindboggle.guts.mesh import find_neighbors, remove_faces, \
         reindex_faces_points
-    from mindboggle.utils.segment import segment
+    from mindboggle.guts.segment import segment
 
     # Areas:
     use_area = False
@@ -1212,7 +1212,7 @@ def extract_borders(indices, labels, neighbor_lists,
     Examples
     --------
     >>> # Small example:
-    >>> from mindboggle.utils.segment import extract_borders
+    >>> from mindboggle.guts.segment import extract_borders
     >>> indices = [0,1,2,4,5,8,9]
     >>> labels = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, -1, -1]
     >>> neighbor_lists = [[1,2,3], [1,2], [2,3], [2], [4,7], [3,2,3]]
@@ -1223,10 +1223,10 @@ def extract_borders(indices, labels, neighbor_lists,
     >>> # Real example -- extract sulcus label boundaries:
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.utils.mesh import find_neighbors
-    >>> from mindboggle.utils.segment import extract_borders
-    >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.guts.mesh import find_neighbors
+    >>> from mindboggle.guts.segment import extract_borders
+    >>> from mindboggle.io.vtk import read_vtk, rewrite_scalars
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> faces, lines, indices, points, npoints, labels, name, input_vtk = read_vtk(labels_file,
@@ -1313,8 +1313,8 @@ def extract_borders_2nd_surface(labels_file, mask_file='', values_file='',
     --------
     >>> # Extract depth values along label borders in sulci (mask):
     >>> import os
-    >>> from mindboggle.utils.segment import extract_borders_2nd_surface
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.guts.segment import extract_borders_2nd_surface
+    >>> from mindboggle.io.plot import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> mask_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
@@ -1328,9 +1328,9 @@ def extract_borders_2nd_surface(labels_file, mask_file='', values_file='',
     """
     import os
     import numpy as np
-    from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
-    from mindboggle.utils.mesh import find_neighbors
-    from mindboggle.utils.segment import extract_borders
+    from mindboggle.io.vtk import read_scalars, read_vtk, rewrite_scalars
+    from mindboggle.guts.mesh import find_neighbors
+    from mindboggle.guts.segment import extract_borders
 
     # Load labeled surface file
     faces, foo1, foo2, foo3, npoints, labels, foo4, foo5 = read_vtk(labels_file,
@@ -1390,7 +1390,7 @@ def combine_2labels_in_2volumes(file1, file2, label1=3, label2=2,
       1. Run Freesurfer and antsCorticalThickness.sh on T1-weighted image.
       2. Convert FreeSurfer volume labels (e.g., wmparc.mgz or aparc+aseg.mgz)
          to cortex (2) and noncortex (3) segments using relabel_volume()
-         function [refer to LABELS.py or FreeSurferColorLUT labels file].
+         function [refer to labels.py or FreeSurferColorLUT labels file].
       3. Convert ANTs Atropos-segmented volume (tmpBrainSegmentation.nii.gz)
          to cortex and noncortex segments, by converting 1-labels to 0 and
          4-labels to 3 with the relabel_volume() function
@@ -1417,7 +1417,7 @@ def combine_2labels_in_2volumes(file1, file2, label1=3, label2=2,
 
     Examples
     --------
-    >>> from mindboggle.utils.segment import combine_2labels_in_2volumes
+    >>> from mindboggle.guts.segment import combine_2labels_in_2volumes
     >>> file1 = 'seg1.nii.gz'
     >>> file2 = 'seg2.nii.gz'
     >>> label1 = 3
@@ -1496,9 +1496,9 @@ def split_brain(image_file, label_file, left_labels, right_labels):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.segment import split_brain
-    >>> from mindboggle.utils.plots import plot_volumes
-    >>> from mindboggle.LABELS import DKTprotocol
+    >>> from mindboggle.guts.segment import split_brain
+    >>> from mindboggle.io.plot import plot_volumes
+    >>> from mindboggle.labels import DKTprotocol
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
     >>> image_file = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
     >>> label_file = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
@@ -1513,7 +1513,7 @@ def split_brain(image_file, label_file, left_labels, right_labels):
     import numpy as np
     import nibabel as nb
 
-    from mindboggle.labels.relabel import keep_volume_labels
+    from mindboggle.guts.relabel import keep_volume_labels
 
     left_brain = os.path.join(os.getcwd(),
                               'left_' + os.path.basename(image_file))

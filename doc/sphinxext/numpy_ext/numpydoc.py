@@ -103,7 +103,7 @@ def setup(app, get_doc_object_=get_doc_object):
 # Docstring-mangling domains
 #------------------------------------------------------------------------------
 
-from docutils.statemachine import ViewList
+from docguts.statemachine import ViewList
 from sphinx.domains.c import CDomain
 from sphinx.domains.python import PythonDomain
 

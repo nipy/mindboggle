@@ -32,10 +32,10 @@ def realign_boundaries_to_fundus_lines(
     """
 
     import numpy as np
-    from mindboggle.utils.segment import extract_borders
-    import mindboggle.utils.graph as go
-    from mindboggle.utils.io_vtk import read_vtk, read_scalars, write_vtk
-    from mindboggle.utils.mesh import find_neighbors
+    from mindboggle.guts.segment import extract_borders
+    import mindboggle.guts.graph as go
+    from mindboggle.io.vtk import read_vtk, read_scalars, write_vtk
+    from mindboggle.guts.mesh import find_neighbors
     import propagate_fundus_lines
 
     ## read files
@@ -186,7 +186,7 @@ def _propagate_labels(affinity_matrix, label_matrix, seed_indices,
     the total weight (or number of edges) attached to a vertex.
     """
 
-    import mindboggle.utils.graph as go
+    import mindboggle.guts.graph as go
     import numpy as np
     from scipy.sparse import csr_matrix
     import time
@@ -316,7 +316,7 @@ def _label_components(component_faces, num_points, boundary_indices,
     """
 
     import numpy as np
-    from mindboggle.utils.mesh import find_neighbors
+    from mindboggle.guts.mesh import find_neighbors
 
     neighbor_lists = find_neighbors(component_faces, num_points)
 

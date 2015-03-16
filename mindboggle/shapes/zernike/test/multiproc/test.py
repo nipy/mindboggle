@@ -1,4 +1,4 @@
-import mindboggle.utils
+import mindboggle.guts
 import numpy
 import os.path
 import scipy.io
@@ -8,7 +8,7 @@ import functools
 from . import MultiprocPipeline as Pipeline
  
 def read_vtk(filename) :
-    faces, lines, indices, points, npoints, depths, name, input_vtk = mindboggle.utils.read_vtk(input_vtk)
+    faces, lines, indices, points, npoints, depths, name, input_vtk = mindboggle.guts.read_vtk(input_vtk)
     return numpy.array(points), numpy.array(faces)
 
 head,tail = os.path.split(__file__)

@@ -5,8 +5,8 @@
 # either html or latex.
 #
 
-from docutils.nodes import Body, Element
-from docutils.writers.html4css1 import HTMLTranslator
+from docguts.nodes import Body, Element
+from docguts.writers.html4css1 import HTMLTranslator
 try:
     from sphinx.latexwriter import LaTeXTranslator
 except ImportError:
@@ -17,7 +17,7 @@ except ImportError:
                   "please use the only:: directive available in Sphinx >= 0.6",
                   DeprecationWarning, stacklevel=2)
 
-from docutils.parsers.rst import directives
+from docguts.parsers.rst import directives
 
 class html_only(Body, Element):
     pass
@@ -32,9 +32,9 @@ def run(content, node_class, state, content_offset):
     return [node]
 
 try:
-    from docutils.parsers.rst import Directive
+    from docguts.parsers.rst import Directive
 except ImportError:
-    from docutils.parsers.rst.directives import _directives
+    from docguts.parsers.rst.directives import _directives
 
     def html_only_directive(name, arguments, options, content, lineno,
                             content_offset, block_text, state, state_machine):

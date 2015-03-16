@@ -105,8 +105,8 @@ def setup(app):
 #------------------------------------------------------------------------------
 # plot:: directive
 #------------------------------------------------------------------------------
-from docutils.parsers.rst import directives
-from docutils import nodes
+from docguts.parsers.rst import directives
+from docguts import nodes
 
 def plot_directive(name, arguments, options, content, lineno,
                    content_offset, block_text, state, state_machine):
@@ -145,7 +145,7 @@ plot_directive_options = {'alt': directives.unchanged,
 # Generating output
 #------------------------------------------------------------------------------
 
-from docutils import nodes, utils
+from docguts import nodes, guts
 
 try:
     # Sphinx depends on either Jinja or Jinja2

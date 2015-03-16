@@ -48,7 +48,6 @@ _$*
 *.cache*
 crash-*
 *.pyc
-x
 .idea
 CMakeCache.txt
 CMakeFiles
