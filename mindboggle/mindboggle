@@ -2140,7 +2140,8 @@ if do_label and not args.no_volumes:
                                                         'label_names',
                                                         'save_table',
                                                         'output_table'],
-                                           output_names=['labels_volumes',
+                                           output_names=['labels',
+                                                         'volumes',
                                                          'output_table']))
         VolShapeFlow.add_nodes([FSlabelVolumes])
         FSlabelVolumes.inputs.include_labels = dkt.label_numbers

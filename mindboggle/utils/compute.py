@@ -866,7 +866,6 @@ def volume_per_label(input_file, include_labels=[], exclude_labels=[],
     else:
         label_list = np.unique(data).tolist()
     label_list = [int(x) for x in label_list if int(x) not in exclude_labels]
-    volumes = -1 * np.ones(len(label_list))
 
     # Output table:
     if save_table:
@@ -883,26 +882,25 @@ def volume_per_label(input_file, include_labels=[], exclude_labels=[],
         output_table = ''
 
     # Loop through labels:
+    labels = []
+    volumes = []
     for ilabel, label in enumerate(label_list):
 
         # Find which voxels contain the label in each volume:
         indices = np.where(data == label)[0]
         if len(indices):
             volume = volume_per_voxel * len(indices)
-        else:
-            volume = 0
-        volumes[ilabel] = volume
+            labels.append(label)
+            volumes.append(volume)
 
-        if save_table:
-            if len(label_names) == len(label_list):
-                fid.write('{0}, {1}, {2:2.3f}\n'.format(
-                          label_names[ilabel], label, volume))
-            else:
-                fid.write('{0}, {1:2.3f}\n'.format(label, volume))
+            if save_table:
+                if len(label_names) == len(label_list):
+                    fid.write('{0}, {1}, {2:2.3f}\n'.format(
+                              label_names[ilabel], label, volume))
+                else:
+                    fid.write('{0}, {1:2.3f}\n'.format(label, volume))
 
-    labels_volumes = [label_list, volumes.tolist()]
-
-    return labels_volumes, output_table
+    return labels, volumes, output_table
 
 
 def compute_image_histogram(infile, nbins=100, threshold=0.0):
