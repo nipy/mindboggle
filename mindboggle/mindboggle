@@ -266,6 +266,8 @@ spectra = args.spectra
 moments = args.moments
 if moments > 0:
     do_moments = True
+else:
+    do_moments = False
 if all_features_shapes:
     save_folds = True
     do_sulci = True
