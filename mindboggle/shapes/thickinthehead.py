@@ -96,7 +96,7 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
 
     Examples
     --------
-    >>> from mindboggle.guts.ants import thickinthehead
+    >>> from mindboggle.thirdparty.ants import thickinthehead
     >>> segmented_file = '/Users/arno/Data/antsCorticalThickness/OASIS-TRT-20-1/antsBrainSegmentation.nii.gz'
     >>> labeled_file = '/appsdir/freesurfer/subjects/OASIS-TRT-20-1/mri/labels.DKT31.manual.nii.gz'
     >>> cortex_value = 2

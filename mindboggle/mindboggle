@@ -44,7 +44,6 @@ from mindboggle.data import hashes_url
 from mindboggle.features.folds import extract_folds
 from mindboggle.features.fundi import extract_fundi, segment_fundi
 from mindboggle.features.sulci import extract_sulci
-from mindboggle.guts.ants import PropagateLabelsThroughMask
 from mindboggle.guts.compute import volume_for_each_label
 from mindboggle.guts.mesh import rescale_by_neighborhood
 from mindboggle.guts.paths import smooth_skeleton
@@ -65,6 +64,7 @@ from mindboggle.shapes.shape_tools import area, curvature, travel_depth, \
     geodesic_depth
 from mindboggle.shapes.thickinthehead import thickinthehead
 from mindboggle.shapes.zernike.zernike import zernike_moments_per_label
+from mindboggle.thirdparty.ants import PropagateLabelsThroughMask
 
 #=============================================================================
 #

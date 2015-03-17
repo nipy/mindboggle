@@ -1243,7 +1243,7 @@ def apply_affine_transforms(transform_files, inverse_booleans,
     import numpy as np
     #from scipy.io import loadmat
 
-    from mindboggle.guts.ants import antsApplyTransformsToPoints
+    from mindboggle.thirdparty.ants import antsApplyTransformsToPoints
     from mindboggle.io.vtk import read_vtk, write_vtk
                                         #read_itk_transform
     transform_format = 'itk'
