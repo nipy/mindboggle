@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This file contains parameters for Mindboggle to fill settings in setup.py,
 the Mindboggle top-level docstring, and for building the docs.
