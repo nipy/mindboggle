@@ -29,16 +29,14 @@ import argparse
 # Nipype libraries
 #-----------------------------------------------------------------------------
 from nipype import config, logging
-from nipype.pipeline.engine import Workflow, Node, JoinNode
+from nipype.interfaces.ants import ApplyTransforms
 from nipype.interfaces.io import DataGrabber, DataSink
 from nipype.interfaces.utility import Function as Fn
 from nipype.interfaces.utility import IdentityInterface
-from nipype.interfaces.ants import ApplyTransforms
+from nipype.pipeline.engine import Workflow, Node, JoinNode
 #-----------------------------------------------------------------------------
 # Mindboggle libraries
 #-----------------------------------------------------------------------------
-from mindboggle.labels import DKTprotocol
-from mindboggle.data import hashes_url
 #from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
 #    measure_volume_overlap
 from mindboggle.features.folds import extract_folds
@@ -51,11 +49,12 @@ from mindboggle.guts.relabel import relabel_surface, relabel_volume, \
     keep_volume_labels, remove_volume_labels, overwrite_volume_labels
 from mindboggle.guts.segment import combine_2labels_in_2volumes
 from mindboggle.guts.utilities import list_strings
-from mindboggle.io.nifti import convert2nii
-from mindboggle.io.table import write_shape_stats, write_vertex_measures
-from mindboggle.io.thirdparty import fetch_ants_data
-from mindboggle.io.uri import retrieve_data
-from mindboggle.io.vtk import read_vtk, apply_affine_transforms, \
+from mindboggle.io.convert_volumes import convert2nii
+from mindboggle.io.fetch_data import hashes_url, fetch_check_data, \
+    fetch_ants_data
+from mindboggle.io.labels import DKTprotocol
+from mindboggle.io.tables import write_shape_stats, write_vertex_measures
+from mindboggle.io.vtks import read_vtk, apply_affine_transforms, \
     freesurfer_surface_to_vtk, freesurfer_curvature_to_vtk, \
     freesurfer_annot_to_vtk
 from mindboggle.shapes.laplace_beltrami import spectrum_per_label
@@ -440,14 +439,14 @@ Sink.inputs.regexp_substitutions = [
 if my_transform:
     affine_template2mni = my_transform
 else:
-    affine_template2mni = retrieve_data(atropos_to_MNI152_affine,
-                                        url, hashes, cache_env, cache)
+    affine_template2mni = fetch_check_data(atropos_to_MNI152_affine,
+                                           url, hashes, cache_env, cache)
 #-----------------------------------------------------------------------------
 # Atlas labels:
 #-----------------------------------------------------------------------------
 if do_label and not my_atlas:
     FetchAtlas = Node(name='Fetch_atlas',
-                      interface=Fn(function=retrieve_data,
+                      interface=Fn(function=fetch_check_data,
                                    input_names=['data_file',
                                                 'url',
                                                 'hashes',
@@ -642,9 +641,9 @@ if not args.no_surfaces:
         #                    SurfLabelFlow, 'mris_ca_label.hemi')
         #     left_classifier_file = 'lh.' + surface_classifier + '.gcs'
         #     right_classifier_file = 'rh.' + surface_classifier + '.gcs'
-        #     left_classifier = retrieve_data(left_classifier_file, url,
+        #     left_classifier = fetch_check_data(left_classifier_file, url,
         #                                     hashes, cache_env, cache)
-        #     right_classifier = retrieve_data(right_classifier_file, url,
+        #     right_classifier = fetch_check_data(right_classifier_file, url,
         #                                      hashes, cache_env, cache)
         #     Classifier.inputs.left_classifier = left_classifier
         #     Classifier.inputs.right_classifier = right_classifier
@@ -1064,7 +1063,7 @@ if not args.no_surfaces:
                 SurfFeatureFlow.add_nodes([LikelihoodNode])
                 border_params_file = \
                     'depth_curv_border_nonborder_parameters.pkl'
-                border_params_path = retrieve_data(border_params_file, url,
+                border_params_path = fetch_check_data(border_params_file, url,
                                                    hashes, cache_env, cache)
                 LikelihoodNode.inputs.trained_file = border_params_path
                 mbFlow.connect([(WholeSurfShapeFlow, SurfFeatureFlow,

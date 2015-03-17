@@ -34,7 +34,7 @@ def realign_boundaries_to_fundus_lines(
     import numpy as np
     from mindboggle.guts.segment import extract_borders
     import mindboggle.guts.graph as go
-    from mindboggle.io.vtk import read_vtk, read_scalars, write_vtk
+    from mindboggle.io.vtks import read_vtk, read_scalars, write_vtk
     from mindboggle.guts.mesh import find_neighbors
     import propagate_fundus_lines
 

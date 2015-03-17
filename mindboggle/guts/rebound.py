@@ -19,7 +19,7 @@ import numpy as np
 from time import time
 from scipy.sparse import csr_matrix, lil_matrix
 
-from mindboggle.io.vtk import write_vtk
+from mindboggle.io.vtks import write_vtk
 import mindboggle.guts.graph as go
 import mindboggle.guts.kernels as kernels
 

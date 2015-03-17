@@ -484,7 +484,7 @@ def means_per_label(values, labels, include_labels=[], exclude_labels=[], areas=
     Examples
     --------
     >>> import os
-    >>> from mindboggle.io.vtk import read_scalars, read_vtk
+    >>> from mindboggle.io.vtks import read_scalars, read_vtk
     >>> from mindboggle.guts.compute import means_per_label
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> values_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
@@ -594,7 +594,7 @@ def sum_per_label(values, labels, include_labels=[], exclude_labels=[]):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.io.vtk import read_scalars, read_vtk
+    >>> from mindboggle.io.vtks import read_scalars, read_vtk
     >>> from mindboggle.guts.compute import sum_per_label
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> values_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.area.vtk')
@@ -689,7 +689,7 @@ def stats_per_label(values, labels, include_labels=[], exclude_labels=[],
     Examples
     --------
     >>> import os
-    >>> from mindboggle.io.vtk import read_scalars
+    >>> from mindboggle.io.vtks import read_scalars
     >>> from mindboggle.guts.compute import stats_per_label
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> values_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
@@ -840,7 +840,7 @@ def volume_for_each_label(input_file, include_labels=[], exclude_labels=[],
     Examples
     --------
     >>> import os
-    >>> from mindboggle.labels import DKTprotocol
+    >>> from mindboggle.io.labels import DKTprotocol
     >>> from mindboggle.guts.compute import volume_for_each_label
     >>> input_file = os.path.join(os.environ['HOME'], 'mindboggled', 'OASIS-TRT-20-1', 'labels', 'ANTs_filled_labels.nii.gz')
     >>> dkt = DKTprotocol()

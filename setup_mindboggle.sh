@@ -79,7 +79,7 @@ git clone https://github.com/binarybottle/mindboggle.git $MB_DL
 mv ${MB_DL} ${INSTALL_PREFIX}
 cd ${INSTALL_PREFIX}/mindboggle
 python setup.py install --prefix=${INSTALL_PREFIX}
-cd ${INSTALL_PREFIX}/mindboggle/mindboggle_tools/bin
+cd ${INSTALL_PREFIX}/mindboggle/surface_cpp_tools/bin
 cmake ../ -DVTK_DIR:STRING=${VTK_DIR}
 make
 #-----------------------------------------------------------------------------
@@ -120,7 +120,7 @@ echo "export PATH=\$ANTSPATH:\$PATH" >> $MB_ENV
 
 # -- Mindboggle --
 echo "# Mindboggle" >> $MB_ENV
-echo "export MINDBOGGLE_TOOLS=${INSTALL_PREFIX}/mindboggle/mindboggle_tools/bin" >> $MB_ENV
+echo "export MINDBOGGLE_TOOLS=${INSTALL_PREFIX}/mindboggle/surface_cpp_tools/bin" >> $MB_ENV
 echo "export PATH=\$MINDBOGGLE_TOOLS:\$PATH" >> $MB_ENV
 #echo "export DYLD_LIBRARY_PATH=\${INSTALL_PREFIX}/miniconda/lib/vtk-5.10:\${DYLD_LIBRARY_PATH}" >> $MB_ENV
 
