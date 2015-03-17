@@ -44,7 +44,7 @@ def antsApplyTransformsToPoints(points, transform_files, inverse_booleans=[0]):
 
     Examples
     --------
-    >>> from mindboggle.guts.ants import antsApplyTransformsToPoints
+    >>> from mindboggle.thirdparty.ants import antsApplyTransformsToPoints
     >>> from mindboggle.io.vtk import read_vtk
     >>> transform_files = ['/Users/arno/Data/antsCorticalThickness/Twins-2-1/antsTemplateToSubject1GenericAffine.mat','/Users/arno/Data/antsCorticalThickness/Twins-2-1/antsTemplateToSubject0Warp.nii.gz','/Users/arno/Data/antsCorticalThickness/Twins-2-1/antsSubjectToTemplate0GenericAffine.mat','/Users/arno/Data/antsCorticalThickness/Twins-2-1/antsSubjectToTemplate1Warp.nii.gz']
     >>> transform_files = [transform_files[0],transform_files[1],'/Users/arno/Data/mindboggle_cache/f36e3d5d99f7c4a9bb70e2494ed7340b/OASIS-30_Atropos_template_to_MNI152_affine.txt']
@@ -140,7 +140,7 @@ def ImageMath(volume1, volume2, operator='m', output_file=''):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.guts.ants import ImageMath
+    >>> from mindboggle.thirdparty.ants import ImageMath
     >>> from mindboggle.io.plot import plot_volumes
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
     >>> volume1 = os.path.join(path, 'arno', 'mri', 't1weighted.nii.gz')
@@ -194,7 +194,7 @@ def ThresholdImage(volume, output_file='', threshlo=1, threshhi=10000):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.guts.ants import ThresholdImage
+    >>> from mindboggle.thirdparty.ants import ThresholdImage
     >>> from mindboggle.io.plot import plot_volumes
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
     >>> volume = os.path.join(path, 'arno', 'mri', 't1weighted.nii.gz')
@@ -260,7 +260,7 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
     Examples
     --------
     >>> import os
-    >>> from mindboggle.guts.ants import PropagateLabelsThroughMask
+    >>> from mindboggle.thirdparty.ants import PropagateLabelsThroughMask
     >>> from mindboggle.io.plot import plot_volumes
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
     >>> labels = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
@@ -352,7 +352,7 @@ def fill_volume_with_surface_labels(hemi, left_mask, right_mask,
     Examples
     --------
     >>> import os
-    >>> from mindboggle.guts.ants import fill_volume_with_surface_labels
+    >>> from mindboggle.thirdparty.ants import fill_volume_with_surface_labels
     >>> from mindboggle.io.plot import plot_volumes
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
     >>> surface_files = [os.path.join(path, 'arno', 'labels',
@@ -374,7 +374,7 @@ def fill_volume_with_surface_labels(hemi, left_mask, right_mask,
 
     from mindboggle.io.vtk import transform_to_volume
     from mindboggle.guts.relabel import overwrite_volume_labels
-    from mindboggle.guts.ants import PropagateLabelsThroughMask
+    from mindboggle.thirdparty.ants import PropagateLabelsThroughMask
 
     if isinstance(surface_files, str):
         surface_files = [surface_files]
@@ -439,7 +439,7 @@ def fill_volume_with_surface_labels(hemi, left_mask, right_mask,
 #     Examples
 #     --------
 #     >>> import os
-#     >>> from mindboggle.guts.ants import ANTS
+#     >>> from mindboggle.thirdparty.ants import ANTS
 #     >>> path = os.environ['MINDBOGGLE_DATA']
 #     >>> source = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
 #     >>> target = os.path.join(path, 'atlases', 'MNI152_T1_1mm_brain.nii.gz')
@@ -579,7 +579,7 @@ def fill_volume_with_surface_labels(hemi, left_mask, right_mask,
 #
 #     Examples
 #     --------
-#     >>> from mindboggle.guts.ants import ComposeMultiTransform
+#     >>> from mindboggle.thirdparty.ants import ComposeMultiTransform
 #     >>> transform_files = ['affine1.mat', 'affine2.mat']
 #     >>> transform_files = ['/data/Brains/Mindboggle101/antsCorticalThickness/OASIS-TRT-20_volumes/OASIS-TRT-20-1/antsTemplateToSubject0GenericAffine.mat','/data/Brains/Mindboggle101/antsCorticalThickness/OASIS-TRT-20_volumes/OASIS-TRT-20-1/antsTemplateToSubject0GenericAffine.mat']
 #     >>> inverse_Booleans = [False, False]
