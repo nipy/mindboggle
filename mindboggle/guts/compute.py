@@ -805,7 +805,7 @@ def stats_per_label(values, labels, include_labels=[], exclude_labels=[],
            lower_quarts, upper_quarts, label_list
 
 
-def volume_per_label(input_file, include_labels=[], exclude_labels=[],
+def volume_for_each_label(input_file, include_labels=[], exclude_labels=[],
                      label_names=[], save_table=False,
                      output_table=''):
     """
@@ -841,7 +841,7 @@ def volume_per_label(input_file, include_labels=[], exclude_labels=[],
     --------
     >>> import os
     >>> from mindboggle.labels import DKTprotocol
-    >>> from mindboggle.guts.compute import volume_per_label
+    >>> from mindboggle.guts.compute import volume_for_each_label
     >>> input_file = os.path.join(os.environ['HOME'], 'mindboggled', 'OASIS-TRT-20-1', 'labels', 'ANTs_filled_labels.nii.gz')
     >>> dkt = DKTprotocol()
     >>> include_labels = dkt.label_numbers
@@ -849,7 +849,7 @@ def volume_per_label(input_file, include_labels=[], exclude_labels=[],
     >>> label_names = dkt.label_names
     >>> save_table = True
     >>> output_table = 'volumes.csv'
-    >>> labels_volumes, output_table = volume_per_label(input_file, include_labels, exclude_labels, label_names, save_table, output_table)
+    >>> labels_volumes, output_table = volume_for_each_label(input_file, include_labels, exclude_labels, label_names, save_table, output_table)
     >>> print(labels_volumes)
 
     """
@@ -860,7 +860,7 @@ def volume_per_label(input_file, include_labels=[], exclude_labels=[],
     # Load labeled image volumes:
     img = nb.load(input_file)
     hdr = img.get_header()
-    volume_per_voxel = np.product(hdr.get_zooms())
+    volume_for_each_voxel = np.product(hdr.get_zooms())
     data = img.get_data().ravel()
 
     # Initialize output:
@@ -875,7 +875,8 @@ def volume_per_label(input_file, include_labels=[], exclude_labels=[],
         if output_table:
             output_table = os.path.join(os.getcwd(), output_table)
         else:
-            output_table = os.path.join(os.getcwd(), 'volume_per_label.csv')
+            output_table = os.path.join(os.getcwd(),
+                                        'volume_for_each_label.csv')
         fid = open(output_table, 'w')
         if len(label_names) == len(label_list):
             fid.write("name, ID, volume\n")
