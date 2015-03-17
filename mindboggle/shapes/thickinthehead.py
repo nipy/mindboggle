@@ -144,7 +144,8 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
         if output_table:
             output_table = os.path.join(os.getcwd(), output_table)
         else:
-            output_table = os.path.join(os.getcwd(), 'thickinthehead_per_label.csv')
+            output_table = os.path.join(os.getcwd(),
+                                        'thickinthehead_for_each_label.csv')
         fid = open(output_table, 'w')
         if names:
             fid.write("name, ID, thickness (thickinthehead)\n")

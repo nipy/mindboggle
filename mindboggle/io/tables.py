@@ -387,7 +387,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     #-------------------------------------------------------------------------
     # Feature lists:
     feature_lists = [labels, sulci, fundi]
-    feature_names = ['Label', 'Sulcus', 'Fundus']
+    feature_names = ['label', 'sulcus', 'fundus']
     spectra_lists = [labels_spectra, sulci_spectra]
     spectra_ID_lists = [labels_spectra_IDs, sulci_spectra_IDs]
     zernike_lists = [labels_zernike, sulci_zernike]
