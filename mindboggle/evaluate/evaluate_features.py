@@ -62,11 +62,11 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='', hemi='',
     import os
     import sys
     import numpy as np
-    from mindboggle.io.vtk import read_vtk, read_scalars, write_vtk
+    from mindboggle.io.vtks import read_vtk, read_scalars, write_vtk
     from mindboggle.guts.mesh import find_neighbors, remove_faces
     from mindboggle.guts.segment import extract_borders
     from mindboggle.guts.compute import source_to_target_distances
-    from mindboggle.labels import DKTprotocol
+    from mindboggle.io.labels import DKTprotocol
 
     dkt = DKTprotocol()
     #-------------------------------------------------------------------------

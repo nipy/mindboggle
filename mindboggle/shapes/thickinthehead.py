@@ -21,7 +21,7 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
       1. Run Freesurfer and antsCorticalThickness.sh on T1-weighted image.
       2. Convert FreeSurfer volume labels (e.g., wmparc.mgz or aparc+aseg.mgz)
          to cortex (2) and noncortex (3) segments using relabel_volume()
-         function [refer to labels.py or FreeSurferColorLUT labels file].
+         function [refer to LABELS.rst or FreeSurferColorLUT labels file].
       3. Convert ANTs Atropos-segmented volume (tmpBrainSegmentation.nii.gz)
          to cortex and noncortex segments, by converting 1-labels to 0 and
          4-labels to 3 with the relabel_volume() function

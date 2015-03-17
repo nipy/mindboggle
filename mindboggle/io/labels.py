@@ -44,7 +44,7 @@ def return_numbers_names_colors():
 
     Examples
     --------
-    >>> from mindboggle.labels import return_numbers_names_colors
+    >>> from mindboggle.io.labels import return_numbers_names_colors
     >>> numbers, names, colors = return_numbers_names_colors()
 
     """
@@ -4017,12 +4017,12 @@ Notes:
 
     Examples
     --------
-    >>> from mindboggle.labels import DKTprotocol
+    >>> from mindboggle.io.labels import DKTprotocol
     >>> dkt = DKTprotocol()
     >>> dkt.left_cerebrum_names
 
     """
-    from mindboggle.labels import return_numbers_names_colors
+    from mindboggle.io.labels import return_numbers_names_colors
 
     #-------------------------------------------------------------------------
     # Return numbers, names, colors extracted from FreeSurferColorLUT.txt:
@@ -4495,7 +4495,7 @@ def print_colormap(colormap):
 
     Examples
     --------
-    >>> from mindboggle.labels import DKTprotocol, print_colormap
+    >>> from mindboggle.io.labels import DKTprotocol, print_colormap
     >>> dkt = DKTprotocol()
     >>> colormap = dkt.colormap_normalized
     >>> print_colormap(colormap)
@@ -4511,16 +4511,6 @@ def print_colormap(colormap):
               'r="{1:1.2f}" g="{2:1.2f}" b="{3:1.2f}"/>'.
               format(row[0], row[2], row[3], row[4]))
     print('</ColorMap>')
-
-#-----------------------------------------------------------------------------
-# Function to check whether something is an integer:
-#-----------------------------------------------------------------------------
-def is_number(s):
-    try:
-        int(s)
-        return True
-    except ValueError:
-        return False
 
 #-----------------------------------------------------------------------------
 # Read FreeSurferColorLUT.txt file:
@@ -4546,13 +4536,20 @@ def extract_numbers_names_colors(FreeSurferColorLUT=''):
 
     Examples
     --------
-    >>> from mindboggle.labels import extract_numbers_names_colors
+    >>> from mindboggle.io.labels import extract_numbers_names_colors
     >>> ennc = extract_numbers_names_colors
     >>> en1,en2,ec = ennc('/Applications/freesurfer/FreeSurferColorLUT.txt')
 
     """
     import os
     import sys
+
+    def is_number(s):
+        try:
+            int(s)
+            return True
+        except ValueError:
+            return False
 
     if not FreeSurferColorLUT:
         if os.environ['FREESURFER_HOME']:

@@ -24,7 +24,7 @@ def propagate_fundus_lines(surf_file, fundus_lines_file, thickness_file):
     scalars indicating whether each vertex is part of the closed
     fundus lines or not
     """
-    from mindboggle.io.vtk import read_vtk, read_scalars
+    from mindboggle.io.vtks import read_vtk, read_scalars
 
     faces, _, _, points, num_points, fundus_lines, _, _ = read_vtk(
         surf_file, return_first=True, return_array=True)
@@ -172,7 +172,7 @@ def _find_shortest_path_to_any(origin, targets, points, neighbor_lists):
     return path
 
 def main(argv):
-    from mindboggle.io.vtk import write_vtk
+    from mindboggle.io.vtks import write_vtk
     closed_fundus_lines, points, faces = propagate_fundus_lines(argv[1],
                                                                 argv[2],
                                                                 argv[3])

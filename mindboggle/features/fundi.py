@@ -57,9 +57,9 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     >>> # Extract fundus from one or more folds:
     >>> single_fold = True
     >>> import os
-    >>> from mindboggle.io.vtk import read_scalars
+    >>> from mindboggle.io.vtks import read_scalars
     >>> from mindboggle.features.fundi import extract_fundi
-    >>> from mindboggle.io.plot import plot_surfaces
+    >>> from mindboggle.io.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'travel_depth_rescaled.vtk')
@@ -85,7 +85,7 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     import numpy as np
     from time import time
 
-    from mindboggle.io.vtk import read_scalars, read_vtk, rewrite_scalars
+    from mindboggle.io.vtks import read_scalars, read_vtk, rewrite_scalars
     from mindboggle.guts.compute import median_abs_dev
     from mindboggle.guts.paths import find_max_values
     from mindboggle.guts.mesh import find_neighbors_from_file, find_complete_faces
@@ -211,9 +211,9 @@ def segment_fundi(fundus_per_fold, sulci=[], vtk_file='', save_file=False):
     >>> # Extract fundus from one or more sulci:
     >>> single_fold = True
     >>> import os
-    >>> from mindboggle.io.vtk import read_scalars
+    >>> from mindboggle.io.vtks import read_scalars
     >>> from mindboggle.features.fundi import extract_fundi, segment_fundi
-    >>> from mindboggle.io.plot import plot_surfaces
+    >>> from mindboggle.io.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
     >>> sulci, name = read_scalars(vtk_file, True, True)
@@ -240,7 +240,7 @@ def segment_fundi(fundus_per_fold, sulci=[], vtk_file='', save_file=False):
     import os
     import numpy as np
 
-    from mindboggle.io.vtk import rewrite_scalars
+    from mindboggle.io.vtks import rewrite_scalars
 
     if isinstance(sulci, list):
         sulci = np.array(sulci)
