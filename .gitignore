@@ -6,7 +6,7 @@ mindboggle.egg-info
 MANIFEST.in
 /doc/users/examples
 /doc/api/generated
-surface_cpp_tools/bin
+mindboggle_tools/bin
 build
 .vagrant/
 /Vagrantfile
