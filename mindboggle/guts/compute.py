@@ -860,7 +860,7 @@ def volume_for_each_label(input_file, include_labels=[], exclude_labels=[],
     # Load labeled image volumes:
     img = nb.load(input_file)
     hdr = img.get_header()
-    volume_for_each_voxel = np.product(hdr.get_zooms())
+    volume_per_voxel = np.product(hdr.get_zooms())
     data = img.get_data().ravel()
 
     # Initialize output:
