@@ -21,7 +21,7 @@ if len(set(('develop', 'bdist_egg', 'bdist_rpm', 'bdist', 'bdist_dumb',
     # setup_egg imports setuptools setup, thus monkeypatching distguts.
     import setup_egg
 
-from distguts.core import setup
+from distutils.core import setup
 
 # Python 2 to 3 build
 #from nisext.py3builder import build_py
