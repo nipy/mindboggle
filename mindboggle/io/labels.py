@@ -3856,7 +3856,7 @@ def return_numbers_names_colors():
 #=============================================================================
 # DKT protocol
 #=============================================================================
-class DKTprotocol:
+class DKTprotocol():
     """Variables related to the Desikan-Killiany-Tourville labeling protocol.
 
 For more information about the Desikan-Killiany-Tourville (DKT) human brain
@@ -4023,9 +4023,6 @@ Notes:
 
     """
     from mindboggle.io.labels import return_numbers_names_colors
-
-    def __init__(self):
-        pass
 
     #-------------------------------------------------------------------------
     # Return numbers, names, colors extracted from FreeSurferColorLUT.txt:
