@@ -48,7 +48,7 @@ def plot_surfaces(vtk_files, use_colormap=False, colormap_file=''):
     >>> vtk_files = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
     >>> #vtk_files = [os.path.join(path, 'cube.vtk'), os.path.join(path, 'test_one_label.vtk')]
     >>> use_colormap = True
-    >>> colormap_file = '/software/mindboggle_tools/colormap.xml'
+    >>> colormap_file = '/software/surface_cpp_tools/colormap.xml'
     >>> plot_surfaces(vtk_files, use_colormap, colormap_file)
 
     """
@@ -123,7 +123,7 @@ def plot_mask_surface(vtk_file, mask_file='', nonmask_value=-1,
     >>> remove_nonmask = True
     >>> program = 'vtkviewer'
     >>> use_colormap = True
-    >>> colormap_file = '' #'/software/mindboggle_tools/colormap.xml'
+    >>> colormap_file = '' #'/software/surface_cpp_tools/colormap.xml'
     >>> plot_mask_surface(vtk_file, mask_file, nonmask_value, masked_output, remove_nonmask, program, use_colormap, colormap_file)
 
     """
