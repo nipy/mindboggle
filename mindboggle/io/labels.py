@@ -3856,7 +3856,7 @@ def return_numbers_names_colors():
 #=============================================================================
 # DKT protocol
 #=============================================================================
-class DKTprotocol():
+class DKTprotocol(object):
     """Variables related to the Desikan-Killiany-Tourville labeling protocol.
 
 For more information about the Desikan-Killiany-Tourville (DKT) human brain
