@@ -2372,18 +2372,18 @@ if __name__ == '__main__':
             mbFlow.run(args.plugin, plugin_args=eval(args.plugin_args))
         else:
             mbFlow.run(args.plugin)
-    else:
-        if args.proc:
-            if nproc > 1:
-                mbFlow.run(plugin='MultiProc',
-                           plugin_args={'n_procs': args.proc})
-                           #updatehash=True)
-            else:
-                mbFlow.run()  #updatehash=True)
+
+    if args.proc:
+        if nproc > 1:
+            mbFlow.run(plugin='MultiProc',
+                       plugin_args={'n_procs': args.proc})
+                       #updatehash=True)
         else:
             mbFlow.run()  #updatehash=True)
-        # # Default is to use all processors:
-        #else:
-        #    mbFlow.run(plugin='MultiProc')
+    else:
+        mbFlow.run()  #updatehash=True)
+    # # Default is to use all processors:
+    #else:
+    #    mbFlow.run(plugin='MultiProc')
 
     print('Mindboggle run finished ({0:0.2f} seconds).'.format(time() - time0))
