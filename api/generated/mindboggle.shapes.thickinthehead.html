@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '1.0.0',
+        VERSION:     '%s.%s.%s%s',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -96,8 +96,8 @@
 <div class="highlight-python"><div class="highlight"><pre>- Cortex, noncortex, &amp; label files are from the same coregistered brain.
 - Calls ANTs functions: ImageMath, Threshold, ResampleImageBySpacing
 - There may be slight discrepancies between volumes computed by
-  thickinthehead() and volumes computed by volume_per_label();
-  in 31 of 600+ ADNI 1.5T images, some volume_per_label() volumes
+  thickinthehead() and volumes computed by volume_for_each_label();
+  in 31 of 600+ ADNI 1.5T images, some volume_for_each_label() volumes
   were slightly larger (in the third decimal place), presumably due to
   label propagation through the cortex in thickinthehead().
   This is more pronounced in ANTs vs. FreeSurfer-labeled volumes.
@@ -107,7 +107,7 @@
 <div class="highlight-python"><div class="highlight"><pre>1. Run Freesurfer and antsCorticalThickness.sh on T1-weighted image.
 2. Convert FreeSurfer volume labels (e.g., wmparc.mgz or aparc+aseg.mgz)
    to cortex (2) and noncortex (3) segments using relabel_volume()
-   function [refer to LABELS.py or FreeSurferColorLUT labels file].
+   function [refer to LABELS.rst or FreeSurferColorLUT labels file].
 3. Convert ANTs Atropos-segmented volume (tmpBrainSegmentation.nii.gz)
    to cortex and noncortex segments, by converting 1-labels to 0 and
    4-labels to 3 with the relabel_volume() function
@@ -212,7 +212,7 @@
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.utils.ants</span> <span class="kn">import</span> <span class="n">thickinthehead</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.thirdparty.ants</span> <span class="kn">import</span> <span class="n">thickinthehead</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">segmented_file</span> <span class="o">=</span> <span class="s">&#39;/Users/arno/Data/antsCorticalThickness/OASIS-TRT-20-1/antsBrainSegmentation.nii.gz&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">labeled_file</span> <span class="o">=</span> <span class="s">&#39;/appsdir/freesurfer/subjects/OASIS-TRT-20-1/mri/labels.DKT31.manual.nii.gz&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cortex_value</span> <span class="o">=</span> <span class="mi">2</span>
