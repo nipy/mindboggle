@@ -1,3 +1,13 @@
+#!/usr/bin/env python
+"""
+Get package information.
+
+Examples::
+
+    python pkg_info.py
+
+Copyright 2015,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+"""
 import os
 import sys
 import subprocess
@@ -82,3 +92,11 @@ def get_pkg_info(pkg_path):
         sys_executable=sys.executable,
         sys_platform=sys.platform,
         np_version=numpy.__version__)
+
+
+if __name__ == "__main__":
+
+    import pprint
+    import mindboggle.pkg_info as pkg_info
+
+    pprint.pprint(pkg_info.get_pkg_info('.'))
