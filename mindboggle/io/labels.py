@@ -4024,6 +4024,9 @@ Notes:
     """
     from mindboggle.io.labels import return_numbers_names_colors
 
+    def __init__(self):
+        pass
+
     #-------------------------------------------------------------------------
     # Return numbers, names, colors extracted from FreeSurferColorLUT.txt:
     #-------------------------------------------------------------------------
