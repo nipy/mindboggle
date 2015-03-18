@@ -10,21 +10,21 @@ must be installed, and you need a good Internet connection.
 Copy this file into a setup directory.  For example::
 
     mkdir /Users/arno/mindboggle_setup
-    cp setup_mindboggle /Users/arno/mindboggle_setup/
+    cp setup_mindboggle_vm /Users/arno/mindboggle_setup/
     cd /Users/arno/mindboggle_setup/
 
 For help using this program, type the following in a terminal window::
 
-    python setup_mindboggle --help
+    python setup_mindboggle_vm --help
 
 As an example installation, configure access to ANTs and FreeSurfer data
 via local mounted directories, and set the number of processors to 6::
 
-    python setup_mindboggle --install
-                            --home /home/vagrant
-                            --freesurfer /Applications/freesurfer/subjects
-                            --ants /data/antsCorticalThickness/subjects
-                            --proc 6
+    python setup_mindboggle_vm --install
+                               --home /home/vagrant
+                               --freesurfer /Applications/freesurfer/subjects
+                               --ants /data/antsCorticalThickness/subjects
+                               --proc 6
     vagrant up install
 
 The above installation is done only once, unless new configuration settings
@@ -37,7 +37,7 @@ are desired.  To run mindboggle::
 ADVANCED: To build the above Mindboggle box from scratch::
 
     # Run this file in your setup directory, and build the box:
-    python setup_mindboggle --build --install
+    python setup_mindboggle_vm --build --install
     vagrant up build
     VBoxManage list vms  # to find <vm name> below
     vagrant package --base <vm name> --output mindboggle.<version#>.box
@@ -74,7 +74,7 @@ directory (--out). You must have Vagrant (http://www.vagrantup.com)
 and VirtualBox (http://www.virtualbox.org) installed, as well as a good
 Internet connection.
 
-Ex: python setup_mindboggle
+Ex: python setup_mindboggle_vm
     --out /Users/arno/mindboggled
     --freesurfer /Applications/freesurfer/subjects
     --ants /data/antsCorticalThickness
