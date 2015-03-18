@@ -2,6 +2,14 @@ CMakeCache.txt
 CMakeFiles
 /build
 /dist
+_sources/
+_static/
+docs/
+objects.inv
+py-modindex.html
+search.html
+searchindex.js
+surface_cpp_tools/
 mindboggle.*.box
 /mindboggle.egg-info
 /MANIFEST
