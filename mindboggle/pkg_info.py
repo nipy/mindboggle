@@ -5,6 +5,7 @@ from ConfigParser import ConfigParser
 
 COMMIT_INFO_FNAME = 'commit_info.txt'
 
+
 def pkg_commit_hash(pkg_path):
     ''' Get short form of commit hash given directory `pkg_path`
 
