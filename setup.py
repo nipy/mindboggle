@@ -71,25 +71,9 @@ def main(**extra_args):
                           'mindboggle.shapes',
                           'mindboggle.shapes.zernike',
                           'mindboggle.thirdparty'],
-          #                'mindboggle.testing',
-          #                'mindboggle.tests',
-          #                'mindboggle.benchmarks',
-          # The package_data spec has no effect for me (on python 2.6) -- even
-          # changing to data_files doesn't get this stuff included in the source
-          # distribution -- not sure if it has something to do with the magic
-          # above, but distguts is surely the worst piece of code in all of
-          # python -- duplicating things into MANIFEST.in but this is admittedly
-          # only a workaround to get things started -- not a solution
-
           #package_data = {'mindboggle':
-          #                [pjoin('labels', 'protocol', '*.txt')
-          #                 #pjoin('extract', 'medial_surfaces', '*'),
-          #                 #pjoin('measure', 'surface_measures', '*.cpp')
-          #                ]},
+          #                [pjoin('labels', '*.txt')]},
           scripts      = [pjoin('mindboggle', 'mindboggle')],
-          #                pjoin('bin', 'nib-ls'),
-          #                ],
-          #cmdclass = cmdclass,
           **extra_args
          )
 

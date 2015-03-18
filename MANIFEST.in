@@ -1,4 +1,0 @@
-include *.rst
-include setup_mindboggle
-include setup_mindboggle.sh
-#recursive-include surface_cpp_tools
