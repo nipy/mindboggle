@@ -12,9 +12,9 @@ $ python evaluate_features.py
 
 Authors:
     - Yrjo Hame, 2012  (yrjo.hame@gmail.com)
-    - Arno Klein, 2012-2014  (arno@mindboggle.info)  http://binarybottle.com
+    - Arno Klein, 2012-2015  (arno@mindboggle.info)  http://binarybottle.com
 
-Copyright 2014,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2015,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -230,8 +230,8 @@ if __name__ == "__main__":
     names = ['OASIS-TRT-20', 'MMRR-21', 'NKI-RS-22', 'NKI-TRT-20',
              'Afterthought', 'Colin27', 'Twins-2', 'MMRR-3T7T-2', 'HLN-12']
     numbers = [20,21,22,20, 1,1,2,2,12]
-    mindboggled = '/homedir/mindboggled'
-    labels_dir = mindboggled # NOTE: Need to relabel according to DKT
+    mindboggled = '/mnt/nfs-share/Mindboggle101/mindboggled/manual'
+    labels_dir = '/mnt/nfs-share/Mindboggle101/mindboggled/manual' 
 
     #-------------------------------------------------------------------------
     # Feature-specific settings:
@@ -243,9 +243,9 @@ if __name__ == "__main__":
         # 2 = forrest lines
         # 3 = gang li
         # 4 = olivier coulon
-        nmethod = 1
+        nmethod = 0
         feature_dir = '/homedir/fundus_evaluation_2014/fundi_vtk'
-        fmethods = ['Mindboggle_fundi',
+        fmethods = ['mindboggle_fundi',
                     'ForrestBao_scalar_fundi',
                     'ForrestBao_line_fundi',
                     'GangLi_fundi',
@@ -263,7 +263,7 @@ if __name__ == "__main__":
     #-------------------------------------------------------------------------
     # Miscellaneous defaults:
     #-------------------------------------------------------------------------
-    surfs = ['left_surface', 'right_surface']
+    surfs = ['left_cortical_surface', 'right_cortical_surface']
     hemis = ['lh', 'rh']
     nsulci = 25
 
@@ -295,8 +295,6 @@ if __name__ == "__main__":
                 sulci_file = os.path.join(mdir, 'features', surf, 'sulci.vtk')
                 labels_file = os.path.join(ldir, 'labels', surf,
                                            'relabeled_labels.DKT31.manual.vtk')
-                #labels_file = os.path.join(mdir, 'labels', surf,
-                #                           'relabeled_classifier.vtk')
                 #-------------------------------------------------------------
                 # Identify features file:
                 #-------------------------------------------------------------
