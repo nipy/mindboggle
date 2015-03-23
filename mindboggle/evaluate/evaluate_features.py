@@ -215,7 +215,9 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='', hemi='',
            border_to_feature_distances_vtk
 
 
-
+#-----------------------------------------------------------------------------
+# Run evaluate_deep_features() on fundi extracted by different methods.
+#-----------------------------------------------------------------------------
 if __name__ == "__main__":
 
     import os
