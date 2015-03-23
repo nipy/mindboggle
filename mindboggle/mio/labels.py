@@ -44,7 +44,7 @@ def return_numbers_names_colors():
 
     Examples
     --------
-    >>> from mindboggle.io.labels import return_numbers_names_colors
+    >>> from mindboggle.mio.labels import return_numbers_names_colors
     >>> numbers, names, colors = return_numbers_names_colors()
 
     """
@@ -4017,12 +4017,12 @@ Notes:
 
     Examples
     --------
-    >>> from mindboggle.io.labels import DKTprotocol
+    >>> from mindboggle.mio.labels import DKTprotocol
     >>> dkt = DKTprotocol()
     >>> dkt.left_cerebrum_names
 
     """
-    from mindboggle.io.labels import return_numbers_names_colors
+    from mindboggle.mio.labels import return_numbers_names_colors
 
     #-------------------------------------------------------------------------
     # Return numbers, names, colors extracted from FreeSurferColorLUT.txt:
@@ -4495,7 +4495,7 @@ def print_colormap(colormap):
 
     Examples
     --------
-    >>> from mindboggle.io.labels import DKTprotocol, print_colormap
+    >>> from mindboggle.mio.labels import DKTprotocol, print_colormap
     >>> dkt = DKTprotocol()
     >>> colormap = dkt.colormap_normalized
     >>> print_colormap(colormap)
@@ -4536,7 +4536,7 @@ def extract_numbers_names_colors(FreeSurferColorLUT=''):
 
     Examples
     --------
-    >>> from mindboggle.io.labels import extract_numbers_names_colors
+    >>> from mindboggle.mio.labels import extract_numbers_names_colors
     >>> ennc = extract_numbers_names_colors
     >>> en1,en2,ec = ennc('/Applications/freesurfer/FreeSurferColorLUT.txt')
 

@@ -74,8 +74,8 @@ def fetch_hash(data_file):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.io.fetch_data import hashes_url
-    >>> from mindboggle.io.fetch_data import fetch_hash
+    >>> from mindboggle.mio.fetch_data import hashes_url
+    >>> from mindboggle.mio.fetch_data import fetch_hash
     >>> cache_env = 'MINDBOGGLE_CACHE'
     >>> hashes, url, cache_env, cache = hashes_url()
     >>> data_file = hashes.keys()[0]
@@ -109,8 +109,8 @@ def fetch_data(url, output_file=''):
 
     Examples
     --------
-    >>> from mindboggle.io.fetch_data import fetch_data
-    >>> from mindboggle.io.fetch_data import hashes_url
+    >>> from mindboggle.mio.fetch_data import fetch_data
+    >>> from mindboggle.mio.fetch_data import hashes_url
     >>> hashes, url = hashes_url()
     >>> data_file = hashes.keys()[0]
     >>> output_file = 'test_output.nii.gz'
@@ -168,8 +168,8 @@ def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
     Examples
     --------
     >>> import os
-    >>> from mindboggle.io.fetch_data import hashes_url
-    >>> from mindboggle.io.fetch_data import fetch_check_data
+    >>> from mindboggle.mio.fetch_data import hashes_url
+    >>> from mindboggle.mio.fetch_data import fetch_check_data
     >>> hashes, url, cache_env, cache = hashes_url()
     >>> data_file = hashes.keys()[0]
     >>> fetch_check_data(data_file, url, hashes, cache_env, cache)
@@ -179,7 +179,7 @@ def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
     import sys
     import shutil
 
-    from mindboggle.io.fetch_data import fetch_data, fetch_hash
+    from mindboggle.mio.fetch_data import fetch_data, fetch_hash
 
     if lookup:
 
@@ -319,7 +319,7 @@ def fetch_ants_data(segmented_file, use_ants_transforms=True):
 
     Examples
     --------
-    >>> from mindboggle.io.fetch_data import fetch_ants_data
+    >>> from mindboggle.mio.fetch_data import fetch_ants_data
     >>> segmented_file = 'ants_subjects/OASIS-TRT-20-1/tmpBrainSegmentation.nii.gz'
     >>> fetch_ants_data(segmented_file)
 
