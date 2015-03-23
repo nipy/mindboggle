@@ -18,7 +18,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 # %gui qt
 # import numpy as np
 # import surfer
-# from mindboggle.io.vtks import read_scalars as rs
+# from mindboggle.mio.vtks import read_scalars as rs
 # d,n=rs('/drop/MB/data/arno/shapes/travel_depth_rescaled.vtk')
 # br = surfer.Brain('Twins-2-1', 'lh', 'inflated')
 # br.add_data(np.array(d), min=0, max=1, alpha=0.5)
@@ -43,7 +43,7 @@ def plot_surfaces(vtk_files, use_colormap=False, colormap_file=''):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.io.plots import plot_surfaces
+    >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_files = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
     >>> #vtk_files = [os.path.join(path, 'cube.vtk'), os.path.join(path, 'test_one_label.vtk')]
@@ -114,7 +114,7 @@ def plot_mask_surface(vtk_file, mask_file='', nonmask_value=-1,
     Examples
     --------
     >>> import os
-    >>> from mindboggle.io.plots import plot_mask_surface
+    >>> from mindboggle.mio.plots import plot_mask_surface
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
     >>> mask_file = os.path.join(path, 'test_one_label.vtk')
@@ -132,8 +132,8 @@ def plot_mask_surface(vtk_file, mask_file='', nonmask_value=-1,
 
     from mindboggle.guts.mesh import remove_faces, reindex_faces_points
     from mindboggle.guts.utilities import execute
-    from mindboggle.io.plots import plot_surfaces
-    from mindboggle.io.vtks import read_scalars, rewrite_scalars, \
+    from mindboggle.mio.plots import plot_surfaces
+    from mindboggle.mio.vtks import read_scalars, rewrite_scalars, \
                                         read_vtk, write_vtk
 
     #-------------------------------------------------------------------------
@@ -208,7 +208,7 @@ def plot_volumes(volume_files, command='fslview'):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.io.plots import plot_volumes
+    >>> from mindboggle.mio.plots import plot_volumes
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> volume_file1 = os.path.join(path, 'Twins-2-1', 'mri', 't1weighted.nii.gz')
     >>> volume_file2 = os.path.join(path, 'Twins-2-1', 'mri', 't1weighted_brain.nii.gz')
@@ -249,14 +249,14 @@ def histogram_of_vtk_scalars(vtk_file, nbins=100):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.io.plots import histogram_of_vtk_scalars
+    >>> from mindboggle.mio.plots import histogram_of_vtk_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> histogram_of_vtk_scalars(vtk_file, nbins=500)
 
     """
     import matplotlib.pyplot as plt
-    from mindboggle.io.vtks import read_scalars
+    from mindboggle.mio.vtks import read_scalars
 
     # Load values:
     values, name = read_scalars(vtk_file)
@@ -292,7 +292,7 @@ def histograms_of_lists(columns, column_name='', ignore_columns=[],
 
     Examples
     --------
-    >>> from mindboggle.io.plots import histograms_of_lists
+    >>> from mindboggle.mio.plots import histograms_of_lists
     >>> columns = [[1,1,2,2,2,2,2,2,3,3,3,4,4,8],[2,2,3,3,3,3,5,6,7]]
     >>> column_name = 'label: thickness: median (weighted)'
     >>> ignore_columns = []
@@ -351,7 +351,7 @@ def boxplots_of_lists(columns, xlabel='', ylabel='', ylimit=None, title=''):
 
     Examples
     --------
-    >>> from mindboggle.io.plots import boxplots_of_lists
+    >>> from mindboggle.mio.plots import boxplots_of_lists
     >>> columns = [[1,1,2,2,2,2,2,2,3,3,3,4,4,8],[2,2,3,3,3,3,5,6,7],
     >>>            [2,2,2.5,2,2,2,3,3,3,3,5,6,7]]
     >>> xlabel = 'xlabel'
@@ -411,7 +411,7 @@ def scatterplot_lists(y_columns, x_column, ignore_columns=[], plot_line=True,
 
     Examples
     --------
-    >>> from mindboggle.io.plots import scatterplot_lists
+    >>> from mindboggle.mio.plots import scatterplot_lists
     >>> y_columns = [[1,1,2,2,2,3,3,4,4,8],[2,2,3,3,3,3,5,6,7,7]]
     >>> x_column = [1,1.5,2.1,1.8,2.2,3,3.1,5,7,6]
     >>> ignore_columns = []
@@ -531,7 +531,7 @@ def scatterplot_list_pairs(columns, ignore_first_column=False, plot_line=True,
 
     Examples
     --------
-    >>> from mindboggle.io.plots import scatterplot_list_pairs
+    >>> from mindboggle.mio.plots import scatterplot_list_pairs
     >>> columns = [['labels'], [1,1,2,2,2,3,3,4,4,8],[2,2,3,3,3,3,5,6,7,7],
     >>>            [1,1.5,2.1,1.8,2.2,3,3.1,5,7,6],
     >>>            [1.2,0.5,2,1.3,1.2,3,1,5.2,4,4.5]]
@@ -634,9 +634,9 @@ if __name__ == '__main__':
 
     import os
     import numpy as np
-    from mindboggle.io.plots import scatterplot_list_pairs
-    from mindboggle.io.plots import boxplots_of_lists
-    from mindboggle.io.plots import histograms_of_lists
+    from mindboggle.mio.plots import scatterplot_list_pairs
+    from mindboggle.mio.plots import boxplots_of_lists
+    from mindboggle.mio.plots import histograms_of_lists
 
     #-------------------------------------------------------------------------
     # Load thickness values from table (alternating columns are scan-rescan):
