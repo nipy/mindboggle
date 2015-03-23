@@ -183,9 +183,9 @@ on distributions of depth and curvature values from multiple files.</p>
 </table>
 <p class="rubric">Examples</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.io.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span><span class="p">,</span> <span class="n">rewrite_scalars</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span><span class="p">,</span> <span class="n">rewrite_scalars</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.likelihood</span> <span class="kn">import</span> <span class="n">compute_likelihood</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.io.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">trained_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;atlases&#39;</span><span class="p">,</span> <span class="s">&#39;depth_curv_border_nonborder_parameters.pkl&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c">#depth_file = os.path.join(path, &#39;arno&#39;, &#39;shapes&#39;, &#39;travel_depth_rescaled.vtk&#39;)</span>
@@ -302,7 +302,7 @@ sulcus label borders within folds.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.likelihood</span> <span class="kn">import</span> <span class="n">estimate_distribution</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.io.tables</span> <span class="kn">import</span> <span class="n">read_columns</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.tables</span> <span class="kn">import</span> <span class="n">read_columns</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">do_test</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># Train on a single surface mesh:</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">do_test</span><span class="p">:</span>
@@ -399,7 +399,7 @@ sulcus label borders within folds.</p>
 <p class="rubric">Examples</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.io.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.likelihood</span> <span class="kn">import</span> <span class="n">fit_normals_to_histogram</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">depth_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;depth_rescaled.vtk&#39;</span><span class="p">)</span>
