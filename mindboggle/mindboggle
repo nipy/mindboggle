@@ -33,7 +33,7 @@ from nipype.interfaces.ants import ApplyTransforms
 from nipype.interfaces.io import DataGrabber, DataSink
 from nipype.interfaces.utility import Function as Fn
 from nipype.interfaces.utility import IdentityInterface
-from nipype.pipeline.engine import Workflow, Node, JoinNode
+from nipype.pipeline.engine import Workflow, Node
 #-----------------------------------------------------------------------------
 # Mindboggle libraries
 #-----------------------------------------------------------------------------
@@ -49,12 +49,12 @@ from mindboggle.guts.relabel import relabel_surface, relabel_volume, \
     keep_volume_labels, remove_volume_labels, overwrite_volume_labels
 from mindboggle.guts.segment import combine_2labels_in_2volumes
 from mindboggle.guts.utilities import list_strings
-from mindboggle.io.convert_volumes import convert2nii
-from mindboggle.io.fetch_data import hashes_url, fetch_check_data, \
+from mindboggle.mio.convert_volumes import convert2nii
+from mindboggle.mio.fetch_data import hashes_url, fetch_check_data, \
     fetch_ants_data
-from mindboggle.io.labels import DKTprotocol
-from mindboggle.io.tables import write_shape_stats, write_vertex_measures
-from mindboggle.io.vtks import read_vtk, apply_affine_transforms, \
+from mindboggle.mio.labels import DKTprotocol
+from mindboggle.mio.tables import write_shape_stats, write_vertex_measures
+from mindboggle.mio.vtks import read_vtk, apply_affine_transforms, \
     freesurfer_surface_to_vtk, freesurfer_curvature_to_vtk, \
     freesurfer_annot_to_vtk
 from mindboggle.shapes.laplace_beltrami import spectrum_per_label

@@ -36,8 +36,8 @@ def relabel_volume(input_file, old_labels, new_labels, output_file=''):
     >>> # Convert DKT31 to DKT25 labels
     >>> import os
     >>> from mindboggle.guts.relabel import relabel_volume
-    >>> from mindboggle.io.labels import DKTprotocol
-    >>> from mindboggle.io.plots import plot_volumes
+    >>> from mindboggle.mio.labels import DKTprotocol
+    >>> from mindboggle.mio.plots import plot_volumes
     >>> # Convert DKT31 to DKT25 protocol:
     >>> #data_path = os.environ['MINDBOGGLE_DATA']
     >>> #input_file = os.path.join(data_path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
@@ -317,7 +317,7 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
     --------
     >>> import os
     >>> from mindboggle.guts.relabel import relabel_surface
-    >>> from mindboggle.io.plots import plot_surfaces
+    >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> hemi = 'lh'
@@ -336,7 +336,7 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
     """
     import os
     import numpy as np
-    from mindboggle.io.vtks import read_vtk, write_vtk
+    from mindboggle.mio.vtks import read_vtk, write_vtk
 
     # Load labeled vtk surfaces:
     faces, lines, indices, points, npoints, scalars, \
@@ -431,7 +431,7 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
     >>> # Overwrite DKT25 with DKT31 labels
     >>> import os
     >>> from mindboggle.guts.relabel import overwrite_volume_labels
-    >>> from mindboggle.io.plots import plot_volumes
+    >>> from mindboggle.mio.plots import plot_volumes
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> source = os.path.join(data_path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
     >>> target = os.path.join(data_path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')

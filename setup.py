@@ -67,7 +67,7 @@ def main(**extra_args):
                           'mindboggle.evaluate',
                           'mindboggle.features',
                           'mindboggle.guts',
-                          'mindboggle.io',
+                          'mindboggle.mio',
                           'mindboggle.shapes',
                           'mindboggle.shapes.zernike',
                           'mindboggle.thirdparty'],

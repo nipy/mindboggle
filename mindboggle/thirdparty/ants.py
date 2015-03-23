@@ -45,7 +45,7 @@ def antsApplyTransformsToPoints(points, transform_files, inverse_booleans=[0]):
     Examples
     --------
     >>> from mindboggle.thirdparty.ants import antsApplyTransformsToPoints
-    >>> from mindboggle.io.vtks import read_vtk
+    >>> from mindboggle.mio.vtks import read_vtk
     >>> transform_files = ['/Users/arno/Data/antsCorticalThickness/Twins-2-1/antsTemplateToSubject1GenericAffine.mat','/Users/arno/Data/antsCorticalThickness/Twins-2-1/antsTemplateToSubject0Warp.nii.gz','/Users/arno/Data/antsCorticalThickness/Twins-2-1/antsSubjectToTemplate0GenericAffine.mat','/Users/arno/Data/antsCorticalThickness/Twins-2-1/antsSubjectToTemplate1Warp.nii.gz']
     >>> transform_files = [transform_files[0],transform_files[1],'/Users/arno/Data/mindboggle_cache/f36e3d5d99f7c4a9bb70e2494ed7340b/OASIS-30_Atropos_template_to_MNI152_affine.txt']
     >>> vtk_file = '/Users/arno/mindboggle_working/Twins-2-1/Mindboggle/_hemi_lh/Surface_to_vtk/lh.pial.vtk'
@@ -141,7 +141,7 @@ def ImageMath(volume1, volume2, operator='m', output_file=''):
     --------
     >>> import os
     >>> from mindboggle.thirdparty.ants import ImageMath
-    >>> from mindboggle.io.plots import plot_volumes
+    >>> from mindboggle.mio.plots import plot_volumes
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
     >>> volume1 = os.path.join(path, 'arno', 'mri', 't1weighted.nii.gz')
     >>> volume2 = os.path.join(path, 'arno', 'mri', 'mask.nii.gz')
@@ -195,7 +195,7 @@ def ThresholdImage(volume, output_file='', threshlo=1, threshhi=10000):
     --------
     >>> import os
     >>> from mindboggle.thirdparty.ants import ThresholdImage
-    >>> from mindboggle.io.plots import plot_volumes
+    >>> from mindboggle.mio.plots import plot_volumes
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
     >>> volume = os.path.join(path, 'arno', 'mri', 't1weighted.nii.gz')
     >>> output_file = ''
@@ -261,7 +261,7 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
     --------
     >>> import os
     >>> from mindboggle.thirdparty.ants import PropagateLabelsThroughMask
-    >>> from mindboggle.io.plots import plot_volumes
+    >>> from mindboggle.mio.plots import plot_volumes
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
     >>> labels = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
     >>> mask = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
@@ -353,7 +353,7 @@ def fill_volume_with_surface_labels(hemi, left_mask, right_mask,
     --------
     >>> import os
     >>> from mindboggle.thirdparty.ants import fill_volume_with_surface_labels
-    >>> from mindboggle.io.plots import plot_volumes
+    >>> from mindboggle.mio.plots import plot_volumes
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
     >>> surface_files = [os.path.join(path, 'arno', 'labels',
     >>>     'lh.labels.DKT25.manual.vtk'), os.path.join(path, 'arno', 'labels',
@@ -372,7 +372,7 @@ def fill_volume_with_surface_labels(hemi, left_mask, right_mask,
     """
     import os
 
-    from mindboggle.io.vtks import transform_to_volume
+    from mindboggle.mio.vtks import transform_to_volume
     from mindboggle.guts.relabel import overwrite_volume_labels
     from mindboggle.thirdparty.ants import PropagateLabelsThroughMask
 
