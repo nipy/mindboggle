@@ -77,9 +77,9 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
     Examples
     --------
     >>> import os
-    >>> from mindboggle.io.vtks import read_scalars, rewrite_scalars
+    >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars
     >>> from mindboggle.shapes.likelihood import compute_likelihood
-    >>> from mindboggle.io.plots import plot_surfaces
+    >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> trained_file = os.path.join(path, 'atlases', 'depth_curv_border_nonborder_parameters.pkl')
     >>> #depth_file = os.path.join(path, 'arno', 'shapes', 'travel_depth_rescaled.vtk')
@@ -99,7 +99,7 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
     from math import pi
     import cPickle as pickle
 
-    from mindboggle.io.vtks import read_scalars, rewrite_scalars
+    from mindboggle.mio.vtks import read_scalars, rewrite_scalars
 
 
     # Initialize variables:
@@ -204,7 +204,7 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.shapes.likelihood import estimate_distribution
-    >>> from mindboggle.io.tables import read_columns
+    >>> from mindboggle.mio.tables import read_columns
     >>> do_test = False
     >>> # Train on a single surface mesh:
     >>> if do_test:
@@ -334,10 +334,10 @@ def concatenate_sulcus_scalars(scalar_files, fold_files, label_files):
     """
     import numpy as np
 
-    from mindboggle.io.vtks import read_scalars
+    from mindboggle.mio.vtks import read_scalars
     from mindboggle.guts.mesh import find_neighbors_from_file
     from mindboggle.guts.segment import extract_borders
-    from mindboggle.io.labels import DKTprotocol
+    from mindboggle.mio.labels import DKTprotocol
 
     dkt = DKTprotocol()
 
@@ -408,7 +408,7 @@ def fit_normals_to_histogram(data, x):
     --------
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.io.vtks import read_scalars
+    >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.shapes.likelihood import fit_normals_to_histogram
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
