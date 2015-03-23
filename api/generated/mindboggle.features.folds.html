@@ -191,9 +191,9 @@ holes are not filled if they contains values within this range.</dd>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pylab</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">scipy.ndimage.filters</span> <span class="kn">import</span> <span class="n">gaussian_filter1d</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.io.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">find_neighbors_from_file</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.io.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.features.folds</span> <span class="kn">import</span> <span class="n">extract_folds</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">depth_file</span> <span class="o">=</span> <span class="s">&#39;travel_depth.vtk&#39;</span> <span class="c">#os.path.join(path, &#39;arno&#39;, &#39;shapes&#39;, &#39;lh.pial.travel_depth.vtk&#39;)</span>
@@ -303,10 +303,10 @@ tolerance for detecting differences in depth between vertices</p>
 </table>
 <p class="rubric">Examples</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.io.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span><span class="p">,</span> <span class="n">rewrite_scalars</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span><span class="p">,</span> <span class="n">rewrite_scalars</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">find_neighbors_from_file</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.features.folds</span> <span class="kn">import</span> <span class="n">extract_subfolds</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.io.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">depth_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.travel_depth.vtk&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">folds_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;features&#39;</span><span class="p">,</span> <span class="s">&#39;folds.vtk&#39;</span><span class="p">)</span>

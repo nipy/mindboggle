@@ -201,7 +201,7 @@ The source and target images must have the same volume dimensions.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Overwrite DKT25 with DKT31 labels</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.relabel</span> <span class="kn">import</span> <span class="n">overwrite_volume_labels</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.io.plots</span> <span class="kn">import</span> <span class="n">plot_volumes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_volumes</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">source</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;labels.DKT31.manual.nii.gz&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">target</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;labels.DKT25.manual.nii.gz&#39;</span><span class="p">)</span>
@@ -272,7 +272,7 @@ may be used in conjunction with hemi</p>
 <p class="rubric">Examples</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.relabel</span> <span class="kn">import</span> <span class="n">relabel_surface</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.io.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;lh.labels.DKT25.manual.vtk&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">hemi</span> <span class="o">=</span> <span class="s">&#39;lh&#39;</span>
@@ -329,8 +329,8 @@ may be used in conjunction with hemi</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Convert DKT31 to DKT25 labels</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.relabel</span> <span class="kn">import</span> <span class="n">relabel_volume</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.io.labels</span> <span class="kn">import</span> <span class="n">DKTprotocol</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.io.plots</span> <span class="kn">import</span> <span class="n">plot_volumes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.labels</span> <span class="kn">import</span> <span class="n">DKTprotocol</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_volumes</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># Convert DKT31 to DKT25 protocol:</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c">#data_path = os.environ[&#39;MINDBOGGLE_DATA&#39;]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c">#input_file = os.path.join(data_path, &#39;arno&#39;, &#39;labels&#39;, &#39;labels.DKT31.manual.nii.gz&#39;)</span>
