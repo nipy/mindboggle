@@ -17,9 +17,9 @@ along with other aggregate lists and colormaps.
 
 Authors:
     - Jason Tourville, 2011-2012  (jtour@bu.edu)
-    - Arno Klein, 2011-2013  (arno@mindboggle.info)  http://binarybottle.com
+    - Arno Klein, 2011-2015  (arno@mindboggle.info)  http://binarybottle.com
 
-Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2015,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 ------------
 
@@ -27,7 +27,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 Combined/eliminated regions
 ------------------------------------------------------------------------------
 
-(1) Temporal (33) and frontal (32) poles, and bankstss (see note #1)
+(1) Temporal (33) and frontal (32) poles, and bankstss (see Note #1)
     regions eliminated, corresponding cortex absorbed by adjacent regions.
 (2) Caudal (2), isthmus (10), posterior (23), and rostral anterior (26)
     cingulate combined to form single cingulate region (2).
@@ -76,7 +76,7 @@ Lateral surface:
 - intraparietal: [29,31], [8,29]
 - primary intermediate sulcus /
     1st segment of the posterior superior temporal sulcus: [8,31]*
-- sylvian fissure: [30,31]*, not:[18,30] (see note #2)
+- sylvian fissure: [30,31]*, not:[18,30] (see Note #2)
 - lateral occipital sulcus: [8,11]*,[11,29]*
 - anterior occipital sulcus: [11,15]*,[9,11]
 - superior temporal sulcus: [15,30]
@@ -91,12 +91,12 @@ PeriSylvian area (folds within the Sylvian fissure):
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Medial surface:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- cingulate sulcus: [2,14],[10,14],[14,23],[14,26] (see note #3),
+- cingulate sulcus: [2,14],[10,14],[14,23],[14,26] (see Note #3),
                   [2,28],[10,28],[23,28],[26,28],
                   [2,17],[10,17],[17,23],[17,26], [17,25]
 - paracentral sulcus: [17,28]*
 - parietooccipital fissure: [5,25]
-- calcarine fissure: [13,25], [2,13],[10,13],[13,23],[13,26] not:[5,13] (note #4)
+- calcarine fissure: [13,25], [2,13],[10,13],[13,23],[13,26] not:[5,13] (see Note #4)
 - superior rostral sulcus: [14,28]
 - callosal sulcus: [2,4],[4,10],[4,23],[4,26]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -130,7 +130,7 @@ Regions with additional non-sulcal boundaries with subcortical regions:
 
 Notes
 ------------------------------------------------------------------------------
-[1] This was eliminated b/c it spanned the superior temporal sulcus fundus
+[1] This was eliminated because it spanned the superior temporal sulcus fundus
     and because the anterior boundary was ambiguous.
 [2] The insula lies b/w these regions and is separated from them by the
     circular sulcus which is marked by an easily distinguished fold deep
@@ -211,7 +211,7 @@ DKT cortical labeling protocol (31 labels)
 - 2030,    "right superior temporal"
 - 2031,    "right supramarginal"
 - 2034,    "right transverse temporal"
-- 2035,    "right insula"]]
+- 2035,    "right insula"
 
 ------------------------------------------------------------------------------
  Noncortex label numbers and names
@@ -230,7 +230,7 @@ and were reassigned to unused numbers in FreeSurferColorLUT.txt:
     - 631, "cerebellar vermal lobules VI-VII"
     - 632, "cerebellar vermal lobules VIII-X"
     - 91, "left basal forebrain"
-    - 92, "right basal forebrain"]
+    - 92, "right basal forebrain"
 
 - 16, "Brain stem"
 - 24, "CSF"
@@ -270,10 +270,10 @@ and were reassigned to unused numbers in FreeSurferColorLUT.txt:
 - 92, "right basal forebrain"
 - 630, "cerebellar vermal lobules I-V"
 - 631, "cerebellar vermal lobules VI-VII"
-- 632, "cerebellar vermal lobules VIII-X"]]
+- 632, "cerebellar vermal lobules VIII-X"
 
 ------------------------------------------------------------------------------
- Sulcus names and abbreviations from the DKT labeling protocol
+ Sulcus names from the DKT labeling protocol
 ------------------------------------------------------------------------------
 -    "frontomarginal sulcus"
 -    "superior frontal sulcus"
@@ -301,6 +301,9 @@ and were reassigned to unused numbers in FreeSurferColorLUT.txt:
 -    "occipitotemporal sulcus"
 -    "collateral sulcus"
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ Sulcus abbreviations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 -    "fms"
 -    "sfrs"
 -    "ifrs"
