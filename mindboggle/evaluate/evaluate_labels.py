@@ -34,7 +34,7 @@ def measure_surface_overlap(command, labels_file1, labels_file2):
 
     Examples
     --------
-    >>> import os
+                import os
     >>> from mindboggle.evaluate.evaluate_labels import measure_surface_overlap
     >>> from mindboggle.mindboggle import hashes_url
     >>> from mindboggle.mio.fetch_data import fetch_check_data
@@ -89,7 +89,6 @@ def measure_volume_overlap(labels, file1, file2):
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
     >>> file1 = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
     >>> file2 = os.path.join(path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
-    >>> protocol = 'DKT31'
     >>> dkt = DKTprotocol()
     >>> measure_volume_overlap(dkt.label_numbers, file1, file2)
 
@@ -149,3 +148,59 @@ def measure_volume_overlap(labels, file1, file2):
 
     return overlaps, out_file
 
+
+#-----------------------------------------------------------------------------
+# Run evaluate_labels() on Mindboggle-101 data
+# to compare manual and automated labels.
+#-----------------------------------------------------------------------------
+if __name__ == "__main__":
+
+    import os
+    import numpy as np
+
+    from mindboggle.mio.labels import DKTprotocol
+    from mindboggle.evaluate.evaluate_labels import measure_volume_overlap
+    from mindboggle.evaluate.evaluate_labels import measure_surface_overlap
+
+    #-------------------------------------------------------------------------
+    # Settings:
+    #-------------------------------------------------------------------------
+    ants_str = '_no_ants'
+
+    names = ['OASIS-TRT-20', 'MMRR-21', 'NKI-RS-22', 'NKI-TRT-20',
+             'Afterthought', 'Colin27', 'Twins-2', 'MMRR-3T7T-2', 'HLN-12']
+    numbers = [20,21,22,20, 1,1,2,2,12]
+    mindboggled = '/mnt/nfs-share/Mindboggle101/mindboggled/auto' + ants_str
+    labels_dir = '/mnt/nfs-share/Mindboggle101/mindboggled/manual' + ants_str
+
+    #-------------------------------------------------------------------------
+    # Evaluate surface labels:
+    #-------------------------------------------------------------------------
+    ccode_path = os.environ['MINDBOGGLE_TOOLS']
+    command = os.path.join(ccode_path, 'surface_overlap',
+                           'SurfaceOverlapMain')
+    surfs = ['left_cortical_surface', 'right_cortical_surface']
+    for iname, name in enumerate(names):
+        number = numbers[iname]
+        for n in range(1, number+1):
+            subject = name+'-'+str(n)
+            for isurf, surf in enumerate(surfs):
+                mdir = os.path.join(mindboggled, subject, 'labels', surf)
+                ldir = os.path.join(labels_dir, subject, 'labels', surf)
+                file1 = os.path.join(mdir, 'freesurfer_cortex_labels.vtk')
+                file2 = os.path.join(ldir, 'relabeled_labels.DKT31.manual.vtk')
+                measure_surface_overlap(command, file1, file2)
+
+    #-------------------------------------------------------------------------
+    # Evaluate volume labels:
+    #-------------------------------------------------------------------------
+    dkt = DKTprotocol()
+    for iname, name in enumerate(names):
+        number = numbers[iname]
+        for n in range(1, number+1):
+            subject = name+'-'+str(n)
+            file1 = os.path.join(mindboggled, subject, 'labels',
+                                 'freesurfer_wmparc_filled_labels.nii.gz')
+            file2 = os.path.join(labels_dir, subject,
+                                 'freesurfer_wmparc_filled_labels.nii.gz')
+            measure_volume_overlap(dkt.label_numbers, file1, file2)

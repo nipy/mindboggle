@@ -216,7 +216,8 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='', hemi='',
 
 
 #-----------------------------------------------------------------------------
-# Run evaluate_deep_features() on fundi extracted by different methods.
+# Run evaluate_deep_features() on fundi extracted from Mindboggle-101 data
+# by Mindboggle, and Forrest Bao's, Gang Li's, and Olivier Coulon's methods.
 #-----------------------------------------------------------------------------
 if __name__ == "__main__":
 
