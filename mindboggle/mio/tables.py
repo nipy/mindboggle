@@ -382,6 +382,9 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
         import sys
         sys.exit('No feature data to tabulate in write_shape_stats().')
 
+    spectrum_start = 1  # Store all columns of spectral components (0),
+                        # or start from higher frequency components (>=1)
+
     #-------------------------------------------------------------------------
     # Feature lists, shape names, and shape files:
     #-------------------------------------------------------------------------
@@ -557,7 +560,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                             spectrum_matrix[ilabel, 0:len_spectrum] = spectrum
 
                     # Append spectral shape name and values to columns:
-                    for ispec in range(0, len_spectrum):
+                    for ispec in range(spectrum_start, len_spectrum):
                         columns.append(spectrum_matrix[:, ispec].tolist())
                         column_names.append('Laplace-Beltrami spectrum:'
                                             ' component {0}'.format(ispec+1))
