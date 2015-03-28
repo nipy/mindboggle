@@ -63,8 +63,8 @@ conda install --yes cmake pip
 #-----------------------------------------------------------------------------
 # Python packages:
 #-----------------------------------------------------------------------------
-conda install --yes numpy scipy matplotlib nose networkx traits vtk ipython
-#conda install --yes scikit-learn ipython-notebook mayavi pandas
+conda install --yes numpy scipy matplotlib pandas nose networkx traits vtk ipython
+#conda install --yes scikit-learn ipython-notebook mayavi
 # Nipype: software pipeline framework; Nibabel: medical image read/write lib
 pip install nibabel nipype
 VTK_DIR=${INSTALL_PREFIX}/lib/vtk-5.10

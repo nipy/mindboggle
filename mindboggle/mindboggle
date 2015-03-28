@@ -37,8 +37,6 @@ from nipype.pipeline.engine import Workflow, Node
 #-----------------------------------------------------------------------------
 # Mindboggle libraries
 #-----------------------------------------------------------------------------
-#from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
-#    measure_volume_overlap
 from mindboggle.features.folds import extract_folds
 from mindboggle.features.fundi import extract_fundi, segment_fundi
 from mindboggle.features.sulci import extract_sulci
@@ -741,26 +739,6 @@ if not args.no_surfaces:
             plug1 = ManualSurfLabels
             plug2 = 'input_vtk'
 
-        ##=====================================================================
-        ## Surface label evaluation against manual labels
-        ##=====================================================================
-        #if do_evaluate_surf_labels:
-        #
-        #    EvalSurfLabels = Node(name='Evaluate_surface_labels',
-        #                          interface=Fn(function=measure_surface_overlap,
-        #                                       input_names=['command',
-        #                                                    'labels_file1',
-        #                                                    'labels_file2'],
-        #                                       output_names=['overlap_file']))
-        #    mbFlow.add_nodes([EvalSurfLabels])
-        #    surface_overlap_command = os.path.join(ccode_path,
-        #        'surface_overlap', 'SurfaceOverlapMain')
-        #    EvalSurfLabels.inputs.command = surface_overlap_command
-        #    mbFlow.connect(SurfaceAtlas, 'atlas_file',
-        #                   EvalSurfLabels, 'labels_file1')
-        #    mbFlow.connect(SurfLabelFlow, plug,
-        #                   'EvalSurfLabels.labels_file2')
-
         #=====================================================================
         # Convert surface label numbers to volume DKT31 label numbers
         #=====================================================================
@@ -1248,8 +1226,7 @@ if not args.no_surfaces:
                                              'labels_zernike_IDs',
                                              'sulci_zernike',
                                              'sulci_zernike_IDs',
-                                             'exclude_labels',
-                                             'delimiter'],
+                                             'exclude_labels'],
                                 output_names=['label_table',
                                               'sulcus_table',
                                               'fundus_table']))
@@ -1339,7 +1316,6 @@ if not args.no_surfaces:
                 ShapeTables.inputs.sulci_zernike_IDs = []
 
         ShapeTables.inputs.exclude_labels = [-1]
-        ShapeTables.inputs.delimiter = ","
         mbFlow.connect(ShapeTables, 'label_table', Sink, 'tables.@labels')
         if do_sulci:
             mbFlow.connect(ShapeTables, 'sulcus_table', Sink, 'tables.@sulci')
@@ -1364,8 +1340,7 @@ if not args.no_surfaces:
                                                  'geodesic_depth_file',
                                                  'freesurfer_thickness_file',
                                                  'freesurfer_curvature_file',
-                                                 'freesurfer_sulc_file',
-                                                 'delimiter'],
+                                                 'freesurfer_sulc_file'],
                                     output_names=['output_table']))
             mbFlow.add_nodes([VertexTable])
             VertexTable.inputs.output_table = ''
@@ -1414,8 +1389,6 @@ if not args.no_surfaces:
                 mbFlow.connect(WholeSurfShapeFlow,
                                'Sulc_to_vtk.output_vtk',
                                VertexTable, 'freesurfer_sulc_file')
-
-            VertexTable.inputs.delimiter = ","
             mbFlow.connect(VertexTable, 'output_table',
                            Sink, 'tables.@vertices')
 
@@ -2081,46 +2054,6 @@ if do_label and not args.no_volumes:
         if save_all:
             mbFlow.connect(VolLabelFlow, 'Transform_added_atlases.output_image',
                            Sink, 'labels.@added_atlases')
-
-    ##=========================================================================
-    ##
-    ## Evaluate label volume overlaps
-    ##
-    ##=========================================================================
-    #if do_evaluate_vol_labels:
-    #
-    #    #---------------------------------------------------------------------
-    #    # Evaluation inputs: location and structure of atlas volumes
-    #    #---------------------------------------------------------------------
-    #    VolAtlas = Node(name='Volume_atlas',
-    #                    interface=DataGrabber(infields=['subject'],
-    #                                          outfields=['atlas_vol_file'],
-    #                                          sort_filelist=False))
-    #    VolLabelFlow.add_nodes([VolAtlas])
-    #    VolAtlas.inputs.base_directory = subjects_dir
-    #    VolAtlas.inputs.template = '%s/mri/labels.DKT31.manual.nii.gz'
-    #    VolAtlas.inputs.template_args['atlas_vol_file'] = [['subject']]
-    #    VolAtlas.inputs.subject = subject
-    #    #---------------------------------------------------------------------
-    #    # Evaluate volume labels
-    #    #---------------------------------------------------------------------
-    #    EvalVolLabels = Node(name='Evaluate_volume_labels',
-    #                         interface=Fn(function=measure_volume_overlap,
-    #                                      input_names=['labels',
-    #                                                   'file2',
-    #                                                   'file1'],
-    #                                      output_names=['overlaps',
-    #                                                    'out_file']))
-    #    VolLabelFlow.add_nodes([EvalVolLabels])
-    #    EvalVolLabels.inputs.labels = dkt.label_numbers
-    #    VolLabelFlow.connect(VolAtlas, 'atlas_vol_file',
-    #                         EvalVolLabels, 'file2')
-    #    if use_ants:
-    #        VolLabelFlow.connect(ANTSwFSg, 'output_file',
-    #                             EvalVolLabels, 'file1')
-    #    else:
-    #        VolLabelFlow.connect(CombineFSLabels, 'output_file',
-    #                             EvalVolLabels, 'file1')
 
     #=========================================================================
     #
