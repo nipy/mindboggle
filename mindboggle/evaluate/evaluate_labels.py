@@ -11,9 +11,9 @@ For surface overlap, this program simply calls Joachim Giard's code.
 
 
 Authors:
-    - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
+    - Arno Klein, 2012-2015 (arno@mindboggle.info)  http://binarybottle.com
 
-Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2015,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -111,7 +111,7 @@ def evaluate_surface_overlaps(labels, index, table1, table2,
     >>> from mindboggle.mio.labels import DKTprotocol
     >>> dkt = DKTprotocol()
     >>> labels = dkt.cerebrum_cortex_DKT31_numbers
-    >>> index = 0
+    >>> index = 1
     >>> path = '/homedir/mindboggled'
     >>> table1 = os.path.join(path, 'Twins-2-1', 'tables', 'left_cortical_surface', 'vertices.csv')
     >>> table2 = os.path.join(path, 'Twins-2-1', 'tables', 'left_cortical_surface', 'vertices.csv')
@@ -129,67 +129,66 @@ def evaluate_surface_overlaps(labels, index, table1, table2,
     df2 = pd.read_csv(table2)
     list1 = df1.iloc[:, index]
     list2 = df2.iloc[:, index]
-
+    print(list1)
     dice_overlaps, jacc_overlaps, output_file = compute_overlaps(labels,
         list1, list2, output_file=output_file, save_output=save_output)
 
     return dice_overlaps, jacc_overlaps, output_file
 
 
-# def evaluate_surface_overlaps_cpp(command, labels_file1, labels_file2,
-#                                   output_file):
-#     """
-#     Measure surface overlap using Joachim Giard's code.
-#
-#     Note: Currently failing on VTK versions of manually labeled files,
-#     so evaluate_surface_overlaps() is included.
-#
-#     Parameters
-#     ----------
-#     command : string
-#         surface overlap C++ executable command
-#     labels_file1 : string
-#         ``vtk file`` with index labels for scalar values
-#     labels_file2 : string
-#         ``vtk file`` with index labels for scalar values
-#     output_file : string
-#         (optional) output file name
-#
-#     Returns
-#     -------
-#     output_file : string
-#         name of output text file with overlap results
-#
-#     Examples
-#     --------
-#     >>> import os
-#     >>> from mindboggle.evaluate.evaluate_labels import evaluate_surface_overlaps_cpp
-#     >>> from mindboggle.mindboggle import hashes_url
-#     >>> from mindboggle.mio.fetch_data import fetch_check_data
-#     >>> hashes, url, cache_env, cache = hashes_url()
-#     >>> ccode_path = os.environ['MINDBOGGLE_TOOLS']
-#     >>> command = os.path.join(ccode_path, 'surface_overlap', 'SurfaceOverlapMain')
-#     >>> label_file1 = 'lh.labels.DKT25.manual.vtk'
-#     >>> label_file2 = 'lh.labels.DKT31.manual.vtk'
-#     >>> file1 = fetch_check_data(label_file1, url, hashes, cache_env, cache)
-#     >>> file2 = fetch_check_data(label_file2, url, hashes, cache_env, cache)
-#     >>> output_file = ''
-#     >>> evaluate_surface_overlaps_cpp(command, file1, file2, output_file)
-#
-#     """
-#     import os
-#     from nipype.interfaces.base import CommandLine
-#
-#     if not output_file:
-#         output_file = os.path.basename(labels_file1) + '_and_' + \
-#                            os.path.basename(labels_file2) + '.txt'
-#     output_file = os.path.join(os.getcwd(), output_file)
-#     cli = CommandLine(command = command)
-#     cli.inputs.args = ' '.join([labels_file1, labels_file2, output_file])
-#     cli.cmdline
-#     cli.run()
-#
-#     return output_file
+def evaluate_surface_overlaps_cpp(command, labels_file1, labels_file2,
+                                  output_file):
+    """
+    Measure surface overlap using Joachim Giard's code.
+
+    Note: Fails if two files have different number of vertices.
+
+    Parameters
+    ----------
+    command : string
+        surface overlap C++ executable command
+    labels_file1 : string
+        ``vtk file`` with index labels for scalar values
+    labels_file2 : string
+        ``vtk file`` with index labels for scalar values
+    output_file : string
+        (optional) output file name
+
+    Returns
+    -------
+    output_file : string
+        name of output text file with overlap results
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.evaluate.evaluate_labels import evaluate_surface_overlaps_cpp
+    >>> from mindboggle.mindboggle import hashes_url
+    >>> from mindboggle.mio.fetch_data import fetch_check_data
+    >>> hashes, url, cache_env, cache = hashes_url()
+    >>> ccode_path = os.environ['MINDBOGGLE_TOOLS']
+    >>> command = os.path.join(ccode_path, 'surface_overlap', 'SurfaceOverlapMain')
+    >>> label_file1 = 'lh.labels.DKT25.manual.vtk'
+    >>> label_file2 = 'lh.labels.DKT31.manual.vtk'
+    >>> file1 = fetch_check_data(label_file1, url, hashes, cache_env, cache)
+    >>> file2 = fetch_check_data(label_file2, url, hashes, cache_env, cache)
+    >>> output_file = ''
+    >>> evaluate_surface_overlaps_cpp(command, file1, file2, output_file)
+
+    """
+    import os
+    from nipype.interfaces.base import CommandLine
+
+    if not output_file:
+        output_file = os.path.basename(labels_file1) + '_and_' + \
+                           os.path.basename(labels_file2) + '.txt'
+    output_file = os.path.join(os.getcwd(), output_file)
+    cli = CommandLine(command = command)
+    cli.inputs.args = ' '.join([labels_file1, labels_file2, output_file])
+    cli.cmdline
+    cli.run()
+
+    return output_file
 
 
 #-----------------------------------------------------------------------------
@@ -232,28 +231,24 @@ if __name__ == "__main__":
     numbers = [20,21,22,20, 1,1,2,2,12]
     mindboggled = '/mnt/nfs-share/Mindboggle101/mindboggled/auto' + ants_str
     labels_dir = '/mnt/nfs-share/Mindboggle101/mindboggled/manual' + ants_str
-    autosurf = 'freesurfer_cortex_labels.vtk'
-    mansurf = 'relabeled_labels.DKT31.manual.vtk'
 
     #-------------------------------------------------------------------------
     # Evaluate surface labels:
     #-------------------------------------------------------------------------
-    ccode_path = os.environ['MINDBOGGLE_TOOLS']
-    command = os.path.join(ccode_path, 'surface_overlap',
-                           'SurfaceOverlapMain')
     surfs = ['left_cortical_surface', 'right_cortical_surface']
+    index = 1
     for iname, name in enumerate(names):
         number = numbers[iname]
         for n in range(1, number+1):
             subject = name+'-'+str(n)
-            for isurf, surf in enumerate(surfs):
-                mdir = os.path.join(mindboggled, subject, 'labels', surf)
-                ldir = os.path.join(labels_dir, subject, 'labels', surf)
-                file1 = os.path.join(mdir, autosurf)
-                file2 = os.path.join(ldir, mansurf)
-                index = 0
-                output_file = "{0}_{1}_{2}_volume_label_overlaps.csv".\
-                    format(subject, autosurf, mansurf)
+            for surf in surfs:
+                file1 = os.path.join(mindboggled, subject, 'tables', 
+                                     surf, 'vertices.csv')
+                file2 = os.path.join(labels_dir, subject, 'tables', 
+                                     surf, 'vertices.csv')
+                print(file1)
+                print(file2)
+                output_file = "{0}_{1}_overlaps.csv".format(subject, surf)
                 evaluate_surface_overlaps(dkt.cerebrum_cortex_DKT31_numbers,
                                           index, file1, file2, output_file)
 
@@ -265,8 +260,10 @@ if __name__ == "__main__":
         for n in range(1, number+1):
             subject = name+'-'+str(n)
             file1 = os.path.join(mindboggled, subject, 'labels', volfile)
-            file2 = os.path.join(labels_dir, subject, 'labels', volfile)
-            output_file = "{0}_{1}_surface_label_overlaps.csv".format(
+            file2 = os.path.join(labels_dir, subject, 'labels', volfile)    
+            print(file1)    
+            print(file2)
+            output_file = "{0}_{1}_volume_label_overlaps.csv".format(
                 subject, volstem)
             evaluate_volume_overlaps(dkt.label_numbers,
                                      file1, file2, output_file)

@@ -4,9 +4,9 @@ Compute functions.
 
 
 Authors:
-    - Arno Klein, 2012-2014  (arno@mindboggle.info)  http://binarybottle.com
+    - Arno Klein, 2012-2015  (arno@mindboggle.info)  http://binarybottle.com
 
-Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2015,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -952,6 +952,9 @@ def compute_overlaps(targets, list1, list2, output_file='', save_output=True):
         list1 = np.array(list1)
     if isinstance(list2, list):
         list2 = np.array(list2)
+
+    if np.size(list1) != np.size(list2):
+        raise(IOError("Files are different sizes"))
 
     # Initialize output:
     dice_overlaps = np.zeros(len(targets))
