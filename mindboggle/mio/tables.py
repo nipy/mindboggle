@@ -1,240 +1,14 @@
 #!/usr/bin/env python
 """
-Functions for reading and writing tables.
+Functions for creating tables.
 
 
 Authors:
-    - Arno Klein, 2012-2013  (arno@mindboggle.info)  http://binarybottle.com
-    - Forrest Sheng Bao, 2012  (forrest.bao@gmail.com)  http://fsbao.net
+    - Arno Klein, 2012-2015  (arno@mindboggle.info)  http://binarybottle.com
 
-Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2015,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
-
-def read_columns(filename, n_columns=1, trail=False):
-    """
-    Read n-column text file. Assumes space(s) as delimiter.
-
-    Parameters
-    ----------
-    filename :  name of text file [string]
-    n_columns :  number of columns to extract [integer]
-    trail :  combine all remaining columns as a string
-             in the final list [Boolean]
-
-    Returns
-    -------
-    columns :  a list of lists of strings, one list per column of text.
-
-    Examples
-    --------
-    >>> import os
-    >>> from mindboggle.mio.tables import read_columns
-    >>> filename = '/homedir/mindboggled/Twins-2-1/tables/volume_for_each_freesurfer_label.csv'
-    #left_cortical_surface/vertices.csv')
-    >>> n_columns = 2
-    >>> trail = False
-    >>> columns = read_columns(filename, n_columns=n_columns, trail=trail)
-
-    """
-    import os
-    import re
-
-    columns = [[] for x in range(n_columns)]
-    if os.path.exists(filename):
-        Fp = open(filename, 'r')
-        lines = Fp.readlines()
-        for line in lines:
-            if line:
-                row = re.findall(r'\S+', line)
-                if len(row) >= n_columns:
-                    for icolumn in range(n_columns):
-                        if trail and icolumn == n_columns - 1:
-                            columns[icolumn].append(' '.join(row[icolumn::]))
-                        else:
-                            columns[icolumn].append(row[icolumn])
-                else:
-                    import os
-                    os.error('The number of columns in {0} is less than {1}.'.format(
-                             filename, n_columns))
-        Fp.close()
-
-    return columns
-
-
-def write_columns(columns, column_names, delimiter=',', quote=True,
-                  input_table='', output_table=''):
-    """
-    Write table with columns and column names.  Assumes space(s) as delimiter.
-
-    If there is an input table file to append to, assume a one-line header.
-
-    Parameters
-    ----------
-    columns :  list of lists of floats or integers
-        values (each list is a column of values)
-    column_names :  list of strings
-        names of columns
-    delimiter : string
-        delimiter between columns, such as ','
-    bracket : string
-        string bracketing each element, such as '"'
-    input_table : string (default is empty string)
-        name of table file to which the columns are to be appended
-    output_table : string
-        name of output table file (full path)
-
-    Returns
-    -------
-    output_table : string
-        name of output table file (full path)
-
-    Examples
-    --------
-    >>> from mindboggle.mio.tables import write_columns
-    >>> labels = ['category one', 'category two', 'category three', 'category four']
-    >>> values = [0.12, 0.36, 0.75, 0.03]
-    >>> values2 = [32, 87, 53, 23]
-    >>> columns = [labels, values]
-    >>> column_names = ['label', 'value']
-    >>> delimiter = ','
-    >>> quote = True
-    >>> input_table = ''
-    >>> output_table = 'write_columns.csv'
-    >>> output_table = write_columns(columns, column_names, delimiter, quote,
-    >>>                              input_table, output_table)
-    >>> write_columns(values2, 'value 2', delimiter, quote,
-    >>>               input_table=output_table, output_table=output_table)
-
-    """
-    import os
-    import sys
-    from mindboggle.mio.tables import read_columns
-
-    if not output_table:
-        if input_table:
-            s = os.path.basename(input_table).split('.')[0] + '.csv'
-            output_table = os.path.join(os.getcwd(), s)
-        else:
-            if column_names:
-                s = '_'.join(column_names)
-            else:
-                s = 'table'
-            output_table = os.path.join(os.getcwd(), s + '.csv')
-
-    if quote:
-        q = '"'
-    else:
-        q = ''
-
-    #-----------------------
-    # Check format of inputs
-    #-----------------------
-    # If the list contains integers or floats, put in a list:
-    if columns:
-        if isinstance(columns[0], int) or isinstance(columns[0], float) or \
-           isinstance(columns[0], str):
-            columns = [columns]
-        # If the list contains all lists, accept format:
-        elif all([isinstance(x, list) for x in columns]):
-            pass
-        else:
-            print("Error: columns contains unacceptable elements.")
-            print("columns type is: {0}".format(type(columns)))
-            print("columns length is: {0}".format(len(columns)))
-            print("columns[0] type is: {0}".format(type(columns[0])))
-            sys.exit()
-        # If column_names is a string, create a list containing
-        # as many of this string as there are columns.
-        if isinstance(column_names, str):
-            column_names = [column_names for x in columns]
-        elif isinstance(column_names, list):
-            if len(column_names) < len(columns):
-                column_names = [column_names[0] for x in columns]
-            else:
-                pass
-        else:
-            print("Error: column_names is neither a list nor a string")
-            sys.exit()
-
-        #-----------------------------------
-        # Read columns from input table file
-        #-----------------------------------
-        input_names = ''
-        input_columns = ['' for x in columns[0]]
-        if input_table and os.path.exists(input_table):
-            input_columns = read_columns(input_table, n_columns=1, trail=True)
-            if input_columns and len(input_columns[0]) > 0:
-                input_names = input_columns[0][0]
-                input_columns = input_columns[0][1::]
-
-        #--------------
-        # Write to file
-        #--------------
-        Fp = open(output_table, 'wa')
-        if column_names:
-            column_names = [q+x+q for x in column_names]
-            if input_table:
-                Fp.write(delimiter.join([input_names,
-                         delimiter.join(column_names) + "\n"]))
-            else:
-                Fp.write(delimiter.join(column_names) + "\n")
-        #else:
-        #    Fp.write(input_names + "\n")
-
-        for irow in range(len(columns[0])):
-            if input_table:
-                Fp.write(input_columns[irow] + delimiter)
-            for icolumn, column in enumerate(columns):
-                if icolumn < len(columns)-1:
-                    Fp.write('{0}{1}{2}{3}'.format(
-                        q, column[irow], q, delimiter))
-                else:
-                    Fp.write('{0}{1}{2}'.format(q, column[irow], q))
-            Fp.write("\n")
-
-        Fp.close()
-
-        if not os.path.exists(output_table):
-            raise(IOError(output_table + " not found"))
-
-    else:
-        print("NOTE: 'columns' is empty. Nothing written.")
-
-    return output_table
-
-
-def write_rows(filename, list_of_lines, header=""):
-    """
-    Write a list to a file, one line per list element.
-
-    Parameters
-    ----------
-    filename : string
-        name of output file
-    list_of_lines :  list
-        each element is written to file as a line
-    header : string (default is empty string)
-        header to write at the top of the file
-
-    Returns
-    -------
-    filename : string
-        name of output file
-
-    """
-
-    Fp = open(filename, 'w')
-
-    if header:
-        Fp.write(header + '\n')
-
-    for element in list_of_lines:
-        Fp.write(str(element) + '\n')
-
-    Fp.close()
-
-    return filename
 
 
 def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
@@ -247,7 +21,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
         sulci_spectra=[], sulci_spectra_IDs=[],
         labels_zernike=[], labels_zernike_IDs=[],
         sulci_zernike=[], sulci_zernike_IDs=[],
-        exclude_labels=[-1], delimiter=','):
+        exclude_labels=[-1]):
     """
     Make tables of shape statistics per label, sulcus, and/or fundus.
 
@@ -303,8 +77,6 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
         unique sulcus IDs for sulci_zernike
     exclude_labels : list of lists of integers
         indices to be excluded (in addition to -1)
-    delimiter : string
-        delimiter between columns, such as ','
 
     Returns
     -------
@@ -320,25 +92,24 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     >>> import os
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.mio.tables import write_shape_stats
-    >>> path = os.path.join(os.environ['HOME'], 'mindboggled', 'Twins-2-1')
-    >>> labels_or_file = os.path.join(path, 'labels', 'left_surface', 'FreeSurfer_cortex_labels.vtk')
-    >>> sulci_file = os.path.join(path, 'features', 'left_surface', 'sulci.vtk')
-    >>> fundi_file = os.path.join(path, 'features', 'left_surface', 'fundus_per_sulcus.vtk')
+    >>> path = '/homedir/mindboggled/Twins-2-1'
+    >>> labels_or_file = os.path.join(path, 'labels', 'left_cortical_surface', 'freesurfer_cortex_labels.vtk')
+    >>> sulci_file = os.path.join(path, 'features', 'left_cortical_surface', 'sulci.vtk')
+    >>> fundi_file = os.path.join(path, 'features', 'left_cortical_surface', 'fundus_per_sulcus.vtk')
     >>> sulci, name = read_scalars(sulci_file)
     >>> fundi, name = read_scalars(fundi_file)
     >>> affine_transform_files = [] #os.path.join(path, 'arno', 'mri', 't1weighted_brain.MNI152Affine.txt')
     >>> inverse_booleans = []
     >>> #transform_format = 'mat'
     >>> transform_format = 'itk'
-    >>> area_file = os.path.join(path, 'shapes', 'left_surface', 'area.vtk')
+    >>> area_file = os.path.join(path, 'shapes', 'left_cortical_surface', 'area.vtk')
     >>> normalize_by_area = False
-    >>> mean_curvature_file = os.path.join(path, 'shapes', 'left_surface', 'mean_curvature.vtk')
-    >>> travel_depth_file = os.path.join(path, 'shapes', 'left_surface', 'travel_depth.vtk')
-    >>> geodesic_depth_file = os.path.join(path, 'shapes', 'left_surface', 'geodesic_depth.vtk')
+    >>> mean_curvature_file = os.path.join(path, 'shapes', 'left_cortical_surface', 'mean_curvature.vtk')
+    >>> travel_depth_file = os.path.join(path, 'shapes', 'left_cortical_surface', 'travel_depth.vtk')
+    >>> geodesic_depth_file = os.path.join(path, 'shapes', 'left_cortical_surface', 'geodesic_depth.vtk')
     >>> freesurfer_thickness_file = ''
     >>> freesurfer_curvature_file = ''
     >>> freesurfer_sulc_file = ''
-    >>> delimiter = ','
     >>> #
     >>> labels, name = read_scalars(labels_or_file)
     >>> labels_spectra = []
@@ -361,17 +132,17 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     >>>     sulci_spectra, sulci_spectra_IDs,
     >>>     labels_zernike, labels_zernike_IDs,
     >>>     sulci_zernike, sulci_zernike_IDs,
-    >>>     exclude_labels, delimiter)
+    >>>     exclude_labels)
 
     """
     import os
     import numpy as np
+    import pandas as pd
 
     from mindboggle.guts.compute import means_per_label, stats_per_label, \
         sum_per_label
     from mindboggle.mio.vtks import read_scalars, read_vtk, \
         apply_affine_transforms
-    from mindboggle.mio.tables import write_columns
     from mindboggle.mio.labels import DKTprotocol
 
     dkt = DKTprotocol()
@@ -459,18 +230,16 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
         #-----------------------------------------------------------------
         # Label names:
         #-----------------------------------------------------------------
+        label_title = 'name'
         if itable == 0:
             label_numbers = dkt.cerebrum_cortex_DKT31_numbers
             label_names = dkt.cerebrum_cortex_DKT31_names
-            label_title = 'name'
         elif itable in [1, 2]:
             label_numbers = dkt.sulcus_numbers
             label_names = dkt.sulcus_names
-            label_title = 'name'
         else:
             label_numbers = []
             label_names = []
-            label_title = 'name'
         include_labels = label_numbers
         nlabels = len(label_numbers)
 
@@ -603,23 +372,15 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
             # Write labels/IDs to table:
             output_table = os.path.join(os.getcwd(), table_names[itable])
 
-            if label_names:
-                output_table = write_columns(label_names, label_title,
-                    delimiter, quote=True, input_table='',
-                    output_table=output_table)
-                write_columns(include_labels, 'ID',
-                    delimiter, quote=True, input_table=output_table,
-                    output_table=output_table)
-            else:
-                output_table = write_columns(include_labels, 'ID',
-                    delimiter, quote=True, input_table='',
-                    output_table=output_table)
-
-            # Append columns of shape values to table:
             if columns:
-                write_columns(columns, column_names, delimiter,
-                              quote=True, input_table=output_table,
-                              output_table=output_table)
+                df1 = pd.DataFrame({'ID': label_numbers})
+                df2 = pd.DataFrame(np.transpose(columns),
+                                   columns = column_names)
+                df = pd.concat([df1, df2], axis=1)
+                if label_names:
+                    df0 = pd.DataFrame({'name': label_names})
+                    df = pd.concat([df0, df], axis=1)
+                df.to_csv(output_table, index=False)
 
             if not os.path.exists(output_table):
                 raise(IOError(output_table + " not found"))
@@ -642,7 +403,7 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
         transform_format='itk',
         area_file='', mean_curvature_file='', travel_depth_file='',
         geodesic_depth_file='', freesurfer_thickness_file='',
-        freesurfer_curvature_file='', freesurfer_sulc_file='', delimiter=','):
+        freesurfer_curvature_file='', freesurfer_sulc_file=''):
     """
     Make a table of shape values per vertex.
 
@@ -680,8 +441,6 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
         name of VTK file with FreeSurfer curvature (curv) scalar values
     freesurfer_sulc_file :  string
         name of VTK file with FreeSurfer convexity (sulc) scalar values
-    delimiter : string
-        delimiter between columns, such as ','
 
     Returns
     -------
@@ -712,19 +471,19 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     >>> freesurfer_thickness_file = ''
     >>> freesurfer_curvature_file = ''
     >>> freesurfer_sulc_file = ''
-    >>> delimiter = ','
     >>> #
     >>> write_vertex_measures(output_table, labels_or_file, sulci, fundi,
     >>>     affine_transform_files, inverse_booleans, transform_format, area_file,
     >>>     mean_curvature_file, travel_depth_file, geodesic_depth_file,
-    >>>     freesurfer_thickness_file, freesurfer_curvature_file, freesurfer_sulc_file, delimiter)
+    >>>     freesurfer_thickness_file, freesurfer_curvature_file, freesurfer_sulc_file)
 
     """
     import os
     import numpy as np
+    import pandas as pd
+
     from mindboggle.mio.vtks import read_scalars, read_vtk, \
         apply_affine_transforms
-    from mindboggle.mio.tables import write_columns
 
     # Make sure inputs are lists:
     if isinstance(labels_or_file, np.ndarray):
@@ -797,10 +556,9 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     # Prepend with column of indices and write table
     if not output_table:
         output_table = os.path.join(os.getcwd(), 'vertices.csv')
-    write_columns(range(len(columns[0])), 'index', delimiter, quote=True,
-                  input_table='', output_table=output_table)
-    write_columns(columns, column_names, delimiter, quote=True,
-                  input_table=output_table, output_table=output_table)
+
+    df = pd.DataFrame(np.transpose(columns), columns = column_names)
+    df.to_csv(output_table, index=False)
 
     if not os.path.exists(output_table):
         raise(IOError(output_table + " not found"))
@@ -808,10 +566,10 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     return output_table
 
 
-def write_face_vertex_averages(input_file, output_table='',
-                               area_file='', delimiter=','):
+def write_face_vertex_averages(input_file, output_table='', area_file=''):
     """
-    Make table of average vertex values per face.
+    Make table of average vertex values per face
+    (divided by face area if area_file provided).
 
     Parameters
     ----------
@@ -819,8 +577,6 @@ def write_face_vertex_averages(input_file, output_table='',
         name of VTK file with scalars to average
     area_file :  string
         name of VTK file with surface area scalar values
-    delimiter : string
-        delimiter between columns, such as ','
     output_table :  string
         output table filename
 
@@ -833,22 +589,19 @@ def write_face_vertex_averages(input_file, output_table='',
     --------
     >>> import os
     >>> from mindboggle.mio.tables import write_face_vertex_averages
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> #input_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> #input_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
-    >>> input_file = os.path.join(path, 'arno', 'shapes', 'lh.thickness.vtk')
+    >>> path = '/homedir/mindboggled'
+    >>> input_file = os.path.join(path, 'Twins-2-1', 'shapes', 'left_cortical_surface', 'freesurfer_thickness.vtk')
+    >>> area_file = os.path.join(path, 'Twins-2-1', 'shapes', 'left_cortical_surface', 'area.vtk')
     >>> output_table = ''
-    >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
-    >>> delimiter = ','
     >>> #
-    >>> write_face_vertex_averages(input_file, output_table, area_file, delimiter)
+    >>> write_face_vertex_averages(input_file, output_table, area_file)
 
     """
     import os
     import numpy as np
+    import pandas as pd
 
     from mindboggle.mio.vtks import read_vtk, read_scalars
-    from mindboggle.mio.tables import write_columns
 
     faces, lines, indices, points, npoints, scalars, name, \
         input_vtk = read_vtk(input_file, True, True)
@@ -874,8 +627,8 @@ def write_face_vertex_averages(input_file, output_table='',
     if not output_table:
         output_table = os.path.join(os.getcwd(), 'average_face_values.csv')
 
-    write_columns(columns, '', delimiter, quote=False, input_table='',
-                  output_table=output_table)
+    df = pd.DataFrame({'': columns})
+    df.to_csv(output_table, index=False)
 
     if not os.path.exists(output_table):
         raise(IOError(output_table + " not found"))
@@ -910,10 +663,10 @@ def write_average_face_values_per_label(input_indices_vtk,
     --------
     >>> import os
     >>> from mindboggle.mio.tables import write_average_face_values_per_label
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_indices_vtk = os.path.join(path, 'allen', 'labels', 'lh.DKTatlas100.gcs.vtk')
-    >>> input_values_vtk = os.path.join(path, 'allen', 'shapes', 'lh.thickness.vtk')
-    >>> area_file = os.path.join(path, 'allen', 'shapes', 'lh.pial.area.vtk')
+    >>> path = '/homedir/mindboggled'
+    >>> input_indices_vtk = os.path.join(path, 'Twins-2-1', 'labels', 'left_cortical_surface', 'freesurfer_cortex_labels.vtk')
+    >>> input_values_vtk = os.path.join(path, 'Twins-2-1', 'shapes', 'left_cortical_surface', 'freesurfer_thickness.vtk')
+    >>> area_file = os.path.join(path, 'Twins-2-1', 'shapes', 'left_cortical_surface', 'area.vtk')
     >>> output_stem = 'labels_thickness'
     >>> exclude_values = [-1]
     >>> background_value = -1
@@ -929,8 +682,9 @@ def write_average_face_values_per_label(input_indices_vtk,
     """
     import os
     import numpy as np
+    import pandas as pd
+
     from mindboggle.mio.vtks import read_scalars, read_vtk, write_vtk
-    from mindboggle.mio.tables import write_columns
     from mindboggle.guts.mesh import remove_faces
 
     # Load VTK file:
@@ -981,8 +735,8 @@ def write_average_face_values_per_label(input_indices_vtk,
         #-----------------------------------------------------------------
         # Write to table:
         #-----------------------------------------------------------------
-        write_columns(columns, '', delimiter=',', quote=False,
-                      input_table='', output_table=output_table)
+        df = pd.DataFrame({'': columns})
+        df.to_csv(output_table, index=False)
 
         # Write VTK file with scalar value:
         #output_vtk = os.path.join(os.getcwd(), output_stem + str(scalar) + '.vtk')
@@ -993,106 +747,21 @@ def write_average_face_values_per_label(input_indices_vtk,
             raise(IOError(output_table + " not found"))
 
 
-def alternate_columns_from_tables(table_files, write_table=True,
-                                  output_table='', delimiter=','):
+def select_column_from_tables(tables, index=0, write_table=True,
+                              output_table=''):
     """
-    Alternate columns from a list of tables and make a new table.
-
-    This program assumes that the tables consist of only numbers.
-
-    Parameters
-    ----------
-    table_files : list of strings
-        table files (full paths)
-    write_table : Boolean
-        write output table?
-    output_table : string
-        output table file name
-    delimiter : string
-        delimiter between output table columns, such as ','
-
-    Returns
-    -------
-    columns : list of lists of floats or integers
-        columns of data
-    output_table :  string
-        output table file name
-
-    Examples
-    --------
-    >>> from mindboggle.mio.tables import alternate_columns_from_tables
-    >>> table_files = ['/drop/MB/data/arno/tables/label_shapes.csv',
-    >>>                '/drop/MB/data/arno/tables/label_shapes.csv']
-    >>> write_table = True
-    >>> output_table = ''
-    >>> delimiter = ','
-    >>> columns, output_table = alternate_columns_from_tables(table_files, write_table, output_table, delimiter)
-
-    """
-    import os
-    import csv
-
-    from mindboggle.mio.tables import write_columns
-
-    #-------------------------------------------------------------------------
-    # Construct a list of all tables:
-    #-------------------------------------------------------------------------
-    tables = []
-    for table_file in table_files:
-        if not os.path.exists(table_file):
-            raise(IOError(table_file + " not found"))
-        else:
-            reader = csv.reader(open(table_file, 'rb'),
-                                delimiter=',', quotechar='"')
-            tables.append([list(x) for x in zip(*reader)])
-
-    #-------------------------------------------------------------------------
-    # Alternate columns:
-    #-------------------------------------------------------------------------
-    columns = []
-    for icolumn, column in enumerate(tables[0]):
-        for table in tables:
-            columns.append(table[icolumn])
-
-    #-------------------------------------------------------------------------
-    # Write table:
-    #-------------------------------------------------------------------------
-    if write_table and columns:
-        if all([len(x) == len(columns[0]) for x in columns]):
-            if not output_table:
-                output_table = os.path.join(os.getcwd(),
-                                            'alternating_columns.csv')
-            write_columns(columns, column_names='', delimiter=delimiter,
-                          quote=True, input_table='',
-                          output_table=output_table)
-        else:
-            print('Columns do not have the same length.')
-
-    return columns, output_table
-
-
-def select_column_from_tables(tables, column_name, label_name='',
-                              write_table=True, output_table='',
-                              delimiter=',', compute_stats=True):
-    """
-    Select column from list of tables, make a new table, compute statistics.
+    Select column from list of tables, make a new table.
 
     Parameters
     ----------
     tables : list of strings
         table files (full paths)
-    column_name :  string
-        column name to select
-    label_name :  string
-        column name for column with labels (if empty, no label column added)
+    index : integer
+        index for column to select
     write_table : Boolean
         write output table?
     output_table : string
         output table file name
-    delimiter : string
-        delimiter between output table columns, such as ','
-    compute_stats : Boolean
-        compute statistics on columns?
 
     Returns
     -------
@@ -1112,40 +781,27 @@ def select_column_from_tables(tables, column_name, label_name='',
         names of column statistics
     output_table :  string
         output table file name
-    output_stats_table :  string
-        output table file name with column statistics
 
     Examples
     --------
     >>> from mindboggle.mio.tables import select_column_from_tables
-    >>> table_name = "volumes_FreeSurfer_labels.csv"
-    >>> tables = ['/homedir/mindboggled/OASIS-TRT-20-1/tables/'+table_name, '/homedir/mindboggled/20060914_155122i0000_0000bt1mprnssagINNOMEDs001a001/tables/'+table_name]
-    >>> column_name = 'Volume'
-    >>> label_name = 'Label name'
+    >>> path = '/homedir/mindboggled'
+    >>> tables = [os.path.join(path, 'Twins-2-1', 'tables', 'thickinthehead_per_freesurfer_cortex_label.csv'),
+    >>>           os.path.join(path, 'Twins-2-1', 'tables', 'thickinthehead_per_freesurfer_cortex_label.csv')]
+    >>> index = '2'
     >>> write_table = True
     >>> output_table = ''
-    >>> delimiter = ','
-    >>> compute_stats = True
-    >>> #
-    >>> select_column_from_tables(tables, column_name, label_name,
-    >>>     write_table, output_table, delimiter, compute_stats)
+    >>> select_column_from_tables(tables, index, write_table, output_table)
 
     """
     import os
-    import sys
-    import csv
+    import pandas as pd
     import numpy as np
-
-    from mindboggle.mio.tables import write_columns
-    from mindboggle.guts.compute import stats_per_label
 
     #-------------------------------------------------------------------------
     # Construct a table:
     #-------------------------------------------------------------------------
     columns = []
-    row_names = []
-    row_names_title = ''
-    first = True
     for input_table in tables:
 
         #---------------------------------------------------------------------
@@ -1154,146 +810,27 @@ def select_column_from_tables(tables, column_name, label_name='',
         if not os.path.exists(input_table):
             raise(IOError(input_table + " not found"))
         else:
-            reader = csv.reader(open(input_table, 'rb'),
-                                delimiter=',', quotechar='"')
-            input_columns = [list(x) for x in zip(*reader)]
-
-            #-----------------------------------------------------------------
-            # Extract column with table_name as its header:
-            #-----------------------------------------------------------------
-            icolumn_name = -1
-            icolumn_label = -1
-            for icolumn, column in enumerate(input_columns):
-                # new_column = []
-                # rms = ['"', "'"]
-                # for c in column:
-                #     for s in rms:
-                #         c = c.strip()
-                #         c = c.strip(s)
-                #         c = c.strip()
-                #     new_column.append(c)
-                # column = new_column
-                hdr = column[0].strip()
-                if hdr == column_name:
-                    icolumn_name = icolumn
-                elif hdr == label_name:
-                    icolumn_label = icolumn
-            if icolumn_name >= 0:
-                columns.append(input_columns[icolumn_name][1::])
-            else:
-                sys.exit('No column name "{0}".'.format(column_name))
-
-            #-----------------------------------------------------------------
-            # Don't use the labels if label columns are unequal across tables:
-            #-----------------------------------------------------------------
-            if icolumn_label >= 0:
-                if first:
-                    row_names = input_columns[icolumn_label][1::]
-                    row_names_title = input_columns[icolumn_label][0].strip()
-                    first = False
-                elif input_columns[icolumn_label][1::] != row_names:
-                    print('Label columns are not the same across tables.')
-                    label_name = False
-
-    #-------------------------------------------------------------------------
-    # Compute statistics on rows:
-    #-------------------------------------------------------------------------
-    if compute_stats:
-        labels = np.ones(len(columns))
-        include_labels = [1]
-        exclude_labels = []
-        weights = []
-        precision = None
-
-        values = np.asarray(columns, dtype=float)
-        nrows = values.shape[1]
-        row_stats = np.zeros((nrows, 8))
-        row_stats_names = ['medians', 'mads', 'means', 'sdevs',
-                           'skews', 'kurts', 'lower_quarts', 'upper_quarts']
-
-        value_rows = np.vstack(values).transpose()
-        for irow in range(nrows):
-            row = value_rows[irow, :]
-
-            medians, mads, means, sdevs, skews, kurts, \
-            lower_quarts, upper_quarts, label_list = stats_per_label(row,
-                labels, include_labels, exclude_labels, weights, precision)
-
-            row_stats[irow, 0] = medians[0]
-            row_stats[irow, 1] = mads[0]
-            row_stats[irow, 2] = means[0]
-            row_stats[irow, 3] = sdevs[0]
-            row_stats[irow, 4] = skews[0]
-            row_stats[irow, 5] = kurts[0]
-            row_stats[irow, 6] = lower_quarts[0]
-            row_stats[irow, 7] = upper_quarts[0]
-        row_stats = row_stats.transpose().tolist()
-
-    else:
-        row_stats = []
-        row_stats_names = []
+            input_columns = pd.read_csv(input_table)
+            columns.append(input_columns.iloc[:, index])
 
     #-------------------------------------------------------------------------
     # Write tables:
     #-------------------------------------------------------------------------
-    output_stats_table = ''
     if write_table and columns:
         if all([len(x) == len(columns[0]) for x in columns]):
-
-            labels = [column_name + ': ' + str(x) for x in tables]
-            #labels = [column_name + os.path.basename(x) for x in tables]
-
             if not output_table:
-                rms = ['"', '`', ',', '/', '<', '>', '?', ':', ';',
-                       '(', ')', '[', ']', '{', '}', '|', '\\',
-                       '!', '@', '#', '$', '%', '^', '&', '*', '=', '_']
-                table_name = column_name
-                for s in rms:
-                    table_name = table_name.replace(s, '_')
-                table_name = table_name.replace(' ', '')
-                output_table = os.path.join(os.getcwd(), table_name + '.csv')
-                output_table = output_table.replace('_.', '.')
-                if compute_stats:
-                    output_stats_table = os.path.join(os.getcwd(), 
-                                             table_name + '_stats.csv')
-            else:
-                if compute_stats:
-                    output_stats_table = output_table + '_stats.csv'
-
-            if label_name:
-                write_columns(row_names, row_names_title, delimiter, quote=True,
-                              input_table='', output_table=output_table)
-                write_columns(columns, labels, delimiter, quote=True,
-                              input_table=output_table, output_table=output_table)
-            else:
-                write_columns(columns, labels, delimiter, quote=True,
-                              input_table='', output_table=output_table)
-
-            if compute_stats:
-                if label_name:
-                    write_columns(row_names, row_names_title, delimiter, 
-                                  quote=True, input_table='', 
-                                  output_table=output_stats_table)
-                    write_columns(row_stats, row_stats_names,
-                                  delimiter, quote=True,
-                                  input_table=output_stats_table, 
-                                  output_table=output_stats_table)
-                else:
-                    write_columns(row_stats, row_stats_names,
-                                  delimiter, quote=True, input_table='',
-                                  output_table=output_stats_table)
-            else:
-                print('Not saving statistics table.')
+                output_table = os.path.join(os.getcwd(),
+                                            'select_column_from_tables.csv')
+            df = pd.DataFrame({'': columns})
+            df.to_csv(output_table, index=False)
         else:
             print('Not saving table.')
 
-    return tables, columns, column_name, row_names, row_names_title, \
-           row_stats, row_stats_names, output_table, output_stats_table
+    return tables, columns, output_table
 
 
-def select_column_from_mindboggle_tables(subjects, hemi, tables_dir,
-        table_name, column_name, label_name='label', is_surface_table=True,
-        write_table=True, output_table='', delimiter=','):
+def select_column_from_mindboggle_tables(subjects, hemi, index, tables_dir,
+        table_name, is_surface_table=True, write_table=True, output_table=''):
     """
     Select column from Mindboggle shape tables and make a new table.
 
@@ -1301,7 +838,7 @@ def select_column_from_mindboggle_tables(subjects, hemi, tables_dir,
     across a set of subjects, and make a new table.
 
     Expects::
-        <tables_dir>/<subject>/tables/['left','right']_surface/<table_name>
+        <tables_dir>/<subject>/tables/['left','right']_cortical_surface/<table_name>
 
     Parameters
     ----------
@@ -1309,22 +846,18 @@ def select_column_from_mindboggle_tables(subjects, hemi, tables_dir,
         names of subjects processed by Mindboggle
     hemi :  string
         hemisphere in {'left', 'right}
+    index : integer
+        index for column to select
     tables_dir : string
         name of Mindboggle tables directory
     table_name : string
         name of Mindboggle table file
-    column_name :  string
-        column name to select
-    label_name :  string
-        column name for column with labels (if empty, no label column added)
     is_surface_table : Boolean
         if True, use path to surface tables
     write_table : Boolean
         write output table?
     output_table : string
         output table file name
-    delimiter : string
-        delimiter between output table columns, such as ','
 
     Returns
     -------
@@ -1332,43 +865,24 @@ def select_column_from_mindboggle_tables(subjects, hemi, tables_dir,
         input table files (full paths)
     columns : list of lists of floats or integers
         columns of data
-    column_name :  string
-        column name to select
-    row_names : list of strings
-        row labels (common strings in the label column of tables)
-    row_names_title : string
-        row_names column header
-    row_stats :  list
-        row statistics
-    row_stats_names :  list
-        names of row statistics
     output_table :  string
         output table file name
-    output_stats_table :  string
-        output table file name with column statistics
 
     Examples
     --------
     >>> import os
     >>> from mindboggle.mio.tables import select_column_from_mindboggle_tables
-    >>> subjects = ['Twins-2-1', 'Twins-2-2']
-    >>> subjects = ['20060914_155122i0000_0000bt1mprnssagINNOMEDs001a001','OASIS-TRT-20-1']
+    >>> subjects = ['Twins-2-1', 'Colin27-1']
     >>> hemi = 'left'
+    >>> index = 2
     >>> tables_dir = os.path.join(os.environ['HOME'], 'mindboggled')
     >>> table_name = "label_shapes.csv"
-    >>> #table_name = "volumes_FreeSurfer_labels.csv"
-    >>> column_name = "FreeSurfer thickness: median"
-    >>> #column_name = "Volume"
     >>> label_name = 'Label name'
     >>> is_surface_table = True
-    >>> #is_surface_table = False
     >>> write_table = True
     >>> output_table = ''
-    >>> delimiter = ','
-    >>> #
-    >>> select_column_from_mindboggle_tables(subjects, hemi, tables_dir,
-    >>>     table_name, column_name, label_name, is_surface_table,
-    >>>     write_table, output_table, delimiter)
+    >>> select_column_from_mindboggle_tables(subjects, hemi, index, tables_dir,
+    >>>     table_name, is_surface_table, write_table, output_table)
 
     """
     import os
@@ -1390,11 +904,7 @@ def select_column_from_mindboggle_tables(subjects, hemi, tables_dir,
     #-------------------------------------------------------------------------
     # Extract columns and construct new table:
     #-------------------------------------------------------------------------
-    compute_stats = True
-    tables, columns, column_name, row_names, row_names_title, \
-    row_stats, row_stats_names, output_table, \
-    output_stats_table = select_column_from_tables(tables, column_name,
-        label_name, write_table, output_table, delimiter, compute_stats)
+    tables, columns, output_table = select_column_from_tables(tables, index,
+        write_table, output_table)
 
-    return tables, columns, column_name, row_names, row_names_title, \
-           row_stats, row_stats_names, output_table, output_stats_table
+    return tables, columns, output_table

@@ -204,7 +204,6 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.shapes.likelihood import estimate_distribution
-    >>> from mindboggle.mio.tables import read_columns
     >>> do_test = False
     >>> # Train on a single surface mesh:
     >>> if do_test:
@@ -224,7 +223,7 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
     >>>     label_path = os.environ['SUBJECTS_DIR']
     >>>     x_path = os.path.join(os.environ['MINDBOGGLE'], 'x')
     >>>     atlas_list_file = os.path.join(x_path, 'mindboggle101_atlases.txt')
-    >>>     atlas_list = read_columns(atlas_list_file, 1)[0]
+    >>>     atlas_list
     >>>     depth_files = []
     >>>     curv_files = []
     >>>     fold_files = []
