@@ -7,8 +7,6 @@ Compute the Dice and Jaccard overlap measures for each labeled region
 of two labeled surfaces or image volumes, for example one that has been
 manually labeled and one that has been automatically labeled.
 
-For surface overlap, this program simply calls Joachim Giard's code.
-
 
 Authors:
     - Arno Klein, 2012-2015 (arno@mindboggle.info)  http://binarybottle.com
