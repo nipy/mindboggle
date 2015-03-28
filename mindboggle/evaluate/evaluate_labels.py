@@ -17,61 +17,11 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-def measure_surface_overlap(command, labels_file1, labels_file2, overlap_file):
+
+def evaluate_volume_overlaps(labels, file1, file2, 
+                             output_file='', save_output=True):
     """
-    Measure surface overlap using Joachim Giard's code.
-
-    Parameters
-    ----------
-    command : string
-        surface overlap C++ executable command
-    labels_file1 : string
-        ``vtk file`` with index labels for scalar values
-    labels_file2 : string
-        ``vtk file`` with index labels for scalar values
-    overlap_file : string
-        (optional) output file name
-
-    Returns
-    -------
-    overlap_file : string
-        name of output text file with overlap results
-
-    Examples
-    --------
-    >>> import os
-    >>> from mindboggle.evaluate.evaluate_labels import measure_surface_overlap
-    >>> from mindboggle.mindboggle import hashes_url
-    >>> from mindboggle.mio.fetch_data import fetch_check_data
-    >>> hashes, url, cache_env, cache = hashes_url()
-    >>> ccode_path = os.environ['MINDBOGGLE_TOOLS']
-    >>> command = os.path.join(ccode_path, 'surface_overlap', 'SurfaceOverlapMain')
-    >>> label_file1 = 'lh.labels.DKT25.manual.vtk'
-    >>> label_file2 = 'lh.labels.DKT31.manual.vtk'
-    >>> file1 = fetch_check_data(label_file1, url, hashes, cache_env, cache)
-    >>> file2 = fetch_check_data(label_file2, url, hashes, cache_env, cache)
-    >>> overlap_file = ''
-    >>> measure_surface_overlap(command, file1, file2, overlap_file)
-
-    """
-    import os
-    from nipype.interfaces.base import CommandLine
-
-    if not overlap_file:
-        overlap_file = os.path.basename(labels_file1) + '_and_' + \
-                           os.path.basename(labels_file2) + '.txt'
-    overlap_file = os.path.join(os.getcwd(), overlap_file)
-    cli = CommandLine(command = command)
-    cli.inputs.args = ' '.join([labels_file1, labels_file2, overlap_file])
-    cli.cmdline
-    cli.run()
-
-    return overlap_file
-
-
-def measure_volume_overlap(labels, file1, file2, overlap_file):
-    """
-    Measure overlap between individual label regions
+    Compute overlap between individual label regions
     in source and target nifti (nii.gz) images.
 
     Parameters
@@ -82,99 +32,179 @@ def measure_volume_overlap(labels, file1, file2, overlap_file):
         source image, consisting of index-labeled pixels/voxels
     file2 : string
         target image, consisting of index-labeled pixels/voxels
-    overlap_file : string
+    output_file : string
         (optional) output file name
+    save_output : Boolean
+        save output file?
 
     Returns
     -------
-    overlaps : numpy array
-        overlap values
-    overlap_file : string
+    dice_overlaps : numpy array
+        Dice overlap values
+    jacc_overlaps : numpy array
+        Jaccard overlap values
+    output_file : string
         output text file name with overlap values
 
     Examples
     --------
     >>> import os
-    >>> from mindboggle.evaluate.evaluate_labels import measure_volume_overlap
+    >>> from mindboggle.evaluate.evaluate_labels import evaluate_volume_overlaps
     >>> from mindboggle.mio.labels import DKTprotocol
-    >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
-    >>> file1 = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
-    >>> file2 = os.path.join(path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
+    >>> path = '/homedir/mindboggled'
+    >>> file1 = os.path.join(path, 'Twins-2-1', 'labels', 'freesurfer_wmparc_filled_labels.nii.gz')
+    >>> file2 = os.path.join(path, 'Twins-2-1', 'labels', 'freesurfer_wmparc_filled_labels.nii.gz')
     >>> dkt = DKTprotocol()
-    >>> overlap_file = ''
-    >>> measure_volume_overlap(dkt.label_numbers, file1, file2, overlap_file)
+    >>> labels = dkt.cerebrum_cortex_DKT31_numbers
+    >>> output_file = ''
+    >>> save_output = True
+    >>> evaluate_volume_overlaps(labels, file1, file2, output_file=output_file, save_output=save_output)
 
     """
-    import os
-    import numpy as np
     import nibabel as nb
 
-    save_output = True
+    from mindboggle.guts.compute import compute_overlaps
 
-    # Load labeled image volumes
-    file1_data = nb.load(file1).get_data().ravel()
-    file2_data = nb.load(file2).get_data().ravel()
-    #print('Files: ' + file1 + ' ' + file2)
-    #print(np.unique(file1_data))
-    #print(np.unique(file2_data))
+    # Load labeled image volumes:
+    list1 = nb.load(file1).get_data().ravel()
+    list2 = nb.load(file2).get_data().ravel()
 
-    # Initialize output
-    overlaps = np.zeros((len(labels), 3))
-    if save_output:
-        file1_name = os.path.splitext(os.path.basename(file1))[0]
-        file2_name = os.path.splitext(os.path.basename(file2))[0]
-        if not overlap_file:
-            overlap_file = os.path.join(os.getcwd(), 'labelvolume_dice_jacc_' +
-                                        file2_name + '_vs_' + file1_name + '.txt')
+    dice_overlaps, jacc_overlaps, output_file = compute_overlaps(labels,
+        list1, list2, output_file=output_file, save_output=save_output)
 
-    # Loop through labels
-    for ilabel, label in enumerate(labels):
-        label = int(label)
-        overlaps[ilabel, 0] = label
+    return dice_overlaps, jacc_overlaps, output_file
 
-        # Find which voxels contain the label in each volume
-        file1_indices = np.where(file1_data==label)[0]
-        file2_indices = np.where(file2_data==label)[0]
-        file1_label_sum = len(file1_indices)
-        file2_label_sum = len(file2_indices)
 
-        # Determine their intersection and union
-        intersect_label_sum = len(np.intersect1d(file2_indices, file1_indices))
-        union_label_sum = len(np.union1d(file2_indices, file1_indices))
-        #print('{0} {1} {2} {3} {4}'.format(label, file2_label_sum, file1_label_sum,
-        #                              intersect_label_sum, union_label_sum))
+def evaluate_surface_overlaps(labels, index, table1, table2,
+                              output_file='', save_output=True):
+    """
+    Measure surface overlap per label by comparing Mindboggle vertices tables.
 
-        # There must be at least one voxel with the label in each volume
-        if file2_label_sum * file1_label_sum > 0:
+    Parameters
+    ----------
+    labels : list
+        cortical label indices to measure surface overlap
+    index : integer
+        index (starting from zero) to column of table containing label indices
+    table1 : string
+        table with index labels for scalar values
+    table2 : string
+        table with index labels for scalar values
+    output_file : string
+        (optional) output file name
 
-            # Compute Dice and Jaccard coefficients
-            dice = np.float(2.0 * intersect_label_sum) / +\
-                   (file2_label_sum + file1_label_sum)
-            jacc = np.float(intersect_label_sum) / union_label_sum
-            overlaps[ilabel, 1:3] = [dice, jacc]
-            print('label: {0}, dice: {1:.2f}, jacc: {2:.2f}'.format(
-                  label, dice, jacc))
+    Returns
+    -------
+    dice_overlaps : numpy array
+        Dice overlap values
+    jacc_overlaps : numpy array
+        Jaccard overlap values
+    output_file : string
+        (optional) output file name
+    save_output : Boolean
+        save output file?
 
-    # Save output:
-    if save_output:
-        np.savetxt(overlap_file, overlaps, fmt='%d %.4f %.4f',
-                   delimiter='\t', newline='\n')
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.evaluate.evaluate_labels import evaluate_surface_overlaps
+    >>> from mindboggle.mio.labels import DKTprotocol
+    >>> dkt = DKTprotocol()
+    >>> labels = dkt.cerebrum_cortex_DKT31_numbers
+    >>> index = 0
+    >>> path = '/homedir/mindboggled'
+    >>> table1 = os.path.join(path, 'Twins-2-1', 'tables', 'left_cortical_surface', 'vertices.csv')
+    >>> table2 = os.path.join(path, 'Twins-2-1', 'tables', 'left_cortical_surface', 'vertices.csv')
+    >>> output_file = ''
+    >>> save_output = True
+    >>> evaluate_surface_overlaps(labels, index, table1, table2, output_file=output_file, save_output=save_output)
 
-    return overlaps, overlap_file
+    """
+    import pandas as pd
+
+    from mindboggle.guts.compute import compute_overlaps
+
+    # Load surface label tables:
+    df1 = pd.read_csv(table1)
+    df2 = pd.read_csv(table2)
+    list1 = df1.iloc[:, index]
+    list2 = df2.iloc[:, index]
+
+    dice_overlaps, jacc_overlaps, output_file = compute_overlaps(labels,
+        list1, list2, output_file=output_file, save_output=save_output)
+
+    return dice_overlaps, jacc_overlaps, output_file
+
+
+# def evaluate_surface_overlaps_cpp(command, labels_file1, labels_file2,
+#                                   output_file):
+#     """
+#     Measure surface overlap using Joachim Giard's code.
+#
+#     Note: Currently failing on VTK versions of manually labeled files,
+#     so evaluate_surface_overlaps() is included.
+#
+#     Parameters
+#     ----------
+#     command : string
+#         surface overlap C++ executable command
+#     labels_file1 : string
+#         ``vtk file`` with index labels for scalar values
+#     labels_file2 : string
+#         ``vtk file`` with index labels for scalar values
+#     output_file : string
+#         (optional) output file name
+#
+#     Returns
+#     -------
+#     output_file : string
+#         name of output text file with overlap results
+#
+#     Examples
+#     --------
+#     >>> import os
+#     >>> from mindboggle.evaluate.evaluate_labels import evaluate_surface_overlaps_cpp
+#     >>> from mindboggle.mindboggle import hashes_url
+#     >>> from mindboggle.mio.fetch_data import fetch_check_data
+#     >>> hashes, url, cache_env, cache = hashes_url()
+#     >>> ccode_path = os.environ['MINDBOGGLE_TOOLS']
+#     >>> command = os.path.join(ccode_path, 'surface_overlap', 'SurfaceOverlapMain')
+#     >>> label_file1 = 'lh.labels.DKT25.manual.vtk'
+#     >>> label_file2 = 'lh.labels.DKT31.manual.vtk'
+#     >>> file1 = fetch_check_data(label_file1, url, hashes, cache_env, cache)
+#     >>> file2 = fetch_check_data(label_file2, url, hashes, cache_env, cache)
+#     >>> output_file = ''
+#     >>> evaluate_surface_overlaps_cpp(command, file1, file2, output_file)
+#
+#     """
+#     import os
+#     from nipype.interfaces.base import CommandLine
+#
+#     if not output_file:
+#         output_file = os.path.basename(labels_file1) + '_and_' + \
+#                            os.path.basename(labels_file2) + '.txt'
+#     output_file = os.path.join(os.getcwd(), output_file)
+#     cli = CommandLine(command = command)
+#     cli.inputs.args = ' '.join([labels_file1, labels_file2, output_file])
+#     cli.cmdline
+#     cli.run()
+#
+#     return output_file
 
 
 #-----------------------------------------------------------------------------
-# Run evaluate_labels() on Mindboggle-101 data
-# to compare manual and automated labels.
+# Run evaluate_labels.py on Mindboggle-101 data
+# to compare manual and automated volume labels and surface labels.
 #-----------------------------------------------------------------------------
 if __name__ == "__main__":
 
     import os
-    import numpy as np
 
     from mindboggle.mio.labels import DKTprotocol
-    from mindboggle.evaluate.evaluate_labels import measure_volume_overlap
-    from mindboggle.evaluate.evaluate_labels import measure_surface_overlap
+    from mindboggle.evaluate.evaluate_labels import evaluate_volume_overlaps
+    from mindboggle.evaluate.evaluate_labels import evaluate_surface_overlaps
+
+    dkt = DKTprotocol()
 
     #-------------------------------------------------------------------------
     # Settings:
@@ -221,19 +251,22 @@ if __name__ == "__main__":
                 ldir = os.path.join(labels_dir, subject, 'labels', surf)
                 file1 = os.path.join(mdir, autosurf)
                 file2 = os.path.join(ldir, mansurf)
-                overlap_file = "{0}_{1}_{2}_overlap.csv".\
+                index = 0
+                output_file = "{0}_{1}_{2}_volume_label_overlaps.csv".\
                     format(subject, autosurf, mansurf)
-#                measure_surface_overlap(command, file1, file2, overlap_file)
+                evaluate_surface_overlaps(dkt.cerebrum_cortex_DKT31_numbers,
+                                          index, file1, file2, output_file)
 
     #-------------------------------------------------------------------------
     # Evaluate volume labels:
     #-------------------------------------------------------------------------
-    dkt = DKTprotocol()
     for iname, name in enumerate(names):
         number = numbers[iname]
         for n in range(1, number+1):
             subject = name+'-'+str(n)
             file1 = os.path.join(mindboggled, subject, 'labels', volfile)
             file2 = os.path.join(labels_dir, subject, 'labels', volfile)
-            overlap_file = "{0}_{1}_overlap.csv".format(subject, volstem)
-            measure_volume_overlap(dkt.label_numbers, file1, file2, overlap_file)
+            output_file = "{0}_{1}_surface_label_overlaps.csv".format(
+                subject, volstem)
+            evaluate_volume_overlaps(dkt.label_numbers,
+                                     file1, file2, output_file)
