@@ -144,6 +144,60 @@
 </dd></dl>
 
 <dl class="function">
+<dt id="mindboggle.guts.compute.compute_overlap">
+<code class="descclassname">mindboggle.guts.compute.</code><code class="descname">compute_overlap</code><span class="sig-paren">(</span><em>targets</em>, <em>list1</em>, <em>list2</em>, <em>output_file=''</em>, <em>save_output=True</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.compute.compute_overlap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute overlap for each target between two lists of numbers.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>targets</strong> : list of integers</p>
+<blockquote>
+<div><p>targets to find in lists</p>
+</div></blockquote>
+<p><strong>list1</strong> : 1-D numpy array (or list) of numbers</p>
+<p><strong>list2</strong> : 1-D numpy array (or list) of numbers</p>
+<p><strong>output_file</strong> : string</p>
+<blockquote>
+<div><p>(optional) output file name</p>
+</div></blockquote>
+<p><strong>save_output</strong> : Boolean</p>
+<blockquote>
+<div><p>save output file?</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>dice_overlaps</strong> : numpy array</p>
+<blockquote>
+<div><p>Dice overlap values</p>
+</div></blockquote>
+<p><strong>jacc_overlaps</strong> : numpy array</p>
+<blockquote>
+<div><p>Jaccard overlap values</p>
+</div></blockquote>
+<p><strong>output_file</strong> : string</p>
+<blockquote class="last">
+<div><p>output text file name with overlap values</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.compute</span> <span class="kn">import</span> <span class="n">compute_overlap</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.labels</span> <span class="kn">import</span> <span class="n">DKTprotocol</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">list1</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1021</span><span class="p">,</span> <span class="mi">1021</span><span class="p">,</span> <span class="mi">1021</span><span class="p">,</span> <span class="mi">1021</span><span class="p">,</span> <span class="mi">1021</span><span class="p">,</span> <span class="mi">1010</span><span class="p">,</span> <span class="mi">1010</span><span class="p">,</span> <span class="mi">1010</span><span class="p">,</span> <span class="mi">1010</span><span class="p">,</span> <span class="mi">1010</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">list2</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1003</span><span class="p">,</span> <span class="mi">1021</span><span class="p">,</span> <span class="mi">1021</span><span class="p">,</span> <span class="mi">1021</span><span class="p">,</span> <span class="mi">1021</span><span class="p">,</span> <span class="mi">1021</span><span class="p">,</span> <span class="mi">1003</span><span class="p">,</span> <span class="mi">1003</span><span class="p">,</span> <span class="mi">1003</span><span class="p">,</span> <span class="mi">1003</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dkt</span> <span class="o">=</span> <span class="n">DKTprotocol</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">targets</span> <span class="o">=</span> <span class="n">dkt</span><span class="o">.</span><span class="n">cerebrum_cortex_DKT31_numbers</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">save_output</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">compute_overlap</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="n">list1</span><span class="p">,</span> <span class="n">list2</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span> <span class="n">save_output</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="mindboggle.guts.compute.means_per_label">
 <code class="descclassname">mindboggle.guts.compute.</code><code class="descname">means_per_label</code><span class="sig-paren">(</span><em>values</em>, <em>labels</em>, <em>include_labels=[]</em>, <em>exclude_labels=[]</em>, <em>areas=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.compute.means_per_label" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the mean value across vertices per label,
