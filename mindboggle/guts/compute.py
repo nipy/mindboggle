@@ -907,6 +907,95 @@ def volume_for_each_label(input_file, include_labels=[], exclude_labels=[],
     return labels, volumes, output_table
 
 
+def compute_overlaps(targets, list1, list2, output_file='', save_output=True):
+    """
+    Compute overlap for each target between two lists of numbers.
+
+    Parameters
+    ----------
+    targets : list of integers
+        targets to find in lists
+    list1 : 1-D numpy array (or list) of numbers
+    list2 : 1-D numpy array (or list) of numbers
+    output_file : string
+        (optional) output file name
+    save_output : Boolean
+        save output file?
+
+    Returns
+    -------
+    dice_overlaps : numpy array
+        Dice overlap values
+    jacc_overlaps : numpy array
+        Jaccard overlap values
+    output_file : string
+        output text file name with overlap values
+
+    Examples
+    --------
+    >>> from mindboggle.guts.compute import compute_overlaps
+    >>> from mindboggle.mio.labels import DKTprotocol
+    >>> list1 = [1021, 1021, 1021, 1021, 1021, 1010, 1010, 1010, 1010, 1010]
+    >>> list2 = [1003, 1021, 1021, 1021, 1021, 1021, 1003, 1003, 1003, 1003]
+    >>> dkt = DKTprotocol()
+    >>> targets = dkt.cerebrum_cortex_DKT31_numbers
+    >>> output_file = ''
+    >>> save_output = True
+    >>> compute_overlaps(targets, list1, list2, output_file, save_output)
+
+    """
+    import os
+    import numpy as np
+    import pandas as pd
+
+    if isinstance(list1, list):
+        list1 = np.array(list1)
+    if isinstance(list2, list):
+        list2 = np.array(list2)
+
+    # Initialize output:
+    dice_overlaps = np.zeros(len(targets))
+    jacc_overlaps = np.zeros(len(targets))
+    if save_output and not output_file:
+        output_file = os.path.join(os.getcwd(), 'ID_dice_jaccard.csv')
+
+    # Loop through targets:
+    for itarget, target in enumerate(targets):
+
+        # Find which indices contain the target:
+        list1_indices = np.where(list1 == target)[0]
+        list2_indices = np.where(list2 == target)[0]
+        len1 = len(list1_indices)
+        len2 = len(list2_indices)
+
+        # Compute their intersection and union:
+        len_intersection = len(np.intersect1d(list2_indices, list1_indices))
+        len_union = len(np.union1d(list2_indices, list1_indices))
+
+        # If there is at least one target in each list:
+        if len2 * len1 > 0:
+
+            # Compute Dice and Jaccard coefficients:
+            dice = np.float(2.0 * len_intersection) / (len2 + len1)
+            jacc = np.float(len_intersection) / len_union
+            dice_overlaps[itarget] = dice
+            jacc_overlaps[itarget] = jacc
+            print('target: {0}, dice: {1:.2f}, jacc: {2:.2f}'.format(
+                  target, dice, jacc))
+
+    # Save output:
+    if save_output:
+        #np.savetxt(output_file, overlaps, fmt='%d %.4f %.4f',
+        #           delimiter='\t', newline='\n')
+        df1 = pd.DataFrame({'ID': targets})
+        df2 = pd.DataFrame({'Dice overlap': dice_overlaps})
+        df3 = pd.DataFrame({'Jaccard overlap': jacc_overlaps})
+        df = pd.concat([df1, df2, df3], axis=1)
+        df.to_csv(output_file, index=False)
+
+    return dice_overlaps, jacc_overlaps, output_file
+
+
 def compute_image_histogram(infile, nbins=100, threshold=0.0):
     """
     Compute histogram values from nibabel-readable image.
@@ -957,3 +1046,4 @@ def compute_image_histogram(infile, nbins=100, threshold=0.0):
     ##a,b,c = hist(data, bins=nbins)
 
     return histogram_values
+
