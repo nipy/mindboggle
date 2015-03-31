@@ -344,11 +344,6 @@ atropos_to_MNI152_affine = 'OASIS-30_Atropos_template_to_MNI152_affine.txt'
 #-----------------------------------------------------------------------------
 surface_atlas_type = 'manual'
 #modify_surface_labels = False
-#-----------------------------------------------------------------------------
-# Evaluation:
-#-----------------------------------------------------------------------------
-do_evaluate_surf_labels = False  # Surface overlap: auto vs. manual labels
-do_evaluate_vol_labels = False  # Volume overlap: auto vs. manual labels
 
 #=============================================================================
 #
@@ -593,7 +588,7 @@ if not args.no_surfaces:
     #-------------------------------------------------------------------------
     # Evaluation inputs: location and structure of atlas surfaces:
     #-------------------------------------------------------------------------
-    if (do_evaluate_surf_labels or surface_labels == 'manual') and do_label:
+    if surface_labels == 'manual' and do_label:
         SurfaceAtlas = Node(name='Surface_atlas',
                             interface=DataGrabber(infields=['subject','hemi'],
                                                   outfields=['atlas_file'],
