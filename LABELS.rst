@@ -35,23 +35,25 @@ Combined/eliminated regions
     to form single middle frontal region (3).
 (4) Opercular (18), orbital (19), and triangular (20) inferior frontal regions
     combined to form a single inferior frontal region (18).
-This is a perfectly reasonable aggregation of these regions and is the one
+
+Jason Tourville: "This is a perfectly reasonable aggregation of these regions and is the one
 reflected in the sulcus/region pairings below. An alternative breakdown
 would be to lump 19 with lateral orbitofrontal cortex (12) and use the
 anterior horizontal ramus of the sylvian fissure as the boundary between
 18 and 12. Anatomically, both aggregations are defensible but one or the other
-may suit your needs better.
+may suit your needs better."
 
-Jason Tourville:  "Regarding the lack of a full, consistent sulcal anterior
-boundary for the inferior frontal gyrus:
-This will be the case for several regions, i.e., in practice, many boundaries
+Regarding the lack of a full, consistent sulcal anterior boundary
+for the inferior frontal gyrus:
+"This will be the case for several regions, i.e., in practice, many boundaries
 are not formed by sulci but instead require "jumps" across gyri
 (paths along regions of different direction curvature). This can be variable,
 (e.g., the precentral sulcus is consistently formed by 2 or more disconnected
 components) or implicit in the definition of the boundary (e.g., the anterior
 boundary between orbital inferior frontal gyrus (19) and rostral middle
-frontal gyrus (27) requires a "jump" over the lateral orbital gyrus.
-Below, I note with a '*' those boundaries given principally by a sulcal fundus
+frontal gyrus (27) requires a "jump" over the lateral orbital gyrus."
+
+"Below, I note with a '*' those boundaries given principally by a sulcal fundus
 but which frequently require "jumps" across gyri. I handle separately
 definitions that explicitly rely on non-fundus boundaries, i.e., those that
 rely on the margins of sulcal banks."
@@ -75,8 +77,8 @@ Lateral surface:
 - postcentral: [22,29],[22,31], not:[22,24]
 - intraparietal: [29,31], [8,29]
 - primary intermediate sulcus /
-    1st segment of the posterior superior temporal sulcus: [8,31]*
-- sylvian fissure: [30,31]*, not:[18,30] (see Note #2)
+    1st segment of the posterior superior temporal sulcus: [8,31]* (see Note #2)
+- sylvian fissure: [30,31]*, not:[18,30] (see Note #3)
 - lateral occipital sulcus: [8,11]*,[11,29]*
 - anterior occipital sulcus: [11,15]*,[9,11]
 - superior temporal sulcus: [15,30]
@@ -86,17 +88,17 @@ PeriSylvian area (folds within the Sylvian fissure):
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - circular sulcus: [12,35],[30,35],[34,35], [2,35],[10,35],[23,35],[26,35],
                  [22,35], [24,35], [31,35]
-- 1st transverse temporal sulcus: [30,34]
+- 1st transverse temporal sulcus: [30,34] (see Note #4)
 - Heschl's sulcus: [30,34]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Medial surface:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- cingulate sulcus: [2,14],[10,14],[14,23],[14,26] (see Note #3),
+- cingulate sulcus: [2,14],[10,14],[14,23],[14,26] (see Note #5),
                   [2,28],[10,28],[23,28],[26,28],
                   [2,17],[10,17],[17,23],[17,26], [17,25]
 - paracentral sulcus: [17,28]*
 - parietooccipital fissure: [5,25]
-- calcarine fissure: [13,25], [2,13],[10,13],[13,23],[13,26] not:[5,13] (see Note #4)
+- calcarine fissure: [13,25], [2,13],[10,13],[13,23],[13,26] not:[5,13] (see Note #6)
 - superior rostral sulcus: [14,28]
 - callosal sulcus: [2,4],[4,10],[4,23],[4,26]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -132,12 +134,27 @@ Notes
 ------------------------------------------------------------------------------
 [1] This was eliminated because it spanned the superior temporal sulcus fundus
     and because the anterior boundary was ambiguous.
-[2] The insula lies b/w these regions and is separated from them by the
+[2] For "1st segment posterior superior temporal sulcus /
+    primary intermediate sulcus" the standard abbreviations are "csts1/pis"
+    or, if you like, you can just drop the "pis" part and go with csts1,
+    which forms the bulk of the boundary. The abbreviation is used in the
+    recent Petrides atlas and some other sources and stands for
+    "caudal superior temporal sulcus, 1st segment".
+[3] For "1st transverse temporal sulcus and Heschl sulcus" it's important
+    to realize that these are two different sulci that form two different
+    boundaries around Heschl's gyrus (the former is the anterior boundary;
+    the latter is the posterior boundary). So both should be included.
+    The standard abbreviations are "ftts" and "hs". It may appear that these
+    sulci form a single, unbroken boundary of Heschl's gyrus, but they
+    actually do not intersect. So for labeling figures, having an abbreviation
+    associated with a line in front of Heschl's and one associated with a line
+    behind Heschl's is fine. And accurate.
+[4] The insula lies between these regions and is separated from them by the
     circular sulcus which is marked by an easily distinguished fold deep
     within the Sylvian fissure.
-[3] This is the case in some, but not all, hemispheres. It occurs when the
+[5] This is the case in some, but not all, hemispheres. It occurs when the
     superior rostral sulcus fails to intersect with the cingulate sulcus.
-[4] The pericalcarine region lies between these 2 regions. As defined in
+[6] The pericalcarine region lies between these 2 regions. As defined in
     "Regions bounded by sulcal margins", the pericalcarine cortex (21)
     dorsal (with 5) and ventral (with 13) boundaries are formed by the
     lateral margins of the dorsal and ventral banks of the calcarine sulcus
@@ -282,7 +299,7 @@ and were reassigned to unused numbers in FreeSurferColorLUT.txt:
 -    "central sulcus"
 -    "postcentral sulcus"
 -    "intraparietal sulcus"
--    "primary intermediate sulcus/1st segment of post. sup. temporal sulcus"
+-    "1st segment of post. sup. temporal sulcus / primary intermediate sulcus"
 -    "sylvian fissure"
 -    "lateral occipital sulcus"
 -    "anterior occipital sulcus"
@@ -311,7 +328,7 @@ and were reassigned to unused numbers in FreeSurferColorLUT.txt:
 -    "cs"
 -    "pocs"
 -    "itps"
--    "pis/csts1"
+-    "csts1/pis"
 -    "ls"
 -    "locs"
 -    "aocs"
