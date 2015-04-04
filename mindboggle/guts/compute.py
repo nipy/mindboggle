@@ -805,106 +805,67 @@ def stats_per_label(values, labels, include_labels=[], exclude_labels=[],
            lower_quarts, upper_quarts, label_list
 
 
-def volume_for_each_label(input_file, include_labels=[], exclude_labels=[],
-                     label_names=[], save_table=False,
-                     output_table=''):
+def count_per_label(labels, include_labels=[], exclude_labels=[]):
     """
-    Compute volume per labeled region in a nibabel-readable image.
-
-    Note: Results are truncated at three decimal places because we found that
-    volume label propagation led to differences in the third decimal place.
+    Compute the number of times each label occurs.
 
     Parameters
     ----------
-    input_file : string
-        name of image file, consisting of index-labeled pixels/voxels
+    labels : list of integers
+        labels (e.g., one label per vertex of a mesh)
     include_labels : list of integers
         labels to include
         (if empty, use unique numbers in image volume file)
     exclude_labels : list of integers
         labels to be excluded
-    label_names : list of strings
-        label names corresponding to labels to include
-    save_table : Boolean
-        save output table file with labels and volume values?
-    output_table : string
-        name of output table file with labels and volume values
 
     Returns
     -------
-    labels_volumes : list of integer list and float list
-        label numbers and volume for each labeled region (default -1)
-    output_table : string
-        name of output volume table file (if output_table not empty)
+    unique_labels : list of integers
+        unique label numbers
+    counts : list of floats
+        number of times each label occurs
 
     Examples
     --------
     >>> import os
+    >>> import nibabel as nb
+    >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.mio.labels import DKTprotocol
-    >>> from mindboggle.guts.compute import volume_for_each_label
-    >>> input_file = os.path.join(os.environ['HOME'], 'mindboggled', 'OASIS-TRT-20-1', 'labels', 'ANTs_filled_labels.nii.gz')
+    >>> from mindboggle.guts.compute import count_per_label
+    >>> input_file = os.path.join(os.environ['HOME'], 'mindboggled', 'Twins-2-1old', 'labels', 'freesurfer_wmparc_filled_labels.nii.gz')
+    >>> img = nb.load(input_file)
+    >>> hdr = img.get_header()
+    >>> labels = img.get_data().ravel()
     >>> dkt = DKTprotocol()
     >>> include_labels = dkt.label_numbers
     >>> exclude_labels = []
-    >>> label_names = dkt.label_names
-    >>> save_table = True
-    >>> output_table = 'volumes.csv'
-    >>> labels_volumes, output_table = volume_for_each_label(input_file, include_labels, exclude_labels, label_names, save_table, output_table)
-    >>> print(labels_volumes)
+    >>> unique_labels, counts = count_per_label(labels, include_labels, exclude_labels)
+    >>> print(counts)
 
     """
-    import os
     import numpy as np
-    import nibabel as nb
 
-    # Load labeled image volumes:
-    img = nb.load(input_file)
-    hdr = img.get_header()
-    volume_per_voxel = np.product(hdr.get_zooms())
-    data = img.get_data().ravel()
-
-    # Initialize output:
+    # Unique list of labels:
     if include_labels:
         label_list = include_labels
     else:
-        label_list = np.unique(data).tolist()
+        label_list = np.unique(labels).tolist()
     label_list = [int(x) for x in label_list if int(x) not in exclude_labels]
 
-    # Output table:
-    if save_table:
-        if output_table:
-            output_table = os.path.join(os.getcwd(), output_table)
-        else:
-            output_table = os.path.join(os.getcwd(),
-                                        'volume_for_each_label.csv')
-        fid = open(output_table, 'w')
-        if len(label_names) == len(label_list):
-            fid.write("name, ID, volume\n")
-        else:
-            fid.write("ID, volume\n")
-    else:
-        output_table = ''
-
     # Loop through labels:
-    labels = []
-    volumes = []
+    unique_labels = []
+    counts = []
     for ilabel, label in enumerate(label_list):
 
         # Find which voxels contain the label in each volume:
-        indices = np.where(data == label)[0]
+        indices = np.where(labels == label)[0]
         if len(indices):
-            volume = volume_per_voxel * len(indices)
-            labels.append(label)
-            volumes.append(volume)
+            count = len(indices)
+            unique_labels.append(label)
+            counts.append(count)
 
-            if save_table:
-                if len(label_names) == len(label_list):
-                    fid.write('{0}, {1}, {2:2.3f}\n'.format(
-                              label_names[ilabel], label, volume))
-                else:
-                    fid.write('{0}, {1:2.3f}\n'.format(label, volume))
-
-    return labels, volumes, output_table
+    return unique_labels, counts
 
 
 def compute_overlaps(targets, list1, list2, output_file='', save_output=True):

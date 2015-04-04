@@ -40,7 +40,6 @@ from nipype.pipeline.engine import Workflow, Node
 from mindboggle.features.folds import extract_folds
 from mindboggle.features.fundi import extract_fundi, segment_fundi
 from mindboggle.features.sulci import extract_sulci
-from mindboggle.guts.compute import volume_for_each_label
 from mindboggle.guts.mesh import rescale_by_neighborhood
 from mindboggle.guts.paths import smooth_skeleton
 from mindboggle.guts.relabel import relabel_surface, relabel_volume, \
@@ -57,9 +56,9 @@ from mindboggle.mio.vtks import read_vtk, apply_affine_transforms, \
     freesurfer_annot_to_vtk
 from mindboggle.shapes.laplace_beltrami import spectrum_per_label
 from mindboggle.shapes.likelihood import compute_likelihood
-from mindboggle.shapes.shape_tools import area, curvature, travel_depth, \
+from mindboggle.shapes.surface_shapes import area, curvature, travel_depth, \
     geodesic_depth
-from mindboggle.shapes.thickinthehead import thickinthehead
+from mindboggle.shapes.volume_shapes import thickinthehead, volume_per_brain_region
 from mindboggle.shapes.zernike.zernike import zernike_moments_per_label
 from mindboggle.thirdparty.ants import PropagateLabelsThroughMask
 
@@ -2066,14 +2065,14 @@ if do_label and not args.no_volumes:
         # Volumes of the FreeSurfer filled labels:
         #---------------------------------------------------------------------
         FSlabelVolumes = Node(name='FreeSurfer_filled_label_volumes',
-                              interface=Fn(function=volume_for_each_label,
+                              interface=Fn(function=volume_per_brain_region,
                                            input_names=['input_file',
                                                         'include_labels',
                                                         'exclude_labels',
                                                         'label_names',
                                                         'save_table',
                                                         'output_table'],
-                                           output_names=['labels',
+                                           output_names=['unique_labels',
                                                          'volumes',
                                                          'output_table']))
         VolShapeFlow.add_nodes([FSlabelVolumes])
