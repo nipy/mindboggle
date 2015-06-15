@@ -908,3 +908,87 @@ def select_column_from_mindboggle_tables(subjects, hemi, index, tables_dir,
         write_table, output_table)
 
     return tables, columns, output_table
+
+def explode_mindboggle_tables(subject, subject_path='', output_path='',
+                              break_column='label ID'):
+    """
+    Given a subject name corresponding to Mindboggle outputs, break up each
+    hemisphere's vertices.csv file into a separate table file for each label.
+
+    Parameters
+    ----------
+    subject : string
+        name of subject run through Mindboggle
+    subject_path : string
+        path to subject's parent directory
+    output_path : string
+        output path/directory
+    break_column : string
+        column header that contains the integers to break up into tables
+
+    Examples
+    --------
+    >>> from mindboggle.mio.tables import explode_mindboggle_tables
+    >>> subject = 'Twins-2-1'
+    >>> subject_path = '/Users/arno/mindboggled'
+    >>> output_path = '/desk'
+    >>> break_column = 'label ID'
+    >>> explode_mindboggle_tables(subject, subject_path, output_path, break_column)
+    """
+    import os
+    import numpy as np
+    import pandas as pd
+
+    if not os.path.exists(output_path):
+        print("{0} does not exist".format(output_path))
+    else:
+
+        for side in ['left', 'right']:
+
+            output_dir = os.path.join(output_path, side + '_exploded_tables')
+            if not os.path.exists(output_dir):
+                print("Create missing output directory: {0}".format(output_dir))
+                os.mkdir(output_dir)
+            if os.path.exists(output_dir):
+
+                vertices_table = os.path.join(subject_path, subject, 'tables',
+                                              side + '_cortical_surface',
+                                              'vertices.csv')
+                shape_column_names = ['travel depth',
+                                      'geodesic depth',
+                                      'mean curvature',
+                                      'freesurfer curvature',
+                                      'freesurfer thickness',
+                                      'freesurfer convexity (sulc)']
+                shape_column_names2 = ['travel_depth',
+                                       'geodesic_depth',
+                                       'mean_curvature',
+                                       'freesurfer_curvature',
+                                       'freesurfer_thickness',
+                                       'freesurfer_sulc']
+
+                print("Explode {0} by {1} values".
+                      format(vertices_table, break_column))
+
+                df = pd.read_csv(vertices_table,
+                        header=0,
+                        index_col=break_column)
+                        #usecols=shape_column_names)
+
+                df1 = df[shape_column_names]
+                unique_labels = np.unique(df1.index)
+
+                df1.columns = shape_column_names2
+
+                for label in unique_labels:
+                    label_table = df1.loc[label]
+
+                    out_file = os.path.join(output_dir, str(label) + '.csv')
+                    label_table.to_csv(out_file, index=False)
+
+                    if not os.path.exists(out_file):
+                        raise(IOError(out_file + " not found"))
+            else:
+                print('Unable to make directory {0}'.format(output_dir))
+
+
