@@ -104,6 +104,46 @@
 <div class="section" id="functions">
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
+<dt id="mindboggle.mio.tables.explode_mindboggle_tables">
+<code class="descclassname">mindboggle.mio.tables.</code><code class="descname">explode_mindboggle_tables</code><span class="sig-paren">(</span><em>subject</em>, <em>subject_path=''</em>, <em>output_path=''</em>, <em>break_column='label ID'</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.tables.explode_mindboggle_tables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a subject name corresponding to Mindboggle outputs, break up each
+hemisphere&#8217;s vertices.csv file into a separate table file for each label.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>subject</strong> : string</p>
+<blockquote>
+<div><p>name of subject run through Mindboggle</p>
+</div></blockquote>
+<p><strong>subject_path</strong> : string</p>
+<blockquote>
+<div><p>path to subject&#8217;s parent directory</p>
+</div></blockquote>
+<p><strong>output_path</strong> : string</p>
+<blockquote>
+<div><p>output path/directory</p>
+</div></blockquote>
+<p><strong>break_column</strong> : string</p>
+<blockquote class="last">
+<div><p>column header that contains the integers to break up into tables</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.tables</span> <span class="kn">import</span> <span class="n">explode_mindboggle_tables</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subject</span> <span class="o">=</span> <span class="s">&#39;Twins-2-1&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subject_path</span> <span class="o">=</span> <span class="s">&#39;/Users/arno/mindboggled&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_path</span> <span class="o">=</span> <span class="s">&#39;/desk&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">break_column</span> <span class="o">=</span> <span class="s">&#39;label ID&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">explode_mindboggle_tables</span><span class="p">(</span><span class="n">subject</span><span class="p">,</span> <span class="n">subject_path</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">break_column</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="mindboggle.mio.tables.select_column_from_mindboggle_tables">
 <code class="descclassname">mindboggle.mio.tables.</code><code class="descname">select_column_from_mindboggle_tables</code><span class="sig-paren">(</span><em>subjects</em>, <em>hemi</em>, <em>index</em>, <em>tables_dir</em>, <em>table_name</em>, <em>is_surface_table=True</em>, <em>write_table=True</em>, <em>output_table=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.tables.select_column_from_mindboggle_tables" title="Permalink to this definition">¶</a></dt>
 <dd><p>Select column from Mindboggle shape tables and make a new table.</p>
