@@ -26,6 +26,7 @@ Python and C++ code run within a Nipype pipeline framework.
     mindboggle -h
 
 - `FAQs <http://www.mindboggle.info/faq/>`_
+- `Example output data <http://media.mindboggle.info/data/example/Twins-2-1.tar.gz>`_
 - `Documentation <http://mindboggle.info/documentation.html>`_
 - `Installation <http://mindboggle.info/users/INSTALL.html>`_
 - `GitHub <http://github.com/binarybottle/mindboggle>`_
@@ -147,6 +148,8 @@ _`Mindboggle processing steps`
 ------------------------------------------------------------------------------
 _`Mindboggle output files`
 ------------------------------------------------------------------------------
+Example output data can be downloaded from 
+`here <http://media.mindboggle.info/data/example/Twins-2-1.tar.gz>`_.
 By default, output files are saved in HOME/mindboggled/SUBJECT,
 where HOME is the home directory and SUBJECT is the name of the subject.
 Volume files are in `Nifti <http://nifti.nimh.nih.gov>`_ format,
