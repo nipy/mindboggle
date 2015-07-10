@@ -95,15 +95,14 @@
 <p>Compute the Dice and Jaccard overlap measures for each labeled region
 of two labeled surfaces or image volumes, for example one that has been
 manually labeled and one that has been automatically labeled.</p>
-<p>For surface overlap, this program simply calls Joachim Giard&#8217;s code.</p>
 <dl class="docutils">
 <dt>Authors:</dt>
 <dd><ul class="first last simple">
-<li>Arno Klein  (<a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>)  <a class="reference external" href="http://binarybottle.com">http://binarybottle.com</a></li>
+<li>Arno Klein, 2012-2015 (<a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>)  <a class="reference external" href="http://binarybottle.com">http://binarybottle.com</a></li>
 </ul>
 </dd>
 </dl>
-<p>Copyright 2012,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
+<p>Copyright 2015,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
 </div>
 <div class="section" id="functions">
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
@@ -163,13 +162,66 @@ manually labeled and one that has been automatically labeled.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.labels</span> <span class="kn">import</span> <span class="n">DKTprotocol</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dkt</span> <span class="o">=</span> <span class="n">DKTprotocol</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">labels</span> <span class="o">=</span> <span class="n">dkt</span><span class="o">.</span><span class="n">cerebrum_cortex_DKT31_numbers</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">index</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="s">&#39;/homedir/mindboggled&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">table1</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;Twins-2-1&#39;</span><span class="p">,</span> <span class="s">&#39;tables&#39;</span><span class="p">,</span> <span class="s">&#39;left_cortical_surface&#39;</span><span class="p">,</span> <span class="s">&#39;vertices.csv&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">table2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;Twins-2-1&#39;</span><span class="p">,</span> <span class="s">&#39;tables&#39;</span><span class="p">,</span> <span class="s">&#39;left_cortical_surface&#39;</span><span class="p">,</span> <span class="s">&#39;vertices.csv&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">save_output</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">evaluate_surface_overlaps</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">table1</span><span class="p">,</span> <span class="n">table2</span><span class="p">,</span> <span class="n">output_file</span><span class="o">=</span><span class="n">output_file</span><span class="p">,</span> <span class="n">save_output</span><span class="o">=</span><span class="n">save_output</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="mindboggle.evaluate.evaluate_labels.evaluate_surface_overlaps_cpp">
+<code class="descclassname">mindboggle.evaluate.evaluate_labels.</code><code class="descname">evaluate_surface_overlaps_cpp</code><span class="sig-paren">(</span><em>command</em>, <em>labels_file1</em>, <em>labels_file2</em>, <em>output_file</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.evaluate.evaluate_labels.evaluate_surface_overlaps_cpp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Measure surface overlap using Joachim Giard&#8217;s code.</p>
+<p>Note: Fails if two files have different number of vertices.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>command</strong> : string</p>
+<blockquote>
+<div><p>surface overlap C++ executable command</p>
+</div></blockquote>
+<p><strong>labels_file1</strong> : string</p>
+<blockquote>
+<div><p><code class="docutils literal"><span class="pre">vtk</span> <span class="pre">file</span></code> with index labels for scalar values</p>
+</div></blockquote>
+<p><strong>labels_file2</strong> : string</p>
+<blockquote>
+<div><p><code class="docutils literal"><span class="pre">vtk</span> <span class="pre">file</span></code> with index labels for scalar values</p>
+</div></blockquote>
+<p><strong>output_file</strong> : string</p>
+<blockquote>
+<div><p>(optional) output file name</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>output_file</strong> : string</p>
+<blockquote class="last">
+<div><p>name of output text file with overlap results</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.evaluate.evaluate_labels</span> <span class="kn">import</span> <span class="n">evaluate_surface_overlaps_cpp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mindboggle</span> <span class="kn">import</span> <span class="n">hashes_url</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">fetch_check_data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hashes</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">cache_env</span><span class="p">,</span> <span class="n">cache</span> <span class="o">=</span> <span class="n">hashes_url</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ccode_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_TOOLS&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">command</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ccode_path</span><span class="p">,</span> <span class="s">&#39;surface_overlap&#39;</span><span class="p">,</span> <span class="s">&#39;SurfaceOverlapMain&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">label_file1</span> <span class="o">=</span> <span class="s">&#39;lh.labels.DKT25.manual.vtk&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">label_file2</span> <span class="o">=</span> <span class="s">&#39;lh.labels.DKT31.manual.vtk&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file1</span> <span class="o">=</span> <span class="n">fetch_check_data</span><span class="p">(</span><span class="n">label_file1</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">hashes</span><span class="p">,</span> <span class="n">cache_env</span><span class="p">,</span> <span class="n">cache</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file2</span> <span class="o">=</span> <span class="n">fetch_check_data</span><span class="p">(</span><span class="n">label_file2</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">hashes</span><span class="p">,</span> <span class="n">cache_env</span><span class="p">,</span> <span class="n">cache</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">evaluate_surface_overlaps_cpp</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">file1</span><span class="p">,</span> <span class="n">file2</span><span class="p">,</span> <span class="n">output_file</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>

@@ -95,11 +95,11 @@
 <dl class="docutils">
 <dt>Authors:</dt>
 <dd><ul class="first last simple">
-<li>Arno Klein, 2012-2014  (<a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>)  <a class="reference external" href="http://binarybottle.com">http://binarybottle.com</a></li>
+<li>Arno Klein, 2012-2015  (<a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>)  <a class="reference external" href="http://binarybottle.com">http://binarybottle.com</a></li>
 </ul>
 </dd>
 </dl>
-<p>Copyright 2013,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
+<p>Copyright 2015,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
 </div>
 <div class="section" id="functions">
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
@@ -144,8 +144,8 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="mindboggle.guts.compute.compute_overlap">
-<code class="descclassname">mindboggle.guts.compute.</code><code class="descname">compute_overlap</code><span class="sig-paren">(</span><em>targets</em>, <em>list1</em>, <em>list2</em>, <em>output_file=''</em>, <em>save_output=True</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.compute.compute_overlap" title="Permalink to this definition">¶</a></dt>
+<dt id="mindboggle.guts.compute.compute_overlaps">
+<code class="descclassname">mindboggle.guts.compute.</code><code class="descname">compute_overlaps</code><span class="sig-paren">(</span><em>targets</em>, <em>list1</em>, <em>list2</em>, <em>output_file=''</em>, <em>save_output=True</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.compute.compute_overlaps" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute overlap for each target between two lists of numbers.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -184,7 +184,7 @@
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.compute</span> <span class="kn">import</span> <span class="n">compute_overlap</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.compute</span> <span class="kn">import</span> <span class="n">compute_overlaps</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.labels</span> <span class="kn">import</span> <span class="n">DKTprotocol</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">list1</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1021</span><span class="p">,</span> <span class="mi">1021</span><span class="p">,</span> <span class="mi">1021</span><span class="p">,</span> <span class="mi">1021</span><span class="p">,</span> <span class="mi">1021</span><span class="p">,</span> <span class="mi">1010</span><span class="p">,</span> <span class="mi">1010</span><span class="p">,</span> <span class="mi">1010</span><span class="p">,</span> <span class="mi">1010</span><span class="p">,</span> <span class="mi">1010</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">list2</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1003</span><span class="p">,</span> <span class="mi">1021</span><span class="p">,</span> <span class="mi">1021</span><span class="p">,</span> <span class="mi">1021</span><span class="p">,</span> <span class="mi">1021</span><span class="p">,</span> <span class="mi">1021</span><span class="p">,</span> <span class="mi">1003</span><span class="p">,</span> <span class="mi">1003</span><span class="p">,</span> <span class="mi">1003</span><span class="p">,</span> <span class="mi">1003</span><span class="p">]</span>
@@ -192,7 +192,61 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="n">targets</span> <span class="o">=</span> <span class="n">dkt</span><span class="o">.</span><span class="n">cerebrum_cortex_DKT31_numbers</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">save_output</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">compute_overlap</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="n">list1</span><span class="p">,</span> <span class="n">list2</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span> <span class="n">save_output</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">compute_overlaps</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="n">list1</span><span class="p">,</span> <span class="n">list2</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span> <span class="n">save_output</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="mindboggle.guts.compute.count_per_label">
+<code class="descclassname">mindboggle.guts.compute.</code><code class="descname">count_per_label</code><span class="sig-paren">(</span><em>labels</em>, <em>include_labels=[]</em>, <em>exclude_labels=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.compute.count_per_label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the number of times each label occurs.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>labels</strong> : list of integers</p>
+<blockquote>
+<div><p>labels (e.g., one label per vertex of a mesh)</p>
+</div></blockquote>
+<p><strong>include_labels</strong> : list of integers</p>
+<blockquote>
+<div><p>labels to include
+(if empty, use unique numbers in image volume file)</p>
+</div></blockquote>
+<p><strong>exclude_labels</strong> : list of integers</p>
+<blockquote>
+<div><p>labels to be excluded</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>unique_labels</strong> : list of integers</p>
+<blockquote>
+<div><p>unique label numbers</p>
+</div></blockquote>
+<p><strong>counts</strong> : list of floats</p>
+<blockquote class="last">
+<div><p>number of times each label occurs</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">nibabel</span> <span class="kn">as</span> <span class="nn">nb</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.labels</span> <span class="kn">import</span> <span class="n">DKTprotocol</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.compute</span> <span class="kn">import</span> <span class="n">count_per_label</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;HOME&#39;</span><span class="p">],</span> <span class="s">&#39;mindboggled&#39;</span><span class="p">,</span> <span class="s">&#39;Twins-2-1old&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;freesurfer_wmparc_filled_labels.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span> <span class="o">=</span> <span class="n">nb</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">input_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_header</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">labels</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dkt</span> <span class="o">=</span> <span class="n">DKTprotocol</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">include_labels</span> <span class="o">=</span> <span class="n">dkt</span><span class="o">.</span><span class="n">label_numbers</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exclude_labels</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">unique_labels</span><span class="p">,</span> <span class="n">counts</span> <span class="o">=</span> <span class="n">count_per_label</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">include_labels</span><span class="p">,</span> <span class="n">exclude_labels</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -684,72 +738,6 @@ where <em>a_i</em> and <em>v_i</em> are the area and value for each vertex <em>i
 <span class="gp">&gt;&gt;&gt; </span><span class="n">vector2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">5</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">vector_distance</span><span class="p">(</span><span class="n">vector1</span><span class="p">,</span> <span class="n">vector2</span><span class="p">)</span>
 <span class="go">  0.81649658092772592</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="mindboggle.guts.compute.volume_for_each_label">
-<code class="descclassname">mindboggle.guts.compute.</code><code class="descname">volume_for_each_label</code><span class="sig-paren">(</span><em>input_file</em>, <em>include_labels=[]</em>, <em>exclude_labels=[]</em>, <em>label_names=[]</em>, <em>save_table=False</em>, <em>output_table=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.compute.volume_for_each_label" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute volume per labeled region in a nibabel-readable image.</p>
-<p>Note: Results are truncated at three decimal places because we found that
-volume label propagation led to differences in the third decimal place.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>input_file</strong> : string</p>
-<blockquote>
-<div><p>name of image file, consisting of index-labeled pixels/voxels</p>
-</div></blockquote>
-<p><strong>include_labels</strong> : list of integers</p>
-<blockquote>
-<div><p>labels to include
-(if empty, use unique numbers in image volume file)</p>
-</div></blockquote>
-<p><strong>exclude_labels</strong> : list of integers</p>
-<blockquote>
-<div><p>labels to be excluded</p>
-</div></blockquote>
-<p><strong>label_names</strong> : list of strings</p>
-<blockquote>
-<div><p>label names corresponding to labels to include</p>
-</div></blockquote>
-<p><strong>save_table</strong> : Boolean</p>
-<blockquote>
-<div><p>save output table file with labels and volume values?</p>
-</div></blockquote>
-<p><strong>output_table</strong> : string</p>
-<blockquote>
-<div><p>name of output table file with labels and volume values</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>labels_volumes</strong> : list of integer list and float list</p>
-<blockquote>
-<div><p>label numbers and volume for each labeled region (default -1)</p>
-</div></blockquote>
-<p><strong>output_table</strong> : string</p>
-<blockquote class="last">
-<div><p>name of output volume table file (if output_table not empty)</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.labels</span> <span class="kn">import</span> <span class="n">DKTprotocol</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.compute</span> <span class="kn">import</span> <span class="n">volume_for_each_label</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;HOME&#39;</span><span class="p">],</span> <span class="s">&#39;mindboggled&#39;</span><span class="p">,</span> <span class="s">&#39;OASIS-TRT-20-1&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;ANTs_filled_labels.nii.gz&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dkt</span> <span class="o">=</span> <span class="n">DKTprotocol</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">include_labels</span> <span class="o">=</span> <span class="n">dkt</span><span class="o">.</span><span class="n">label_numbers</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">exclude_labels</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">label_names</span> <span class="o">=</span> <span class="n">dkt</span><span class="o">.</span><span class="n">label_names</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">save_table</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_table</span> <span class="o">=</span> <span class="s">&#39;volumes.csv&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">labels_volumes</span><span class="p">,</span> <span class="n">output_table</span> <span class="o">=</span> <span class="n">volume_for_each_label</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">include_labels</span><span class="p">,</span> <span class="n">exclude_labels</span><span class="p">,</span> <span class="n">label_names</span><span class="p">,</span> <span class="n">save_table</span><span class="p">,</span> <span class="n">output_table</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">labels_volumes</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
