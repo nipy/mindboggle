@@ -8,22 +8,22 @@
     
     <title>Mindboggle &mdash; Mindboggle</title>
     
-    <link rel="stylesheet" href="../_static/mindboggle.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/mindboggle.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
+        URL_ROOT:    '../../',
         VERSION:     '%s.%s.%s%s',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
       };
     </script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="Mindboggle" href="../index.html" />
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Mindboggle" href="../../index.html" />
   <HTML><head><title>Mindboggle</title>
   <link rel="icon" type="image/png" sizes="96x96" href="http://mindboggle.info/shared/favicon-96x96.png">
   <link rel="icon" type="image/png" sizes="32x32" href="http://mindboggle.info/shared/favicon-32x32.png">
@@ -46,7 +46,7 @@
   <tr>
    <td>
 
- <a href="../index.html">
+ <a href="../../index.html">
   <img src="http://binarybottle.github.io/mindboggle/shared/mindboggle_logo_small.jpg" alt="small mindboggle logo"  border="0" width="160"/></a>
 
    </td>
@@ -54,7 +54,7 @@
     <table>
      <tr>
  <a style="padding: 20px 20px 20px 20px; color: #b07613; text-decoration: none; font-size: 32px"
-  href="../index.html">Mindboggle</a>
+  href="../../index.html">Mindboggle</a>
      </tr>
      <tr> <td height="18"></td>
      </tr>
@@ -65,15 +65,15 @@
       </td>
       <td>
   <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
-   href="../data.html">Data</a>
+   href="../../data.html">Data</a>
       </td>
       <td>
   <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
-   href="../papers.html">Papers</a>
+   href="../../papers.html">Papers</a>
       </td>
       <td>
   <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
-   href="../people.html">People</a>
+   href="../../people.html">People</a>
       </td>
      </tr>
     </table>
@@ -87,32 +87,13 @@
       <div class="documentwrapper">
           <div class="body" role="main">
             
-  <span class="target" id="users-guide-index"></span><div class="section" id="user-guide">
-<h1>User Guide<a class="headerlink" href="#user-guide" title="Permalink to this headline">¶</a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="README.html">Software &#8211; NOTE: MINDBOGGLE IS STILL IN PRE-RELEASE AND IS UNDERGOING CHANGES</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="README.html#id2">Introduction and help</a></li>
-<li class="toctree-l2"><a class="reference internal" href="README.html#id3">Set up Mindboggle</a></li>
-<li class="toctree-l2"><a class="reference internal" href="README.html#id4">Example Mindboggle commands</a></li>
-<li class="toctree-l2"><a class="reference internal" href="README.html#id5">FreeSurfer and ANTs preprocessing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="README.html#id6">Mindboggle processing steps</a></li>
-<li class="toctree-l2"><a class="reference internal" href="README.html#id7">Mindboggle output files</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="INSTALL.html">Installation  <strong>(UNDER CONSTRUCTION)</strong></a><ul>
-<li class="toctree-l2"><a class="reference internal" href="INSTALL.html#dependencies">Dependencies</a></li>
-<li class="toctree-l2"><a class="reference internal" href="INSTALL.html#software-to-generate-input-data-for-mindboggle">Software to generate input data for Mindboggle</a></li>
-<li class="toctree-l2"><a class="reference internal" href="INSTALL.html#configure-virtual-machine-with-mounted-directories">Configure virtual machine with mounted directories</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="LICENSE.html">License</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="LICENSE.html#software-license">Software License</a></li>
-<li class="toctree-l2"><a class="reference internal" href="LICENSE.html#documentation-license">Documentation License</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="THANKS.html">Thanks</a></li>
-</ul>
+  <div class="section" id="shapes-shape-tools">
+<h1>shapes.shape_tools<a class="headerlink" href="#shapes-shape-tools" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-shapes-shape-tools">
+<h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">shapes.shape_tools</span></code><a class="headerlink" href="#module-shapes-shape-tools" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
