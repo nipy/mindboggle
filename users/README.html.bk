@@ -8,8 +8,8 @@
     
     <title>Mindboggle &mdash; Mindboggle</title>
     
-    <link rel="stylesheet" href="../shared/mindboggle.css" type="text/css" />
-    <link rel="stylesheet" href="../shared/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/mindboggle.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
@@ -20,9 +20,9 @@
         HAS_SOURCE:  true
       };
     </script>
-    <script type="text/javascript" src="../shared/jquery.js"></script>
-    <script type="text/javascript" src="../shared/underscore.js"></script>
-    <script type="text/javascript" src="../shared/doctools.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="top" title="Mindboggle" href="../index.html" />
   <HTML><head><title>Mindboggle</title>
   <link rel="icon" type="image/png" sizes="96x96" href="http://mindboggle.info/shared/favicon-96x96.png">
@@ -194,15 +194,15 @@ files (backslash denotes a line return):</p>
 <h2><span class="target" id="mindboggle-processing-steps">Mindboggle processing steps</span><a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><ol class="arabic">
-<li><p class="first">Create hybrid gray/white segmentation from FreeSurfer and ANTs output (<a class="reference external" href="https://github.com/binarybottle/mindboggle/blob/master/mindboggle/utils/segment.py">combine_2labels_in_2volumes</a>).</p>
+<li><p class="first">Create hybrid gray/white segmentation from FreeSurfer and ANTs output (<a class="reference external" href="https://github.com/binarybottle/mindboggle/blob/master/mindboggle/guts/segment.py">combine_2labels_in_2volumes</a>).</p>
 </li>
 <li><p class="first">Fill hybrid segmentation with FreeSurfer- or ANTs-registered labels.</p>
 </li>
 <li><p class="first">Compute volume shape measures for each labeled region:</p>
 <blockquote>
 <div><ul class="simple">
-<li>volume (<a class="reference external" href="https://github.com/binarybottle/mindboggle/blob/master/mindboggle/utils/compute.py">volume_per_label</a>)</li>
-<li>thickness of cortical labels (<a class="reference external" href="https://github.com/binarybottle/mindboggle/blob/master/mindboggle/utils/ants.py">thickinthehead</a>)</li>
+<li>volume (<a class="reference external" href="https://github.com/binarybottle/mindboggle/blob/master/mindboggle/guts/compute.py">volume_per_label</a>)</li>
+<li>thickness of cortical labels (<a class="reference external" href="https://github.com/binarybottle/mindboggle/blob/master/mindboggle/guts/ants.py">thickinthehead</a>)</li>
 </ul>
 </div></blockquote>
 </li>
@@ -238,7 +238,7 @@ files (backslash denotes a line return):</p>
 </ul>
 </div></blockquote>
 </li>
-<li><p class="first">Compute statistics (<code class="docutils literal"><span class="pre">stats_per_label</span></code> in <a class="reference external" href="https://github.com/binarybottle/mindboggle/blob/master/mindboggle/utils/compute.py">compute.py</a>) for each shape measure in #4 for each label/feature:</p>
+<li><p class="first">Compute statistics (<code class="docutils literal"><span class="pre">stats_per_label</span></code> in <a class="reference external" href="https://github.com/binarybottle/mindboggle/blob/master/mindboggle/guts/compute.py">compute.py</a>) for each shape measure in #4 for each label/feature:</p>
 <blockquote>
 <div><ul class="simple">
 <li>median</li>
