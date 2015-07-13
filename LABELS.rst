@@ -3,7 +3,7 @@ What labels does Mindboggle use?
 ==============================================================================
 Mindboggle uses labels from complementary labeling protocols:
 
-    - **Desikan-Killiany-Tourville cortical labeling protocol** (`DKT <http://mindboggle.info/data>`_): 31 labels per hemisphere
+    - **Desikan-Killiany-Tourville cortical labeling protocol** (`DKT <http://mindboggle.info/data>`_): 31 per hemisphere
         `101 labeled brain images and a consistent human cortical labeling protocol <http://www.frontiersin.org/Brain_Imaging_Methods/10.3389/fnins.2012.00171/full>`_.
         Arno Klein, Jason Tourville. Frontiers in Brain Imaging Methods. 6:171.
         DOI: 10.3389/fnins.2012.00171
@@ -27,10 +27,8 @@ DKT cortical labeling protocol (31 labels)
 ------------------------------------------------------------------------------
 Four labels have been removed from the 35 cortical labels ("ctx-") 
 of the Desikan-Killiany (DK) protocol (see footnote #1): 
-    bankstss (1001, 2001)
-    corpus callosum (1004, 2004)
-    frontal pole (1032, 2032)
-    temporal pole (1033, 2033)
+bankstss (1001, 2001), corpus callosum (1004, 2004), 
+frontal pole (1032, 2032), and temporal pole (1033, 2033).
 
 - 1002,    "left caudal anterior cingulate"
 - 1003,    "left caudal middle frontal"
@@ -106,7 +104,7 @@ Five labels did not have counterparts in FreeSurfer:
     - 72, "cerebellar vermal lobules VI-VII"
     - 73, "cerebellar vermal lobules VIII-X"
     - 75, "left basal forebrain"
-    - 76, "right basal forebrain"]
+    - 76, "right basal forebrain"
 and were reassigned to unused numbers in FreeSurferColorLUT.txt:
     - 630, "cerebellar vermal lobules I-V"
     - 631, "cerebellar vermal lobules VI-VII"
@@ -249,19 +247,6 @@ cortical label numbers above:
 ------------
 
 ------------------------------------------------------------------------------
-Possible ways to combine or eliminate regions (from Jason Tourville's notes)
-------------------------------------------------------------------------------
-(1) Temporal (33) and frontal (32) poles, and bankstss (1) (see footnote #1)
-    regions eliminated, corresponding cortex absorbed by adjacent regions.
-(2) Caudal (2), isthmus (10), posterior (23), and rostral anterior (26)
-    cingulate combined to form single cingulate region (2).
-(3) Caudal (3) and rostral (27) middle frontal regions combined
-    to form single middle frontal region (3).
-(4) Opercular (18), orbital (19), and triangular (20) inferior frontal regions
-    could combine to form a single inferior frontal region (18) (footnote #2).
-(5) Parahippocampal + entorhinal cortex + and lingual gyrus?
-
-------------------------------------------------------------------------------
 Regions bounded by sulcal fundi
 ------------------------------------------------------------------------------
 A '*' denotes boundaries given principally by a sulcal fundus
@@ -280,8 +265,8 @@ Lateral surface:
 - postcentral: [22,29],[22,31], not:[22,24]
 - intraparietal: [29,31], [8,29]
 - primary intermediate sulcus /
-    1st segment of the posterior superior temporal sulcus: [8,31]* (footnote #3)
-- sylvian fissure: [30,31]*, not:[18,30] (footnote #4)
+    1st segment of the posterior superior temporal sulcus: [8,31]* (footnote #2)
+- sylvian fissure: [30,31]*, not:[18,30] (footnote #3)
 - lateral occipital sulcus: [8,11]*,[11,29]*
 - anterior occipital sulcus: [11,15]*,[9,11]
 - superior temporal sulcus: [15,30]
@@ -291,17 +276,17 @@ PeriSylvian area (folds within the Sylvian fissure):
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - circular sulcus: [12,35],[30,35],[34,35], [2,35],[10,35],[23,35],[26,35],
                  [22,35], [24,35], [31,35]
-- 1st transverse temporal sulcus: [30,34] (footnote #5)
+- 1st transverse temporal sulcus: [30,34] (footnote #4)
 - Heschl's sulcus: [30,34]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Medial surface:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- cingulate sulcus: [2,14],[10,14],[14,23],[14,26] (footnote #6)
+- cingulate sulcus: [2,14],[10,14],[14,23],[14,26] (footnote #5)
                   [2,28],[10,28],[23,28],[26,28],
                   [2,17],[10,17],[17,23],[17,26], [17,25]
 - paracentral sulcus: [17,28]*
 - parietooccipital fissure: [5,25]
-- calcarine fissure: [13,25], [2,13],[10,13],[13,23],[13,26] not:[5,13] (footnote #7)
+- calcarine fissure: [13,25], [2,13],[10,13],[13,23],[13,26] not:[5,13] (footnote #6)
 - superior rostral sulcus: [14,28]
 - callosal sulcus: [2,4],[4,10],[4,23],[4,26]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -311,6 +296,8 @@ Ventral surface:
 - olfactory sulcus: [12,14]
 - occipitotemporal sulcus: [7,9],[7,11]
 - collateral sulcus: [6,7], [7,13], [7,16]
+
+-----------
 
 ------------------------------------------------------------------------------
 Boundaries that will NEVER be derived by fundi
@@ -331,32 +318,32 @@ Regions with additional non-sulcal boundaries with subcortical regions:
 
 ------------
 
+------------------------------------------------------------------------------
+Possible ways to combine or eliminate regions (from Jason Tourville's notes)
+------------------------------------------------------------------------------
+(1) Temporal (33) and frontal (32) poles, and bankstss (1) (see footnote #1)
+    regions eliminated, corresponding cortex absorbed by adjacent regions.
+(2) Caudal (2), isthmus (10), posterior (23), and rostral anterior (26)
+    cingulate combined to form single cingulate region (2).
+(3) Caudal (3) and rostral (27) middle frontal regions combined
+    to form single middle frontal region (3).
+(4) Opercular (18), orbital (19), and triangular (20) inferior frontal regions
+    could combine to form a single inferior frontal region (18) (footnote #7).
+(5) Parahippocampal + entorhinal cortex + and lingual gyrus?
+
+------------
+
 Footnotes
 ------------------------------------------------------------------------------
 [1] This was eliminated because it spanned the superior temporal sulcus fundus
     and because the anterior boundary was ambiguous.
-[2] Jason Tourville: "This is a perfectly reasonable aggregation of these 
-    regions and is the one reflected in the sulcus/region pairings above. 
-    An alternative breakdown would be to lump 19 with lateral orbitofrontal 
-    cortex (12) and use the anterior horizontal ramus of the sylvian fissure 
-    as the boundary between 18 and 12. Anatomically, both aggregations are 
-    defensible but one or the other may suit your needs better."
-    Regarding the lack of a full, consistent sulcal anterior boundary for the 
-    inferior frontal gyrus: "This will be the case for several regions, i.e., 
-    in practice, many boundaries are not formed by sulci but instead require 
-    'jumps' across gyri (paths along regions of different direction curvature). 
-    This can be variable, (e.g., the precentral sulcus is consistently formed 
-    by two or more disconnected components) or implicit in the definition of
-    the boundary (e.g., the anterior boundary between orbital inferior frontal 
-    gyrus (19) and rostral middle frontal gyrus (27) requires a 'jump' over 
-    the lateral orbital gyrus."
-[3] For "1st segment posterior superior temporal sulcus /
+[2] For "1st segment posterior superior temporal sulcus /
     primary intermediate sulcus" the standard abbreviations are "csts1/pis"
     or, if you like, you can just drop the "pis" part and go with csts1,
     which forms the bulk of the boundary. The abbreviation is used in the
     recent Petrides atlas and some other sources and stands for
     "caudal superior temporal sulcus, 1st segment".
-[4] For "1st transverse temporal sulcus and Heschl sulcus" it's important
+[3] For "1st transverse temporal sulcus and Heschl sulcus" it's important
     to realize that these are two different sulci that form two different
     boundaries around Heschl's gyrus (the former is the anterior boundary;
     the latter is the posterior boundary). So both should be included.
@@ -365,15 +352,30 @@ Footnotes
     actually do not intersect. So for labeling figures, having an abbreviation
     associated with a line in front of Heschl's and one associated with a line
     behind Heschl's is fine. And accurate.
-[5] The insula lies between these regions and is separated from them by the
+[4] The insula lies between these regions and is separated from them by the
     circular sulcus which is marked by an easily distinguished fold deep
     within the Sylvian fissure.
-[6] This is the case in some, but not all, hemispheres. It occurs when the
+[5] This is the case in some, but not all, hemispheres. It occurs when the
     superior rostral sulcus fails to intersect with the cingulate sulcus.
-[7] The pericalcarine region lies between these 2 regions. As defined in
+[6] The pericalcarine region lies between these 2 regions. As defined in
     "Regions bounded by sulcal margins", the pericalcarine cortex (21)
     dorsal (with 5) and ventral (with 13) boundaries are formed by the
     lateral margins of the dorsal and ventral banks of the calcarine sulcus
     rather than a sulcal fundus; because this region spans the sulcal fundus,
     we cannot simply incorporate portions of the region into the adjacent
     regions based on the fundus.
+[7] This is a perfectly reasonable aggregation of these [inferior frontal]
+    regions and is the one reflected in the sulcus/region pairings above. 
+    An alternative breakdown would be to lump 19 with lateral orbitofrontal 
+    cortex (12) and use the anterior horizontal ramus of the sylvian fissure 
+    as the boundary between 18 and 12. Anatomically, both aggregations are 
+    defensible but one or the other may suit your needs better.
+    [Regarding the lack of a full, consistent sulcal anterior boundary for the 
+    inferior frontal gyrus]: This will be the case for several regions, i.e., 
+    in practice, many boundaries are not formed by sulci but instead require 
+    'jumps' across gyri (paths along regions of different direction curvature). 
+    This can be variable, (e.g., the precentral sulcus is consistently formed 
+    by two or more disconnected components) or implicit in the definition of
+    the boundary (e.g., the anterior boundary between orbital inferior frontal 
+    gyrus (19) and rostral middle frontal gyrus (27) requires a 'jump' over 
+    the lateral orbital gyrus.
