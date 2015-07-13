@@ -104,12 +104,12 @@ files (backslash denotes a line return)::
 ------------------------------------------------------------------------------
 _`Mindboggle processing steps`
 ------------------------------------------------------------------------------
-    1. Create hybrid gray/white segmentation from FreeSurfer and ANTs output (`combine_2labels_in_2volumes <https://github.com/binarybottle/mindboggle/blob/master/mindboggle/utils/segment.py>`_).
+    1. Create hybrid gray/white segmentation from FreeSurfer and ANTs output (`combine_2labels_in_2volumes <https://github.com/binarybottle/mindboggle/blob/master/mindboggle/guts/segment.py>`_).
     2. Fill hybrid segmentation with FreeSurfer- or ANTs-registered labels.
     3. Compute volume shape measures for each labeled region:
 
-        - volume (`volume_per_label <https://github.com/binarybottle/mindboggle/blob/master/mindboggle/utils/compute.py>`_)
-        - thickness of cortical labels (`thickinthehead <https://github.com/binarybottle/mindboggle/blob/master/mindboggle/utils/ants.py>`_)
+        - volume (`volume_per_label <https://github.com/binarybottle/mindboggle/blob/master/mindboggle/guts/compute.py>`_)
+        - thickness of cortical labels (`thickinthehead <https://github.com/binarybottle/mindboggle/blob/master/mindboggle/guts/ants.py>`_)
 
     4. Compute surface shape measures for every cortical mesh vertex:
 
@@ -134,7 +134,7 @@ _`Mindboggle processing steps`
         - `Laplace-Beltrami spectrum <https://github.com/binarybottle/mindboggle/blob/master/mindboggle/shapes/laplace_beltrami.py>`_
         - `Zernike moments <https://github.com/binarybottle/mindboggle/blob/master/mindboggle/shapes/zernike/zernike.py>`_
 
-    7. Compute statistics (``stats_per_label`` in `compute.py <https://github.com/binarybottle/mindboggle/blob/master/mindboggle/utils/compute.py>`_) for each shape measure in #4 for each label/feature:
+    7. Compute statistics (``stats_per_label`` in `compute.py <https://github.com/binarybottle/mindboggle/blob/master/mindboggle/guts/compute.py>`_) for each shape measure in #4 for each label/feature:
 
         - median
         - median absolute deviation
