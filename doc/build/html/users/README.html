@@ -114,6 +114,8 @@ Python and C++ code run within a Nipype pipeline framework.</p>
 </li>
 <li><p class="first"><a class="reference external" href="http://www.mindboggle.info/faq/">FAQs</a></p>
 </li>
+<li><p class="first"><a class="reference external" href="http://media.mindboggle.info/data/examples/arno.tar.gz">Example output data</a></p>
+</li>
 <li><p class="first"><a class="reference external" href="http://mindboggle.info/documentation.html">Documentation</a></p>
 </li>
 <li><p class="first"><a class="reference external" href="http://mindboggle.info/users/INSTALL.html">Installation</a></p>
@@ -192,15 +194,15 @@ files (backslash denotes a line return):</p>
 <h2><span class="target" id="mindboggle-processing-steps">Mindboggle processing steps</span><a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><ol class="arabic">
-<li><p class="first">Create hybrid gray/white segmentation from FreeSurfer and ANTs output (<a class="reference external" href="https://github.com/binarybottle/mindboggle/blob/master/mindboggle/utils/segment.py">combine_2labels_in_2volumes</a>).</p>
+<li><p class="first">Create hybrid gray/white segmentation from FreeSurfer and ANTs output (<a class="reference external" href="https://github.com/binarybottle/mindboggle/blob/master/mindboggle/guts/segment.py">combine_2labels_in_2volumes</a>).</p>
 </li>
 <li><p class="first">Fill hybrid segmentation with FreeSurfer- or ANTs-registered labels.</p>
 </li>
 <li><p class="first">Compute volume shape measures for each labeled region:</p>
 <blockquote>
 <div><ul class="simple">
-<li>volume (<a class="reference external" href="https://github.com/binarybottle/mindboggle/blob/master/mindboggle/utils/compute.py">volume_per_label</a>)</li>
-<li>thickness of cortical labels (<a class="reference external" href="https://github.com/binarybottle/mindboggle/blob/master/mindboggle/utils/ants.py">thickinthehead</a>)</li>
+<li>volume (<a class="reference external" href="https://github.com/binarybottle/mindboggle/blob/master/mindboggle/guts/compute.py">volume_per_label</a>)</li>
+<li>thickness of cortical labels (<a class="reference external" href="https://github.com/binarybottle/mindboggle/blob/master/mindboggle/guts/ants.py">thickinthehead</a>)</li>
 </ul>
 </div></blockquote>
 </li>
@@ -236,7 +238,7 @@ files (backslash denotes a line return):</p>
 </ul>
 </div></blockquote>
 </li>
-<li><p class="first">Compute statistics (<code class="docutils literal"><span class="pre">stats_per_label</span></code> in <a class="reference external" href="https://github.com/binarybottle/mindboggle/blob/master/mindboggle/utils/compute.py">compute.py</a>) for each shape measure in #4 for each label/feature:</p>
+<li><p class="first">Compute statistics (<code class="docutils literal"><span class="pre">stats_per_label</span></code> in <a class="reference external" href="https://github.com/binarybottle/mindboggle/blob/master/mindboggle/guts/compute.py">compute.py</a>) for each shape measure in #4 for each label/feature:</p>
 <blockquote>
 <div><ul class="simple">
 <li>median</li>
@@ -255,7 +257,9 @@ files (backslash denotes a line return):</p>
 </div>
 <div class="section" id="id7">
 <h2><span class="target" id="mindboggle-output-files">Mindboggle output files</span><a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
-<p>By default, output files are saved in HOME/mindboggled/SUBJECT,
+<p>Example output data can be downloaded from
+<a class="reference external" href="http://media.mindboggle.info/data/examples/arno.tar.gz">here</a>.
+By default, output files are saved in HOME/mindboggled/SUBJECT,
 where HOME is the home directory and SUBJECT is the name of the subject.
 Volume files are in <a class="reference external" href="http://nifti.nimh.nih.gov">Nifti</a> format,
 surface meshes in <a class="reference external" href="http://www.vtk.org/">VTK</a> format,

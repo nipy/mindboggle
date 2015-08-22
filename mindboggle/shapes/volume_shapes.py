@@ -1,3 +1,108 @@
+#!/usr/bin/env python
+"""
+Compute shape measures from volume images.
+
+
+Authors:
+    - Arno Klein, 2013-2015  (arno@mindboggle.info)  http://binarybottle.com
+
+Copyright 2015,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+
+"""
+
+
+def volume_per_brain_region(input_file, include_labels=[], exclude_labels=[],
+                            label_names=[], save_table=False, output_table=''):
+    """
+    Compute volume per labeled region in a nibabel-readable image.
+
+    Note: Results are truncated at three decimal places because we found that
+    volume label propagation led to differences in the third decimal place.
+
+    Parameters
+    ----------
+    input_file : string
+        name of image file, consisting of index-labeled pixels/voxels
+    include_labels : list of integers
+        labels to include
+        (if empty, use unique numbers in image volume file)
+    exclude_labels : list of integers
+        labels to be excluded
+    label_names : list of strings
+        label names corresponding to labels to include
+    save_table : Boolean
+        save output table file with labels and volume values?
+    output_table : string
+        name of output table file with labels and volume values
+
+    Returns
+    -------
+    unique_labels : list of integers
+        unique label numbers (default -1)
+    volumes : list of floats
+        volume for each label (default -1)
+    output_table : string
+        name of output volume table file (if output_table not empty)
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.mio.labels import DKTprotocol
+    >>> from mindboggle.shapes.volume_shapes import volume_per_brain_region
+    >>> input_file = os.path.join(os.environ['HOME'], 'mindboggled', 'Twins-2-1old', 'labels', 'ants_filled_labels.nii.gz')
+    >>> dkt = DKTprotocol()
+    >>> include_labels = dkt.label_numbers
+    >>> exclude_labels = []
+    >>> label_names = dkt.label_names
+    >>> save_table = True
+    >>> output_table = 'volumes.csv'
+    >>> unique_labels, volumes, output_table = volume_per_brain_region(input_file, include_labels, exclude_labels, label_names, save_table, output_table)
+    >>> print(volumes)
+
+    """
+    import os
+    import numpy as np
+    import nibabel as nb
+
+    from mindboggle.guts.compute import count_per_label
+
+    # Load labeled image volumes:
+    img = nb.load(input_file)
+    hdr = img.get_header()
+    volume_per_voxel = np.product(hdr.get_zooms())
+    labels = img.get_data().ravel()
+
+    unique_labels, counts = count_per_label(labels,
+        include_labels, exclude_labels)
+
+    volumes = [volume_per_voxel * x for x in counts]
+
+    # Output table:
+    if save_table:
+        if output_table:
+            output_table = os.path.join(os.getcwd(), output_table)
+        else:
+            output_table = os.path.join(os.getcwd(),
+                                        'volume_for_each_label.csv')
+        fid = open(output_table, 'w')
+        if len(label_names) == len(unique_labels):
+            fid.write("name, ID, volume\n")
+        else:
+            fid.write("ID, volume\n")
+
+        # Loop through labels:
+        for ilabel, label in enumerate(unique_labels):
+            if len(label_names) == len(unique_labels):
+                fid.write('{0}, {1}, {2:2.3f}\n'.format(
+                          label_names[ilabel], label, volumes[ilabel]))
+            else:
+                fid.write('{0}, {1:2.3f}\n'.format(label, volumes[ilabel]))
+    else:
+        output_table = ''
+
+    return unique_labels, volumes, output_table
+
+
 def thickinthehead(segmented_file, labeled_file, cortex_value=2,
                    noncortex_value=3, labels=[], names=[], resize=True,
                    propagate=True, output_dir='', save_table=False,
@@ -96,7 +201,7 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
 
     Examples
     --------
-    >>> from mindboggle.thirdparty.ants import thickinthehead
+    >>> from mindboggle.shapes.volume_shapes import thickinthehead
     >>> segmented_file = '/Users/arno/Data/antsCorticalThickness/OASIS-TRT-20-1/antsBrainSegmentation.nii.gz'
     >>> labeled_file = '/appsdir/freesurfer/subjects/OASIS-TRT-20-1/mri/labels.DKT31.manual.nii.gz'
     >>> cortex_value = 2
