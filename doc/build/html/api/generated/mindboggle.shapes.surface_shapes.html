@@ -87,10 +87,10 @@
       <div class="documentwrapper">
           <div class="body" role="main">
             
-  <div class="section" id="shapes-shape-tools">
-<h1>shapes.shape_tools<a class="headerlink" href="#shapes-shape-tools" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="module-mindboggle.shapes.shape_tools">
-<span id="module-shapes-shape-tools"></span><h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">shapes.shape_tools</span></code><a class="headerlink" href="#module-mindboggle.shapes.shape_tools" title="Permalink to this headline">¶</a></h2>
+  <div class="section" id="shapes-surface-shapes">
+<h1>shapes.surface_shapes<a class="headerlink" href="#shapes-surface-shapes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-mindboggle.shapes.surface_shapes">
+<span id="module-shapes-surface-shapes"></span><h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">shapes.surface_shapes</span></code><a class="headerlink" href="#module-mindboggle.shapes.surface_shapes" title="Permalink to this headline">¶</a></h2>
 <p>Shape calculations.</p>
 <dl class="docutils">
 <dt>Authors:</dt>
@@ -104,8 +104,8 @@
 <div class="section" id="functions">
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
-<dt id="mindboggle.shapes.shape_tools.area">
-<code class="descclassname">mindboggle.shapes.shape_tools.</code><code class="descname">area</code><span class="sig-paren">(</span><em>command</em>, <em>surface_file</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.shape_tools.area" title="Permalink to this definition">¶</a></dt>
+<dt id="mindboggle.shapes.surface_shapes.area">
+<code class="descclassname">mindboggle.shapes.surface_shapes.</code><code class="descname">area</code><span class="sig-paren">(</span><em>command</em>, <em>surface_file</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.surface_shapes.area" title="Permalink to this definition">¶</a></dt>
 <dd><p>Measure area of each vertex in a surface mesh.
 (Calls Joachim Giard&#8217;s C++ code)</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -133,8 +133,8 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="mindboggle.shapes.shape_tools.curvature">
-<code class="descclassname">mindboggle.shapes.shape_tools.</code><code class="descname">curvature</code><span class="sig-paren">(</span><em>command</em>, <em>method</em>, <em>arguments</em>, <em>surface_file</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.shape_tools.curvature" title="Permalink to this definition">¶</a></dt>
+<dt id="mindboggle.shapes.surface_shapes.curvature">
+<code class="descclassname">mindboggle.shapes.surface_shapes.</code><code class="descname">curvature</code><span class="sig-paren">(</span><em>command</em>, <em>method</em>, <em>arguments</em>, <em>surface_file</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.surface_shapes.curvature" title="Permalink to this definition">¶</a></dt>
 <dd><p>Measure curvature values of each vertex in a surface mesh (-m 0).
 (Calls Joachim Giard&#8217;s C++ code)</p>
 <p>Usage: CurvatureMain [Options] InputVTKMesh MeanCurvatureOutput
@@ -203,8 +203,8 @@ Example: CurvatureMain -m 0 -n 2</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="mindboggle.shapes.shape_tools.geodesic_depth">
-<code class="descclassname">mindboggle.shapes.shape_tools.</code><code class="descname">geodesic_depth</code><span class="sig-paren">(</span><em>command</em>, <em>surface_file</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.shape_tools.geodesic_depth" title="Permalink to this definition">¶</a></dt>
+<dt id="mindboggle.shapes.surface_shapes.geodesic_depth">
+<code class="descclassname">mindboggle.shapes.surface_shapes.</code><code class="descname">geodesic_depth</code><span class="sig-paren">(</span><em>command</em>, <em>surface_file</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.surface_shapes.geodesic_depth" title="Permalink to this definition">¶</a></dt>
 <dd><p>Measure &#8220;travel depth&#8221; of each vertex in a surface mesh.
 (Calls Joachim Giard&#8217;s C++ code)</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -226,8 +226,8 @@ Example: CurvatureMain -m 0 -n 2</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="mindboggle.shapes.shape_tools.travel_depth">
-<code class="descclassname">mindboggle.shapes.shape_tools.</code><code class="descname">travel_depth</code><span class="sig-paren">(</span><em>command</em>, <em>surface_file</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.shape_tools.travel_depth" title="Permalink to this definition">¶</a></dt>
+<dt id="mindboggle.shapes.surface_shapes.travel_depth">
+<code class="descclassname">mindboggle.shapes.surface_shapes.</code><code class="descname">travel_depth</code><span class="sig-paren">(</span><em>command</em>, <em>surface_file</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.surface_shapes.travel_depth" title="Permalink to this definition">¶</a></dt>
 <dd><p>Measure &#8220;travel depth&#8221; of each vertex in a surface mesh.
 (Calls Joachim Giard&#8217;s C++ code)</p>
 <table class="docutils field-list" frame="void" rules="none">

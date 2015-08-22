@@ -258,6 +258,54 @@ remove background values, and reindex indices.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="mindboggle.mio.vtks.explode_scalars_mindboggle">
+<code class="descclassname">mindboggle.mio.vtks.</code><code class="descname">explode_scalars_mindboggle</code><span class="sig-paren">(</span><em>subject</em>, <em>subject_path=''</em>, <em>output_path=''</em>, <em>pieces='labels'</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.vtks.explode_scalars_mindboggle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a subject name corresponding to Mindboggle shape surface outputs,
+take each shape surface VTK file, and create a separate VTK file for each
+label index in a label surface file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>subject</strong> : string</p>
+<blockquote>
+<div><p>name of subject run through Mindboggle</p>
+</div></blockquote>
+<p><strong>subject_path</strong> : string</p>
+<blockquote>
+<div><p>path to subject&#8217;s parent directory</p>
+</div></blockquote>
+<p><strong>output_path</strong> : string</p>
+<blockquote>
+<div><p>output path/directory</p>
+</div></blockquote>
+<p><strong>pieces</strong> : string</p>
+<blockquote class="last">
+<div><p>name of structures to explode {&#8216;labels&#8217;, &#8216;sulci&#8217;, &#8216;fundus_per_sulcus&#8217;, &#8216;folds&#8217;}</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Explode depth surface file by label values</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">explode_scalars_mindboggle</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subject</span> <span class="o">=</span> <span class="s">&#39;Twins-2-1&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subject_path</span> <span class="o">=</span> <span class="s">&#39;/Users/arno/mindboggled&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_path</span> <span class="o">=</span> <span class="s">&#39;/desk&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pieces</span> <span class="o">=</span> <span class="s">&#39;fundus_per_sulcus&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">explode_scalars_mindboggle</span><span class="p">(</span><span class="n">subject</span><span class="p">,</span> <span class="n">subject_path</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">pieces</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># View:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">example_vtk</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">&#39;/desk/left_exploded/travel_depth_1035.vtk&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">example_vtk</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="mindboggle.mio.vtks.freesurfer_annot_to_vtk">
 <code class="descclassname">mindboggle.mio.vtks.</code><code class="descname">freesurfer_annot_to_vtk</code><span class="sig-paren">(</span><em>annot_file</em>, <em>vtk_file</em>, <em>output_vtk=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.vtks.freesurfer_annot_to_vtk" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load a FreeSurfer .annot file and save as a VTK format file.</p>

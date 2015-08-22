@@ -919,19 +919,105 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
 
         print("  Scalar {0}: {1} vertices".format(scalar, len_indices))
 
-        # Write VTK file with scalar values (list of values):
-        if np.ndim(select_values) == 1:
-            scalar_type = type(select_values[0]).__name__
-        elif np.ndim(select_values) == 2:
-            scalar_type = type(select_values[0][0]).__name__
-        else:
-            print("Undefined scalar type!")
-        output_vtk = os.path.join(os.getcwd(),
-                                  output_stem + str(scalar) + '.vtk')
-        write_vtk(output_vtk, select_points, indices, lines, scalar_faces,
-                  select_values.tolist(), output_scalar_name,
-                  scalar_type=scalar_type)
+        if len_indices > 0:
+            # Write VTK file with scalar values (list of values):
+            if np.ndim(select_values) == 1:
+                scalar_type = type(select_values[0]).__name__
+            elif np.ndim(select_values) == 2:
+                scalar_type = type(select_values[0][0]).__name__
+            else:
+                print("Undefined scalar type!")
+            output_vtk = os.path.join(os.getcwd(),
+                                      output_stem + str(scalar) + '.vtk')
+            write_vtk(output_vtk, select_points, indices, lines, scalar_faces,
+                      select_values.tolist(), output_scalar_name,
+                      scalar_type=scalar_type)
 
+
+def explode_scalars_mindboggle(subject, subject_path='', output_path='',
+                               pieces='labels'):
+    """
+    Given a subject name corresponding to Mindboggle shape surface outputs,
+    take each shape surface VTK file, and create a separate VTK file for each
+    label index in a label surface file.
+
+    Parameters
+    ----------
+    subject : string
+        name of subject run through Mindboggle
+    subject_path : string
+        path to subject's parent directory
+    output_path : string
+        output path/directory
+    pieces : string
+        name of structures to explode {'labels', 'sulci'} #, 'fundus_per_sulcus', 'folds'}
+
+    Examples
+    --------
+    >>> # Explode depth surface file by label values
+    >>> import os
+    >>> from mindboggle.mio.vtks import explode_scalars_mindboggle
+    >>> from mindboggle.mio.plots import plot_surfaces
+    >>> subject = 'Twins-2-1'
+    >>> subject_path = '/Users/arno/mindboggled'
+    >>> output_path = '/desk'
+    >>> pieces = 'fundus_per_sulcus'
+    >>> explode_scalars_mindboggle(subject, subject_path, output_path, pieces)
+    >>> #
+    >>> # View:
+    >>> example_vtk = os.path.join('/desk/left_exploded/travel_depth_1035.vtk')
+    >>> plot_surfaces(example_vtk)
+    """
+    import os
+    from mindboggle.mio.vtks import explode_scalars
+
+    if not os.path.exists(output_path):
+        print("{0} does not exist".format(output_path))
+    else:
+
+        for side in ['left', 'right']:
+
+            output_dir = os.path.join(output_path,
+                                      side + '_exploded_' + pieces + '_vtks')
+            if not os.path.exists(output_dir):
+                print("Create missing output directory: {0}".format(output_dir))
+                os.mkdir(output_dir)
+            if os.path.exists(output_dir):
+
+                if pieces == 'labels':
+                    File = os.path.join('labels',
+                                        side + '_cortical_surface',
+                                        'freesurfer_cortex_labels.vtk')
+                elif pieces in ['sulci', 'fundus_per_sulcus', 'folds']:
+                    File = os.path.join('features',
+                                          side + '_cortical_surface',
+                                          pieces + '.vtk')
+                else:
+                    raise(IOError("Choose from: "
+                          "{'labels', 'sulci'}")) #, 'fundus_per_sulcus', 'folds'}"))
+
+                labels_vtk = os.path.join(subject_path, subject, File)
+                shapes_path = os.path.join(subject_path, subject, 'shapes',
+                                           side + '_cortical_surface')
+                shape_names = ['travel_depth',
+                               'geodesic_depth',
+                               'freesurfer_sulc',
+                               'mean_curvature',
+                               'freesurfer_curvature',
+                               'freesurfer_thickness']
+
+                for shape_name in shape_names:
+
+                    shape_vtk = os.path.join(shapes_path, shape_name + '.vtk')
+
+                    print("Explode {0} by {1} values from {2}").\
+                          format(shape_vtk, pieces, labels_vtk)
+
+                    explode_scalars(labels_vtk, shape_vtk,
+                                    os.path.join(output_dir,
+                                                 shape_name + '_'))
+            else:
+                print('Unable to make directory {0}'.format(output_dir))
 
 def scalars_checker(scalars, scalar_names):
     """
