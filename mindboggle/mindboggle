@@ -25,18 +25,18 @@ Copyright 2015,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 import os
 import argparse
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Nipype libraries
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 from nipype import config, logging
 from nipype.interfaces.ants import ApplyTransforms
 from nipype.interfaces.io import DataGrabber, DataSink
 from nipype.interfaces.utility import Function as Fn
 from nipype.interfaces.utility import IdentityInterface
 from nipype.pipeline.engine import Workflow, Node
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Mindboggle libraries
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 from mindboggle.features.folds import extract_folds
 from mindboggle.features.fundi import extract_fundi, segment_fundi
 from mindboggle.features.sulci import extract_sulci
@@ -62,11 +62,11 @@ from mindboggle.shapes.volume_shapes import thickinthehead, volume_per_brain_reg
 from mindboggle.shapes.zernike.zernike import zernike_moments_per_label
 from mindboggle.thirdparty.ants import PropagateLabelsThroughMask
 
-#=============================================================================
+# ============================================================================
 #
 #   Command-line arguments
 #
-#=============================================================================
+# ============================================================================
 parser = argparse.ArgumentParser(description="""
                     The Mindboggle software automates shape analysis of
                     anatomical labels and features extracted from human brain
@@ -196,9 +196,9 @@ outputs_group.add_argument("--save_only_tables", action='store_true',
                     help="save only tables to free up space")
 args = parser.parse_args()
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Data arguments:
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 subject = args.SUBJECT
 subjects_dir = args.subjects_dir
 if not subjects_dir:
@@ -222,9 +222,9 @@ use_FS_inputs = True
 do_input_vtk = False  # Load VTK surfaces directly (not FreeSurfer surfaces)
 do_input_fs_labels = False  # Load nifti (not FreeSurfer mgh file)
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Label, feature, and shape arguments:
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 volume_labels = args.volume_labels
 surface_labels = args.surface_labels
 if args.ants:
@@ -297,21 +297,21 @@ if atlases:
     for add_atlas in atlases:
         add_atlas_names.append(os.path.basename(add_atlas).split('.')[0])
 
-#=============================================================================
+# ============================================================================
 #
 #   Hidden arguments: paths, labels and template data
 #
-#=============================================================================
+# ============================================================================
 overwrite_cerebrum_with_cerebellum = True
 fill_noncortex_with_ants_labels = False
 do_smooth_fundi = False
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Path to C++ code:
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 ccode_path = os.environ['MINDBOGGLE_TOOLS']  # Mindboggle C++ code directory
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Hashes to verify retrieved data, and output, working, and cache directories:
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 hashes, url, cache_env, cache = hashes_url()
 if args.cache:
     cache = args.cache
@@ -330,25 +330,25 @@ if not os.path.isdir(working):
 if not os.path.isdir(cache):
     print("Create missing cache directory: {0}".format(cache))
     os.makedirs(cache)
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Labeling protocol information and volume atlases:
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 dkt = DKTprotocol()
 atlas_volume = 'OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152_v2.nii.gz'
 atropos_to_MNI152_affine = 'OASIS-30_Atropos_template_to_MNI152_affine.txt'
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Surface atlas labels:
 # - 'manual': manual edits
 # - FUTURE: <'adjusted': manual edits after automated alignment to fundi>
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 surface_atlas_type = 'manual'
 #modify_surface_labels = False
 
-#=============================================================================
+# ============================================================================
 #
 #   Basic functions
 #
-#=============================================================================
+# ============================================================================
 def split_list_pair(List):
     element1 = List[0]
     element2 = List[1]
@@ -358,18 +358,18 @@ def first_string_containing_substring(substring, List):
     first_matching_string = [x for x in List if substring in x][0]
     return first_matching_string
 
-#=============================================================================
+# ============================================================================
 #
 #   Initialize workflow inputs and outputs
 #
-#=============================================================================
+# ============================================================================
 mbFlow = Workflow(name='Mindboggle')
 mbFlow.base_dir = working
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Iterate inputs over hemispheres and atlases
 # (surfaces are assumed to take the form: lh.pial or lh.pial.vtk)
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 if add_atlas_names:
     InputAddAtlases = Node(name='Input_volume_atlases',
                            interface=IdentityInterface(fields=['atlas']))
@@ -378,9 +378,9 @@ InputHemis = Node(name='Input_hemispheres',
                   interface=IdentityInterface(fields=['hemi']))
 hemis = ['lh', 'rh']
 InputHemis.iterables = ('hemi', hemis)
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Outputs and name substitutions
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 Sink = Node(DataSink(), name='Results')
 Sink.inputs.base_directory = args.out
 Sink.inputs.container = subject
@@ -425,17 +425,17 @@ Sink.inputs.regexp_substitutions = [
      r'/volume_for_each_\1_label.csv'),
     (r'/affine_(.*).vtk', r'/cortex_in_MNI152_space.vtk')]
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Affine transform from Atropos template to MNI152 space:
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 if my_transform:
     affine_template2mni = my_transform
 else:
     affine_template2mni = fetch_check_data(atropos_to_MNI152_affine,
                                            url, hashes, cache_env, cache)
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Atlas labels:
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 if do_label and not my_atlas:
     FetchAtlas = Node(name='Fetch_atlas',
                       interface=Fn(function=fetch_check_data,
@@ -456,9 +456,9 @@ if do_label and not my_atlas:
     FetchAtlas.inputs.return_missing = False
     FetchAtlas.inputs.lookup = True
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # ANTs data:
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 if use_ants:
     FetchANTs = Node(name='Fetch_ants_data',
                      interface=Fn(function=fetch_ants_data,
@@ -473,7 +473,7 @@ if use_ants:
     mbFlow.add_nodes([FetchANTs])
     FetchANTs.inputs.segmented_file = ants_seg
     FetchANTs.inputs.use_ants_transforms = True
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # For transforming volume labels --
     # Make list of ANTs MNI152-to-subject nonlinear transforms
     # to use antsApplyTransforms:
@@ -487,7 +487,7 @@ if use_ants:
     # antsApplyTransforms...-i ${template} -r ${subject}
     #                       -t ${prefix}TemplateToSubject1GenericAffine.mat
     #                       -t ${prefix}TemplateToSubject0Warp.nii.gz
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     WarpToSubjectFileList = Node(name='Merge_warp_file_list',
                                  interface=Fn(function=list_strings,
                                       input_names=['string1',
@@ -502,7 +502,7 @@ if use_ants:
     WarpToSubjectFileList.inputs.string3 = affine_template2mni
     WarpToSubjectFileList.inputs.string4 = ''
     warp_inverse_Booleans = [False, False, True]  # Boolean list
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # For transforming surface points --
     # Make list of subject-to-MNI affine transforms
     # to use antsApplyTransformsToPoints:
@@ -511,7 +511,7 @@ if use_ants:
     # Points are transformed in the OPPOSITE direction of images,
     # so you pass the inverse of what is needed to warp the images.
     # Note 2: Don't forget to switch the order of the affine transforms!
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     AffineFileList = Node(name='Affine_file_list',
                           interface=Fn(function=list_strings,
                                        input_names=['string1',
@@ -526,17 +526,17 @@ if use_ants:
     AffineFileList.inputs.string4 = ''
     inverse_Booleans = [1, 1]  # list of ones/zeros for True/False
 
-#=============================================================================
-#-----------------------------------------------------------------------------
+# ============================================================================
+# ----------------------------------------------------------------------------
 #
 #   Surface workflows
 #
-#-----------------------------------------------------------------------------
-#=============================================================================
+# ----------------------------------------------------------------------------
+# ============================================================================
 if not args.no_surfaces:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Location and structure of the surface inputs:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     use_white_surface = False
     if use_white_surface:
         Surf = Node(name='Surfaces',
@@ -568,9 +568,9 @@ if not args.no_surfaces:
 
     Surf.inputs.subject = subject
     mbFlow.connect(InputHemis, 'hemi', Surf, 'hemi')
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Convert surfaces to VTK:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     if not do_input_vtk:
         ConvertSurf = Node(name='Surface_to_vtk',
                            interface=Fn(function=freesurfer_surface_to_vtk,
@@ -584,9 +584,9 @@ if not args.no_surfaces:
             mbFlow.add_nodes([ConvertWhiteSurf])
             mbFlow.connect(Surf, 'white_surface_files',
                            ConvertWhiteSurf, 'surface_file')
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Evaluation inputs: location and structure of atlas surfaces:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     if surface_labels == 'manual' and do_label:
         SurfaceAtlas = Node(name='Surface_atlas',
                             interface=DataGrabber(infields=['subject','hemi'],
@@ -600,24 +600,24 @@ if not args.no_surfaces:
         SurfaceAtlas.inputs.subject = subject
         mbFlow.connect(InputHemis, 'hemi', SurfaceAtlas, 'hemi')
 
-    #=========================================================================
+    # ========================================================================
     #
     #   Surface labels
     #
-    #=========================================================================
+    # ========================================================================
     if do_label:
         SurfLabelFlow = Workflow(name='Surface_labels')
 
-        #=====================================================================
+        # ====================================================================
         # Initialize labels with the DKT classifier atlas
         # NOTE: This can now be done by running FreeSurfer's recon-all
         #       with "-gcs DKTatlas40.gcs"
-        #=====================================================================
+        # ====================================================================
         # surface_classifier = DKTatlas40
         # if surface_labels == 'atlas' and use_FS_inputs:
-        #     #---------------------------------------------------------------
+        #     # --------------------------------------------------------------
         #     # Label brain with DKT atlas using FreeSurfer's mris_ca_label:
-        #     #---------------------------------------------------------------
+        #     # --------------------------------------------------------------
         #     Classifier = Node(name='mris_ca_label',
         #                       interface=Fn(function=label_with_classifier,
         #                                    input_names=['subject',
@@ -641,9 +641,9 @@ if not args.no_surfaces:
         #     Classifier.inputs.right_classifier = right_classifier
         #     Classifier.inputs.annot_file = ''
         #     Classifier.inputs.subjects_directory = subjects_dir
-        #     #---------------------------------------------------------------
+        #     # --------------------------------------------------------------
         #     # Convert .annot file to VTK format:
-        #     #---------------------------------------------------------------
+        #     # --------------------------------------------------------------
         #     Classifier2vtk = Node(name='annot_to_vtk',
         #                           interface=Fn(function=freesurfer_annot_to_vtk,
         #                                        input_names=['annot_file',
@@ -666,13 +666,13 @@ if not args.no_surfaces:
         #     plug1 = Classifier2vtk
         #     plug2 = 'output_vtk'
 
-        #=====================================================================
+        # ====================================================================
         # Initialize labels with FreeSurfer
-        #=====================================================================
+        # ====================================================================
         if surface_labels == 'freesurfer' and use_FS_inputs:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Location and structure of the FreeSurfer label inputs:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             if surface_labels == 'freesurfer':
                 Annot = Node(name='annot',
                              interface=DataGrabber(infields=['subject',
@@ -685,9 +685,9 @@ if not args.no_surfaces:
                                                               'hemi']]
                 Annot.inputs.subject = subject
                 mbFlow.connect(InputHemis, 'hemi', Annot, 'hemi')
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Convert Annot to VTK format:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             FreeLabels = Node(name='FreeSurfer_annot_to_vtk',
                               interface=Fn(function=freesurfer_annot_to_vtk,
                                            input_names=['annot_file',
@@ -707,9 +707,9 @@ if not args.no_surfaces:
             plug1 = FreeLabels
             plug2 = 'output_vtk'
 
-        #=====================================================================
+        # ====================================================================
         # Skip label initialization and process manual (atlas) labels
-        #=====================================================================
+        # ====================================================================
         elif surface_labels == 'manual':
             ManualSurfLabels = Node(name='Manual_surface_labels',
                                     interface=Fn(function=read_vtk,
@@ -733,9 +733,9 @@ if not args.no_surfaces:
             plug1 = ManualSurfLabels
             plug2 = 'input_vtk'
 
-        #=====================================================================
+        # ====================================================================
         # Convert surface label numbers to volume DKT31 label numbers
-        #=====================================================================
+        # ====================================================================
         ReindexLabels = Node(name='Reindex_labels',
                              interface=Fn(function=relabel_surface,
                                           input_names=['vtk_file',
@@ -761,16 +761,16 @@ if not args.no_surfaces:
             mbFlow.connect(SurfLabelFlow, 'Reindex_labels.output_file',
                            Sink, 'labels.@surface')
 
-    #=========================================================================
+    # ========================================================================
     #
     #   Surface shape measurements
     #
-    #=========================================================================
+    # ========================================================================
     if do_shapes:
         WholeSurfShapeFlow = Workflow(name='Surface_shapes')
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Measure surface area:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         SurfaceArea = Node(name='Surface_area',
                            interface=Fn(function=area,
                                         input_names=['command',
@@ -778,9 +778,9 @@ if not args.no_surfaces:
                                         output_names=['area_file']))
         area_command = os.path.join(ccode_path, 'area', 'PointAreaMain')
         SurfaceArea.inputs.command = area_command
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Measure surface travel depth:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         TravelDepth = Node(name='Travel_depth',
                            interface=Fn(function=travel_depth,
                                         input_names=['command',
@@ -790,9 +790,9 @@ if not args.no_surfaces:
         TravelDepth.inputs.command = os.path.join(ccode_path,
                                                   'travel_depth',
                                                   'TravelDepthMain')
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Rescale surface travel depth:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         if do_fundi:
             RescaleTravelDepth = Node(name='Rescale_travel_depth',
                                 interface=Fn(function=rescale_by_neighborhood,
@@ -815,9 +815,9 @@ if not args.no_surfaces:
             RescaleTravelDepth.inputs.save_file = True
             RescaleTravelDepth.inputs.output_filestring = \
                 'travel_depth_rescaled'
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Measure surface geodesic depth:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         GeodesicDepth = Node(name='Geodesic_depth',
                              interface=Fn(function=geodesic_depth,
                                           input_names=['command',
@@ -826,9 +826,9 @@ if not args.no_surfaces:
         GeodesicDepth.inputs.command = os.path.join(ccode_path,
                                                     'geodesic_depth',
                                                     'GeodesicDepthMain')
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Measure surface curvature:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         CurvNode = Node(name='Curvature',
                         interface=Fn(function=curvature,
                              input_names=['command',
@@ -845,9 +845,9 @@ if not args.no_surfaces:
                                                'CurvatureMain')
         CurvNode.inputs.method = 2
         CurvNode.inputs.arguments = '-n 0.7'
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Convert FreeSurfer surface measures to VTK:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         if do_freesurfer_curvature:
             ConvexNode = Node(name='Curv_to_vtk',
                               interface=Fn(function=freesurfer_curvature_to_vtk,
@@ -897,9 +897,9 @@ if not args.no_surfaces:
             if save_all:
                 mbFlow.connect(WholeSurfShapeFlow, 'Thickness_to_vtk.output_vtk',
                                Sink, 'shapes.@freesurfer_thickness')
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Connect nodes:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         WholeSurfShapeFlow.add_nodes([SurfaceArea, GeodesicDepth, CurvNode])
         if do_input_vtk:
             mbFlow.connect([(Surf, WholeSurfShapeFlow,
@@ -920,21 +920,21 @@ if not args.no_surfaces:
                 ('Geodesic_depth.depth_file', 'shapes.@geodesic_depth'),
                 ('Curvature.mean_curvature_file', 'shapes.@mean_curvature')])])
 
-    #=========================================================================
+    # ========================================================================
     #
     #   Surface feature extraction
     #
-    #=========================================================================
+    # ========================================================================
     if do_sulci or do_fundi:
         SurfFeatureFlow = Workflow(name='Surface_features')
 
-        #=====================================================================
+        # ====================================================================
         # Folds and sulci
-        #=====================================================================
+        # ====================================================================
         if do_sulci or do_fundi:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Folds:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             FoldsNode = Node(name='Folds',
                              interface=Fn(function=extract_folds,
                                           input_names=['depth_file',
@@ -960,9 +960,9 @@ if not args.no_surfaces:
             if save_folds and save_all:
                mbFlow.connect(SurfFeatureFlow, 'Folds.folds_file',
                               Sink, 'features.@folds')
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Sulci:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             SulciNode = Node(name='Sulci',
                              interface=Fn(function=extract_sulci,
                                           input_names=['labels_file',
@@ -985,13 +985,13 @@ if not args.no_surfaces:
                 mbFlow.connect(SurfFeatureFlow, 'Sulci.sulci_file',
                                Sink, 'features.@sulci')
 
-        #=====================================================================
+        # ====================================================================
         # Fundi
-        #=====================================================================
+        # ====================================================================
         if do_fundi:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Extract a fundus per fold:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             FoldFundi = Node(name='Fundus_per_fold',
                              interface=Fn(function=extract_fundi,
                                   input_names=['folds',
@@ -1020,9 +1020,9 @@ if not args.no_surfaces:
             #                   Sink, 'features.@fundus_per_fold')
 
             if do_smooth_fundi:
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 # Compute likelihoods for smoothing fundi:
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 LikelihoodNode = Node(name='Likelihood',
                     interface=Fn(function=compute_likelihood,
                                  input_names=['trained_file',
@@ -1049,9 +1049,9 @@ if not args.no_surfaces:
                 #if save_all:
                 #    mbFlow.connect(SurfFeatureFlow, 'Likelihood.likelihoods_file',
                 #                   Sink, 'features.@likelihoods')
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 # Smooth fundi:
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 SmoothFundi = Node(name='Smooth_fundi',
                                    interface=Fn(function=smooth_skeleton,
                                         input_names=['skeletons',
@@ -1080,9 +1080,9 @@ if not args.no_surfaces:
                     mbFlow.connect(SurfFeatureFlow, 'Smooth_fundi.skeletons_file',
                                    Sink, 'features.@smooth_fundi')
 
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Segment a fundus per sulcus:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             SulcusFundi = Node(name='Fundus_per_sulcus',
                                interface=Fn(function=segment_fundi,
                                     input_names=['fundus_per_fold',
@@ -1108,20 +1108,20 @@ if not args.no_surfaces:
                                'Fundus_per_sulcus.fundus_per_sulcus_file',
                                Sink, 'features.@fundus_per_sulcus')
 
-    #=========================================================================
+    # ========================================================================
     #
     #   Surface feature shapes
     #
-    #=========================================================================
+    # ========================================================================
     if do_shapes:
         SurfFeatureShapeFlow = Workflow(name='Surface_feature_shapes')
-        #=====================================================================
+        # ====================================================================
         # Compute Laplace-Beltrami spectra
-        #=====================================================================
+        # ====================================================================
         if do_spectra:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Measure spectra of labeled regions:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             SpectraLabels = Node(name='Spectra_labels',
                                  interface=Fn(function=spectrum_per_label,
                                               input_names=['vtk_file',
@@ -1142,9 +1142,9 @@ if not args.no_surfaces:
             SpectraLabels.inputs.largest_segment = True
             mbFlow.connect(WholeSurfShapeFlow, 'Surface_area.area_file',
                            SurfFeatureShapeFlow, 'Spectra_labels.area_file')
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Compute spectra of sulci:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             if do_sulci:
                 SpectraSulci = SpectraLabels.clone('Spectra_sulci')
                 SurfFeatureShapeFlow.add_nodes([SpectraSulci])
@@ -1152,13 +1152,13 @@ if not args.no_surfaces:
                                SurfFeatureShapeFlow, 'Spectra_sulci.vtk_file')
                 SpectraSulci.inputs.exclude_labels = [-1]
 
-        #=====================================================================
+        # ====================================================================
         # Compute Zernike moments
-        #=====================================================================
+        # ====================================================================
         if do_moments:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Measure Zernike moments of labeled regions:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             ZernikeLabels = Node(name='Zernike_labels',
                  interface=Fn(function=zernike_moments_per_label,
                               input_names=['vtk_file',
@@ -1177,9 +1177,9 @@ if not args.no_surfaces:
             ZernikeLabels.inputs.scale_input = True
             ZernikeLabels.inputs.decimate_fraction = 0
             ZernikeLabels.inputs.decimate_smooth = 0
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Compute Zernike moments of sulci:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             if do_sulci:
                 ZernikeSulci = ZernikeLabels.clone('Zernike_sulci')
                 SurfFeatureShapeFlow.add_nodes([ZernikeSulci])
@@ -1187,15 +1187,15 @@ if not args.no_surfaces:
                                SurfFeatureShapeFlow, 'Zernike_sulci.vtk_file')
                 ZernikeSulci.inputs.exclude_labels = [-1]
 
-    #=========================================================================
+    # ========================================================================
     #
     #   Surface feature shape tables
     #
-    #=========================================================================
+    # ========================================================================
     if do_shapes:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Surface feature shape tables: labels, sulci, fundi:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         ShapeTables = Node(name='Shape_tables',
                            interface=Fn(function=write_shape_stats,
                                 input_names=['labels_or_file',
@@ -1315,9 +1315,9 @@ if not args.no_surfaces:
             mbFlow.connect(ShapeTables, 'sulcus_table', Sink, 'tables.@sulci')
         if do_fundi:
             mbFlow.connect(ShapeTables, 'fundus_table', Sink, 'tables.@fundi')
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Vertex measures table:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         if do_points:
             VertexTable = Node(name='Vertex_table',
                                interface=Fn(function=write_vertex_measures,
@@ -1386,9 +1386,9 @@ if not args.no_surfaces:
             mbFlow.connect(VertexTable, 'output_table',
                            Sink, 'tables.@vertices')
 
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Apply affine transform to surface coordinates:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         if use_ants and do_surfaces_in_mni:
             TransformVTK = Node(name='Transform_surface_points',
                                 interface=Fn(function=apply_affine_transforms,
@@ -1412,23 +1412,23 @@ if not args.no_surfaces:
                                Sink, 'features.@surface_in_MNI152')
 
 
-#=============================================================================
-#-----------------------------------------------------------------------------
+# ============================================================================
+# ----------------------------------------------------------------------------
 #
 #   Volume workflows
 #
-#-----------------------------------------------------------------------------
-#=============================================================================
+# ----------------------------------------------------------------------------
+# ============================================================================
 if do_label and not args.no_volumes:
 
-    #=========================================================================
+    # ========================================================================
     #
     #   Location and structure of FreeSurfer volume inputs
     #
-    #=========================================================================
-    #-------------------------------------------------------------------------
+    # ========================================================================
+    # ------------------------------------------------------------------------
     # Original image (.mgz) for converting from conformal (below):
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     mghOrig = Node(name='mgh_orig',
                    interface=DataGrabber(infields=['subject'],
                                          outfields=['mgh_orig'],
@@ -1441,9 +1441,9 @@ if do_label and not args.no_volumes:
     mghOrig.inputs.template = '%s/mri/orig/001.mgz'
     mghOrig.inputs.template_args['mgh_orig'] = [['subject']]
     mghOrig.inputs.subject = subject
-    #---------------------------------------------------------------------
+    # --------------------------------------------------------------------
     # Convert FreeSurfer mgh conformal file to nifti format:
-    #---------------------------------------------------------------------
+    # --------------------------------------------------------------------
     MGH2Nifti = Node(name='mgh_to_nifti',
                      interface=Fn(function=convert2nii,
                                   input_names=['input_file',
@@ -1455,9 +1455,9 @@ if do_label and not args.no_volumes:
     mbFlow.connect(mghOrig, 'mgh_orig', MGH2Nifti, 'reference_file')
     MGH2Nifti.inputs.output_file = ''
     MGH2Nifti.inputs.interp = 'continuous'
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Use own whole-brain nifti label volume:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     if do_input_fs_labels:
         labelsNifti = Node(name='labels_nifti',
                            interface=DataGrabber(infields=['subject'],
@@ -1467,13 +1467,13 @@ if do_label and not args.no_volumes:
         labelsNifti.inputs.template = '%s/mri/' + volume_labels+'.nii.gz'
         labelsNifti.inputs.template_args['labels'] = [['subject']]
         labelsNifti.inputs.subject = subject
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Convert FreeSurfer whole-brain label volume to nifti format:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     else:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         #  label volume:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         labelsMGH = Node(name='labels_mgh',
                          interface=DataGrabber(infields=['subject'],
                                                outfields=['labels'],
@@ -1482,9 +1482,9 @@ if do_label and not args.no_volumes:
         labelsMGH.inputs.template = '%s/mri/' + volume_labels+'.mgz'
         labelsMGH.inputs.template_args['labels'] = [['subject']]
         labelsMGH.inputs.subject = subject
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Convert FreeSurfer mgh conformal file to nifti format:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         labelsMGH2Nifti = Node(name='labels_mgh_to_nifti',
                            interface=Fn(function=convert2nii,
                                         input_names=['input_file',
@@ -1500,16 +1500,16 @@ if do_label and not args.no_volumes:
         #    mbFlow.connect(labelsMGH2Nifti, 'output_file',
         #                   Sink, 'labels.@freesurfer')
 
-    #=========================================================================
+    # ========================================================================
     #
     #   Volume labels
     #
-    #=========================================================================
+    # ========================================================================
     VolLabelFlow = Workflow(name='Volume_labels')
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Extract FreeSurfer cerebellum labels:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     FScerebellum = Node(name='Extract_FreeSurfer_cerebella',
                         interface=Fn(function=keep_volume_labels,
                                      input_names=['input_file',
@@ -1528,13 +1528,13 @@ if do_label and not args.no_volumes:
     FScerebellum.inputs.output_file = ''
     FScerebellum.inputs.second_file = ''
 
-    #=========================================================================
+    # ========================================================================
     # Combine FreeSurfer and ANTs cerebrum segmentation volumes
-    #=========================================================================
+    # ========================================================================
     if not my_segments:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Extract FreeSurfer cerebrum labels:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         FScerebrum = Node(name='Extract_FreeSurfer_cerebra',
                           interface=Fn(function=keep_volume_labels,
                                        input_names=['input_file',
@@ -1556,9 +1556,9 @@ if do_label and not args.no_volumes:
         FScerebrum.inputs.labels_to_keep = labels_to_segment
         FScerebrum.inputs.output_file = ''
         FScerebrum.inputs.second_file = ''
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Convert FreeSurfer cerebrum labels to non/cortex segments:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         FSsegments = Node(name='FreeSurfer_cerebrum_labels_to_segments',
                           interface=Fn(function=relabel_volume,
                                        input_names=['input_file',
@@ -1576,9 +1576,9 @@ if do_label and not args.no_volumes:
             [3 for x in dkt.brainstem_numbers] + \
             [3 for x in dkt.extra_numbers]
         FSsegments.inputs.output_file = ''
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Convert ANTs Atropos-segmented volume to non/cortex segments:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         if use_ants:
             ANTsSegments = FSsegments.clone('Relabel_ANTs_segments')
             VolLabelFlow.add_nodes([ANTsSegments])
@@ -1587,10 +1587,10 @@ if do_label and not args.no_volumes:
             ANTsSegments.inputs.old_labels = [1, 4]
             ANTsSegments.inputs.new_labels = [0, 3]
             ANTsSegments.inputs.output_file = ''
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Combine FreeSurfer and ANTs cerebrum segmentation volumes to
             # obtain a single cortex (2) and noncortex (3) segmentation file:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             JoinSegs = Node(name='Combine_FreeSurfer_ANTs_cerebrum_segments',
                             interface=Fn(function=combine_2labels_in_2volumes,
                                          input_names=['file1',
@@ -1607,9 +1607,9 @@ if do_label and not args.no_volumes:
             JoinSegs.inputs.label1 = 3
             JoinSegs.inputs.label2 = 2
             JoinSegs.inputs.output_file = ''
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Erase cerebrum that overlaps with FreeSurfer cerebellum:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             if overwrite_cerebrum_with_cerebellum:
                 RemoveCerebellum = Node(
                     name='Remove_cerebrum_cerebellum_overlap',
@@ -1628,13 +1628,13 @@ if do_label and not args.no_volumes:
                 VolLabelFlow.connect(JoinSegs, 'output_file',
                                      RemoveCerebellum, 'second_file')
 
-    #=========================================================================
+    # ========================================================================
     # Split segmented brain into two sides (without medial regions)
-    #=========================================================================
+    # ========================================================================
     # if modify_surface_labels:
-    #     #---------------------------------------------------------------------
+    #     # --------------------------------------------------------------------
     #     # Split brain by masking with left or right labels:
-    #     #---------------------------------------------------------------------
+    #     # --------------------------------------------------------------------
     #     SplitBrainSegs = Node(name='Split_brain',
     #                           interface=Fn(function=split_brain,
     #                                        input_names=['image_file',
@@ -1666,12 +1666,12 @@ if do_label and not args.no_volumes:
     #     SplitBrainSegs.inputs.left_labels = dkt.left_cerebrum_numbers
     #     SplitBrainSegs.inputs.right_labels = dkt.right_cerebrum_numbers
 
-    #=========================================================================
+    # ========================================================================
     # Fill cerebrum segmentation volumes with FreeSurfer labels
-    #=========================================================================
-    #-------------------------------------------------------------------------
+    # ========================================================================
+    # ------------------------------------------------------------------------
     # Extract cerebrum noncortical volume labels:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     FSnoncortex = Node(name='Extract_FreeSurfer_noncortex_labels',
                        interface=Fn(function=keep_volume_labels,
                                     input_names=['input_file',
@@ -1692,9 +1692,9 @@ if do_label and not args.no_volumes:
     FSnoncortex.inputs.labels_to_keep = labels_to_fill
     FSnoncortex.inputs.output_file = ''
     FSnoncortex.inputs.second_file = ''
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Propagate FreeSurfer volume labels through noncortex:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     FSFillNoncortex = Node(name='Fill_noncortex_with_FreeSurfer_labels',
                            interface=Fn(function=PropagateLabelsThroughMask,
                                         input_names=['mask',
@@ -1724,17 +1724,17 @@ if do_label and not args.no_volumes:
     FSFillNoncortex.inputs.output_file = ''
     FSFillNoncortex.inputs.binarize = False
     FSFillNoncortex.inputs.stopvalue = ''
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Propagate FreeSurfer surface labels through whole-brain cortex:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # if modify_surface_labels:
     #
     #     print('NOTE: Evaluate surface-to-volume label propagation'
     #           ' when surface label modification algorithm complete.')
     #
-    #     #---------------------------------------------------------------------
+    #     # --------------------------------------------------------------------
     #     # Propagate surface labels through each hemisphere's cortex:
-    #     #---------------------------------------------------------------------
+    #     # --------------------------------------------------------------------
     #     FSsurfFillCortex = Node(
     #                 name='Fill_cortex_with_FreeSurfer_surface_labels',
     #                 interface=Fn(function=fill_volume_with_surface_labels,
@@ -1759,9 +1759,9 @@ if do_label and not args.no_volumes:
     #     FSsurfFillCortex.inputs.mask_index = 2
     #     FSsurfFillCortex.inputs.output_file = ''
     #     FSsurfFillCortex.inputs.binarize = False
-    #     #---------------------------------------------------------------------
+    #     # --------------------------------------------------------------------
     #     # Combine left and right cortical labels:
-    #     #---------------------------------------------------------------------
+    #     # --------------------------------------------------------------------
     #     SplitHemiList = JoinNode(name='Split_hemisphere_list',
     #                              interface=Fn(function=split_list_pair,
     #                                           input_names=['List'],
@@ -1784,9 +1784,9 @@ if do_label and not args.no_volumes:
     #     LRcortex.inputs.operator = '+'
     #     LRcortex.inputs.output_file = ''
     #else:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Propagate FreeSurfer volume labels through whole-brain cortex:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Extract FreeSurfer cerebrum cortical volume labels:
     FScortex = FSnoncortex.clone('Extract_FreeSurfer_cortex_labels')
     VolLabelFlow.add_nodes([FScortex])
@@ -1819,9 +1819,9 @@ if do_label and not args.no_volumes:
     VolLabelFlow.connect(FScortex, 'output_file',
                          FSFillCortex, 'labels')
     FSFillCortex.inputs.mask_index = 2
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Combine FreeSurfer label-filled whole-brain cortex and noncortex:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     CombineFSLabels = Node(name=
                            'Combine_FreeSurfer_cortex_noncortex_labels',
                            interface=Fn(function=overwrite_volume_labels,
@@ -1848,13 +1848,13 @@ if do_label and not args.no_volumes:
                'Combine_FreeSurfer_cortex_noncortex_labels.output_file',
                Sink, 'labels.@freesurfer_filled')
 
-    #=========================================================================
+    # ========================================================================
     # Fill whole-brain segmentation volumes with ANTs labels
-    #=========================================================================
+    # ========================================================================
     if use_ants:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Mask brain volume:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         #MaskBrain = Node(name= 'Mask_brain',
         #                 interface=Fn(function=ImageMath,
         #                              input_names=['volume1',
@@ -1868,9 +1868,9 @@ if do_label and not args.no_volumes:
         #mbFlow.connect(FetchANTs, 'mask', VolLabelFlow, 'Mask_brain.volume2')
         #MaskBrain.inputs.operator = 'm'
         #MaskBrain.inputs.output_file = ''
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Transform default atlas labels in MNI152 to subject via template:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         xfm = Node(ApplyTransforms(), name='antsApplyTransforms')
         VolLabelFlow.add_nodes([xfm])
         xfm.inputs.dimension = 3
@@ -1894,26 +1894,26 @@ if do_label and not args.no_volumes:
         #if save_all:
         #    mbFlow.connect(VolLabelFlow, 'antsApplyTransforms.output_image',
         #                   Sink, 'labels.@antsRegistration')
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Extract ANTs cerebral cortical volume labels:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         ANTsCortex = FSnoncortex.clone('Extract_ANTs_cortex_labels')
         VolLabelFlow.add_nodes([ANTsCortex])
         VolLabelFlow.connect(xfm, 'output_image', ANTsCortex, 'input_file')
         ANTsCortex.inputs.labels_to_keep = dkt.cerebrum_cortex_numbers
         ANTsCortex.inputs.output_file = ''
         ANTsCortex.inputs.second_file = ''
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Extract ANTs whole-brain noncortical volume labels:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         ANTsNoncortex = ANTsCortex.clone('Extract_ANTs_noncortex_labels')
         VolLabelFlow.add_nodes([ANTsNoncortex])
         VolLabelFlow.connect(xfm, 'output_image', ANTsNoncortex, 'input_file')
         ANTsNoncortex.inputs.labels_to_keep = labels_to_fill
         ANTsNoncortex.inputs.output_file = ''
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Propagate ANTs whole-brain cortical volume labels through cortex:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         ANTsFillCortex = FSFillNoncortex.clone('Fill_cortex_with_ANTs_labels')
         VolLabelFlow.add_nodes([ANTsFillCortex])
         if my_segments:
@@ -1931,9 +1931,9 @@ if do_label and not args.no_volumes:
         ANTsFillCortex.inputs.output_file = ''
         ANTsFillCortex.inputs.binarize = False
         ANTsFillCortex.inputs.stopvalue = ''
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Propagate ANTs whole-brain noncortical labels through noncortex:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         if fill_noncortex_with_ants_labels:
             ANTsFillNoncortex = ANTsFillCortex.clone(
                 'Fill_noncortex_with_ANTs_labels')
@@ -1950,9 +1950,9 @@ if do_label and not args.no_volumes:
             VolLabelFlow.connect(ANTsNoncortex, 'output_file',
                                  ANTsFillNoncortex, 'labels')
             ANTsFillNoncortex.inputs.mask_index = 3
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Combine ANTs label-filled cortex and label-filled noncortex:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         CombineANTsLabels = CombineFSLabels.clone(
             'Combine_ANTs_cortex_noncortex_labels')
         VolLabelFlow.add_nodes([CombineANTsLabels])
@@ -1972,13 +1972,13 @@ if do_label and not args.no_volumes:
                            'Combine_ANTs_cortex_noncortex_labels.output_file',
                            Sink, 'labels.@ants_filled')
 
-    #=========================================================================
+    # ========================================================================
     # Add FreeSurfer cerebellum labels
-    #=========================================================================
+    # ========================================================================
     if overwrite_cerebrum_with_cerebellum:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # ...to FreeSurfer cerebrum labels:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         AddFScerebellum = CombineFSLabels.clone(
             'FreeSurfer_cerebrum_cerebellum')
         VolLabelFlow.add_nodes([AddFScerebellum])
@@ -1993,9 +1993,9 @@ if do_label and not args.no_volumes:
             mbFlow.connect(VolLabelFlow,
                    'FreeSurfer_cerebrum_cerebellum.output_file',
                     Sink, 'labels.@freesurfer_filled_and_cerebellum')
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # ...to ANTs cerebrum labels:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         if use_ants:
             AddFScerebellum2ANTs = AddFScerebellum.clone(
                 'FreeSurfer_cerebellum_ANTs_cerebrum')
@@ -2012,15 +2012,15 @@ if do_label and not args.no_volumes:
                        'FreeSurfer_cerebellum_ANTs_cerebrum.output_file',
                        Sink, 'labels.@ants_filled_and_cerebellum')
 
-    #=========================================================================
+    # ========================================================================
     #
     # Transform labels from added atlas(es) in MNI152 to subject
     #
-    #=========================================================================
+    # ========================================================================
     if add_atlas_names and use_ants:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Find atlas path that contains atlas name:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         MatchAtlas = Node(name='Match_added_atlas',
                       interface=Fn(function=first_string_containing_substring,
                                    input_names=['substring',
@@ -2030,9 +2030,9 @@ if do_label and not args.no_volumes:
         mbFlow.connect(InputAddAtlases, 'atlas', VolLabelFlow,
                        'Match_added_atlas.substring')
         MatchAtlas.inputs.List = atlases
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Transform atlas:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         xfm2 = xfm.clone('Transform_added_atlases')
         VolLabelFlow.add_nodes([xfm2])
         xfm2.inputs.output_image = 'ants_added_atlas_labels.nii.gz'
@@ -2049,21 +2049,21 @@ if do_label and not args.no_volumes:
             mbFlow.connect(VolLabelFlow, 'Transform_added_atlases.output_image',
                            Sink, 'labels.@added_atlases')
 
-    #=========================================================================
+    # ========================================================================
     #
     #   Volume feature shapes
     #
-    #=========================================================================
+    # ========================================================================
     if do_shapes:
 
         VolShapeFlow = Workflow(name='Volume_feature_shapes')
 
-        #=====================================================================
+        # ====================================================================
         # Measure volume of each region of a labeled image file
-        #=====================================================================
-        #---------------------------------------------------------------------
+        # ====================================================================
+        # --------------------------------------------------------------------
         # Volumes of the FreeSurfer filled labels:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         FSlabelVolumes = Node(name='FreeSurfer_filled_label_volumes',
                               interface=Fn(function=volume_per_brain_region,
                                            input_names=['input_file',
@@ -2089,9 +2089,9 @@ if do_label and not args.no_volumes:
                        'FreeSurfer_filled_label_volumes.output_table',
                        Sink, 'tables.@volumes_of_freesurfer_labels')
         if use_ants:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Volumes of the ANTs filled labels:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             antsLabelVolumes = FSlabelVolumes.clone(
                 'ANTs_filled_label_volumes')
             VolShapeFlow.add_nodes([antsLabelVolumes])
@@ -2109,9 +2109,9 @@ if do_label and not args.no_volumes:
             mbFlow.connect(VolShapeFlow,
                            'ANTs_filled_label_volumes.output_table',
                            Sink, 'tables.@volumes_of_ants_labels')
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Volumes of labels in additional atlases transformed to subject:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             if add_atlas_names:
                 antsLabelVolumes2 = FSlabelVolumes.clone(
                     'Added_atlas_label_volumes')
@@ -2130,13 +2130,13 @@ if do_label and not args.no_volumes:
                                'Added_atlas_label_volumes.output_table',
                                Sink, 'tables.@volumes_of_added_atlas_labels')
 
-        #=====================================================================
+        # ====================================================================
         # Measure volume, thickness of cortical regions of labeled image file
-        #=====================================================================
+        # ====================================================================
         if do_thickinthehead:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Thicknesses of the FreeSurfer cortical labels:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             FSthicknesses = Node(
                 name='FreeSurfer_filled_cortex_label_thicknesses',
                 interface=Fn(function=thickinthehead,
@@ -2195,9 +2195,9 @@ if do_label and not args.no_volumes:
             mbFlow.connect(VolShapeFlow,
             'FreeSurfer_filled_cortex_label_thicknesses.output_table',
             Sink, 'tables.@thicknesses_of_freesurfer_labels')
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Thicknesses of the ANTs cortical labels:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             if use_ants:
                 ANTsThicknesses = FSthicknesses.\
                     clone('ANTs_filled_cortex_label_thicknesses')
@@ -2238,79 +2238,59 @@ if do_label and not args.no_volumes:
                    Sink, 'tables.@thicknesses_of_ants_filled_cortex_labels')
 
 
-#=============================================================================
-#-----------------------------------------------------------------------------
+# ============================================================================
+# ----------------------------------------------------------------------------
 #
 #   Run workflows
 #
-#-----------------------------------------------------------------------------
-#=============================================================================
+# ----------------------------------------------------------------------------
+# ============================================================================
 if __name__ == '__main__':
 
     from time import time
     time0 = time()
 
-    #-------------------------------------------------------------------------
-    # Set the workflow configuration enable provenance tracking:
-    #-------------------------------------------------------------------------
-    #config.enable_provenance()
+    # ------------------------------------------------------------------------
+    # Workflow configuration: provenance tracking, content hashing, etc.:
+    # ------------------------------------------------------------------------
+    # config.enable_provenance()
+    Flow.config['execution']['hash_method'] = 'content'
+    # Flow.config['execution']['use_relative_paths'] = True
 
-    #-------------------------------------------------------------------------
-    # Set the workflow configuration to use content hashing:
-    #-------------------------------------------------------------------------
-    mbFlow.config['execution']['hash_method'] = 'content'
-    #hashing = args.hashing
-    #if hashing:
-    #mbFlow.config['execution']['hash_method'] = 'content'
-    #mbFlow.config['execution']['use_relative_paths'] = True
-
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Generate a visual graph:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     graph_vis = args.graph
-    if graph_vis == 'hier':
-        graph_vis = 'hierarchical'
     if graph_vis:
         if graph_vis == 'exec':
             mbFlow.write_graph(graph2use=graph_vis, simple_form=False)
         else:
+            if graph_vis == 'hier':
+                graph_vis = 'hierarchical'
             mbFlow.write_graph(graph2use=graph_vis)
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Debug: http://nipy.org/nipype/users/config_file.html#debug-configuration
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     debug = False
     if debug:
         config.set('logging', 'workflow_level', 'DEBUG')
         logging.update_logging(config)
         mbFlow.config['execution']['stop_on_first_rerun'] = True
         nproc = 1
-    else:
-        if args.proc:
-            nproc = args.proc
-        else:
-            nproc = 1
 
-    #-------------------------------------------------------------------------
-    # Run plugin, such as for multiple processes:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
+    # Run with or without a plugin:
+    # ------------------------------------------------------------------------
     if args.plugin:
         if args.plugin_args:
-            mbFlow.run(args.plugin, plugin_args=eval(args.plugin_args))
+            mbFlow.run(plugin=args.plugin, plugin_args=eval(args.plugin_args))
         else:
-            mbFlow.run(args.plugin)
-
-    if args.proc:
-        if nproc > 1:
-            mbFlow.run(plugin='MultiProc',
-                       plugin_args={'n_procs': args.proc})
-                       #updatehash=True)
-        else:
-            mbFlow.run()  #updatehash=True)
+            mbFlow.run(plugin=args.plugin)
+    elif nproc > 1:
+        mbFlow.run(plugin='MultiProc',
+                 plugin_args={'n_procs': nproc})
     else:
-        mbFlow.run()  #updatehash=True)
-    # # Default is to use all processors:
-    #else:
-    #    mbFlow.run(plugin='MultiProc')
+        mbFlow.run()  # Use all processors: Flow.run(plugin='MultiProc')
 
-    print('Mindboggle run finished ({0:0.2f} seconds).'.format(time() - time0))
+    print('Mindboggle run done! ({0:0.2f} seconds)'.format(time() - time0))
