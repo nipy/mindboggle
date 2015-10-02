@@ -1478,7 +1478,7 @@ def transform_to_volume(vtk_file, volume_file, output_volume=''):
     return output_volume
 
 
-def freesurfer_surface_to_vtk(surface_file, output_vtk):
+def freesurfer_surface_to_vtk(surface_file, output_vtk=''):
     """
     Convert FreeSurfer surface file to VTK format.
 
@@ -1491,7 +1491,9 @@ def freesurfer_surface_to_vtk(surface_file, output_vtk):
     surface_file : string
         name of FreeSurfer surface file
     output_vtk : string
-        name of output VTK file
+        name of output VTK file; if blank, appends
+        ".vtk" to surface_file and saves to the
+        current working directory.
 
     Returns
     -------
@@ -1558,7 +1560,7 @@ def freesurfer_surface_to_vtk(surface_file, output_vtk):
     return output_vtk
 
 
-def freesurfer_curvature_to_vtk(surface_file, vtk_file, output_vtk):
+def freesurfer_curvature_to_vtk(surface_file, vtk_file, output_vtk=''):
     """
     Convert FreeSurfer curvature, thickness, or convexity file to VTK format.
 
