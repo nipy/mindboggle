@@ -868,6 +868,9 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     from mindboggle.mio.vtks import read_scalars, read_vtk, write_vtk
     from mindboggle.guts.mesh import reindex_faces_points, remove_faces
 
+    if not input_values_vtk:
+        input_values_vtk = input_indices_vtk
+
     # Load VTK file:
     faces, lines, indices, points, npoints, scalars, scalar_names, \
         foo1 = read_vtk(input_indices_vtk, True, True)
