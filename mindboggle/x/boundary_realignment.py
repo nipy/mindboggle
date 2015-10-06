@@ -39,8 +39,8 @@ def realign_boundaries_to_fundus_lines(
     import propagate_fundus_lines
 
     ## read files
-    faces, _, indices, points, num_points, _, _, _ = read_vtk(
-        surf_file, return_first=True, return_array=True)
+    points, indices, lines, faces, scalars, scalar_names, num_points, \
+        input_vtk = read_vtk(surf_file, return_first=True, return_array=True)
     indices = range(num_points)
 
     init_labels, _ = read_scalars(init_label_file,

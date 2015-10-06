@@ -54,8 +54,9 @@ def main():
         zernike_fn = profilehooks.timecall(zernike_fn)
 
     if ns.vtk_file is not None:
-        faces, lines, indices, points, n_points, depths, name, input_vtk = read_vtk(ns.vtk_file)
-        print len(faces), len(points)
+        points, indices, lines, faces, depths, scalar_names, npoints, \
+            input_vtk = read_vtk(ns.vtk_file)
+        print(len(faces), len(points))
         X = zernike_fn(points, faces, order=ns.order, scale_input=True)
         if ns.validate:
             Y = zernike_fn(points, faces, order=ns.order, scale_input=True, pl_cls=MultiprocPipeline)

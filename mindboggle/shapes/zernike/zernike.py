@@ -67,7 +67,7 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     >>> from mindboggle.shapes.zernike.zernike import zernike_moments
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'cube.vtk')
-    >>> faces, u1,u2, points, u3,u4,u5,u6 = read_vtk(vtk_file)
+    >>> points, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(vtk_file)
     >>> order = 3
     >>> scale_input = True
     >>> zernike_moments(points, faces, order, scale_input)
@@ -91,7 +91,7 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     >>> from mindboggle.shapes.zernike.zernike import zernike_moments
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'Parallelepiped.vtk')
-    >>> faces, u1,u2, points, u3,u4,u5,u6 = read_vtk(vtk_file)
+    >>> points, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(vtk_file)
     >>> order = 3
     >>> scale_input = True
     >>> zernike_moments(points, faces, order, scale_input)
@@ -116,7 +116,7 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     >>> from mindboggle.shapes.zernike.zernike import zernike_moments
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
-    >>> faces, u1,u2, points, u3, labels, u4,u5 = read_vtk(label_file)
+    >>> points, indices, lines, faces, labels, scalar_names, npoints, input_vtk = read_vtk(label_file)
     >>> I22 = [i for i,x in enumerate(labels) if x==22] # postcentral
     >>> faces = remove_faces(faces, I22)
     >>> order = 3
@@ -135,7 +135,7 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     >>> from mindboggle.shapes.zernike.zernike import zernike_moments
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
-    >>> faces, u1,u2, points, u3, labels, u4,u5 = read_vtk(label_file)
+    >>> points, indices, lines, faces, labels, scalar_names, npoints, input_vtk = read_vtk(label_file)
     >>> I20 = [i for i,x in enumerate(labels) if x==20] # pars triangularis
     >>> I22 = [i for i,x in enumerate(labels) if x==22] # postcentral
     >>> I22.extend(I20)
@@ -301,7 +301,8 @@ def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
     #-------------------------------------------------------------------------
     # Read VTK surface mesh file:
     #-------------------------------------------------------------------------
-    faces, u1,u2, points, u3, labels, u4,u5 = read_vtk(vtk_file)
+    points, indices, lines, faces, labels, scalar_names, npoints, \
+            input_vtk = read_vtk(vtk_file)
 
     #-------------------------------------------------------------------------
     # Loop through labeled regions:

@@ -152,8 +152,8 @@ def plot_mask_surface(vtk_file, mask_file='', nonmask_value=-1,
             #-----------------------------------------------------------------
             # Load VTK files:
             #-----------------------------------------------------------------
-            faces, lines, indices, points, npoints, scalars, scalar_names, \
-            o1 = read_vtk(vtk_file, True, True)
+            points, indices, lines, faces, scalars, scalar_names, npoints, \
+                input_vtk = read_vtk(vtk_file, True, True)
             #-----------------------------------------------------------------
             # Find mask indices, remove nonmask faces, and reindex:
             #-----------------------------------------------------------------

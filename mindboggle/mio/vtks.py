@@ -275,22 +275,22 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
 
     Returns
     -------
-    faces : list of lists of integers
-        each element is list of 3 indices of vertices that form a face
-        on a surface mesh
+    points :  list of 3-tuples of floats
+        each element has 3 numbers representing the coordinates of the points
+    indices : list of integers
+        indices of vertices
     lines : list of 2-tuples of integers
         each element is an edge on the mesh, consisting of 2 integers
         representing the 2 vertices of the edge
-    indices : list of integers
-        indices of vertices
-    points :  list of 3-tuples of floats
-        each element has 3 numbers representing the coordinates of the points
-    npoints : int
-        number of vertices in the mesh
+    faces : list of lists of integers
+        each element is list of 3 indices of vertices that form a face
+        on a surface mesh
     scalars : list or list of lists of floats or integers
         scalar values for the vertices of a mesh
     scalar_names : string or list of strings
         name(s) of lookup table(s)
+    npoints : int
+        number of vertices in the mesh
     input_vtk : string
         path/filename of the input VTK format file
 
@@ -300,7 +300,7 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
     >>> from mindboggle.mio.vtks import read_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(input_vtk)
+    >>> points, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(input_vtk)
 
     """
     import os
@@ -372,8 +372,8 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
         else:
             scalar_names = ''
 
-    return faces, lines, indices, points, npoints, scalars, scalar_names, \
-           input_vtk
+    return points, indices, lines, faces, scalars, scalar_names, \
+           npoints, input_vtk
 
 
 #=============================================================================
@@ -613,7 +613,7 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> faces, lines, indices, points, npoints, scalars, scalar_names, input_vtk = read_vtk(input_vtk)
+    >>> points, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(input_vtk)
     >>> output_vtk = 'write_vtk.vtk'
     >>> scalar_type = 'float'
     >>> write_vtk(output_vtk, points, indices, lines, faces, scalars, scalar_names, scalar_type)
@@ -735,7 +735,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     output_vtk = os.path.join(os.getcwd(), output_vtk)
 
     # Load VTK file
-    faces, lines, indices, points, npoints, scalars, name, \
+    points, indices, lines, faces, scalars, scalar_names, npoints, \
         input_vtk = read_vtk(input_vtk)
 
     # Find indices to foreground values
@@ -869,8 +869,8 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     from mindboggle.guts.mesh import reindex_faces_points, remove_faces
 
     # Load VTK file:
-    faces, lines, indices, points, npoints, scalars, scalar_names, \
-        foo1 = read_vtk(input_indices_vtk, True, True)
+    points, indices, lines, faces, scalars, scalar_names, npoints, \
+        input_vtk = read_vtk(input_indices_vtk, True, True)
     print("Explode the scalar list in {0}".
           format(os.path.basename(input_indices_vtk)))
     if input_values_vtk != input_indices_vtk:
@@ -1347,8 +1347,8 @@ def apply_affine_transforms(transform_files, inverse_booleans,
 
     # Read VTK file:
     if isinstance(vtk_or_points, str):
-        faces, lines, indices, points, npoints, scalars, name, \
-            foo1 = read_vtk(vtk_or_points)
+        points, indices, lines, faces, scalars, scalar_names, npoints, \
+            input_vtk = read_vtk(vtk_or_points)
         points = np.array(points)
     elif isinstance(vtk_or_points, list):
         points = np.array(vtk_or_points)
@@ -1390,7 +1390,7 @@ def apply_affine_transforms(transform_files, inverse_booleans,
             scalar_type = 'int'
 
         write_vtk(output_file, affine_points,
-                  indices, lines, faces, scalars, name, scalar_type)
+                  indices, lines, faces, scalars, scalar_names, scalar_type)
     else:
         output_file = None
 
@@ -1441,7 +1441,8 @@ def transform_to_volume(vtk_file, volume_file, output_volume=''):
     from mindboggle.mio.vtks import read_vtk
 
     # Read vtk file:
-    u1, u2, u3, xyz, npoints, scalars, u4, u5 = read_vtk(vtk_file)
+    points, indices, lines, faces, scalars, scalar_names, npoints, \
+            input_vtk = read_vtk(vtk_file)
 
     # Read target image volume header information:
     img = nb.load(volume_file)

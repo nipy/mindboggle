@@ -121,8 +121,8 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
     #-------------------------------------------------------------------------
     # Load depth values for all vertices
     #-------------------------------------------------------------------------
-    faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
-        return_first=True, return_array=True)
+    points, indices, lines, faces, depths, scalar_names, npoints, \
+        input_vtk = read_vtk(depth_file, return_first=True, return_array=True)
 
     #-------------------------------------------------------------------------
     # Find neighbors for each vertex
@@ -324,9 +324,8 @@ def extract_subfolds(depth_file, folds, min_size=10, depth_factor=0.25,
     #-------------------------------------------------------------------------
     # Load depth values for all vertices
     #-------------------------------------------------------------------------
-    faces, lines, indices, points, npoints, depths, \
-        name, input_vtk = read_vtk(depth_file, return_first=True,
-                                   return_array=True)
+    points, indices, lines, faces, depths, scalar_names, npoints, \
+        input_vtk = read_vtk(depth_file, return_first=True, return_array=True)
 
     #-------------------------------------------------------------------------
     # Find neighbors for each vertex

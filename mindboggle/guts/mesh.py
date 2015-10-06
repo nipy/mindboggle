@@ -760,7 +760,7 @@ def decimate(points, faces, reduction=0.75, smooth_steps=25,
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
-    >>> faces, u1,u2, points, u3, scalars, u4,u5 = read_vtk(label_file)
+    >>> points, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(label_file)
     >>> I22 = [i for i,x in enumerate(labels) if x==14] # postcentral
     >>> faces = remove_faces(faces, I22)
     >>> order = 3
@@ -928,7 +928,8 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100,
     from mindboggle.guts.mesh import decimate
 
     # Read VTK surface mesh file:
-    faces, u1, u2, points, u4, scalars, u5, u6 = read_vtk(input_vtk)
+    points, indices, lines, faces, scalars, scalar_names, npoints, \
+            input_vtk = read_vtk(input_vtk)
 
     # Decimate vtk triangular mesh with vtk.vtkDecimatePro
     points, faces, scalars, output_vtk = decimate(points, faces, reduction,

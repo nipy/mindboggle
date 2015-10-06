@@ -49,7 +49,7 @@ def antsApplyTransformsToPoints(points, transform_files, inverse_booleans=[0]):
     >>> transform_files = ['/Users/arno/Data/antsCorticalThickness/Twins-2-1/antsTemplateToSubject1GenericAffine.mat','/Users/arno/Data/antsCorticalThickness/Twins-2-1/antsTemplateToSubject0Warp.nii.gz','/Users/arno/Data/antsCorticalThickness/Twins-2-1/antsSubjectToTemplate0GenericAffine.mat','/Users/arno/Data/antsCorticalThickness/Twins-2-1/antsSubjectToTemplate1Warp.nii.gz']
     >>> transform_files = [transform_files[0],transform_files[1],'/Users/arno/Data/mindboggle_cache/f36e3d5d99f7c4a9bb70e2494ed7340b/OASIS-30_Atropos_template_to_MNI152_affine.txt']
     >>> vtk_file = '/Users/arno/mindboggle_working/Twins-2-1/Mindboggle/_hemi_lh/Surface_to_vtk/lh.pial.vtk'
-    >>> faces, lines, indices, points, npoints, scalars, name, foo1 = read_vtk(vtk_file)
+    >>> points, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(vtk_file)
     >>> inverse_booleans = [0,0,1]
     >>> transformed_points = antsApplyTransformsToPoints(points, transform_files, inverse_booleans)
 

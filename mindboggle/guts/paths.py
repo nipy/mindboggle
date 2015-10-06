@@ -63,7 +63,7 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> #
     >>> curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> u1,u2,u3, points, u4, curvs, u5,u6 = read_vtk(curv_file, True,True)
+    >>> points, indices, lines, faces, curvs, scalar_names, npoints, input_vtk = read_vtk(curv_file, True,True)
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'travel_depth_rescaled.vtk')
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> values = curvs * depths
@@ -289,8 +289,7 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists,
     >>> # Connect vertices according to likelihood values in a single fold:
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.mio.vtks import read_vtk, read_scalars,
-    ...                                     read_faces_points, rewrite_scalars
+    >>> from mindboggle.mio.vtks import read_scalars, read_faces_points, rewrite_scalars
     >>> from mindboggle.guts.mesh import find_neighbors
     >>> from mindboggle.guts.paths import find_outer_anchors, connect_points_hmmf
     >>> from mindboggle.mio.plots import plot_surfaces
@@ -1245,8 +1244,7 @@ def find_max_values(points, values, min_separation=10, thr=0.5):
     >>> folds, name = read_scalars(folds_file)
     >>> #
     >>> likelihood_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
-    >>> u1, u2, u3, points, u4, values, u5, u6 = read_vtk(likelihood_file,
-    >>>     return_first=True, return_array=True)
+    >>> points, indices, lines, faces, values, scalar_names, npoints, input_vtk = read_vtk(likelihood_file, return_first=True, return_array=True)
     >>> # Select a single fold
     >>> plot_single_fold = True
     >>> if plot_single_fold:
@@ -1365,7 +1363,7 @@ def find_max_values(points, values, min_separation=10, thr=0.5):
 #     >>> likelihood_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
 #     >>> min_curvature_vector_file = os.path.join(path, 'arno', 'shapes',
 #     >>>                                          'lh.pial.curv.min.dir.txt')
-#     >>> faces, lines, indices, points, npoints, values, name, input_vtk = read_vtk(likelihood_file,
+#     >>> points, indices, lines, faces, values, scalar_names, npoints, input_vtk = read_vtk(likelihood_file,
 #     >>>     return_first=True, return_array=True)
 #     >>> # Select a single fold
 #     >>> plot_single_fold = True
@@ -1455,7 +1453,7 @@ if __name__ == "__main__":
     # Extract a skeleton to connect endpoints in a fold:
     import os
     import numpy as np
-    from mindboggle.mio.vtks import read_scalars, read_vtk, rewrite_scalars
+    from mindboggle.mio.vtks import read_scalars, rewrite_scalars
     from mindboggle.guts.mesh import find_neighbors_from_file
     from mindboggle.guts.paths import connect_points_erosion, find_outer_anchors
     path = os.environ['MINDBOGGLE_DATA']

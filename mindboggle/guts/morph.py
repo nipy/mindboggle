@@ -231,8 +231,7 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[],
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, return_first=True, return_array=True)
     >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
-    >>> faces, lines, indices, points, npoints, scalars, name, input_vtk = read_vtk(vtk_file,
-    >>>     return_first=True, return_array=True)
+    >>> points, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(vtk_file, return_first=True, return_array=True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> n_fold = np.unique(folds)[1]
     >>> folds[folds != n_fold] = background_value
@@ -510,7 +509,7 @@ def close_surface_pair(faces, points1, points2, scalars, background_value=-1):
     >>> fold_number = 11
     >>> scalars[scalars != fold_number] = -1
     >>> white_surface = os.path.join(path, 'arno', 'freesurfer', 'lh.white.vtk')
-    >>> faces, u1, u2, points2, N, u3, u4, u5 = read_vtk(white_surface)
+    >>> points2, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(white_surface)
     >>> background_value = -1
     >>> closed_faces, closed_points, closed_scalars = close_surface_pair(faces, points1, points2, scalars, background_value)
     >>> # View:
@@ -616,7 +615,7 @@ def close_surface_pair_from_files(patch_surface1, whole_surface2,
     >>> fold_number = 11
     >>> folds[folds != fold_number] = -1
     >>> white_surface = os.path.join(path, 'arno', 'freesurfer', 'lh.white.vtk')
-    >>> faces, u1, u2, points2, N, u3, u4, u5 = read_vtk(white_surface)
+    >>> points2, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(white_surface)
     >>> write_vtk(patch_surface1, points, [], [], faces, folds, name)
     >>> write_vtk(whole_surface2, points2, [], [], faces, folds, name)
     >>> background_value = -1
@@ -633,10 +632,10 @@ def close_surface_pair_from_files(patch_surface1, whole_surface2,
     from mindboggle.guts.morph import close_surface_pair
 
     # Read VTK surface mesh files:
-    u1, u2, u3, points1, N, scalars, name, u4 = read_vtk(patch_surface1,
-                                                         True, True)
-    faces, u1, u2, points2, N, u3, u4, u5 = read_vtk(whole_surface2,
-                                                     True, True)
+    points1, indices, lines, faces, scalars, scalar_names, npoints, \
+        input_vtk = read_vtk(patch_surface1, True, True)
+    points2, indices, lines, faces, scalars, scalar_names, npoints, \
+        input_vtk = read_vtk(whole_surface2, True, True)
 
     # Close surface:
     closed_faces, closed_points, closed_scalars = close_surface_pair(faces,
@@ -653,7 +652,7 @@ def close_surface_pair_from_files(patch_surface1, whole_surface2,
     else:
         print("Undefined scalar type!")
     write_vtk(output_vtk, closed_points, [], [], closed_faces, closed_scalars,
-              name, scalar_type=scalar_type)
+              scalar_names, scalar_type=scalar_type)
 
     return output_vtk
 
