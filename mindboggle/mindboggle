@@ -58,7 +58,8 @@ from mindboggle.shapes.laplace_beltrami import spectrum_per_label
 from mindboggle.shapes.likelihood import compute_likelihood
 from mindboggle.shapes.surface_shapes import area, curvature, travel_depth, \
     geodesic_depth
-from mindboggle.shapes.volume_shapes import thickinthehead, volume_per_brain_region
+from mindboggle.shapes.volume_shapes import thickinthehead, \
+    volume_per_brain_region
 from mindboggle.shapes.zernike.zernike import zernike_moments_per_label
 from mindboggle.thirdparty.ants import PropagateLabelsThroughMask
 
@@ -77,8 +78,8 @@ parser = argparse.ArgumentParser(description="""
 
 features_group = parser.add_argument_group('more features (or --all)')
 shapes_group = parser.add_argument_group('more shapes (or --all)')
-inputs_group = parser.add_argument_group('modify inputs')
 outputs_group = parser.add_argument_group('modify outputs')
+inputs_group = parser.add_argument_group('advanced settings')
 
 # "positional arguments":
 parser.add_argument("SUBJECT",
@@ -100,12 +101,6 @@ parser.add_argument("--subjects_dir",
                     help=("directory containing SUBJECT subdirectory, if not"
                           " equal to environment variable $SUBJECTS_DIR"),
                     metavar='STR')
-parser.add_argument("--plugin", dest="plugin",
-                    default='Linear',
-                    help="Plugin to use, such as: --plugin PBS")
-parser.add_argument("--plugin_args", dest="plugin_args",
-                    help="Plugin arguments in dictionary form, such as:"
-                         " --plugin_args \"dict(qsub_args='-q many')\"")
 parser.add_argument("-p", "--proc",
                     help=('number of processors (default: 1)'),
                     type=int, default=1, metavar='INT')
@@ -126,8 +121,8 @@ features_group.add_argument("--points", action='store_true',
 features_group.add_argument("--surfaces_in_mni", action='store_true',
                     help="cortical surfaces in MNI152 space")
 shapes_group.add_argument("--thickness", action='store_true',
-                    help="cortical label thicknesses computed from volume,"
-                         " not surface data (volume divided by middle area)")
+                    help="thickinthehead: volume-based cortical label"
+                         " thicknesses (volume / middle area)")
 shapes_group.add_argument("--moments",
                     help="Zernike moments order per label/feature"
                          " (ex: 10) [not included in --all"
@@ -137,6 +132,35 @@ shapes_group.add_argument("--spectra",
                     help="Laplace-Beltrami spectrum eigenvalues"
                          " per label/feature (ex: 10)",
                     default=0, type=int, metavar='INT')
+outputs_group.add_argument("--out",
+                    help='output folder (if not $HOME/mindboggled)',
+                    default=os.path.join(os.environ['HOME'],
+                                         'mindboggled'), metavar='STR')
+outputs_group.add_argument("--working",
+                    help="working folder"
+                         " (if not $HOME/mindboggle_working)",
+                    default=os.path.join(os.environ['HOME'],
+                                         'mindboggle_working'), metavar='STR')
+outputs_group.add_argument("--cache", help='download folder '
+                                    '(if not $HOME/mindboggle_cache)',
+                    default=os.path.join(os.environ['HOME'],
+                                         'mindboggle_cache'), metavar='STR')
+outputs_group.add_argument("--no_volumes", action='store_true',
+                    help="no volume labels, features, or shape tables")
+outputs_group.add_argument("--no_surfaces", action='store_true',
+                    help="no surface labels, features, or shape tables")
+outputs_group.add_argument("--no_labels", action='store_true',
+                    help="no surface or volume labels")
+outputs_group.add_argument("--no_shapes", action='store_true',
+                    help="no shape tables of surface labels or features")
+outputs_group.add_argument("--save_only_tables", action='store_true',
+                    help="save only tables to free up space")
+inputs_group.add_argument("--plugin", dest="plugin",
+                    default='Linear',
+                    help="Plugin to use, such as: --plugin PBS")
+inputs_group.add_argument("--plugin_args", dest="plugin_args",
+                    help="Plugin arguments in dictionary form, such as:"
+                         " --plugin_args \"dict(qsub_args='-q many')\"")
 inputs_group.add_argument("--my_atlas",
                     help=("alternate atlas to OASIS-TRT-20 jointfusion atlas;"
                           " must follow DKT31 cortical and CMA noncortical"
@@ -171,29 +195,6 @@ inputs_group.add_argument("--my_transform",
                           " template was not used in antsCorticalThickness.sh"
                           " (format should match antsAffine.sh ITK transform)"),
                     metavar='STR')
-outputs_group.add_argument("--out",
-                    help='output folder (if not $HOME/mindboggled)',
-                    default=os.path.join(os.environ['HOME'],
-                                         'mindboggled'), metavar='STR')
-outputs_group.add_argument("--working",
-                    help="working folder"
-                         " (if not $HOME/mindboggle_working)",
-                    default=os.path.join(os.environ['HOME'],
-                                         'mindboggle_working'), metavar='STR')
-outputs_group.add_argument("--cache", help='download folder '
-                                    '(if not $HOME/mindboggle_cache)',
-                    default=os.path.join(os.environ['HOME'],
-                                         'mindboggle_cache'), metavar='STR')
-outputs_group.add_argument("--no_volumes", action='store_true',
-                    help="no volume labels, features, or shape tables")
-outputs_group.add_argument("--no_surfaces", action='store_true',
-                    help="no surface labels, features, or shape tables")
-outputs_group.add_argument("--no_labels", action='store_true',
-                    help="no surface or volume labels")
-outputs_group.add_argument("--no_shapes", action='store_true',
-                    help="no shape tables of surface labels or features")
-outputs_group.add_argument("--save_only_tables", action='store_true',
-                    help="save only tables to free up space")
 args = parser.parse_args()
 
 # ----------------------------------------------------------------------------
@@ -2254,8 +2255,8 @@ if __name__ == '__main__':
     # Workflow configuration: provenance tracking, content hashing, etc.:
     # ------------------------------------------------------------------------
     # config.enable_provenance()
-    Flow.config['execution']['hash_method'] = 'content'
-    # Flow.config['execution']['use_relative_paths'] = True
+    mbFlow.config['execution']['hash_method'] = 'content'
+    # mbFlow.config['execution']['use_relative_paths'] = True
 
     # ------------------------------------------------------------------------
     # Generate a visual graph:
