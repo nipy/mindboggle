@@ -95,7 +95,8 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
         folds = np.array(folds)
 
     # Load values, inner anchor threshold, and neighbors:
-    faces, u1,u2, points, npoints, curvs, u3,u4 = read_vtk(curv_file, True,True)
+    points, indices, lines, faces, curvs, scalar_names, npoints, \
+        input_vtk = read_vtk(curv_file, True, True)
     depths, name = read_scalars(depth_file, True, True)
     values = curvs * depths
     values0 = [x for x in values if x > 0]
@@ -150,9 +151,9 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
             if Iremove:
                 skeletons = list(frozenset(skeletons).difference(Iremove))
 
-    indices = [x for x in skeletons if folds[x] != -1]
+    indices_skel = [x for x in skeletons if folds[x] != -1]
     fundus_per_fold = -1 * np.ones(npoints)
-    fundus_per_fold[indices] = folds[indices]
+    fundus_per_fold[indices_skel] = folds[indices_skel]
     n_fundi_in_folds = len([x for x in np.unique(fundus_per_fold)
                              if x != -1])
     if n_fundi_in_folds == 1:

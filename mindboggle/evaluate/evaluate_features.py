@@ -72,8 +72,8 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='', hemi='',
     #-------------------------------------------------------------------------
     # Load labels, features, and sulci:
     #-------------------------------------------------------------------------
-    faces, lines, indices, points, npoints, labels, scalar_names, \
-        input_vtk = read_vtk(labels_file, True, True)
+    points, indices, lines, faces, labels, scalar_names, npoints, \
+    input_vtk = read_vtk(labels_file, True, True)
     features, name = read_scalars(features_file, True, True)
     if sulci_file:
         sulci, name = read_scalars(sulci_file, True, True)

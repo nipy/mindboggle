@@ -372,7 +372,7 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None):
     >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
-    >>> faces, u1,u2, points, u3, labels, u4,u5 = read_vtk(label_file)
+    >>> points, indices, lines, faces, labels, scalar_names, npoints, input_vtk = read_vtk(label_file)
     >>> I22 = [i for i,x in enumerate(labels) if x==22] # postcentral
     >>> faces = remove_faces(faces, I22)
     >>> faces, points, o1 = reindex_faces_points(faces, points)
@@ -498,8 +498,7 @@ def spectrum_of_largest(points, faces, spectrum_size=10, exclude_labels=[-1],
     >>> spectrum_size = 6
     >>> exclude_labels = [-1]
     >>> normalization = None
-    >>> faces, lines, indices, points, u1, labels, u2,u3 = read_vtk(label_file,
-    >>>      return_first=True, return_array=True)
+    >>> points, indices, lines, faces, labels, scalar_names, npoints, input_vtk = read_vtk(label_file, return_first=True, return_array=True)
     >>> I20 = [i for i,x in enumerate(labels) if x==20] # pars triangularis
     >>> I22 = [i for i,x in enumerate(labels) if x==22] # postcentral
     >>> I22.extend(I20)
@@ -628,7 +627,8 @@ def spectrum_from_file(vtk_file, spectrum_size=10, exclude_labels=[-1],
     from mindboggle.mio.vtks import read_vtk, read_scalars
     from mindboggle.shapes.laplace_beltrami import spectrum_of_largest
 
-    faces, u1, u2, points, u4, u5, u6, u7 = read_vtk(vtk_file)
+    points, indices, lines, faces, scalars, scalar_names, npoints, \
+            input_vtk = read_vtk(vtk_file)
 
     # Area file:
     if area_file:
@@ -700,7 +700,8 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
         spectrum_of_largest
 
     # Read VTK surface mesh file:
-    faces, u1, u2, points, u4, labels, u5, u6 = read_vtk(vtk_file)
+    points, indices, lines, faces, labels, scalar_names, npoints, \
+        input_vtk = read_vtk(vtk_file)
 
     # Area file:
     if area_file:

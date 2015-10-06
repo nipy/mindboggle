@@ -195,8 +195,8 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     for ishape, shape_file in enumerate(shape_files):
         if os.path.exists(shape_file):
             if first_pass:
-                faces, lines, indices, points, npoints, scalars_array, name, \
-                    input_vtk = read_vtk(shape_file, True, True)
+                points, indices, lines, faces, scalars_array, scalar_names, \
+                    npoints, input_vtk = read_vtk(shape_file, True, True)
                 points = np.array(points)
                 first_pass = False
                 if affine_transform_files and transform_format:
@@ -529,7 +529,8 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
             if first_pass:
 
                 # Append x,y,z position per vertex to columns:
-                u1, u2, u3, points, u4, scalars, u5, u6 = read_vtk(shape_file)
+                points, indices, lines, faces, scalars, scalar_names, \
+                    npoints, input_vtk = read_vtk(shape_file)
                 xyz_positions = np.asarray(points)
                 for ixyz, xyz in enumerate(['x','y','z']):
                     column_names.append('position: {0}'.format(xyz))
@@ -603,8 +604,8 @@ def write_face_vertex_averages(input_file, output_table='', area_file=''):
 
     from mindboggle.mio.vtks import read_vtk, read_scalars
 
-    faces, lines, indices, points, npoints, scalars, name, \
-        input_vtk = read_vtk(input_file, True, True)
+    points, indices, lines, faces, scalars, scalar_names, \
+        npoints, input_vtk = read_vtk(input_file, True, True)
     if area_file:
         area_scalars, name = read_scalars(area_file, True, True)
 
@@ -688,8 +689,8 @@ def write_average_face_values_per_label(input_indices_vtk,
     from mindboggle.guts.mesh import remove_faces
 
     # Load VTK file:
-    faces, lines, indices, points, npoints, scalars, scalar_names, \
-        foo1 = read_vtk(input_indices_vtk, True, True)
+    points, indices, lines, faces, scalars, scalar_names, npoints, \
+        input_vtk = read_vtk(input_indices_vtk, True, True)
     if area_file:
         area_scalars, name = read_scalars(area_file, True, True)
     print("Explode the scalar list in {0}".

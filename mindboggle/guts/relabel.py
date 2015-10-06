@@ -339,8 +339,8 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
     from mindboggle.mio.vtks import read_vtk, write_vtk
 
     # Load labeled vtk surfaces:
-    faces, lines, indices, points, npoints, scalars, \
-        name, input_vtk = read_vtk(vtk_file, return_first=True, return_array=True)
+    points, indices, lines, faces, scalars, scalar_names, npoints, \
+        input_vtk = read_vtk(vtk_file, return_first=True, return_array=True)
     new_scalars = scalars[:]
 
     # Raise an error if inputs set incorrectly:

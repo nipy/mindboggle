@@ -26,8 +26,8 @@ def propagate_fundus_lines(surf_file, fundus_lines_file, thickness_file):
     """
     from mindboggle.mio.vtks import read_vtk, read_scalars
 
-    faces, _, _, points, num_points, fundus_lines, _, _ = read_vtk(
-        surf_file, return_first=True, return_array=True)
+    points, indices, lines, faces, fundus_lines, scalar_names, num_points, \
+        input_vtk = read_vtk(surf_file, return_first=True, return_array=True)
 
     fundus_lines, _ = read_scalars(fundus_lines_file)
     fundus_line_indices = [i for i, x in enumerate(fundus_lines) if x > 0.5]

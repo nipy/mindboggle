@@ -502,7 +502,7 @@ def means_per_label(values, labels, include_labels=[], exclude_labels=[], areas=
     >>>     include_labels, exclude_labels, areas)
     >>> #
     >>> # Example 2: compute mean coordinates per label:
-    >>> faces, lines, indices, points, npoints, curvs, name, input_vtk = read_vtk(values_file)
+    >>> points, indices, lines, faces, labels, scalar_names, npoints, input_vtk = read_vtk(values_file)
     >>> means, sdevs, label_list, label_areas = means_per_label(points, labels,
     >>>     include_labels, exclude_labels, areas)
 
@@ -594,7 +594,7 @@ def sum_per_label(values, labels, include_labels=[], exclude_labels=[]):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.mio.vtks import read_scalars, read_vtk
+    >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.guts.compute import sum_per_label
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> values_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.area.vtk')

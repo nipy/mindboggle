@@ -96,7 +96,8 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
         print("Warning: hemisphere not properly specified ('lh' or 'rh').")
 
     # Load points, faces, and neighbors:
-    faces, o1, o2, points, npoints, labels, o3, o4 = read_vtk(labels_file)
+    points, indices, lines, faces, labels, scalar_names, npoints, \
+            input_vtk = read_vtk(labels_file)
     neighbor_lists = find_neighbors(faces, npoints)
 
     # Array of sulcus IDs for fold vertices, initialized as -1.

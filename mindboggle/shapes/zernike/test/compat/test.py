@@ -7,8 +7,9 @@ import functools
 
 from . import CompatPipeline
 
-def read_vtk(filename) :
-    faces, lines, indices, points, npoints, depths, name, input_vtk = mindboggle.guts.read_vtk(input_vtk)
+def read_vtk(filename):
+    points, indices, lines, faces, depths, scalar_names, npoints, \
+        input_vtk = mindboggle.mio.vtks.read_vtk(filename)
     return numpy.array(points), numpy.array(faces)
 
 head,tail = os.path.split(__file__)
