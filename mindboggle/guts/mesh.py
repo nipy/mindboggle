@@ -885,7 +885,7 @@ def decimate(points, faces, reduction=0.75, smooth_steps=25,
 
 
 def decimate_file(input_vtk, reduction=0.5, smooth_steps=100,
-                  save_vtk=False, output_vtk=''):
+                  save_vtk=True, output_vtk=''):
     """
     Decimate vtk triangular mesh file with vtk.vtkDecimatePro.
 
@@ -926,6 +926,9 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100,
     """
     from mindboggle.mio.vtks import read_vtk
     from mindboggle.guts.mesh import decimate
+
+    if not save_vtk:
+        raise NotImplementedError()
 
     # Read VTK surface mesh file:
     points, indices, lines, faces, scalars, scalar_names, npoints, \
