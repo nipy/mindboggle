@@ -19,8 +19,8 @@ if len(set(('develop', 'bdist_egg', 'bdist_rpm', 'bdist', 'bdist_dumb',
             'bdist_wininst', 'install_egg_info', 'egg_info', 'easy_install',
             )).intersection(sys.argv)) > 0:
     # setup_egg imports setuptools setup, thus monkeypatching distguts.
-    import setup_egg
-
+    # import setup_egg
+    pass
 from distutils.core import setup
 
 # Python 2 to 3 build
