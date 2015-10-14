@@ -8,7 +8,7 @@ Authors:
     - Oliver Hinds, 2013 (ohinds@gmail.com)
     - Daniel Haehn, 2013 (daniel.haehn@childrens.harvard.edu)
 
-Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2015,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
