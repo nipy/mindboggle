@@ -175,7 +175,7 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.zernike.zernike</span> <span class="kn">import</span> <span class="n">zernike_moments</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;cube.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span><span class="p">,</span> <span class="n">u1</span><span class="p">,</span><span class="n">u2</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">u3</span><span class="p">,</span><span class="n">u4</span><span class="p">,</span><span class="n">u5</span><span class="p">,</span><span class="n">u6</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">scalars</span><span class="p">,</span> <span class="n">scalar_names</span><span class="p">,</span> <span class="n">npoints</span><span class="p">,</span> <span class="n">input_vtk</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">order</span> <span class="o">=</span> <span class="mi">3</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">scale_input</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">zernike_moments</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">scale_input</span><span class="p">)</span>
@@ -200,7 +200,7 @@
 &gt;&gt;&gt; from mindboggle.shapes.zernike.zernike import zernike_moments
 &gt;&gt;&gt; path = os.environ[&#8216;MINDBOGGLE_DATA&#8217;]
 &gt;&gt;&gt; vtk_file = os.path.join(path, &#8216;Parallelepiped.vtk&#8217;)
-&gt;&gt;&gt; faces, u1,u2, points, u3,u4,u5,u6 = read_vtk(vtk_file)
+&gt;&gt;&gt; points, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(vtk_file)
 &gt;&gt;&gt; order = 3
 &gt;&gt;&gt; scale_input = True
 &gt;&gt;&gt; zernike_moments(points, faces, order, scale_input)
@@ -226,7 +226,7 @@
 &gt;&gt;&gt; from mindboggle.shapes.zernike.zernike import zernike_moments
 &gt;&gt;&gt; path = os.environ[&#8216;MINDBOGGLE_DATA&#8217;]
 &gt;&gt;&gt; label_file = os.path.join(path, &#8216;arno&#8217;, &#8216;labels&#8217;, &#8216;lh.labels.DKT31.manual.vtk&#8217;)
-&gt;&gt;&gt; faces, u1,u2, points, u3, labels, u4,u5 = read_vtk(label_file)
+&gt;&gt;&gt; points, indices, lines, faces, labels, scalar_names, npoints, input_vtk = read_vtk(label_file)
 &gt;&gt;&gt; I22 = [i for i,x in enumerate(labels) if x==22] # postcentral
 &gt;&gt;&gt; faces = remove_faces(faces, I22)
 &gt;&gt;&gt; order = 3
@@ -246,7 +246,7 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.zernike.zernike</span> <span class="kn">import</span> <span class="n">zernike_moments</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">label_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;lh.labels.DKT31.manual.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span><span class="p">,</span> <span class="n">u1</span><span class="p">,</span><span class="n">u2</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">u3</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">u4</span><span class="p">,</span><span class="n">u5</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">label_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">scalar_names</span><span class="p">,</span> <span class="n">npoints</span><span class="p">,</span> <span class="n">input_vtk</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">label_file</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">I20</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span><span class="o">==</span><span class="mi">20</span><span class="p">]</span> <span class="c"># pars triangularis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">I22</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span><span class="o">==</span><span class="mi">22</span><span class="p">]</span> <span class="c"># postcentral</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">I22</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">I20</span><span class="p">)</span>

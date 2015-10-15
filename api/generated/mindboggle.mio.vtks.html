@@ -281,7 +281,7 @@ label index in a label surface file.</p>
 </div></blockquote>
 <p><strong>pieces</strong> : string</p>
 <blockquote class="last">
-<div><p>name of structures to explode {&#8216;labels&#8217;, &#8216;sulci&#8217;, &#8216;fundus_per_sulcus&#8217;, &#8216;folds&#8217;}</p>
+<div><p>name of structures to explode {&#8216;labels&#8217;, &#8216;sulci&#8217;} #, &#8216;fundus_per_sulcus&#8217;, &#8216;folds&#8217;}</p>
 </div></blockquote>
 </td>
 </tr>
@@ -369,7 +369,7 @@ the corresponding shape value</p>
 
 <dl class="function">
 <dt id="mindboggle.mio.vtks.freesurfer_curvature_to_vtk">
-<code class="descclassname">mindboggle.mio.vtks.</code><code class="descname">freesurfer_curvature_to_vtk</code><span class="sig-paren">(</span><em>surface_file</em>, <em>vtk_file</em>, <em>output_vtk</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.vtks.freesurfer_curvature_to_vtk" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.mio.vtks.</code><code class="descname">freesurfer_curvature_to_vtk</code><span class="sig-paren">(</span><em>surface_file</em>, <em>vtk_file</em>, <em>output_vtk=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.vtks.freesurfer_curvature_to_vtk" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert FreeSurfer curvature, thickness, or convexity file to VTK format.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -416,7 +416,7 @@ the corresponding shape value</p>
 
 <dl class="function">
 <dt id="mindboggle.mio.vtks.freesurfer_surface_to_vtk">
-<code class="descclassname">mindboggle.mio.vtks.</code><code class="descname">freesurfer_surface_to_vtk</code><span class="sig-paren">(</span><em>surface_file</em>, <em>output_vtk</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.vtks.freesurfer_surface_to_vtk" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.mio.vtks.</code><code class="descname">freesurfer_surface_to_vtk</code><span class="sig-paren">(</span><em>surface_file</em>, <em>output_vtk=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.vtks.freesurfer_surface_to_vtk" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert FreeSurfer surface file to VTK format.</p>
 <p>If a file named orig.mgz exists in &#8216;../mri&#8217;, the surface coordinates
 are transformed into scanner RAS space during format conversion
@@ -431,7 +431,9 @@ according to the vox2ras transform in that file.</p>
 </div></blockquote>
 <p><strong>output_vtk</strong> : string</p>
 <blockquote>
-<div><p>name of output VTK file</p>
+<div><p>name of output VTK file; if blank, appends
+&#8221;.vtk&#8221; to surface_file and saves to the
+current working directory.</p>
 </div></blockquote>
 </td>
 </tr>
@@ -758,27 +760,23 @@ and all scalar lookup tables from a VTK file.</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>faces</strong> : list of lists of integers</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>points</strong> :  list of 3-tuples of floats</p>
 <blockquote>
-<div><p>each element is list of 3 indices of vertices that form a face
-on a surface mesh</p>
+<div><p>each element has 3 numbers representing the coordinates of the points</p>
+</div></blockquote>
+<p><strong>indices</strong> : list of integers</p>
+<blockquote>
+<div><p>indices of vertices</p>
 </div></blockquote>
 <p><strong>lines</strong> : list of 2-tuples of integers</p>
 <blockquote>
 <div><p>each element is an edge on the mesh, consisting of 2 integers
 representing the 2 vertices of the edge</p>
 </div></blockquote>
-<p><strong>indices</strong> : list of integers</p>
+<p><strong>faces</strong> : list of lists of integers</p>
 <blockquote>
-<div><p>indices of vertices</p>
-</div></blockquote>
-<p><strong>points</strong> :  list of 3-tuples of floats</p>
-<blockquote>
-<div><p>each element has 3 numbers representing the coordinates of the points</p>
-</div></blockquote>
-<p><strong>npoints</strong> : int</p>
-<blockquote>
-<div><p>number of vertices in the mesh</p>
+<div><p>each element is list of 3 indices of vertices that form a face
+on a surface mesh</p>
 </div></blockquote>
 <p><strong>scalars</strong> : list or list of lists of floats or integers</p>
 <blockquote>
@@ -787,6 +785,10 @@ representing the 2 vertices of the edge</p>
 <p><strong>scalar_names</strong> : string or list of strings</p>
 <blockquote>
 <div><p>name(s) of lookup table(s)</p>
+</div></blockquote>
+<p><strong>npoints</strong> : int</p>
+<blockquote>
+<div><p>number of vertices in the mesh</p>
 </div></blockquote>
 <p><strong>input_vtk</strong> : string</p>
 <blockquote class="last">
@@ -801,7 +803,7 @@ representing the 2 vertices of the edge</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_vtk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">input_vtk</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.mean_curvature.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">npoints</span><span class="p">,</span> <span class="n">depths</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">input_vtk</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">input_vtk</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">scalars</span><span class="p">,</span> <span class="n">scalar_names</span><span class="p">,</span> <span class="n">npoints</span><span class="p">,</span> <span class="n">input_vtk</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">input_vtk</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1202,7 +1204,7 @@ representing the 2 vertices of the edge</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">input_vtk</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.mean_curvature.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">npoints</span><span class="p">,</span> <span class="n">scalars</span><span class="p">,</span> <span class="n">scalar_names</span><span class="p">,</span> <span class="n">input_vtk</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">input_vtk</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">scalars</span><span class="p">,</span> <span class="n">scalar_names</span><span class="p">,</span> <span class="n">npoints</span><span class="p">,</span> <span class="n">input_vtk</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">input_vtk</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">output_vtk</span> <span class="o">=</span> <span class="s">&#39;write_vtk.vtk&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">scalar_type</span> <span class="o">=</span> <span class="s">&#39;float&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">write_vtk</span><span class="p">(</span><span class="n">output_vtk</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">scalars</span><span class="p">,</span> <span class="n">scalar_names</span><span class="p">,</span> <span class="n">scalar_type</span><span class="p">)</span>
