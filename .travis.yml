@@ -2,7 +2,7 @@ language: python
 sudo: false
 
 python:
-  - "2.7"
+  - "2.7" # should test 2.6 to latest later...
 
 notifications:
   email: false
