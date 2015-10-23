@@ -37,7 +37,8 @@ def hashes_url():
     hashes = {}
     url = 'http://media.mindboggle.info/data/cache/'
     cache_env = 'MINDBOGGLE_CACHE'
-    cache = os.path.join(os.environ['HOME'], 'mindboggle_cache')
+    cache = os.environ.get(cache_env, os.path.join(os.environ['HOME'],
+                                                   'mindboggle_cache'))
 
     #-------------------------------------------------------------------------
     # Atlases and templates:
