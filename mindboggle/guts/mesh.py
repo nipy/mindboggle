@@ -455,10 +455,10 @@ def find_adjacent_faces(faces):
     Returns
     -------
     adjacent_faces: list of pairs of lists of three integers
-        list 1 indexes three faces adjacent to the three face's edges; 
+        list 1 indexes three faces adjacent to the three face's edges;
         list 2 indexes three vertices opposite the adjacent faces:
         adjacent_faces[i]: two lists, each of length 3
-        adjacent_faces[i][0] = [face0, face1, face2]: 
+        adjacent_faces[i][0] = [face0, face1, face2]:
                                 face0 is the neighbor of face i facing vertex0
         adjacent_faces[i][1] = [vertex0, vertex1, vertex2], which is face i:
                                 vertex0 is the vertex of face0 not in face i
@@ -827,7 +827,7 @@ def decimate(points, faces, reduction=0.75, smooth_steps=25,
     # We want to preserve topology (not let any cracks form).
     # This may limit the total reduction possible.
     decimate = vtk.vtkDecimatePro()
-    decimate.SetInput(polydata)
+    decimate.SetInputData(polydata)
     decimate.SetTargetReduction(reduction)
     decimate.PreserveTopologyOn()
 
@@ -842,17 +842,17 @@ def decimate(points, faces, reduction=0.75, smooth_steps=25,
         output_vtk = None
     if smooth_steps > 0:
         smoother = vtk.vtkSmoothPolyDataFilter()
-        smoother.SetInput(decimate.GetOutput())
+        smoother.SetInputData(decimate.GetOutput())
         smoother.SetNumberOfIterations(smooth_steps)
         smoother.Update()
         out = smoother.GetOutput()
         if save_vtk:
-            exporter.SetInput(smoother.GetOutput())
+            exporter.SetInputData(smoother.GetOutput())
     else:
         decimate.Update()
         out = decimate.GetOutput()
         if save_vtk:
-            exporter.SetInput(decimate.GetOutput())
+            exporter.SetInputData(decimate.GetOutput())
 
     #-------------------------------------------------------------------------
     # Export output:
