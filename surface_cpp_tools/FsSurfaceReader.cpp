@@ -113,7 +113,7 @@ FsSurfaceReader::FsSurfaceReader(char *fileName)
     pd->PrintSelf(cout,indent);
 
     vtkPolyDataNormals *pdn = vtkPolyDataNormals::New();
-    pdn->SetInput(pd);
+    pdn->SetInputData(pd);
     pdn->SetFeatureAngle(90);
     pdn->SplittingOff();
     pdn->Update();
@@ -125,7 +125,7 @@ FsSurfaceReader::FsSurfaceReader(char *fileName)
     m_mesh->DeepCopy(pdn->GetOutput());
 
 //    vtkPolyDataWriter* pdw = vtkPolyDataWriter::New();
-//    pdw->SetInput(m_mesh);
+//    pdw->SetInputData(m_mesh);
 //    pdw->SetFileName("test.vtk");
 //    pdw->Write();
 //    pdw->Update();
