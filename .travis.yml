@@ -12,8 +12,8 @@ env:
 
 before_install:
   # download VTK
-  - wget http://midas3.kitware.com/midas/download/bitstream/366970/vtk-precise64-118242.tar.gz -O vtk-precise64.tar.gz
-  - tar xzvf vtk-precise64.tar.gz -C ~
+  #- wget http://midas3.kitware.com/midas/download/bitstream/366970/vtk-precise64-118242.tar.gz -O vtk-precise64.tar.gz
+  #- tar xzvf vtk-precise64.tar.gz -C ~
   # Setup anaconda
   - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
@@ -22,7 +22,7 @@ before_install:
   - conda update --yes conda
 
 install: # Install packages
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy matplotlib nose pandas
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy matplotlib nose pandas vtk
   # Coverage packages are on my binstar channel
   - "pip install python-coveralls coverage nose-cov"
   - "pip install profilehooks"
