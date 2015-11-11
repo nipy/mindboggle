@@ -3,11 +3,11 @@
 ============
 Installation  **(UNDER CONSTRUCTION)**
 ============
-Mindboggle comes as a single installation program, `setup_mindboggle <https://github.com/binarybottle/mindboggle/blob/master/setup_mindboggle>`_,
+Mindboggle comes as a single installation program, `setup_mindboggle_vm <https://github.com/nipy/mindboggle/blob/master/setup_mindboggle_vm>`_,
 that creates a virtual machine where everything is installed and
 configured to run Mindboggle.  See below for directions on its use.
 (For those who just *have* to install from source, see guidelines in
-`setup_mindboggle.sh <https://github.com/binarybottle/mindboggle/blob/master/setup_mindboggle.sh>`_.)
+`setup_mindboggle.sh <https://github.com/nipy/mindboggle/blob/master/setup_mindboggle.sh>`_.)
 
 Dependencies
 ------------
@@ -32,26 +32,26 @@ instructions on running these commands.
 Configure virtual machine with mounted directories
 -----------------------------------------------------------------------------
 Mindboggle's single installation program,
-`setup_mindboggle <https://github.com/binarybottle/mindboggle/blob/master/setup_mindboggle>`_,
+`setup_mindboggle_vm <https://github.com/nipy/mindboggle/blob/master/setup_mindboggle_vm>`_,
 generates a configuration file called ``Vagrantfile`` for the mindboggle virtual machine.
-Copy ``setup_mindboggle`` to wherever you want the startup directory to be,
+Copy ``setup_mindboggle_vm`` to wherever you want the startup directory to be,
 and make sure it is executable by typing in a terminal::
 
-    chmod +x setup_mindboggle
+    chmod +x setup_mindboggle_vm
 
 Configure the virtual machine to access your local FreeSurfer subjects
 directory, your local ANTs subjects directory,
 and to use a given number of processors (backslashes denote line returns)::
 
-    python setup_mindboggle --install \
-                            --home /home/vagrant \
-                            --freesurfer /Applications/freesurfer/subjects \
-                            --ants /data/antsCorticalThickness/subjects \
-                            --proc 6
+    python setup_mindboggle_vm --install \
+                               --home /home/vagrant \
+                               --freesurfer /Applications/freesurfer/subjects \
+                               --ants /data/antsCorticalThickness/subjects \
+                               --proc 6
 
 For help with other setup options::
 
-    python setup_mindboggle --help
+    python setup_mindboggle_vm --help
 
 See `README <http://mindboggle.info/users/README.html#set-up-mindboggle>`_
 for instructions on how to run Mindboggle with this setup!
