@@ -37,7 +37,7 @@
   <meta name="dc.subject" content="Mindboggle">
   <meta name="dc.type" content="text.homepage.academic"> 
   <meta name="dc.format" content="text/html"> 
-  <meta name="dc.identifier" content="http://mindboggle.info/">
+  <meta name="dc.identifier" content="http://mindboggle.info">
 
   </head>
   <body role="document">
@@ -47,7 +47,7 @@
    <td>
 
  <a href="../index.html">
-  <img src="http://mindboggle.info/shared/mindboggle_logo_small.jpg" alt="small mindboggle logo"  border="0" width="160"/></a>
+  <img src="http://nipy.github.io/mindboggle/shared/mindboggle_logo_small.jpg" alt="small mindboggle logo"  border="0" width="160"/></a>
 
    </td>
    <td>
@@ -61,7 +61,7 @@
      <tr>
       <td>
   <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
-   href="http://mindboggle.info/users/README.html">Software</a>
+   href="http://nipy.github.io/mindboggle/users/README.html">Software</a>
       </td>
       <td>
   <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
@@ -194,25 +194,25 @@ files (backslash denotes a line return):</p>
 <h2><span class="target" id="mindboggle-processing-steps">Mindboggle processing steps</span><a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><ol class="arabic">
-<li><p class="first">Create hybrid gray/white segmentation from FreeSurfer and ANTs output (<a class="reference external" href="http://mindboggle.info//blob/master/mindboggle/guts/segment.py">combine_2labels_in_2volumes</a>).</p>
+<li><p class="first">Create hybrid gray/white segmentation from FreeSurfer and ANTs output (<a class="reference external" href="https://github.com/nipy/mindboggle/blob/master/mindboggle/guts/segment.py">combine_2labels_in_2volumes</a>).</p>
 </li>
 <li><p class="first">Fill hybrid segmentation with FreeSurfer- or ANTs-registered labels.</p>
 </li>
 <li><p class="first">Compute volume shape measures for each labeled region:</p>
 <blockquote>
 <div><ul class="simple">
-<li>volume (<a class="reference external" href="http://mindboggle.info//blob/master/mindboggle/guts/compute.py">volume_per_label</a>)</li>
-<li>thickness of cortical labels (<a class="reference external" href="http://mindboggle.info//blob/master/mindboggle/guts/ants.py">thickinthehead</a>)</li>
+<li>volume (<a class="reference external" href="https://github.com/nipy/mindboggle/blob/master/mindboggle/guts/compute.py">volume_per_label</a>)</li>
+<li>thickness of cortical labels (<a class="reference external" href="https://github.com/nipy/mindboggle/blob/master/mindboggle/guts/ants.py">thickinthehead</a>)</li>
 </ul>
 </div></blockquote>
 </li>
 <li><p class="first">Compute surface shape measures for every cortical mesh vertex:</p>
 <blockquote>
 <div><ul class="simple">
-<li><a class="reference external" href="http://mindboggle.info//blob/master/surface_cpp_tools/PointAreaComputer.cpp">surface area</a></li>
-<li><a class="reference external" href="http://mindboggle.info//blob/master/surface_cpp_tools/TravelDepth.cpp">travel depth</a></li>
-<li><a class="reference external" href="http://mindboggle.info//blob/master/surface_cpp_tools/geodesic_depth/GeodesicDepthMain.cpp">geodesic depth</a></li>
-<li><a class="reference external" href="http://mindboggle.info//blob/master/surface_cpp_tools/curvature/CurvatureMain.cpp">mean curvature</a></li>
+<li><a class="reference external" href="https://github.com/nipy/mindboggle/blob/master/surface_cpp_tools/PointAreaComputer.cpp">surface area</a></li>
+<li><a class="reference external" href="https://github.com/nipy/mindboggle/blob/master/surface_cpp_tools/TravelDepth.cpp">travel depth</a></li>
+<li><a class="reference external" href="https://github.com/nipy/mindboggle/blob/master/surface_cpp_tools/geodesic_depth/GeodesicDepthMain.cpp">geodesic depth</a></li>
+<li><a class="reference external" href="https://github.com/nipy/mindboggle/blob/master/surface_cpp_tools/curvature/CurvatureMain.cpp">mean curvature</a></li>
 <li>convexity (from FreeSurfer)</li>
 <li>thickness (from FreeSurfer)</li>
 </ul>
@@ -221,9 +221,9 @@ files (backslash denotes a line return):</p>
 <li><p class="first">Extract cortical surface features:</p>
 <blockquote>
 <div><ul class="simple">
-<li><a class="reference external" href="http://mindboggle.info//blob/master/mindboggle/features/folds.py">folds</a></li>
-<li><a class="reference external" href="http://mindboggle.info//blob/master/mindboggle/features/sulci.py">sulci</a></li>
-<li><a class="reference external" href="http://mindboggle.info//blob/master/mindboggle/features/fundi.py">fundi</a></li>
+<li><a class="reference external" href="https://github.com/nipy/mindboggle/blob/master/mindboggle/features/folds.py">folds</a></li>
+<li><a class="reference external" href="https://github.com/nipy/mindboggle/blob/master/mindboggle/features/sulci.py">sulci</a></li>
+<li><a class="reference external" href="https://github.com/nipy/mindboggle/blob/master/mindboggle/features/fundi.py">fundi</a></li>
 </ul>
 </div></blockquote>
 </li>
@@ -233,12 +233,12 @@ files (backslash denotes a line return):</p>
 <li>area</li>
 <li>mean coordinates</li>
 <li>mean coordinates in MNI152 space</li>
-<li><a class="reference external" href="http://mindboggle.info//blob/master/mindboggle/shapes/laplace_beltrami.py">Laplace-Beltrami spectrum</a></li>
-<li><a class="reference external" href="http://mindboggle.info//blob/master/mindboggle/shapes/zernike/zernike.py">Zernike moments</a></li>
+<li><a class="reference external" href="https://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/laplace_beltrami.py">Laplace-Beltrami spectrum</a></li>
+<li><a class="reference external" href="https://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/zernike/zernike.py">Zernike moments</a></li>
 </ul>
 </div></blockquote>
 </li>
-<li><p class="first">Compute statistics (<code class="docutils literal"><span class="pre">stats_per_label</span></code> in <a class="reference external" href="http://mindboggle.info//blob/master/mindboggle/guts/compute.py">compute.py</a>) for each shape measure in #4 for each label/feature:</p>
+<li><p class="first">Compute statistics (<code class="docutils literal"><span class="pre">stats_per_label</span></code> in <a class="reference external" href="https://github.com/nipy/mindboggle/blob/master/mindboggle/guts/compute.py">compute.py</a>) for each shape measure in #4 for each label/feature:</p>
 <blockquote>
 <div><ul class="simple">
 <li>median</li>
