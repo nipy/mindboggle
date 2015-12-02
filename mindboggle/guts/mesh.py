@@ -827,7 +827,10 @@ def decimate(points, faces, reduction=0.75, smooth_steps=25,
     # We want to preserve topology (not let any cracks form).
     # This may limit the total reduction possible.
     decimate = vtk.vtkDecimatePro()
-    decimate.SetInputData(polydata)
+    try:
+        decimate.SetInputData(polydata)
+    except:
+        decimate.SetInput(polydata)
     decimate.SetTargetReduction(reduction)
     decimate.PreserveTopologyOn()
 
@@ -842,17 +845,26 @@ def decimate(points, faces, reduction=0.75, smooth_steps=25,
         output_vtk = None
     if smooth_steps > 0:
         smoother = vtk.vtkSmoothPolyDataFilter()
-        smoother.SetInputData(decimate.GetOutput())
+        try:
+            smoother.SetInputData(decimate.GetOutput())
+        except:
+            smoother.SetInput(decimate.GetOutput())
         smoother.SetNumberOfIterations(smooth_steps)
         smoother.Update()
         out = smoother.GetOutput()
         if save_vtk:
-            exporter.SetInputData(smoother.GetOutput())
+            try:
+                exporter.SetInputData(smoother.GetOutput())
+            except:
+                exporter.SetInput(smoother.GetOutput())
     else:
         decimate.Update()
         out = decimate.GetOutput()
         if save_vtk:
-            exporter.SetInputData(decimate.GetOutput())
+            try:
+                exporter.SetInputData(decimate.GetOutput())
+            except:
+                exporter.SetInput(decimate.GetOutput())
 
     #-------------------------------------------------------------------------
     # Export output:
