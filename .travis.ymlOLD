@@ -1,0 +1,40 @@
+language: python
+sudo: false
+
+python:
+  - "2.7" # should test 2.6 to latest later...
+
+notifications:
+  email: false
+
+env:
+  - PYTHONPATH=~/vtk-precise64/lib/python2.7/site-packages:~/vtk-precise64/lib LD_LIBRARY_PATH=~/vtk-precise64/lib:~/local/lib:~/local/lib/R/lib
+
+before_install:
+  # download VTK
+  #- wget http://midas3.kitware.com/midas/download/bitstream/366970/vtk-precise64-118242.tar.gz -O vtk-precise64.tar.gz
+  #- tar xzvf vtk-precise64.tar.gz -C ~
+  # Setup anaconda
+  - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+  - chmod +x miniconda.sh
+  - ./miniconda.sh -b
+  - export PATH=/home/travis/miniconda/bin:$PATH
+  - conda update --yes conda
+
+install: # Install packages
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy matplotlib nose pandas vtk
+  # Coverage packages are on my binstar channel
+  - "pip install python-coveralls coverage nose-cov"
+  - "pip install profilehooks"
+  - python setup.py install
+
+script: # Run test
+  - python -c "import vtk"
+  - nosetests --with-coverage --with-doctest mindboggle/evaluate/
+  - nosetests --with-coverage --with-doctest mindboggle/features/
+  - nosetests --with-coverage --with-doctest mindboggle/guts/
+  - nosetests --with-coverage --with-doctest mindboggle/shapes/
+  - nosetests --with-coverage --with-doctest mindboggle/mio/vtks.py
+
+after_success: # Calculate coverage
+  - coveralls --config_file .coveragerc
