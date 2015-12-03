@@ -5,7 +5,7 @@ python:
 #  - "3.3"
 #  - "3.4"
 
-#sudo: false
+sudo: false
 
 notifications:
   email: false
@@ -31,8 +31,7 @@ install:
   - conda info -a
 
   # Replace dep1 dep2 ... with your dependencies
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION atlas numpy scipy matplotlib nose panda\
-s vtk
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION atlas numpy scipy matplotlib nose pandas vtk
   - source activate test-environment
   - python setup.py install
 
