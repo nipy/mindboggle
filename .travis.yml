@@ -14,7 +14,7 @@ env:
   - PYTHONPATH=~/vtk-precise64/lib/python2.7/site-packages:~/vtk-precise64/lib LD_LIBRARY_PATH=~/vtk-precise64/lib:~/local/lib:~/local/lib/R/lib
 
 install:
-  - sudo apt-get update
+#  - sudo apt-get update
   # We do this conditionally because it saves us some downloading if the
   # version is the same.
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
