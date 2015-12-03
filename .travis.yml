@@ -1,10 +1,16 @@
 language: python
 python:
-  # We don't actually use the Travis Python, but this keeps it organized.
-  - "2.6"
+#  - "2.6"
   - "2.7"
-  - "3.3"
-  - "3.4"
+#  - "3.3"
+#  - "3.4"
+
+notifications:
+  email: false
+
+env:
+  - PYTHONPATH=~/vtk-precise64/lib/python2.7/site-packages:~/vtk-precise64/lib LD_LIBRARY_PATH=~/vtk-precise64/lib:~/local/lib:~/local/lib/R/lib
+
 install:
   - sudo apt-get update
   # We do this conditionally because it saves us some downloading if the
@@ -23,7 +29,8 @@ install:
   - conda info -a
 
   # Replace dep1 dep2 ... with your dependencies
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION dep1 dep2 ...
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION atlas numpy scipy matplotlib nose panda\
+s vtk
   - source activate test-environment
   - python setup.py install
 
