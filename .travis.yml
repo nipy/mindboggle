@@ -5,7 +5,7 @@ python:
 #  - "3.3"
 #  - "3.4"
 
-sudo: false
+#sudo: false
 
 notifications:
   email: false
