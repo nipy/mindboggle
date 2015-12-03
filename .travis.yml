@@ -1,10 +1,13 @@
 language: python
+
+# Python version:
 python:
 #  - "2.6"
   - "2.7"
 #  - "3.3"
 #  - "3.4"
 
+# Use Travis's container-based infrastructure (sudo not allowed):
 sudo: false
 
 notifications:
@@ -13,10 +16,10 @@ notifications:
 env:
   - PYTHONPATH=~/vtk-precise64/lib/python2.7/site-packages:~/vtk-precise64/lib LD_LIBRARY_PATH=~/vtk-precise64/lib:~/local/lib:~/local/lib/R/lib
 
+# Install packages:
 install:
 #  - sudo apt-get update
-  # We do this conditionally because it saves us some downloading if the
-  # version is the same.
+  # Download miniconda -- condition saves some downloading (if same version):
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
       wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
     else
@@ -27,13 +30,29 @@ install:
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
-  # Useful for debugging any issues with conda
+  # Useful for debugging any issues with conda:
   - conda info -a
 
-  # Replace dep1 dep2 ... with your dependencies
+  # Dependencies and installation:
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION atlas numpy scipy matplotlib nose pandas vtk
   - source activate test-environment
+
+  # Coverage packages:
+  - "pip install python-coveralls coverage nose-cov"
+  - "pip install profilehooks"
+
+  # Install:
   - python setup.py install
 
+# Test script:
 script:
-  # Your test script goes here
+  - python -c "import vtk"
+  - nosetests --with-coverage --with-doctest mindboggle/evaluate/
+  - nosetests --with-coverage --with-doctest mindboggle/features/
+  - nosetests --with-coverage --with-doctest mindboggle/guts/
+  - nosetests --with-coverage --with-doctest mindboggle/shapes/
+  - nosetests --with-coverage --with-doctest mindboggle/mio/vtks.py
+
+# Calculate coverage:
+after_success:
+  - coveralls --config_file .coveragerc
