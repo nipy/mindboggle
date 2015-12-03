@@ -5,6 +5,8 @@ python:
 #  - "3.3"
 #  - "3.4"
 
+sudo: false
+
 notifications:
   email: false
 
@@ -12,7 +14,6 @@ env:
   - PYTHONPATH=~/vtk-precise64/lib/python2.7/site-packages:~/vtk-precise64/lib LD_LIBRARY_PATH=~/vtk-precise64/lib:~/local/lib:~/local/lib/R/lib
 
 install:
-  - sudo: false
   - sudo apt-get update
   # We do this conditionally because it saves us some downloading if the
   # version is the same.
