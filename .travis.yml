@@ -46,7 +46,7 @@ install:
 
 # Test script:
 script:
-  - python -c "import vtk"
+#  - python -c "import vtk"
   - nosetests --with-coverage --with-doctest mindboggle/evaluate/
   - nosetests --with-coverage --with-doctest mindboggle/features/
   - nosetests --with-coverage --with-doctest mindboggle/guts/
