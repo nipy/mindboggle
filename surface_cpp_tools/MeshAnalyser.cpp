@@ -47,14 +47,12 @@ MeshAnalyser::MeshAnalyser(char* fileName)
     vtkPolyDataReader* reader=vtkPolyDataReader::New();
     reader->SetFileName(fileName);
 //  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
-    reader->Update();
+//  reader->Update();
 
     vtkTriangleFilter* tf = vtkTriangleFilter::New();
     tf->SetInputData(reader->GetOutput());
 //  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
-    tf->Update();
+//  tf->Update();
 
     this->mesh=vtkPolyData::New();
     this->mesh->DeepCopy(tf->GetOutput());
@@ -70,8 +68,7 @@ MeshAnalyser::MeshAnalyser(vtkPolyData* mesh)
     vtkTriangleFilter* tf = vtkTriangleFilter::New();
     tf->SetInputData(mesh);
 //  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
-    tf->Update();
+//  tf->Update();
 
     this->mesh=vtkPolyData::New();
     this->mesh->DeepCopy(tf->GetOutput());
@@ -140,8 +137,7 @@ void MeshAnalyser::SetMesh(char* fileName)
     vtkPolyDataReader* reader=vtkPolyDataReader::New();
     reader->SetFileName(fileName);
 //  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
-    reader->Update();
+//  reader->Update();
 
     this->mesh->DeepCopy(reader->GetOutput());
     this->nbPoints=reader->GetOutput()->GetNumberOfPoints();
@@ -553,8 +549,7 @@ void MeshAnalyser::WriteIntoFile(char* fileName, char* prop)
 
 
 //  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
-    this->mesh->Update();
+//  this->mesh->Update();
     if(strcmp("simple",prop)==0) writer->SetInputData(this->simpl);
     else if(strcmp("geoDistSimple",prop)==0)
     {
@@ -562,15 +557,13 @@ void MeshAnalyser::WriteIntoFile(char* fileName, char* prop)
         GeoDistRingSimple(250,1000);
         this->simpl->GetPointData()->SetScalars(this->geoDistRingSimple);
 //  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
-        this->simpl->Update();
+//      this->simpl->Update();
         writer->SetInputData(this->simpl);
     }
     else if(strcmp("closed",prop)==0) writer->SetInputData(this->closedMesh);
     else writer->SetInputData(this->mesh);
 //  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
-    writer->Update();
+//  writer->Update();
     writer->Write();
     writer->Delete();
 
@@ -586,8 +579,7 @@ void MeshAnalyser::WriteIntoFile(char* fileName)
 
     writer->SetInputData(this->mesh);
 //  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
-    writer->Update();
+//  writer->Update();
     writer->Write();
     writer->Delete();
 }
@@ -600,13 +592,11 @@ void MeshAnalyser::WriteIntoFile(char* fileName, vtkDataArray* propExt)
 
     this->mesh->GetPointData()->SetScalars(propExt);
 //  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
-    this->mesh->Update();
+//  this->mesh->Update();
 
     writer->SetInputData(this->mesh);
 //  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
-    writer->Update();
+//  writer->Update();
     writer->Write();
     writer->Delete();
 
