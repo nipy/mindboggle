@@ -21,8 +21,6 @@ TravelDepth::TravelDepth(char *fileName)
 {
     vtkPolyDataReader* reader=vtkPolyDataReader::New();
     reader->SetFileName(fileName);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
     reader->Update();
 
     m_mesh=vtkPolyData::New();
@@ -46,8 +44,6 @@ void TravelDepth::ComputeDepth()
 
 
     m_mesh->GetPointData()->SetScalars(m_depth);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
     m_mesh->Update();
 }
 
@@ -61,9 +57,8 @@ void TravelDepth::WriteIntoFile(char *fileName)
     vtkPolyDataWriter* writer=vtkPolyDataWriter::New();
     writer->SetFileName(fileName);
     writer->SetInputData(m_mesh);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
-    writer->Update();
+//  Redundant?:
+//  writer->Update();
     writer->Write();
     writer->Delete();
 }
@@ -112,16 +107,18 @@ void TravelDepth::ComputeConvexHull()
     int recPlan=3;
 
     vtkHull *hull = vtkHull::New();
-    hull->SetInputConnection(m_mesh->GetProducerPort());
+
+    // Migrate to VTK6:
+    // http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_GetProducerPort
+    //hull->SetInputConnection(m_mesh->GetProducerPort());
+    hull->SetInputData(m_mesh);
+
     hull->AddRecursiveSpherePlanes(recPlan);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
     hull->Update();
 
     m_hull = vtkPolyData::New();
     m_hull->DeepCopy(hull->GetOutput());
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
+//  Relevant?: VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
     m_hull->Update();
 
     cout<<"Hull generated"<<endl;
@@ -341,15 +338,11 @@ void TravelDepth::EuclideanPullPropagation()
 
     vtkPolyData* referencePolyData = vtkPolyData::New();
     referencePolyData->SetPoints(referencePoints);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
     referencePolyData->Update();
 
     vtkPointLocator* referenceLocator= vtkPointLocator::New();
     referenceLocator->SetDataSet(referencePolyData);
     referenceLocator->BuildLocator();
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
     referenceLocator->Update();
 
     for(int i = 0; i<m_lowConfidenceIds->GetNumberOfIds(); i++)

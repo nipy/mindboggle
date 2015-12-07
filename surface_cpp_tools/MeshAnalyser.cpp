@@ -46,13 +46,16 @@ MeshAnalyser::MeshAnalyser(char* fileName)
 
     vtkPolyDataReader* reader=vtkPolyDataReader::New();
     reader->SetFileName(fileName);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  reader->Update();
+    reader->Update();
 
     vtkTriangleFilter* tf = vtkTriangleFilter::New();
-    tf->SetInputData(reader->GetOutput());
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  tf->Update();
+
+//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Replacement_of_SetInput
+//  Old: tf->SetInputData(reader->GetOutput());
+    tf->SetInputConnection(reader->GetOutputPort());
+
+//  Relevant?: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
+    tf->Update();
 
     this->mesh=vtkPolyData::New();
     this->mesh->DeepCopy(tf->GetOutput());
@@ -67,8 +70,7 @@ MeshAnalyser::MeshAnalyser(vtkPolyData* mesh)
 {
     vtkTriangleFilter* tf = vtkTriangleFilter::New();
     tf->SetInputData(mesh);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  tf->Update();
+    tf->Update();
 
     this->mesh=vtkPolyData::New();
     this->mesh->DeepCopy(tf->GetOutput());
@@ -136,8 +138,7 @@ void MeshAnalyser::SetMesh(char* fileName)
 {
     vtkPolyDataReader* reader=vtkPolyDataReader::New();
     reader->SetFileName(fileName);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  reader->Update();
+    reader->Update();
 
     this->mesh->DeepCopy(reader->GetOutput());
     this->nbPoints=reader->GetOutput()->GetNumberOfPoints();
@@ -548,21 +549,19 @@ void MeshAnalyser::WriteIntoFile(char* fileName, char* prop)
     }
 
 
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  this->mesh->Update();
+    this->mesh->Update();
     if(strcmp("simple",prop)==0) writer->SetInputData(this->simpl);
     else if(strcmp("geoDistSimple",prop)==0)
     {
         Simplify(500);
         GeoDistRingSimple(250,1000);
         this->simpl->GetPointData()->SetScalars(this->geoDistRingSimple);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//      this->simpl->Update();
+        this->simpl->Update();
         writer->SetInputData(this->simpl);
     }
     else if(strcmp("closed",prop)==0) writer->SetInputData(this->closedMesh);
     else writer->SetInputData(this->mesh);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
+//  Redundant?:
 //  writer->Update();
     writer->Write();
     writer->Delete();
@@ -578,7 +577,7 @@ void MeshAnalyser::WriteIntoFile(char* fileName)
     writer->SetFileName(fileName);
 
     writer->SetInputData(this->mesh);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
+//  Redundant?:
 //  writer->Update();
     writer->Write();
     writer->Delete();
@@ -591,11 +590,10 @@ void MeshAnalyser::WriteIntoFile(char* fileName, vtkDataArray* propExt)
     writer->SetFileName(fileName);
 
     this->mesh->GetPointData()->SetScalars(propExt);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  this->mesh->Update();
+    this->mesh->Update();
 
     writer->SetInputData(this->mesh);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
+//  Redundant?:
 //  writer->Update();
     writer->Write();
     writer->Delete();
@@ -730,16 +728,17 @@ void MeshAnalyser::ComputeTravelDepth(bool norm)
     int recPlan=3;
 
     vtkHull *hull = vtkHull::New();
-    hull->SetInputConnection(this->mesh->GetProducerPort());
+    // Migrate to VTK6:
+    // http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_GetProducerPort
+    //hull->SetInputConnection(this->mesh->GetProducerPort());
+    hull->SetInputData(this->mesh);
+
     hull->AddRecursiveSpherePlanes(recPlan);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
     hull->Update();
 
     vtkPolyData *pq = vtkPolyData::New();
     pq->DeepCopy(hull->GetOutput());
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
+//  Relevant?: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
     pq->Update();
 
     cout<<"Hull generated"<<endl;
@@ -1208,16 +1207,18 @@ void MeshAnalyser::ComputeGeodesicDepth(bool norm)
     int recPlan=3;
 
     vtkHull *hull = vtkHull::New();
-    hull->SetInputConnection(this->mesh->GetProducerPort());
+
+    // Migrate to VTK6:
+    // http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_GetProducerPort
+    //hull->SetInputConnection(this->mesh->GetProducerPort());
+    hull->SetInputData(this->mesh);
+
     hull->AddRecursiveSpherePlanes(recPlan);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
     hull->Update();
 
     vtkPolyData *pq = vtkPolyData::New();
     pq->DeepCopy(hull->GetOutput());
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
+//  Relevant?: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
     pq->Update();
 
     cout<<"Hull generated"<<endl;
@@ -1370,8 +1371,6 @@ void MeshAnalyser::Simplify(double factor)
 
             dec->SetInputData(this->simpl);
             dec->SetTargetReduction(factor);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
             dec->Update();
 
             this->simpl=dec->GetOutput();
@@ -1387,8 +1386,6 @@ void MeshAnalyser::Simplify(double factor)
                 vtkQuadricDecimation* dec=vtkQuadricDecimation::New();
                 dec->SetInputData(this->simpl);
                 dec->SetTargetReduction(0.5);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
                 dec->Update();
 
                 this->simpl=dec->GetOutput();
@@ -1407,16 +1404,18 @@ void MeshAnalyser::ComputeEuclideanDepth(bool norm)
     int recPlan=3;
 
     vtkHull *hull = vtkHull::New();
-    hull->SetInputConnection(this->mesh->GetProducerPort());
+
+    // Migrate to VTK6:
+    // http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_GetProducerPort
+    //hull->SetInputConnection(this->mesh->GetProducerPort());
+    hull->SetInputData(this->mesh);
+
     hull->AddRecursiveSpherePlanes(recPlan);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
     hull->Update();
 
     vtkPolyData *pq = vtkPolyData::New();
     pq->DeepCopy(hull->GetOutput());
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
+//  Relevant?: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
     pq->Update();
 
     cout<<"Hull generated"<<endl;
@@ -1507,14 +1506,12 @@ void MeshAnalyser::ComputeNormals()
     pdn->SetInputData(this->mesh);
     pdn->SetFeatureAngle(90);
     pdn->SplittingOff();
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
     pdn->Update();
 
-    vtkPolyData* no=pdn->GetOutput();
 //  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
-    no->Update();
+//  Old: vtkPolyData* no=pdn->GetOutput(); no->Update();
+    pdn->Update();
+
     this->normals=no->GetPointData()->GetNormals();
 }
 
@@ -1534,8 +1531,6 @@ void MeshAnalyser::ComputeBothCurvatures(double ray) // -m 1
     smoothed->SetRelaxationFactor(0.9);
     smoothed->SetNumberOfIterations(200);
     smoothed->FeatureEdgeSmoothingOff();
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
     smoothed->Update();
 
     //computation of the mesh modification by projection of the points
@@ -1554,8 +1549,6 @@ void MeshAnalyser::ComputeBothCurvatures(double ray) // -m 1
 
     upNorm->DeepCopy(this->mesh);
     upNorm->SetPoints(upNormPoints);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
     upNorm->Update();
 
     upNormPoints->Delete();
@@ -1650,8 +1643,6 @@ void MeshAnalyser::ComputeCurvature(double res, int nbIt) // -m 2
     smoothed->SetNumberOfIterations(200);
     smoothed->FeatureEdgeSmoothingOff();
     smoothed->BoundarySmoothingOff();
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
     smoothed->Update();
 
     double maxCurv=-10000;
@@ -1916,30 +1907,30 @@ void MeshAnalyser::ComputeClosedMeshFast()
     int recPlan=3;
 
     vtkHull *hull = vtkHull::New();
-    hull->SetInputConnection(this->mesh->GetProducerPort());
+
+    // Migrate to VTK6:
+    // http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_GetProducerPort
+    //hull->SetInputConnection(this->mesh->GetProducerPort());
+    hull->SetInputData(this->mesh);
+
     hull->AddRecursiveSpherePlanes(recPlan);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
     hull->Update();
 
     vtkTriangleFilter* triFil = vtkTriangleFilter::New();
     triFil->SetInputConnection(hull->GetOutputPort());
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
+//  Relevant?: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
     triFil->Update();
 
     vtkLinearSubdivisionFilter* sub = vtkLinearSubdivisionFilter::New();
     sub->SetInputConnection(triFil->GetOutputPort());
     sub->SetNumberOfSubdivisions(3);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
+//  Relevant?: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
     sub->Update();
 
     vtkSmoothPolyDataFilter* smooth = vtkSmoothPolyDataFilter::New();
     smooth->SetInputConnection(sub->GetOutputPort());
     smooth->SetSource(this->mesh);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
+//  Relevant?: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
     smooth->Update();
 
     this->closedMesh->DeepCopy(smooth->GetOutput());
@@ -1999,8 +1990,6 @@ void MeshAnalyser::ComputeClosedMesh(double kernelSize)
     pol2stenc->SetOutputOrigin(origin);
     pol2stenc->SetOutputSpacing(spacing);
     pol2stenc->SetOutputWholeExtent(whiteImage->GetExtent());
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
     pol2stenc->Update();
 
     // cut the corresponding white image and set the background:
@@ -2009,8 +1998,6 @@ void MeshAnalyser::ComputeClosedMesh(double kernelSize)
     imgstenc->SetStencil(pol2stenc->GetOutput());
     imgstenc->ReverseStencilOff();
     imgstenc->SetBackgroundValue(outval);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
     imgstenc->Update();
 
     //Dilatation

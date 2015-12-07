@@ -182,18 +182,20 @@ class VTKViewer(object):
 
         if polyData.GetPointData().GetNormals() is None:
             polyDataNormals = vtk.vtkPolyDataNormals()
-            try:
-                polyDataNormals.SetInputData(polyData)
-            except:
-                polyDataNormals.SetInput(polyData)
+
+            # Migrate to VTK6:
+            # http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Replacement_of_SetInput
+            # Old: polyDataNormals.SetInput(polyData)
+            polyDataNormals.SetInputData(polyData)
+
             polyDataNormals.SetFeatureAngle(90.0)
-            polyDataMapper.SetInputConnection(
-                polyDataNormals.GetOutputPort())
+            polyDataMapper.SetInputConnection(polyDataNormals.GetOutputPort())
         else:
-            try:
-                polyDataMapper.SetInputData(polyData)
-            except:
-                polyDataMapper.SetInput(polyData)
+            # Migrate to VTK6:
+            # http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Replacement_of_SetInput
+            # Old: polyDataMapper.SetInput(polyData)
+            polyDataMapper.SetInputData(polyData)
+
         actor = vtk.vtkActor()
         actor.GetProperty().SetPointSize(3)
         actor.SetMapper(polyDataMapper)

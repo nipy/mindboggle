@@ -35,15 +35,11 @@ MedialSurfaceComputer::MedialSurfaceComputer(vtkPolyData *originalMesh, vtkPolyD
     m_originalPointLocator = vtkPointLocator::New();
     m_originalPointLocator->SetDataSet(m_originalMesh);
     m_originalPointLocator->BuildLocator();
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
     m_originalPointLocator->Update();
 
     m_originalCellLocator = vtkOBBTree::New();
     m_originalCellLocator->SetDataSet(m_originalMesh);
     m_originalCellLocator->BuildLocator();
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
     m_originalCellLocator->Update();
 
     m_pitsNormals = vtkDoubleArray::New();
@@ -56,9 +52,10 @@ MedialSurfaceComputer::MedialSurfaceComputer(vtkPolyData *originalMesh, vtkPolyD
 
 
     vtkPolyDataNormals* pdn = vtkPolyDataNormals::New();
-    pdn->SetInput(m_originalMesh);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
+//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Replacement_of_SetInput
+//  Old: pdn->SetInput(m_originalMesh);
+    pdn->SetInputData(m_originalMesh);
+
     pdn->Update();
     m_normals = pdn->GetOutput()->GetPointData()->GetNormals();
 
@@ -77,10 +74,12 @@ void MedialSurfaceComputer::WriteIntoFile(char *fileName)
     vtkPolyDataWriter* writer=vtkPolyDataWriter::New();
     writer->SetFileName(fileName);
 
-    writer->SetInput(m_medialSurface);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
-    writer->Update();
+//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Replacement_of_SetInput
+//  Old: writer->SetInput(m_medialSurface);
+    writer->SetInputData(m_medialSurface);
+
+//  Redundant?:
+//  writer->Update();
     writer->Write();
     writer->Delete();
 }
@@ -140,14 +139,14 @@ void MedialSurfaceComputer::ProcessFundi()
     vtkPolyData* layer0 = vtkPolyData::New();
     layer0->SetPoints(layer0Points);
     layer0->SetPolys(layer0Cells);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
     layer0->Update();
 
     vtkCleanPolyData* clean = vtkCleanPolyData::New();
-    clean->SetInput(layer0);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
+
+//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Replacement_of_SetInput
+//  Old: clean->SetInput(layer0);
+    clean->SetInputData(layer0);
+
     clean->Update();
 
     m_processedFundi->DeepCopy(clean->GetOutput());
@@ -171,7 +170,7 @@ void MedialSurfaceComputer::BuildMedialSurface()
     FrontVoronoi();
 
 //    vtkDelaunay3D* del = vtkDelaunay3D::New();
-//    del->SetInput(m_candidatePolyData);
+//    del->SetInputData(m_candidatePolyData);
 //    del->SetAlpha(2);
 //    del->Update();
 
@@ -181,7 +180,7 @@ void MedialSurfaceComputer::BuildMedialSurface()
 //    delpd->Update();
 
 //    vtkDelaunay2D* del2 = vtkDelaunay2D::New();
-////    del2->SetInput(m_candidatePolyData);
+////    del2->SetInputData(m_candidatePolyData);
 //    del2->SetAlpha(2);
 //    del2->SetSource(delpd);
 //    del2->Update();
@@ -203,7 +202,7 @@ void MedialSurfaceComputer::BuildMedialSurface()
 //    sphere->Update();
 
 //    vtkGlyph3D* glyph = vtkGlyph3D::New();
-//    glyph->SetInput(m_candidatePolyData);
+//    glyph->SetInputData(m_candidatePolyData);
 //    glyph->SetSource(sphere->GetOutput());
 //    glyph->Update();
 
@@ -223,8 +222,6 @@ void MedialSurfaceComputer::BuildMedialSurface()
         vtkPolyData* lpd = vtkPolyData::New();
         lpd->SetPoints(layerPoints);
         lpd->SetLines(m_processedFundi->GetLines());
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
         lpd->Update();
 
 //        FilterPointPosition(lpd);
@@ -308,8 +305,6 @@ void MedialSurfaceComputer::BuildMeshFromLayers()
 
     m_medialSurface->SetPoints(medialPoints);
     m_medialSurface->SetPolys(medialCells);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
     m_medialSurface->Update();
 
 }
@@ -456,15 +451,11 @@ void MedialSurfaceComputer::FindCandidatePoints()
 
     m_candidatePolyData = vtkPolyData::New();
     m_candidatePolyData->SetPoints(m_candidatePoints);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
     m_candidatePolyData->Update();
 
     m_candidateLocator = vtkPointLocator::New();
     m_candidateLocator->SetDataSet(m_candidatePolyData);
     m_candidateLocator->BuildLocator();
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
     m_candidateLocator->Update();
 
 }
@@ -787,8 +778,6 @@ void MedialSurfaceComputer::FrontVoronoi()
     vtkPointLocator* pl = vtkPointLocator::New();
     pl->SetDataSet(m_processedFundi);
     pl->BuildLocator();
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
     pl->Update();
 
     for(int i = 0 ; i< m_candidatePoints->GetNumberOfPoints(); i++)
