@@ -106,7 +106,9 @@ FsSurfaceReader::FsSurfaceReader(char *fileName)
 
 
     pd->SetPolys(cells);
-    pd->Update();
+
+//  VTK6 migration: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
+//  pd->Update();
 
     cout<<endl;
 
@@ -116,7 +118,9 @@ FsSurfaceReader::FsSurfaceReader(char *fileName)
     pdn->SetInputData(pd);
     pdn->SetFeatureAngle(90);
     pdn->SplittingOff();
-    pdn->Update();
+
+//  VTK6 migration: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
+//  pd->Update();
 
     cout<<endl;
 
