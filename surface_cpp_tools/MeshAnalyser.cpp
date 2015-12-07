@@ -714,6 +714,7 @@ void MeshAnalyser::ComputePointSurfaceSimple()
     }
 }
 
+/* VTK6 breaks
 void MeshAnalyser::ComputeTravelDepthFromClosed(bool norm)
 {
     if(this->closedMesh->GetNumberOfPoints()<1)
@@ -723,7 +724,7 @@ void MeshAnalyser::ComputeTravelDepthFromClosed(bool norm)
 
     ComputeTravelDepth(norm,this->closedMesh);
 }
-
+*/
 
 void MeshAnalyser::ComputeTravelDepth(bool norm)
 {
@@ -1192,7 +1193,7 @@ void MeshAnalyser::ComputeTravelDepth(bool norm, vtkPolyData* pq)
 
 }
 
-
+/* VTK6 breaks
 void MeshAnalyser::ComputeGeodesicDepthFromClosed(bool norm)
 {
     if(this->closedMesh->GetNumberOfPoints()<1)
@@ -1202,7 +1203,7 @@ void MeshAnalyser::ComputeGeodesicDepthFromClosed(bool norm)
 
     ComputeGeodesicDepth(norm,this->closedMesh);
 }
-
+*/
 
 void MeshAnalyser::ComputeGeodesicDepth(bool norm)
 {
@@ -1492,6 +1493,7 @@ void MeshAnalyser::ComputeEuclideanDepth(bool norm, vtkPolyData *refMesh)
 
 }
 
+/* VTK6 breaks
 void MeshAnalyser::ComputeEuclideanDepthFromClosed(bool norm)
 {
     if(this->closedMesh->GetNumberOfPoints()<1)
@@ -1501,7 +1503,7 @@ void MeshAnalyser::ComputeEuclideanDepthFromClosed(bool norm)
 
     ComputeEuclideanDepth(norm,this->closedMesh);
 }
-
+*/
 
 void MeshAnalyser::ComputeNormals()
 {
@@ -1906,6 +1908,7 @@ vtkDoubleArray* MeshAnalyser::ComputePrincipalCurvatures(double nebSize) //-m0
 
 }
 
+/* VTK6 breaks
 void MeshAnalyser::ComputeClosedMeshFast()
 {
 
@@ -1940,6 +1943,7 @@ void MeshAnalyser::ComputeClosedMeshFast()
 
     this->closedMesh->DeepCopy(smooth->GetOutput());
 }
+*/
 
 void MeshAnalyser::ComputeClosedMesh(double kernelSize)
 {
