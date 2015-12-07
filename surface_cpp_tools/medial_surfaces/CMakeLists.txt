@@ -25,7 +25,8 @@ INSTALL(TARGETS MedialSurfaceMain
 TARGET_LINK_LIBRARIES(
 MedialSurfaceMain
 MedialSurfaceComputer
-vtkCommon
-vtkRendering
-vtkHybrid
+# Not in VTK6:
+#vtkCommon
+#vtkRendering
+#vtkHybrid
 )

@@ -22,7 +22,8 @@ TARGET_LINK_LIBRARIES(
 PointAreaMain
 MeshAnalyser
 PointAreaComputer
-vtkCommon
-vtkRendering
-vtkHybrid
+# Not in VTK6:
+#vtkCommon
+#vtkRendering
+#vtkHybrid
 )
