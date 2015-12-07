@@ -56,9 +56,8 @@ void PointAreaComputer::WriteIntoFile(char *fileName)
     writer->SetFileName(fileName);
     m_mesh->GetPointData()->SetScalars(m_pointsArea);
     writer->SetInputData(m_mesh);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
-    writer->Update();
+//  Redundant?:
+//  writer->Update();
     writer->Write();
     writer->Delete();
 }

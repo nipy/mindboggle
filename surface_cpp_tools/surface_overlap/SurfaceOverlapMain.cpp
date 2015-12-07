@@ -19,14 +19,10 @@ int main(int argc, char** argv)
 
     vtkPolyDataReader* reader1 = vtkPolyDataReader::New();
     reader1->SetFileName(argv[1]);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
     reader1->Update();
 
     vtkPolyDataReader* reader2 = vtkPolyDataReader::New();
     reader2->SetFileName(argv[2]);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
     reader2->Update();
 
     Overlap* surfOverlap = new Overlap(reader1->GetOutput(), reader2->GetOutput());

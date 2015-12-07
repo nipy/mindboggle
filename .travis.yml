@@ -19,6 +19,8 @@ env:
 # Install packages:
 install:
 #  - sudo apt-get update
+#  - sudo apt-get install -y g++ git make xorg
+
   # Download miniconda -- condition saves some downloading (if same version):
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
       wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;

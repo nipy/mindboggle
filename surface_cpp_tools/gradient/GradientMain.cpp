@@ -19,8 +19,6 @@ int main(int argc, char** argv)
 
     vtkPolyDataReader* reader = vtkPolyDataReader::New();
     reader->SetFileName(argv[1]);
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  ???
     reader->Update();
 
     GradientComputer* area = new GradientComputer(reader->GetOutput());

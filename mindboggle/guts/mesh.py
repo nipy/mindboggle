@@ -827,10 +827,12 @@ def decimate(points, faces, reduction=0.75, smooth_steps=25,
     # We want to preserve topology (not let any cracks form).
     # This may limit the total reduction possible.
     decimate = vtk.vtkDecimatePro()
-    try:
-        decimate.SetInputData(polydata)
-    except:
-        decimate.SetInput(polydata)
+
+    # Migrate to VTK6:
+    # http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Replacement_of_SetInput
+    # Old: decimate.SetInput(polydata)
+    decimate.SetInputData(polydata)
+
     decimate.SetTargetReduction(reduction)
     decimate.PreserveTopologyOn()
 
@@ -845,26 +847,31 @@ def decimate(points, faces, reduction=0.75, smooth_steps=25,
         output_vtk = None
     if smooth_steps > 0:
         smoother = vtk.vtkSmoothPolyDataFilter()
-        try:
-            smoother.SetInputData(decimate.GetOutput())
-        except:
-            smoother.SetInput(decimate.GetOutput())
+
+        # Migrate to VTK6:
+        # http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Replacement_of_SetInput
+        # Old: smoother.SetInput(decimate.GetOutput())
+        smoother.SetInputConnection(decimate.GetOutputPort())
+
         smoother.SetNumberOfIterations(smooth_steps)
         smoother.Update()
         out = smoother.GetOutput()
-        if save_vtk:
-            try:
-                exporter.SetInputData(smoother.GetOutput())
-            except:
-                exporter.SetInput(smoother.GetOutput())
+
+        # Migrate to VTK6:
+        # http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Replacement_of_SetInput
+        # Old: exporter.SetInput(smoother.GetOutput())
+        exporter.SetInputConnection(smoother.GetOutputPort())
+
     else:
         decimate.Update()
         out = decimate.GetOutput()
         if save_vtk:
-            try:
-                exporter.SetInputData(decimate.GetOutput())
-            except:
-                exporter.SetInput(decimate.GetOutput())
+            # Migrate to VTK6:
+            # http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Replacement_of_SetInput
+            # http://stackoverflow.com/questions/29020740/
+            #        what-is-the-difference-in-setinputconnection-and-setinput
+            # Old: exporter.SetInput(decimate.GetOutput())
+            exporter.SetInputConnection(decimate.GetOutputPort())
 
     #-------------------------------------------------------------------------
     # Export output:

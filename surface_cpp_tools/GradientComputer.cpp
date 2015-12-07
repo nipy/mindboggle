@@ -35,12 +35,12 @@ GradientComputer::GradientComputer(vtkPolyData *mesh)
     pdn->SetInputData(m_mesh);
     pdn->SetFeatureAngle(90);
     pdn->SplittingOff();
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  pdn->Update();
+    pdn->Update();
 
-    vtkPolyData* nor = pdn->GetOutput();
-//  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-//  nor->Update();
+//  VTK6 migration: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
+//  Old: vtkPolyData* nor = pdn->GetOutput(); nor->Update();
+    pdn->Update();
+
     m_normals = nor->GetPointData()->GetNormals();
 
 
