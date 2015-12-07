@@ -1964,7 +1964,6 @@ void MeshAnalyser::ComputeClosedMesh(double kernelSize)
         bounds[2*i] -= sec*sk;
         bounds[2*i+1] += sec*sk;
     }
-*/
 
     // compute dimensions
     int dim[3];
@@ -2036,7 +2035,7 @@ void MeshAnalyser::ComputeClosedMesh(double kernelSize)
     cout<<"Closed mesh computed"<<endl;
 
 }
-
+*/
 
 double MeshAnalyser::IsIntersecting(double point1[3], double point2[3])
 {
