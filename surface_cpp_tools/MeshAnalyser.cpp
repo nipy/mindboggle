@@ -548,15 +548,16 @@ void MeshAnalyser::WriteIntoFile(char* fileName, char* prop)
 */
     }
 
-
-    this->mesh->Update();
+// VTK6 migration: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
+//  this->mesh->Update();
     if(strcmp("simple",prop)==0) writer->SetInputData(this->simpl);
     else if(strcmp("geoDistSimple",prop)==0)
     {
         Simplify(500);
         GeoDistRingSimple(250,1000);
         this->simpl->GetPointData()->SetScalars(this->geoDistRingSimple);
-        this->simpl->Update();
+// VTK6 migration: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
+//      this->simpl->Update();
         writer->SetInputData(this->simpl);
     }
     else if(strcmp("closed",prop)==0) writer->SetInputData(this->closedMesh);
@@ -590,7 +591,9 @@ void MeshAnalyser::WriteIntoFile(char* fileName, vtkDataArray* propExt)
     writer->SetFileName(fileName);
 
     this->mesh->GetPointData()->SetScalars(propExt);
-    this->mesh->Update();
+
+// VTK6 migration: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
+//  this->mesh->Update();
 
     writer->SetInputData(this->mesh);
 //  Redundant?:
@@ -739,7 +742,7 @@ void MeshAnalyser::ComputeTravelDepth(bool norm)
     vtkPolyData *pq = vtkPolyData::New();
     pq->DeepCopy(hull->GetOutput());
 //  Relevant?: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-    pq->Update();
+//  pq->Update();
 
     cout<<"Hull generated"<<endl;
 
@@ -1219,7 +1222,7 @@ void MeshAnalyser::ComputeGeodesicDepth(bool norm)
     vtkPolyData *pq = vtkPolyData::New();
     pq->DeepCopy(hull->GetOutput());
 //  Relevant?: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-    pq->Update();
+//  pq->Update();
 
     cout<<"Hull generated"<<endl;
 
@@ -1416,7 +1419,7 @@ void MeshAnalyser::ComputeEuclideanDepth(bool norm)
     vtkPolyData *pq = vtkPolyData::New();
     pq->DeepCopy(hull->GetOutput());
 //  Relevant?: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-    pq->Update();
+//  pq->Update();
 
     cout<<"Hull generated"<<endl;
 
@@ -1549,7 +1552,9 @@ void MeshAnalyser::ComputeBothCurvatures(double ray) // -m 1
 
     upNorm->DeepCopy(this->mesh);
     upNorm->SetPoints(upNormPoints);
-    upNorm->Update();
+
+//  Relevant?: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
+//  upNorm->Update();
 
     upNormPoints->Delete();
 
