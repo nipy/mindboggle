@@ -1513,9 +1513,9 @@ void MeshAnalyser::ComputeNormals()
 
 //  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
 //  Old: vtkPolyData* no=pdn->GetOutput(); no->Update();
+//       this->normals=no->GetPointData()->GetNormals();
     pdn->Update();
-
-    this->normals=no->GetPointData()->GetNormals();
+    this->normals=pdn->Update()->GetPointData()->GetNormals();
 }
 
 void MeshAnalyser::ComputeBothCurvatures(double ray) // -m 1
