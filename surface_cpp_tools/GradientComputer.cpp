@@ -39,9 +39,9 @@ GradientComputer::GradientComputer(vtkPolyData *mesh)
 
 //  VTK6 migration: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
 //  Old: vtkPolyData* nor = pdn->GetOutput(); nor->Update();
+//       m_normals = nor->GetPointData()->GetNormals();
     pdn->Update();
-
-    m_normals = nor->GetPointData()->GetNormals();
+    m_normals = pdn->GetOutput()->GetPointData()->GetNormals();
 
 
     m_gradientValueArray = vtkDoubleArray::New();
