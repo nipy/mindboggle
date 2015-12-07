@@ -44,7 +44,8 @@ void TravelDepth::ComputeDepth()
 
 
     m_mesh->GetPointData()->SetScalars(m_depth);
-    m_mesh->Update();
+// VTK6 migration: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
+//  m_mesh->Update();
 }
 
 vtkDoubleArray *TravelDepth::GetDepth()
@@ -118,8 +119,8 @@ void TravelDepth::ComputeConvexHull()
 
     m_hull = vtkPolyData::New();
     m_hull->DeepCopy(hull->GetOutput());
-//  Relevant?: VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
-    m_hull->Update();
+// VTK6 migration: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
+//  m_hull->Update();
 
     cout<<"Hull generated"<<endl;
 }
@@ -338,7 +339,8 @@ void TravelDepth::EuclideanPullPropagation()
 
     vtkPolyData* referencePolyData = vtkPolyData::New();
     referencePolyData->SetPoints(referencePoints);
-    referencePolyData->Update();
+// VTK6 migration: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
+//  referencePolyData->Update();
 
     vtkPointLocator* referenceLocator= vtkPointLocator::New();
     referenceLocator->SetDataSet(referencePolyData);
