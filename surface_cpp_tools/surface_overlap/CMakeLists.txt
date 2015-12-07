@@ -21,7 +21,8 @@ INSTALL(TARGETS SurfaceOverlapMain
 TARGET_LINK_LIBRARIES(
 SurfaceOverlapMain
 Overlap
-vtkCommon
-vtkRendering
-vtkHybrid
+# Not in VTK6:
+#vtkCommon
+#vtkRendering
+#vtkHybrid
 )

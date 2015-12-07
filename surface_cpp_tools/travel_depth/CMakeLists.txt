@@ -4,7 +4,6 @@ IF(COMMAND CMAKE_POLICY)
   CMAKE_POLICY(SET CMP0003 NEW)
 ENDIF(COMMAND CMAKE_POLICY)
 
-
 # This project is designed to be built outside the Insight source tree.
 PROJECT(travel_depth)
 
@@ -22,7 +21,36 @@ TARGET_LINK_LIBRARIES(
 TravelDepthMain
 TravelDepth
 MeshAnalyser
-vtkCommon
-vtkRendering
-vtkHybrid
+
+# VTK6 migration: www.vtk.org/Wiki/VTK/Build_System_Migration
+# OLD:
+#vtkCommon
+#vtkRendering
+#vtkHybrid
+# NEW:
+vtkCommonCore
+vtkCommonSystem
+#vtkCommonColor
+#vtkCommonDataModel
+#vtkCommonMath
+#vtkCommonMisc
+#vtkCommonTransforms
+#vtkCommonExecutionModel
+#vtkCommonComputationalGeometry
+vtkRenderingCore
+#vtkRenderingContext2D
+#vtkRenderingFreeType
+#vtkRenderingFreeTypeOpenGL
+#vtkRenderingHybridOpenGL
+#vtkRenderingImage
+#vtkRenderingLabel
+#vtkRenderingLOD
+vtkRenderingOpenGL
+#vtkRenderingAnnotation
+#vtkRenderingVolume
+#vtkRenderingVolumeAMR
+#vtkRenderingVolumeOpenGL
+#vtkRenderingGL2PS
+#vtkImagingHybrid
+#vtkFiltersHybrid
 )

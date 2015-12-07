@@ -21,7 +21,8 @@ INSTALL(TARGETS CurvatureMain
 TARGET_LINK_LIBRARIES(
 CurvatureMain
 MeshAnalyser
-vtkCommon
-vtkRendering
-vtkHybrid
+# Not in VTK6:
+#vtkCommon
+#vtkRendering
+#vtkHybrid
 )

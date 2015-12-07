@@ -21,7 +21,8 @@ INSTALL(TARGETS GeodesicDepthMain
 TARGET_LINK_LIBRARIES(
 GeodesicDepthMain
 MeshAnalyser
-vtkCommon
-vtkRendering
-vtkHybrid
+# Not in VTK6:
+#vtkCommon
+#vtkRendering
+#vtkHybrid
 )
