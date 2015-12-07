@@ -1945,6 +1945,7 @@ void MeshAnalyser::ComputeClosedMeshFast()
 }
 */
 
+/*
 void MeshAnalyser::ComputeClosedMesh(double kernelSize)
 {
     vtkSmartPointer<vtkImageData> whiteImage = vtkSmartPointer<vtkImageData>::New();
@@ -1963,7 +1964,7 @@ void MeshAnalyser::ComputeClosedMesh(double kernelSize)
         bounds[2*i] -= sec*sk;
         bounds[2*i+1] += sec*sk;
     }
-
+*/
 
     // compute dimensions
     int dim[3];
