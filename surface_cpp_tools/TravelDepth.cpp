@@ -345,7 +345,8 @@ void TravelDepth::EuclideanPullPropagation()
     vtkPointLocator* referenceLocator= vtkPointLocator::New();
     referenceLocator->SetDataSet(referencePolyData);
     referenceLocator->BuildLocator();
-    referenceLocator->Update();
+// VTK6 migration: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
+//  referenceLocator->Update();
 
     for(int i = 0; i<m_lowConfidenceIds->GetNumberOfIds(); i++)
     {
