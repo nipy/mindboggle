@@ -9,9 +9,9 @@ must be installed, and you need a good Internet connection.
 
 Copy this file into a setup directory.  For example::
 
-    mkdir /Users/arno/mindboggle_setup
-    cp setup_mindboggle_vm /Users/arno/mindboggle_setup/
-    cd /Users/arno/mindboggle_setup/
+    mkdir /homedir/mindboggle_setup
+    cp setup_mindboggle_vm /homedir/mindboggle_setup/
+    cd /homedir/mindboggle_setup/
 
 For help using this program, type the following in a terminal window::
 
@@ -21,7 +21,7 @@ As an example installation, configure access to ANTs and FreeSurfer data
 via local mounted directories, and set the number of processors to 6::
 
     python setup_mindboggle_vm --install
-                               --home /home/vagrant
+                               --home /homedir/vagrant
                                --freesurfer /Applications/freesurfer/subjects
                                --ants /data/antsCorticalThickness/subjects
                                --proc 6
@@ -53,9 +53,9 @@ ADVANCED: To build the above Mindboggle box from scratch::
 
 
 Authors:
-Arno Klein, 2014  .  arno@mindboggle.info  .  www.binarybottle.com
+     - Arno Klein, 2014-2015  (arno@mindboggle.info)  http://binarybottle.com
 
-Copyright 2014,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2015,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 import os
@@ -124,7 +124,7 @@ args = parser.parse_args()
 #=============================================================================
 # Configure mount directories and variables below
 #=============================================================================
-mindboggle_version = "0"
+mindboggle_version = "1"
 vagrantfile_api_version = "2"
 home = os.environ['HOME']
 
@@ -133,7 +133,7 @@ if args.out:
         '"home/vagrant/mindboggled"'.format(args.out)
 else:
     out_string = 'install_config.vm.synced_folder "{0}/mindboggled", ' \
-        '"home/vagrant/mindboggled"'.format(os.environ['HOME'])
+        '"home/vagrant/mindboggled"'.format(home)
 if args.freesurfer:
     freesurfer_string = 'install_config.vm.synced_folder "{0}", ' \
         '"/home/vagrant/freesurfer/subjects"'.\
