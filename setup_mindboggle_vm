@@ -191,7 +191,6 @@ Vagrant.configure({0}) do |config|
         build_config.vm.network :public_network
 
         # Execute a script within the guest machine:
-        #build_config.vm.provision "shell", inline: $script
         build_config.vm.provision "shell" do |s|
             s.path = "{1}"
         end
@@ -217,9 +216,8 @@ Vagrant.configure({0}) do |config|
             auto_correct: true
         install_config.vm.network :public_network
 
-        # Share an additional folder to the guest VM. The first argument is
-        # the path on the host to the actual folder. The second argument is
-        # the path on the guest to mount the folder.
+        # Share additional folders to the guest VM,
+        # with paths on the guest to mount the folder.
         # Ex: install_config.vm.synced_folder "../data", "/vagrant_data"
         {3}
         {4}
