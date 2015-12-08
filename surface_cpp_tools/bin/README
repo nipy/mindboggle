@@ -1,4 +1,5 @@
+# Example compilation of C++ code:
 
-Installation of Mindboggle C++ tools:
+cmake ../ -DVTK_DIR:STRING=/home/arno/Software/miniconda/pkgs/vtk-6.3.0-py27_0
 
-From bin/ directory, type "ccmake .." (without quotes) to compile, then type "make".
+make
