@@ -4,7 +4,7 @@
 # (http://mindboggle.info).  Running it requires a good Internet connection.
 # We highly recommend installing Mindboggle as a virtual machine
 # (http://mindboggle.info/users/INSTALL.html).
-# This script works on Linux (Ubuntu 14.04) MacOSX (10.10) x86_64 machines.
+# Tested on Ubuntu 14.04 and MacOSX 10.11 x86_64 machines.
 #
 # Usage:
 #     bash setup_mindboggle.sh <download_dir> <install_dir> <env_file>

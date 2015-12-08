@@ -42,9 +42,9 @@ ADVANCED: To build the above Mindboggle box from scratch::
     VBoxManage list vms  # to find <vm name> below
     vagrant package --base <vm name> --output mindboggle.<version#>.box
 
-    # Upload the box to the website:
-    rsync -avz --sparse -e /usr/bin/ssh mindboggle.<version#>.box
-        binarybottle@binarybottle.com:mindboggle.info/vm/
+    # Upload the box to a website (example):
+    rsync -avz --sparse -e /usr/bin/ssh mindboggle.<version#>.<OS version>.box
+        binarybottle@binarybottle.com:media.mindboggle.info/vm/
 
     # Manual install would begin with:
     vagrant init hashicorp/precise64
@@ -130,10 +130,10 @@ home = os.environ['HOME']
 
 if args.out:
     out_string = 'install_config.vm.synced_folder "{0}", ' \
-        '"home/vagrant/mindboggled"'.format(args.out)
+        '"/home/vagrant/mindboggled"'.format(args.out)
 else:
     out_string = 'install_config.vm.synced_folder "{0}/mindboggled", ' \
-        '"home/vagrant/mindboggled"'.format(home)
+        '"/home/vagrant/mindboggled"'.format(home)
 if args.freesurfer:
     freesurfer_string = 'install_config.vm.synced_folder "{0}", ' \
         '"/home/vagrant/freesurfer/subjects"'.\
