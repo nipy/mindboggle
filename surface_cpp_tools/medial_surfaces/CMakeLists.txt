@@ -9,7 +9,7 @@ ENDIF(COMMAND CMAKE_POLICY)
 PROJECT(medial_surface)
 
 # Find VTK.
-FIND_PACKAGE(VTK REQUIRED)
+FIND_PACKAGE(VTK REQUIRED NO_MODULE)
 INCLUDE(${VTK_USE_FILE})
 
 ADD_LIBRARY(
@@ -25,8 +25,11 @@ INSTALL(TARGETS MedialSurfaceMain
 TARGET_LINK_LIBRARIES(
 MedialSurfaceMain
 MedialSurfaceComputer
+${VTK_LIBRARIES}
+)
+
+# VTK6 migration: www.vtk.org/Wiki/VTK/Build_System_Migration
 # Not in VTK6:
 #vtkCommon
 #vtkRendering
 #vtkHybrid
-)
