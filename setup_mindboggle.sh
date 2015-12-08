@@ -4,6 +4,7 @@
 # (http://mindboggle.info).  Running it requires a good Internet connection.
 # We highly recommend installing Mindboggle as a virtual machine
 # (http://mindboggle.info/users/INSTALL.html).
+# This script works on Linux (Ubuntu 14.04) MacOSX (10.10) x86_64 machines.
 #
 # Usage:
 #     bash setup_mindboggle.sh <download_dir> <install_dir> <env_file>
@@ -39,8 +40,7 @@ MB_ENV=$3
 # Reset arguments to change formats, versions, and switch from linux to osx:
 #-----------------------------------------------------------------------------
 OS="linux"  #  linux or osx
-OS_XTRA="x86_64"
-VTK="vtk-6.3.0-py27_0"  # VTK library, with VTK and Python versions
+#VTK="vtk-6.3.0-py27_0"  # VTK library, with VTK and Python versions
 ANTS=0  # 1 to install ANTS, 0 not to install
 
 #-----------------------------------------------------------------------------
@@ -57,31 +57,43 @@ fi
 #-----------------------------------------------------------------------------
 # Anaconda's miniconda Python distribution for local installs:
 #-----------------------------------------------------------------------------
-CONDA_PATH="http://repo.continuum.io/miniconda"
-CONDA_FILE=Miniconda-latest-$OS_STR-$OS_XTRA.sh
-CONDA_DL=${DL_PREFIX}/${CONDA_FILE}
+CONDA_URL="http://repo.continuum.io/miniconda"
+CONDA_FILE="Miniconda-latest-$OS_STR-x86_64.sh"
+CONDA_DL="${DL_PREFIX}/${CONDA_FILE}"
+CONDA_PATH="${INSTALL_PREFIX}/miniconda"
 if [ $OS = "linux" ]; then
-    wget -O $CONDA_DL ${CONDA_PATH}/$CONDA_FILE
+    wget -O $CONDA_DL ${CONDA_URL}/$CONDA_FILE
 else
-    curl -o $CONDA_DL ${CONDA_PATH}/$CONDA_FILE
+    curl -o $CONDA_DL ${CONDA_URL}/$CONDA_FILE
 fi
 
-bash $CONDA_DL -b -p ${INSTALL_PREFIX}/miniconda
+bash $CONDA_DL -b -p $CONDA_PATH
 
-# Setup PATH
-#export PATH=${INSTALL_PREFIX}/bin:$PATH
+#-----------------------------------------------------------------------------
+# Set up PATH:
+#-----------------------------------------------------------------------------
+export PATH=${INSTALL_PREFIX}/bin:$PATH
+export PATH=${CONDA_PATH}/bin:$PATH
 
 #-----------------------------------------------------------------------------
 # Additional resources for installing packages:
 #-----------------------------------------------------------------------------
 conda install --yes cmake pip
 
+# To avoid the following error:
+# "No rule to make target `/usr/lib/x86_64-linux-gnu/libGLU.so'"
+# http://techtidings.blogspot.com/2012/01/problem-with-libglso-on-64-bit-ubuntu.html
+if [ $OS = "linux" ]; then
+    mkdir /usr/lib64
+    ln -s /usr/lib/x86_64-linux-gnu/libGLU.so.1 /usr/lib64/libGLU.so
+fi
+
 #-----------------------------------------------------------------------------
 # Python packages:
 #-----------------------------------------------------------------------------
 conda install --yes numpy scipy matplotlib pandas nose networkx traits vtk ipython
 pip install nibabel nipype
-VTK_DIR=${INSTALL_PREFIX}/miniconda/pkgs/$VTK
+VTK_DIR=$CONDA_PATH
 
 #-----------------------------------------------------------------------------
 # Mindboggle:
@@ -122,8 +134,10 @@ fi
 #-----------------------------------------------------------------------------
 # Set environment variables:
 #-----------------------------------------------------------------------------
-#MB_ENV=/etc/profile.d/mb_env.sh
-#touch $MB_ENV
+if [ $OS = "linux" ]; then
+    MB_ENV=/etc/profile.d/mb_env.sh
+    touch $MB_ENV
+fi
 
 # -- Local install --
 echo "# Local install prefix" >> $MB_ENV
