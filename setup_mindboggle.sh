@@ -6,15 +6,15 @@
 # (http://mindboggle.info/users/INSTALL.html).
 #
 # Usage:
-#     ./install_mindboggle <download_dir> <install_dir> <env_file> <os> <vtk> <ants>
+#     bash setup_mindboggle.sh <download_dir> <install_dir> <env_file> <os> <vtk> <ants>
 #
 #     For example:
-#     ./install_mindboggle /home/arno/downloads \
-#                          /home/arno/software/install \
-#                          /home/arno/.bash_profile \
-#                          osx \
-#                          vtk-6.3.0-py27_0
-#                          0
+#     bash setup_mindboggle.sh /homedir/downloads \
+#                              /software/install \
+#                              /homedir/.bash_profile \
+#                              osx \
+#                              vtk-6.3.0-py27_0
+#                              0
 #
 # Note:
 #     <download_dir>, <install_dir>, <env_file> must exist and be full paths.
@@ -61,12 +61,12 @@ fi
 #-----------------------------------------------------------------------------
 CONDA_FILE=Miniconda-latest-${OS_STR}-${OS_XTRA}.sh
 CONDA_DL=${DL_PREFIX}/${CONDA_FILE}
-if [ $OS = "linux" ]; then
+if [ $OS == "linux" ]; then
     wget -O $CONDA_DL http://repo.continuum.io/miniconda/${CONDA_FILE}
 else
     curl -o $CONDA_DL http://repo.continuum.io/miniconda/${CONDA_FILE}
+fi
 
-#chmod +x $CONDA_DL
 bash $CONDA_DL -b -p $INSTALL_PREFIX/miniconda
 
 # Setup PATH
@@ -88,7 +88,7 @@ VTK_DIR=${INSTALL_PREFIX}/miniconda/pkgs/${VTK}
 # Mindboggle:
 #-----------------------------------------------------------------------------
 MB_DL=${DL_PREFIX}/mindboggle
-git clone https://github.com/binarybottle/mindboggle.git $MB_DL
+git clone https://github.com/nipy/mindboggle.git $MB_DL
 mv ${MB_DL} ${INSTALL_PREFIX}
 cd ${INSTALL_PREFIX}/mindboggle
 python setup.py install --prefix=${INSTALL_PREFIX}
@@ -104,7 +104,7 @@ cd ${INSTALL_PREFIX}
 # affine registration to standard space, and nonlinear registration for
 # whole-brain labeling, to improve and extend Mindboggle results.
 #-----------------------------------------------------------------------------
-if [ $ANTS = 1 ]; then
+if [ $ANTS == 1 ]; then
     ANTS_DL=${DL_PREFIX}/ants
     git clone https://github.com/stnava/ANTs.git $ANTS_DL
     cd $ANTS_DL
@@ -133,7 +133,7 @@ echo "export surface_cpp_tools=${INSTALL_PREFIX}/mindboggle/surface_cpp_tools/bi
 echo "export PATH=\$surface_cpp_tools:\$PATH" >> $MB_ENV
 
 # -- ANTs --
-if [ $ANTS = 1 ]; then
+if [ $ANTS == 1 ]; then
     echo "# ANTs" >> $MB_ENV
     echo "export ANTSPATH=${INSTALL_PREFIX}/ants/bin" >> $MB_ENV
     echo "export PATH=\$ANTSPATH:\$PATH" >> $MB_ENV
@@ -143,6 +143,6 @@ fi
 # Finally, remove non-essential directories:
 #-----------------------------------------------------------------------------
 rm_extras=0
-if [ $rm_extras == 1 ]
+if [ $rm_extras == 1 ]; then
     rm ${DL_PREFIX}/* -rf
 fi
