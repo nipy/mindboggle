@@ -714,7 +714,6 @@ void MeshAnalyser::ComputePointSurfaceSimple()
     }
 }
 
-/* VTK6 breaks
 void MeshAnalyser::ComputeTravelDepthFromClosed(bool norm)
 {
     if(this->closedMesh->GetNumberOfPoints()<1)
@@ -724,7 +723,6 @@ void MeshAnalyser::ComputeTravelDepthFromClosed(bool norm)
 
     ComputeTravelDepth(norm,this->closedMesh);
 }
-*/
 
 void MeshAnalyser::ComputeTravelDepth(bool norm)
 {
@@ -1193,7 +1191,6 @@ void MeshAnalyser::ComputeTravelDepth(bool norm, vtkPolyData* pq)
 
 }
 
-/* VTK6 breaks
 void MeshAnalyser::ComputeGeodesicDepthFromClosed(bool norm)
 {
     if(this->closedMesh->GetNumberOfPoints()<1)
@@ -1203,7 +1200,6 @@ void MeshAnalyser::ComputeGeodesicDepthFromClosed(bool norm)
 
     ComputeGeodesicDepth(norm,this->closedMesh);
 }
-*/
 
 void MeshAnalyser::ComputeGeodesicDepth(bool norm)
 {
@@ -1493,7 +1489,6 @@ void MeshAnalyser::ComputeEuclideanDepth(bool norm, vtkPolyData *refMesh)
 
 }
 
-/* VTK6 breaks
 void MeshAnalyser::ComputeEuclideanDepthFromClosed(bool norm)
 {
     if(this->closedMesh->GetNumberOfPoints()<1)
@@ -1503,7 +1498,6 @@ void MeshAnalyser::ComputeEuclideanDepthFromClosed(bool norm)
 
     ComputeEuclideanDepth(norm,this->closedMesh);
 }
-*/
 
 void MeshAnalyser::ComputeNormals()
 {
@@ -1908,7 +1902,6 @@ vtkDoubleArray* MeshAnalyser::ComputePrincipalCurvatures(double nebSize) //-m0
 
 }
 
-/* VTK6 breaks
 void MeshAnalyser::ComputeClosedMeshFast()
 {
 
@@ -1937,15 +1930,17 @@ void MeshAnalyser::ComputeClosedMeshFast()
 
     vtkSmoothPolyDataFilter* smooth = vtkSmoothPolyDataFilter::New();
     smooth->SetInputConnection(sub->GetOutputPort());
-    smooth->SetSource(this->mesh);
+
+//  VTK 6 migration: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
+//  smooth->SetSource(this->mesh);
+    smooth->SetSourceData(this->mesh);
+
 //  Relevant?: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
     smooth->Update();
 
     this->closedMesh->DeepCopy(smooth->GetOutput());
 }
-*/
 
-/*
 void MeshAnalyser::ComputeClosedMesh(double kernelSize)
 {
     vtkSmartPointer<vtkImageData> whiteImage = vtkSmartPointer<vtkImageData>::New();
@@ -1981,8 +1976,10 @@ void MeshAnalyser::ComputeClosedMesh(double kernelSize)
     origin[2] = bounds[4];// + spacing[2] / 2;
     whiteImage->SetOrigin(origin);
 
-    whiteImage->SetScalarTypeToUnsignedChar();
-    whiteImage->AllocateScalars();
+// VTK 6 migration: www.vtk.org/Wiki/VTK/Examples/Python/PolyData/PolyDataContourToImageData
+//  whiteImage->SetScalarTypeToUnsignedChar();
+//  whiteImage->AllocateScalars();
+    whiteImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
 
     // fill the image with foreground voxels:
     unsigned char inval = 255;
@@ -2004,12 +2001,16 @@ void MeshAnalyser::ComputeClosedMesh(double kernelSize)
     // cut the corresponding white image and set the background:
     vtkSmartPointer<vtkImageStencil> imgstenc = vtkSmartPointer<vtkImageStencil>::New();
     imgstenc->SetInputData(whiteImage);
-    imgstenc->SetStencil(pol2stenc->GetOutput());
+
+// VTK 6 migration: www.vtk.org/Wiki/VTK/Examples/Python/PolyData/PolyDataContourToImageData
+//  imgstenc->SetStencil(pol2stenc->GetOutput());
+    imgstenc->SetStencilData(pol2stenc->GetOutput());
+
     imgstenc->ReverseStencilOff();
     imgstenc->SetBackgroundValue(outval);
     imgstenc->Update();
 
-    //Dilatation
+    //Dilation
     vtkImageContinuousDilate3D *dilate = vtkImageContinuousDilate3D::New();
     dilate->SetInputConnection(imgstenc->GetOutputPort());
     //sk is the size of the dilation kernel in each direction
@@ -2035,7 +2036,6 @@ void MeshAnalyser::ComputeClosedMesh(double kernelSize)
     cout<<"Closed mesh computed"<<endl;
 
 }
-*/
 
 double MeshAnalyser::IsIntersecting(double point1[3], double point2[3])
 {
