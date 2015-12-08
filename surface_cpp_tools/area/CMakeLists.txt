@@ -9,7 +9,7 @@ ENDIF(COMMAND CMAKE_POLICY)
 PROJECT(point_area)
 
 # Find VTK.
-FIND_PACKAGE(VTK REQUIRED)
+FIND_PACKAGE(VTK REQUIRED NO_MODULE)
 INCLUDE(${VTK_USE_FILE})
 
 ADD_EXECUTABLE(
@@ -22,8 +22,11 @@ TARGET_LINK_LIBRARIES(
 PointAreaMain
 MeshAnalyser
 PointAreaComputer
+${VTK_LIBRARIES}
+)
+
+# VTK6 migration: www.vtk.org/Wiki/VTK/Build_System_Migration
 # Not in VTK6:
 #vtkCommon
 #vtkRendering
 #vtkHybrid
-)

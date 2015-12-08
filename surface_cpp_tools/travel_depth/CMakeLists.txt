@@ -22,9 +22,10 @@ TravelDepthMain
 TravelDepth
 MeshAnalyser
 ${VTK_LIBRARIES}
+)
 
 # VTK6 migration: www.vtk.org/Wiki/VTK/Build_System_Migration
-# OLD:
+# Not in VTK6:
 #vtkCommon
 #vtkRendering
 #vtkHybrid
@@ -54,4 +55,4 @@ ${VTK_LIBRARIES}
 #vtkRenderingGL2PS
 #vtkImagingHybrid
 #vtkFiltersHybrid
-)
+
