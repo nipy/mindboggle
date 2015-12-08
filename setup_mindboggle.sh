@@ -6,23 +6,17 @@
 # (http://mindboggle.info/users/INSTALL.html).
 #
 # Usage:
-#     bash setup_mindboggle.sh <download_dir> <install_dir> <env_file> <os> <vtk> <ants>
+#     bash setup_mindboggle.sh <download_dir> <install_dir> <env_file>
 #
 #     For example:
 #     bash setup_mindboggle.sh /homedir/downloads \
 #                              /software/install \
-#                              /homedir/.bash_profile \
-#                              osx \
-#                              vtk-6.3.0-py27_0
-#                              0
+#                              /homedir/.bash_profile
 #
 # Note:
 #     <download_dir>, <install_dir>, <env_file> must exist and be full paths.
 #     <env_file> is a global environment sourcing script
 #                to set environment variables, such as .bash_profile.
-#     <os> can be any one of {linux, osx}.
-#     <vtk> is the name of the vtk library, with VTK and Python versions.
-#     <ants> can be set to 1 or 0, to install ANTS or not.
 #
 # Authors:
 #     - Daniel Clark, 2014
@@ -40,9 +34,13 @@
 DL_PREFIX=$1
 INSTALL_PREFIX=$2
 MB_ENV=$3
-OS=$4
-VTK=$5
-ANTS=$6
+
+#-----------------------------------------------------------------------------
+# Reset arguments to change formats, versions, and switch from linux to osx:
+#-----------------------------------------------------------------------------
+OS=linux  # linux or osx
+VTK=vtk-6.3.0-py27_0  # VTK library, with VTK and Python versions
+ANTS=0  # 1 to install ANTS, 0 not to install
 OS_XTRA=x86_64
 
 #-----------------------------------------------------------------------------
