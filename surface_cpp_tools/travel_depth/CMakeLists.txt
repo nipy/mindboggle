@@ -1,5 +1,5 @@
 # This is the root ITK CMakeLists file.
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8 FATAL_ERROR)
 IF(COMMAND CMAKE_POLICY)
   CMAKE_POLICY(SET CMP0003 NEW)
 ENDIF(COMMAND CMAKE_POLICY)
@@ -8,7 +8,7 @@ ENDIF(COMMAND CMAKE_POLICY)
 PROJECT(travel_depth)
 
 # Find VTK.
-FIND_PACKAGE(VTK REQUIRED)
+FIND_PACKAGE(VTK REQUIRED NO_MODULE)
 INCLUDE(${VTK_USE_FILE})
 
 ADD_EXECUTABLE(
@@ -21,6 +21,7 @@ TARGET_LINK_LIBRARIES(
 TravelDepthMain
 TravelDepth
 MeshAnalyser
+${VTK_LIBRARIES}
 
 # VTK6 migration: www.vtk.org/Wiki/VTK/Build_System_Migration
 # OLD:
@@ -28,8 +29,8 @@ MeshAnalyser
 #vtkRendering
 #vtkHybrid
 # NEW:
-vtkCommonCore
-vtkCommonSystem
+#vtkCommonCore
+#vtkCommonSystem
 #vtkCommonColor
 #vtkCommonDataModel
 #vtkCommonMath
@@ -37,7 +38,7 @@ vtkCommonSystem
 #vtkCommonTransforms
 #vtkCommonExecutionModel
 #vtkCommonComputationalGeometry
-vtkRenderingCore
+#vtkRenderingCore
 #vtkRenderingContext2D
 #vtkRenderingFreeType
 #vtkRenderingFreeTypeOpenGL
@@ -45,7 +46,7 @@ vtkRenderingCore
 #vtkRenderingImage
 #vtkRenderingLabel
 #vtkRenderingLOD
-vtkRenderingOpenGL
+#vtkRenderingOpenGL
 #vtkRenderingAnnotation
 #vtkRenderingVolume
 #vtkRenderingVolumeAMR
