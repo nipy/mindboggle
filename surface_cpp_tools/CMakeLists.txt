@@ -34,9 +34,9 @@ ADD_SUBDIRECTORY(
 geodesic_depth
 )
 
-ADD_SUBDIRECTORY(
-medial_surfaces
-)
+#ADD_SUBDIRECTORY(
+#medial_surfaces
+#)
 
 ADD_LIBRARY(
 MeshAnalyser MeshAnalyser.cpp
