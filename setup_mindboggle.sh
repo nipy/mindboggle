@@ -114,7 +114,7 @@ conda install --yes cmake pip
 if [ $OS = "linux" ]; then
     mkdir /usr/lib64
     ln -s /usr/lib/x86_64-linux-gnu/libGLU.so.1 /usr/lib64/libGLU.so
-    ln -s /usr/lib64/libSM.so /usr/lib/x86_64-linux-gnu/libSM.so
+    #ln -s /usr/lib64/libSM.so /usr/lib/x86_64-linux-gnu/libSM.so
 fi
 
 #-----------------------------------------------------------------------------
