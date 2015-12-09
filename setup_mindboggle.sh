@@ -159,6 +159,6 @@ fi
 # Finally, remove non-essential directories:
 #-----------------------------------------------------------------------------
 rm_extras=0
-if [ $rm_extras = 1 ]; then
+if [ $rm_extras -eq 1 ]; then
     rm ${DL_PREFIX}/* -rf
 fi

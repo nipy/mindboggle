@@ -4,50 +4,56 @@ Mindboggle virtual machine setup script.
 
 This program packages Mindboggle (http://mindboggle.info) and dependencies
 in a VirtualBox virtual machine using Vagrant software.
+It calls a bash setup script in the same folder: setup_mindboggle.sh,
+(tested on Ubuntu 14.04 and MacOSX 10.11 x86_64 machines).
 Vagrant (http://www.vagrantup.com) and VirtualBox (http://www.virtualbox.org)
 must be installed, and you need a good Internet connection.
+Run this program from within the directory containing it.
 
-Copy this file into a setup directory.  For example::
-
-    mkdir /homedir/mindboggle_setup
-    cp setup_mindboggle_vm /homedir/mindboggle_setup/
-    cd /homedir/mindboggle_setup/
-
-For help using this program, type the following in a terminal window::
+HELP:
+-----
+For help, type the following in a terminal window::
 
     python setup_mindboggle_vm --help
 
-As an example installation, configure access to ANTs and FreeSurfer data
-via local mounted directories, and set the number of processors to 6::
+INSTALL:
+--------
+One-time installation for a given configuration:
+Here we configure access to ANTs and FreeSurfer data via local
+mounted directories, and set the number of processors to 6::
 
-    python setup_mindboggle_vm --install
-                               --home /homedir/vagrant
-                               --freesurfer /Applications/freesurfer/subjects
-                               --ants /data/antsCorticalThickness/subjects
+    python setup_mindboggle_vm --install \
+                               --freesurfer /Applications/freesurfer/subjects \
+                               --ants /data/antsCorticalThickness/subjects \
                                --proc 6
-    vagrant up install
+    vagrant up mindboggle
 
-The above installation is done only once, unless new configuration settings
-are desired.  To run mindboggle::
-
+RUN MINDBOGGLE:
+---------------
     vagrant up
-    vagrant ssh  # "VBoxManage list vms" if need the name of the VM
+    vagrant ssh mindboggle  # "vagrant status" to find virtual machines
 
+MISC COMMANDS:
+--------------
+    VBoxManage list runningvms  # running virtual machines
+    vagrant status  # status of virtual machines
 
+------------------------------------------------------------------------------
 ADVANCED: To build the above Mindboggle box from scratch::
 
     # Run this file in your setup directory, and build the box:
     python setup_mindboggle_vm --build --install
     vagrant up build
     VBoxManage list vms  # to find <vm name> below
-    vagrant package --base <vm name> --output mindboggle.<version#>.box
+    vagrant package --base <vm name> --output mindboggle.<version>.box
 
     # Upload the box to a website (example):
-    rsync -avz --sparse -e /usr/bin/ssh mindboggle.<version#>.<OS version>.box
+    rsync -avz --sparse -e /usr/bin/ssh mindboggle.<version>.box
         binarybottle@binarybottle.com:media.mindboggle.info/vm/
 
-    # Manual install would begin with:
-    vagrant init hashicorp/precise64
+    # After downloading, ssh into the box:
+    vagrant box add my_mindboggle mindboggle.<version>.box
+    vagrant init my_mindboggle
     vagrant up
     vagrant ssh
 
@@ -77,14 +83,14 @@ Internet connection.
 Ex: python setup_mindboggle_vm
     --out /Users/arno/mindboggled
     --freesurfer /Applications/freesurfer/subjects
-    --ants /data/antsCorticalThickness
+    --ants /data/antsCorticalThickness/subjects
     --proc 6 --mem 4096 --cpu 75 """,
     formatter_class = lambda prog:
     argparse.HelpFormatter(prog, max_help_position=40))
 
 parser.add_argument("--script",
                     help=("setup script (full path); default: "
-                          "setup_mindboggle.sh"),
+                          "./setup_mindboggle.sh"),
                     metavar='STR')
 parser.add_argument("--out",
                     help="Output directory (default: $HOME/mindboggled)",
@@ -156,11 +162,10 @@ else:
 #=============================================================================
 # Installation script to include in Vagrant file
 #=============================================================================
-if args.build:
-    if args.script:
-        script = args.script
-    else:
-        script = './setup_mindboggle.sh'
+if args.script:
+    script = args.script
+else:
+    script = './setup_mindboggle.sh'
 
 #=============================================================================
 # Create Vagrantfile
@@ -200,7 +205,7 @@ Vagrant.configure({0}) do |config|
     #-------------------------------------------------------------------------
     # Configure the Mindboggle Vagrant box and mount local directories
     #-------------------------------------------------------------------------
-    config.vm.define :install do |install_config|
+    config.vm.define :mindboggle do |install_config|
 
         # Build from the mindboggle.box Vagrant virtual box
         # (VirtualBox caches it so you only download once):
