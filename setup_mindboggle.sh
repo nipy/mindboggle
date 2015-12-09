@@ -48,14 +48,14 @@ if [ ! -d $DL_PREFIX ]; then
 fi
 
 if [ -z "$INSTALL_PREFIX" ]; then
-    $INSTALL_PREFIX="install"
+    INSTALL_PREFIX="install"
 fi
 if [ ! -d $INSTALL_PREFIX ]; then
     mkdir -p $INSTALL_PREFIX;
 fi
 
 if [ -z "$MB_ENV" ]; then
-    $MB_ENV=".bash_profile"
+    MB_ENV=".bash_profile"
 fi
 if [ ! -e "$MB_ENV" ] ; then
     touch "$MB_ENV"
