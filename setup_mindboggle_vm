@@ -56,7 +56,10 @@ ADVANCED: To build the above Mindboggle box from scratch::
     vagrant init my_mindboggle
     vagrant up
     vagrant ssh
+------------------------------------------------------------------------------
 
+Instructions for building a box:
+https://scotch.io/tutorials/how-to-create-a-vagrant-base-box-from-an-existing-one
 
 Authors:
      - Arno Klein, 2014-2015  (arno@mindboggle.info)  http://binarybottle.com

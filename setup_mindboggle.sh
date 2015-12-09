@@ -10,12 +10,13 @@
 #     bash setup_mindboggle.sh <download_dir> <install_dir> <env_file>
 #
 #     For example:
-#     bash setup_mindboggle.sh /homedir/downloads \
-#                              /software/install \
-#                              /homedir/.bash_profile
+#     bash setup_mindboggle.sh /home/vagrant/downloads \
+#                              /home/vagrant/install \
+#                              /home/vagrant/.bash_profile
 #
 # Note:
-#     <download_dir>, <install_dir>, <env_file> must exist and be full paths.
+#     <download_dir>, <install_dir>, and <env_file> will be created locally
+#                                                   if they don't exist.
 #     <env_file> is a global environment sourcing script
 #                to set environment variables, such as .bash_profile.
 #
@@ -37,10 +38,36 @@ INSTALL_PREFIX=$2
 MB_ENV=$3
 
 #-----------------------------------------------------------------------------
+# Create folders and file if they don't exist:
+#-----------------------------------------------------------------------------
+if [ -z "$DL_PREFIX" ]; then
+    DL_PREFIX="downloads"
+fi
+if [ ! -d $DL_PREFIX ]; then
+    mkdir -p $DL_PREFIX;
+fi
+
+if [ -z "$INSTALL_PREFIX" ]; then
+    $INSTALL_PREFIX="install"
+fi
+if [ ! -d $INSTALL_PREFIX ]; then
+    mkdir -p $INSTALL_PREFIX;
+fi
+
+if [ -z "$MB_ENV" ]; then
+    $MB_ENV=".bash_profile"
+fi
+if [ ! -e "$MB_ENV" ] ; then
+    touch "$MB_ENV"
+fi
+if [ ! -w "$MB_ENV" ] ; then
+    echo cannot write to $MB_ENV
+    exit 1
+fi
+#-----------------------------------------------------------------------------
 # Reset arguments to change formats, versions, and switch from linux to osx:
 #-----------------------------------------------------------------------------
 OS="linux"  #  linux or osx
-#VTK="vtk-6.3.0-py27_0"  # VTK library, with VTK and Python versions
 ANTS=0  # 1 to install ANTS, 0 not to install
 
 #-----------------------------------------------------------------------------
@@ -82,12 +109,12 @@ conda install --yes cmake pip
 
 # To avoid the following errors:
 # "No rule to make target `/usr/lib/x86_64-linux-gnu/libGLU.so'"
-# "No rule to make target `/usr/lib/x86_64-linux-gnu/libSM.so'"
+# "No rule to make target `/usr/lib64/libSM.so'"
 # http://techtidings.blogspot.com/2012/01/problem-with-libglso-on-64-bit-ubuntu.html
 if [ $OS = "linux" ]; then
     mkdir /usr/lib64
     ln -s /usr/lib/x86_64-linux-gnu/libGLU.so.1 /usr/lib64/libGLU.so
-    ln -s /usr/lib/x86_64-linux-gnu/libSM.so.1 /usr/lib64/libSM.so
+    ln -s /usr/lib64/libSM.so /usr/lib/x86_64-linux-gnu/libSM.so
 fi
 
 #-----------------------------------------------------------------------------
@@ -136,10 +163,6 @@ fi
 #-----------------------------------------------------------------------------
 # Set environment variables:
 #-----------------------------------------------------------------------------
-if [ $OS = "linux" ]; then
-    MB_ENV=/etc/profile.d/mb_env.sh
-    touch $MB_ENV
-fi
 
 # -- Local install --
 echo "# Local install prefix" >> $MB_ENV
@@ -160,7 +183,7 @@ fi
 #-----------------------------------------------------------------------------
 # Finally, remove non-essential directories:
 #-----------------------------------------------------------------------------
-rm_extras=0
+rm_extras=1
 if [ $rm_extras -eq 1 ]; then
-    rm ${DL_PREFIX}/* -rf
+    rm -r ${DL_PREFIX}/*
 fi
