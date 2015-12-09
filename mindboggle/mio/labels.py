@@ -4411,7 +4411,7 @@ def extract_numbers_names_colors(FreeSurferColorLUT=''):
     Parameters
     ----------
     FreeSurferColorLUT : string
-        full path to FreeSurferColorLUT.txt file
+        full path to FreeSurferColorLUT.txt file (else uses local Python file)
 
     Returns
     -------
@@ -4430,7 +4430,8 @@ def extract_numbers_names_colors(FreeSurferColorLUT=''):
 
     """
     import os
-    import sys
+
+    from mindboggle.thirdparty.FreeSurferColorLUT import lut_text
 
     def is_number(s):
         try:
@@ -4439,29 +4440,27 @@ def extract_numbers_names_colors(FreeSurferColorLUT=''):
         except ValueError:
             return False
 
-    if not FreeSurferColorLUT:
-        if os.environ['FREESURFER_HOME']:
-            FreeSurferColorLUT = os.path.join(
-                     os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')
-        else:
-            sys.exit('Please set the environment variable FREESURFER_HOME.')
+    # if os.environ['FREESURFER_HOME']:
+    #     FreeSurferColorLUT = os.path.join(
+    #              os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')
 
-    if not os.path.exists(FreeSurferColorLUT):
-        sys.exit(FreeSurferColorLUT + ' does not exist.')
-
-    f = open(FreeSurferColorLUT, 'r')
-    flines = f.readlines()
+    if FreeSurferColorLUT and os.path.exists(FreeSurferColorLUT):
+        f = open(FreeSurferColorLUT, 'r')
+        lines = f.readlines()
+    else:
+        lut = lut_text()
+        lines = lut.split('\n')
 
     numbers = []
     names = []
     colors = []
-    for fline in flines:
-        fstrings = fline.split()
-        if fstrings and is_number(fstrings[0]):
-            numbers.append(int(fstrings[0]))
-            names.append(fstrings[1])
-            colors.append([int(fstrings[2]), int(fstrings[3]),
-                           int(fstrings[4])])
+    for line in lines:
+        strings = line.split()
+        if strings and is_number(strings[0]):
+            numbers.append(int(strings[0]))
+            names.append(strings[1])
+            colors.append([int(strings[2]), int(strings[3]),
+                           int(strings[4])])
 
     return numbers, names, colors
 
