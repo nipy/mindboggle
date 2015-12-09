@@ -80,12 +80,14 @@ export PATH=${CONDA_PATH}/bin:$PATH
 #-----------------------------------------------------------------------------
 conda install --yes cmake pip
 
-# To avoid the following error:
+# To avoid the following errors:
 # "No rule to make target `/usr/lib/x86_64-linux-gnu/libGLU.so'"
+# "No rule to make target `/usr/lib/x86_64-linux-gnu/libSM.so'"
 # http://techtidings.blogspot.com/2012/01/problem-with-libglso-on-64-bit-ubuntu.html
 if [ $OS = "linux" ]; then
     mkdir /usr/lib64
     ln -s /usr/lib/x86_64-linux-gnu/libGLU.so.1 /usr/lib64/libGLU.so
+    ln -s /usr/lib/x86_64-linux-gnu/libSM.so.1 /usr/lib64/libSM.so
 fi
 
 #-----------------------------------------------------------------------------
