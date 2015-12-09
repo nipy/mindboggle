@@ -58,7 +58,7 @@ ADVANCED: To build the above Mindboggle box from scratch::
     vagrant ssh
 ------------------------------------------------------------------------------
 
-Instructions for building a box:
+Tutorial for building a box:
 https://scotch.io/tutorials/how-to-create-a-vagrant-base-box-from-an-existing-one
 
 Authors:
