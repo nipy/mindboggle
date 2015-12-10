@@ -185,6 +185,8 @@ if [ $ANTS = 1 ]; then
     echo "export PATH=\$ANTSPATH:\$PATH" >> $MB_ENV
 fi
 
+source $MB_ENV
+
 #-----------------------------------------------------------------------------
 # Finally, remove non-essential directories:
 #-----------------------------------------------------------------------------
@@ -192,3 +194,4 @@ rm_extras=1
 if [ $rm_extras -eq 1 ]; then
     rm -r ${DL_PREFIX}/*
 fi
+

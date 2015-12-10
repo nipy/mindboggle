@@ -55,7 +55,7 @@ ADVANCED: To build the above Mindboggle box from scratch::
     vagrant box add my_mindboggle mindboggle.<version>.box
     vagrant init my_mindboggle
     vagrant up
-    vagrant ssh
+    vagrant ssh mindboggle
 ------------------------------------------------------------------------------
 
 Tutorial for building a box:
