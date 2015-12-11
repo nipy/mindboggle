@@ -4,22 +4,12 @@ IF(COMMAND CMAKE_POLICY)
   CMAKE_POLICY(SET CMP0003 NEW)
 ENDIF(COMMAND CMAKE_POLICY)
 
-# Explicitly setting the SDK version raises the following error:
-SET(CMAKE_OSX_DEPLOYMENT_TARGET "10.11")
-SET(CMAKE_OSX_ARCHITECTURES "x86_64")
-SET(CMAKE_OSX_SYSROOT "macosx10.11")
+# For building a binary package to share with others,
+# set to a reasonably old deployment target (e.g. 10.7) and SDK (e.g. 10.9):
+SET(CMAKE_OSX_DEPLOYMENT_TARGET "10.7")
+SET(CMAKE_OSX_SYSROOT "macosx10.9")
 
-# The following avoids setting the SDK:
-#https://forums.developer.apple.com/thread/17334
-#SET(CMAKE_OSX_DEPLOYMENT_TARGET "")
-#SET(CMAKE_OSX_SYSROOT /)
-
-# https://cmake.org/Bug/view.php?id=14695
-#SET(MACOSX_DEPLOYMENT_TARGET ${DARWIN_MAJOR_SDK_VERSION}.${DARWIN_MINOR_SDK_VERSION})
-#SET(CMAKE_CXX_FLAGS "--sysroot ${CMAKE_OSX_SYSROOT} ${CMAKE_CXX_FLAGS}")
-#MESSAGE("Setting MACOSX_DEPLOYMENT_TARGET to '${MACOSX_DEPLOYMENT_TARGET}'.")
-
-PROJECT(brain)
+PROJECT(mindboggle_surface)
 
 # Find VTK.
 FIND_PACKAGE(VTK REQUIRED)
