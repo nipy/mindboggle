@@ -19,7 +19,7 @@
 #                                              if they don't exist.
 #     <env> is a global environment sourcing script
 #           to set environment variables, such as .bash_profile.
-#     <os> is the operating system, either "linux" or "osx".
+#     <os> is the operating system, either "Linux" or "MacOSX".
 #     <ants> is set to 1 or 0, to run ANTS or not.
 #
 # Authors:
@@ -38,6 +38,8 @@
 DL_PREFIX=$1
 INSTALL_PREFIX=$2
 MB_ENV=$3
+OS=$4
+ANTS=$5
 
 #-----------------------------------------------------------------------------
 # Create folders and file if they don't exist:
@@ -66,31 +68,29 @@ if [ ! -w "$MB_ENV" ] ; then
     echo cannot write to $MB_ENV
     exit 1
 fi
-#-----------------------------------------------------------------------------
-# Reset arguments to change formats, versions, and switch from linux to osx:
-#-----------------------------------------------------------------------------
-OS="linux"  #  linux or osx
-ANTS=0  # 1 to install ANTS, 0 not to install
+if [ -z "$OS" ]; then
+    OS="Linux2"
+fi
+if [ -z "$ANTS" ]; then
+    ANTS=0
+fi
 
 #-----------------------------------------------------------------------------
 # System-wide dependencies:
 #-----------------------------------------------------------------------------
-if [ $OS = "linux" ]; then
+if [ $OS = "Linux" ]; then
     apt-get update
     apt-get install -y g++ git make xorg
-    OS_STR="Linux"
-else
-    OS_STR="MacOSX"
 fi
 
 #-----------------------------------------------------------------------------
 # Anaconda's miniconda Python distribution for local installs:
 #-----------------------------------------------------------------------------
 CONDA_URL="http://repo.continuum.io/miniconda"
-CONDA_FILE="Miniconda-latest-$OS_STR-x86_64.sh"
+CONDA_FILE="Miniconda-latest-${OS}-x86_64.sh"
 CONDA_DL="${DL_PREFIX}/${CONDA_FILE}"
 CONDA_PATH="${INSTALL_PREFIX}/miniconda"
-if [ $OS = "linux" ]; then
+if [ $OS = "Linux" ]; then
     wget -O $CONDA_DL ${CONDA_URL}/$CONDA_FILE
 else
     curl -o $CONDA_DL ${CONDA_URL}/$CONDA_FILE
@@ -111,9 +111,9 @@ conda install --yes cmake pip
 
 # To avoid the following errors:
 # "No rule to make target `/usr/lib/x86_64-linux-gnu/libGLU.so'"
-# "No rule to make target `/usr/lib64/libSM.so'"
+# ...
 # http://techtidings.blogspot.com/2012/01/problem-with-libglso-on-64-bit-ubuntu.html
-if [ $OS = "linux" ]; then
+if [ $OS = "Linux" ]; then
     mkdir /usr/lib64
     ln -s /usr/lib/x86_64-linux-gnu/libGLU.so.1 /usr/lib64/libGLU.so
     ln -s /usr/lib/x86_64-linux-gnu/libSM.so.6 /usr/lib64/libSM.so
@@ -181,7 +181,7 @@ echo "export surface_cpp_tools=${INSTALL_PREFIX}/mindboggle/surface_cpp_tools/bi
 echo "export PATH=\$surface_cpp_tools:\$PATH" >> $MB_ENV
 
 # -- ANTs --
-if [ $ANTS = 1 ]; then
+if [ $ANTS -eq 1 ]; then
     echo "# ANTs" >> $MB_ENV
     echo "export ANTSPATH=${INSTALL_PREFIX}/ants/bin" >> $MB_ENV
     echo "export PATH=\$ANTSPATH:\$PATH" >> $MB_ENV
