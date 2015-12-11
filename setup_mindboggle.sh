@@ -69,7 +69,7 @@ if [ ! -w "$MB_ENV" ] ; then
     exit 1
 fi
 if [ -z "$OS" ]; then
-    OS="Linux2"
+    OS="Linux"
 fi
 if [ -z "$ANTS" ]; then
     ANTS=0
