@@ -7,18 +7,20 @@
 # Tested on Ubuntu 14.04 and MacOSX 10.11 x86_64 machines.
 #
 # Usage:
-#     bash setup_mindboggle.sh <download_dir> <install_dir> <env_file>
+#     bash setup_mindboggle.sh <download_dir> <install_dir> <env> <os> <ants>
 #
 #     For example:
 #     bash setup_mindboggle.sh /home/vagrant/downloads \
 #                              /home/vagrant/install \
-#                              /home/vagrant/.bash_profile
-#
+#                              /home/vagrant/.bash_profile \
+#                              linux  0
 # Note:
-#     <download_dir>, <install_dir>, and <env_file> will be created locally
-#                                                   if they don't exist.
-#     <env_file> is a global environment sourcing script
-#                to set environment variables, such as .bash_profile.
+#     <download_dir>, <install_dir>, and <env> will be created locally
+#                                              if they don't exist.
+#     <env> is a global environment sourcing script
+#           to set environment variables, such as .bash_profile.
+#     <os> is the operating system, either "linux" or "osx".
+#     <ants> is set to 1 or 0, to run ANTS or not.
 #
 # Authors:
 #     - Daniel Clark, 2014
