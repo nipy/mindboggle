@@ -7,13 +7,14 @@
 # Tested on Ubuntu 14.04 and MacOSX 10.11 x86_64 machines.
 #
 # Usage:
-#     bash setup_mindboggle.sh <download_dir> <install_dir> <env> <os> <ants>
+#     bash setup_mindboggle.sh <download_dir> <install_dir> <env>
+#                              <os> <ants> <sudo>
 #
 #     For example:
 #     bash setup_mindboggle.sh /home/vagrant/downloads \
 #                              /home/vagrant/install \
 #                              /home/vagrant/.bash_profile \
-#                              linux  0
+#                              linux  0  0
 # Note:
 #     <download_dir>, <install_dir>, and <env> will be created locally
 #                                              if they don't exist.
@@ -21,6 +22,7 @@
 #           to set environment variables, such as .bash_profile.
 #     <os> is the operating system, either "Linux" or "MacOSX".
 #     <ants> is set to 1 or 0, to run ANTS or not.
+#     <sudo> is set to 1 or 0, to run commands with sudo or not.
 #
 # Authors:
 #     - Daniel Clark, 2014
@@ -40,6 +42,7 @@ INSTALL_PREFIX=$2
 MB_ENV=$3
 OS=$4
 ANTS=$5
+SUDO=$6
 
 #-----------------------------------------------------------------------------
 # Create folders and file if they don't exist:
@@ -74,13 +77,21 @@ fi
 if [ -z "$ANTS" ]; then
     ANTS=0
 fi
+if [ -z "$SUDO" ]; then
+    SUDO=0
+fi
 
 #-----------------------------------------------------------------------------
 # System-wide dependencies:
 #-----------------------------------------------------------------------------
 if [ $OS = "Linux" ]; then
-    apt-get update
-    apt-get install -y g++ git make xorg
+    if [ $SUDO -eq 1 ]; then
+        sudo apt-get update
+        sudo apt-get install -y g++ git make xorg
+    else
+        apt-get update
+        apt-get install -y g++ git make xorg
+    fi
 fi
 
 #-----------------------------------------------------------------------------
@@ -89,7 +100,7 @@ fi
 CONDA_URL="http://repo.continuum.io/miniconda"
 CONDA_FILE="Miniconda-latest-${OS}-x86_64.sh"
 CONDA_DL="${DL_PREFIX}/${CONDA_FILE}"
-CONDA_PATH="${INSTALL_PREFIX}/miniconda"
+CONDA_PATH="${INSTALL_PREFIX}/miniconda2"
 if [ $OS = "Linux" ]; then
     wget -O $CONDA_DL ${CONDA_URL}/$CONDA_FILE
 else
@@ -114,14 +125,25 @@ conda install --yes cmake pip
 # ...
 # http://techtidings.blogspot.com/2012/01/problem-with-libglso-on-64-bit-ubuntu.html
 if [ $OS = "Linux" ]; then
-    mkdir /usr/lib64
-    ln -s /usr/lib/x86_64-linux-gnu/libGLU.so.1 /usr/lib64/libGLU.so
-    ln -s /usr/lib/x86_64-linux-gnu/libSM.so.6 /usr/lib64/libSM.so
-    ln -s /usr/lib/x86_64-linux-gnu/libICE.so.6 /usr/lib64/libICE.so
-    ln -s /usr/lib/x86_64-linux-gnu/libX11.so.6 /usr/lib64/libX11.so
-    ln -s /usr/lib/x86_64-linux-gnu/libXext.so.6 /usr/lib64/libXext.so
-    ln -s /usr/lib/x86_64-linux-gnu/libXt.so.6 /usr/lib64/libXt.so
-    ln -s /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1 /usr/lib64/libGL.so
+    if [ $SUDO -eq 1 ]; then
+        sudo mkdir /usr/lib64
+        sudo ln -s /usr/lib/x86_64-linux-gnu/libGLU.so.1 /usr/lib64/libGLU.so
+        sudo ln -s /usr/lib/x86_64-linux-gnu/libSM.so.6 /usr/lib64/libSM.so
+        sudo ln -s /usr/lib/x86_64-linux-gnu/libICE.so.6 /usr/lib64/libICE.so
+        sudo ln -s /usr/lib/x86_64-linux-gnu/libX11.so.6 /usr/lib64/libX11.so
+        sudo ln -s /usr/lib/x86_64-linux-gnu/libXext.so.6 /usr/lib64/libXext.so
+        sudo ln -s /usr/lib/x86_64-linux-gnu/libXt.so.6 /usr/lib64/libXt.so
+        sudo ln -s /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1 /usr/lib64/libGL.so
+    else
+        mkdir /usr/lib64
+        ln -s /usr/lib/x86_64-linux-gnu/libGLU.so.1 /usr/lib64/libGLU.so
+        ln -s /usr/lib/x86_64-linux-gnu/libSM.so.6 /usr/lib64/libSM.so
+        ln -s /usr/lib/x86_64-linux-gnu/libICE.so.6 /usr/lib64/libICE.so
+        ln -s /usr/lib/x86_64-linux-gnu/libX11.so.6 /usr/lib64/libX11.so
+        ln -s /usr/lib/x86_64-linux-gnu/libXext.so.6 /usr/lib64/libXext.so
+        ln -s /usr/lib/x86_64-linux-gnu/libXt.so.6 /usr/lib64/libXt.so
+        ln -s /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1 /usr/lib64/libGL.so
+    fi
 fi
 
 #-----------------------------------------------------------------------------
@@ -129,7 +151,6 @@ fi
 #-----------------------------------------------------------------------------
 conda install --yes numpy scipy matplotlib pandas nose networkx traits vtk ipython
 pip install nibabel nipype
-VTK_DIR=$CONDA_PATH
 
 #-----------------------------------------------------------------------------
 # Mindboggle:
@@ -140,7 +161,7 @@ mv $MB_DL $INSTALL_PREFIX
 cd ${INSTALL_PREFIX}/mindboggle
 python setup.py install --prefix=$INSTALL_PREFIX
 cd ${INSTALL_PREFIX}/mindboggle/surface_cpp_tools/bin
-cmake ../ -DVTK_DIR:STRING=$VTK_DIR
+cmake ../  # -DVTK_DIR:STRING=$VTK_DIR
 make
 cd $INSTALL_PREFIX
 
@@ -158,7 +179,7 @@ if [ $ANTS -eq 1 ]; then
     git checkout tags/v2.1.0rc2
     mkdir ${INSTALL_PREFIX}/ants
     cd ${INSTALL_PREFIX}/ants
-    cmake $ANTS_DL #-DVTK_DIR:STRING=$VTK_DIR
+    cmake $ANTS_DL  # -DVTK_DIR:STRING=$VTK_DIR
     make
     cp -r ${ANTS_DL}/Scripts/* ${INSTALL_PREFIX}/ants/bin
     # Remove non-essential directories:
@@ -192,7 +213,7 @@ source $MB_ENV
 #-----------------------------------------------------------------------------
 # Finally, remove non-essential directories:
 #-----------------------------------------------------------------------------
-rm_extras=1
+rm_extras=0
 if [ $rm_extras -eq 1 ]; then
     rm -r ${DL_PREFIX}/*
 fi
