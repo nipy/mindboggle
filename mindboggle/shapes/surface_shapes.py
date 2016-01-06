@@ -188,3 +188,11 @@ def curvature(command, method, arguments, surface_file):
 
     return mean_curvature_file, gauss_curvature_file, \
            max_curvature_file, min_curvature_file, min_curvature_vector_file
+
+
+#=============================================================================
+# Doctests
+#=============================================================================
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

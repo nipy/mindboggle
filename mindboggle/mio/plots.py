@@ -45,7 +45,7 @@ def plot_surfaces(vtk_files, use_colormap=False, colormap_file=''):
     >>> import os
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_files = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
+    >>> vtk_files = os.path.join(path, 'labels', 'lh.labels.DKT31.manual.vtk')
     >>> #vtk_files = [os.path.join(path, 'cube.vtk'), os.path.join(path, 'test_one_label.vtk')]
     >>> use_colormap = True
     >>> colormap_file = '/software/surface_cpp_tools/colormap.xml'
@@ -116,7 +116,7 @@ def plot_mask_surface(vtk_file, mask_file='', nonmask_value=-1,
     >>> import os
     >>> from mindboggle.mio.plots import plot_mask_surface
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
+    >>> vtk_file = os.path.join(path, 'labels', 'lh.labels.DKT31.manual.vtk')
     >>> mask_file = os.path.join(path, 'test_one_label.vtk')
     >>> nonmask_value = 0 #-1
     >>> masked_output = ''
@@ -251,7 +251,7 @@ def histogram_of_vtk_scalars(vtk_file, nbins=100):
     >>> import os
     >>> from mindboggle.mio.plots import histogram_of_vtk_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> vtk_file = os.path.join(path, 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> histogram_of_vtk_scalars(vtk_file, nbins=500)
 
     """

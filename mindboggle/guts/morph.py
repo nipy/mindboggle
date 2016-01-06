@@ -40,11 +40,11 @@ def dilate(indices, nedges, neighbor_lists):
     >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> vtk_file = os.path.join(path, 'freesurfer', 'lh.pial.vtk')
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> nedges = 3
     >>> # Select a single fold:
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> fold_number = 11 #11
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
@@ -98,11 +98,11 @@ def erode(indices, nedges, neighbor_lists):
     >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> vtk_file = os.path.join(path, 'freesurfer', 'lh.pial.vtk')
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> nedges = 3
     >>> # Select a single fold:
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> fold_number = 11 #11
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
@@ -154,11 +154,11 @@ def extract_edge(indices, neighbor_lists):
     >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> vtk_file = os.path.join(path, 'freesurfer', 'lh.pial.vtk')
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> # Select a single fold:
     >>> fold_number = 11 #11
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>> #
@@ -228,9 +228,9 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[],
     >>> #
     >>> background_value = -1
     >>> # Select one fold
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, return_first=True, return_array=True)
-    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> vtk_file = os.path.join(path, 'freesurfer', 'lh.pial.vtk')
     >>> points, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(vtk_file, return_first=True, return_array=True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> n_fold = np.unique(folds)[1]
@@ -503,12 +503,12 @@ def close_surface_pair(faces, points1, points2, scalars, background_value=-1):
     >>> patch_surface1 = 'fold.pial.vtk'
     >>> whole_surface2 = 'fold.white.vtk'
     >>> # Select a single fold:
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
     >>> points1 = read_points(folds_file)
     >>> scalars, name = read_scalars(folds_file, True, True)
     >>> fold_number = 11
     >>> scalars[scalars != fold_number] = -1
-    >>> white_surface = os.path.join(path, 'arno', 'freesurfer', 'lh.white.vtk')
+    >>> white_surface = os.path.join(path, 'freesurfer', 'lh.white.vtk')
     >>> points2, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(white_surface)
     >>> background_value = -1
     >>> closed_faces, closed_points, closed_scalars = close_surface_pair(faces, points1, points2, scalars, background_value)
@@ -609,12 +609,12 @@ def close_surface_pair_from_files(patch_surface1, whole_surface2,
     >>> patch_surface1 = 'fold.pial.vtk'
     >>> whole_surface2 = 'fold.white.vtk'
     >>> # Select a single fold:
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
     >>> points = read_points(folds_file)
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> fold_number = 11
     >>> folds[folds != fold_number] = -1
-    >>> white_surface = os.path.join(path, 'arno', 'freesurfer', 'lh.white.vtk')
+    >>> white_surface = os.path.join(path, 'freesurfer', 'lh.white.vtk')
     >>> points2, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(white_surface)
     >>> write_vtk(patch_surface1, points, [], [], faces, folds, name)
     >>> write_vtk(whole_surface2, points2, [], [], faces, folds, name)
@@ -757,3 +757,11 @@ def topo_test(index, values, neighbor_lists):
             sp = False
 
     return sp, n_inside
+
+
+#=============================================================================
+# Doctests
+#=============================================================================
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

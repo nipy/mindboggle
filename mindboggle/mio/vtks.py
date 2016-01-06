@@ -151,7 +151,7 @@ def read_faces_points(filename):
     >>> import os
     >>> from mindboggle.mio.vtks import read_faces_points
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
     >>> faces, points, npoints = read_faces_points(folds_file)
 
     """
@@ -202,7 +202,7 @@ def read_scalars(filename, return_first=True, return_array=False):
     >>> import os
     >>> from mindboggle.mio.vtks import read_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> curv_file = os.path.join(path, 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> mean_curvatures, name = read_scalars(curv_file)
 
     """
@@ -299,7 +299,7 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
     >>> import os
     >>> from mindboggle.mio.vtks import read_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> input_vtk = os.path.join(path, 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> points, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(input_vtk)
 
     """
@@ -612,7 +612,7 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     >>> from mindboggle.mio.vtks import read_vtk, write_vtk
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> input_vtk = os.path.join(path, 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> points, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(input_vtk)
     >>> output_vtk = 'write_vtk.vtk'
     >>> scalar_type = 'float'
@@ -701,8 +701,8 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     >>> import os
     >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
+    >>> input_vtk = os.path.join(path, 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> sulci_file = os.path.join(path, 'features', 'sulci.vtk')
     >>> output_vtk = 'rewrite_scalars.vtk'
     >>> curvs, name = read_scalars(input_vtk, True,True)
     >>> sulci, name = read_scalars(sulci_file)
@@ -830,8 +830,8 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     >>> from mindboggle.mio.vtks import explode_scalars
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_indices_vtk = os.path.join(path, 'arno', 'features', 'sulci.vtk')
-    >>> input_values_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
+    >>> input_indices_vtk = os.path.join(path, 'features', 'sulci.vtk')
+    >>> input_values_vtk = os.path.join(path, 'shapes', 'lh.pial.travel_depth.vtk')
     >>> output_stem = 'sulci_depth'
     >>> #
     >>> explode_scalars(input_indices_vtk, input_values_vtk, output_stem)
@@ -845,7 +845,7 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     >>> from mindboggle.mio.vtks import explode_scalars
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_values_vtk = os.path.join(path, 'arno', 'labels',
+    >>> input_values_vtk = os.path.join(path, 'labels',
     >>>                                 'lh.labels.DKT25.manual.vtk')
     >>> input_indices_vtk = input_values_vtk
     >>> output_stem = 'label'
@@ -1164,7 +1164,7 @@ def read_itk_transform_old(transform_file):
     >>> import os
     >>> from mindboggle.mio.vtks import read_itk_transform
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> transform_file = os.path.join(path, 'arno', 'mri',
+    >>> transform_file = os.path.join(path, 'mri',
     >>>                               't1weighted_brain.MNI152Affine.txt')
     >>> read_itk_transform(transform_file)
     (array([[ 9.07680e-01, 4.35290e-02, 1.28917e-02, -7.94889e-01],
@@ -1228,7 +1228,7 @@ def read_itk_transform(transform_file):
     >>> import os
     >>> from mindboggle.mio.vtks import read_itk_transform
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> transform_file = os.path.join(path, 'arno', 'mri',
+    >>> transform_file = os.path.join(path, 'mri',
     >>>                               't1weighted_brain.MNI152Affine.txt')
     >>> read_itk_transform(transform_file)
         array([[  9.07680e-01,   4.35290e-02,   1.28917e-02,   -8.16765e-01],
@@ -1427,8 +1427,8 @@ def transform_to_volume(vtk_file, volume_file, output_volume=''):
     >>> from mindboggle.mio.vtks import transform_to_volume
     >>> from mindboggle.mio.plots import plot_volumes
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> volume_file = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
+    >>> vtk_file = os.path.join(path, 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> volume_file = os.path.join(path, 'mri', 't1weighted_brain.nii.gz')
     >>> output_volume = ''
     >>> #
     >>> transform_to_volume(vtk_file, volume_file, output_volume)
@@ -1652,8 +1652,8 @@ def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk=''):
     >>> import os
     >>> from mindboggle.mio.vtks import freesurfer_annot_to_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> annot_file = os.path.join(path, 'arno', 'freesurfer', 'lh.aparc.annot')
-    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> annot_file = os.path.join(path, 'freesurfer', 'lh.aparc.annot')
+    >>> vtk_file = os.path.join(path, 'freesurfer', 'lh.pial.vtk')
     >>> output_vtk = ''
     >>> #
     >>> labels, output_vtk = freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk)
@@ -1691,4 +1691,9 @@ def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk=''):
     return labels, output_vtk
 
 
-#if __name__ == "__main__" :
+#=============================================================================
+# Doctests
+#=============================================================================
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

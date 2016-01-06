@@ -143,8 +143,8 @@ def ImageMath(volume1, volume2, operator='m', output_file=''):
     >>> from mindboggle.thirdparty.ants import ImageMath
     >>> from mindboggle.mio.plots import plot_volumes
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
-    >>> volume1 = os.path.join(path, 'arno', 'mri', 't1weighted.nii.gz')
-    >>> volume2 = os.path.join(path, 'arno', 'mri', 'mask.nii.gz')
+    >>> volume1 = os.path.join(path, 'mri', 't1weighted.nii.gz')
+    >>> volume2 = os.path.join(path, 'mri', 'mask.nii.gz')
     >>> operator = 'm'
     >>> output_file = ''
     >>> output_file = ImageMath(volume1, volume2, operator, output_file)
@@ -197,7 +197,7 @@ def ThresholdImage(volume, output_file='', threshlo=1, threshhi=10000):
     >>> from mindboggle.thirdparty.ants import ThresholdImage
     >>> from mindboggle.mio.plots import plot_volumes
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
-    >>> volume = os.path.join(path, 'arno', 'mri', 't1weighted.nii.gz')
+    >>> volume = os.path.join(path, 'mri', 't1weighted.nii.gz')
     >>> output_file = ''
     >>> threshlo = 500
     >>> threshhi = 10000
@@ -263,8 +263,8 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
     >>> from mindboggle.thirdparty.ants import PropagateLabelsThroughMask
     >>> from mindboggle.mio.plots import plot_volumes
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
-    >>> labels = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
-    >>> mask = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
+    >>> labels = os.path.join(path, 'labels', 'labels.DKT25.manual.nii.gz')
+    >>> mask = os.path.join(path, 'mri', 't1weighted_brain.nii.gz')
     >>> mask_index = None
     >>> output_file = ''
     >>> binarize = True
@@ -355,13 +355,13 @@ def fill_volume_with_surface_labels(hemi, left_mask, right_mask,
     >>> from mindboggle.thirdparty.ants import fill_volume_with_surface_labels
     >>> from mindboggle.mio.plots import plot_volumes
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
-    >>> surface_files = [os.path.join(path, 'arno', 'labels',
-    >>>     'lh.labels.DKT25.manual.vtk'), os.path.join(path, 'arno', 'labels',
+    >>> surface_files = [os.path.join(path, 'labels',
+    >>>     'lh.labels.DKT25.manual.vtk'), os.path.join(path, 'labels',
     >>>     'rh.labels.DKT25.manual.vtk')]
     >>> # For a quick test, simply mask with whole brain:
     >>> hemi = 'rh'
-    >>> left_mask = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
-    >>> right_mask = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
+    >>> left_mask = os.path.join(path, 'mri', 't1weighted_brain.nii.gz')
+    >>> right_mask = os.path.join(path, 'mri', 't1weighted_brain.nii.gz')
     >>> mask_index = None
     >>> output_file = ''
     >>> binarize = True
@@ -441,7 +441,7 @@ def fill_volume_with_surface_labels(hemi, left_mask, right_mask,
 #     >>> import os
 #     >>> from mindboggle.thirdparty.ants import ANTS
 #     >>> path = os.environ['MINDBOGGLE_DATA']
-#     >>> source = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
+#     >>> source = os.path.join(path, 'mri', 't1weighted_brain.nii.gz')
 #     >>> target = os.path.join(path, 'atlases', 'MNI152_T1_1mm_brain.nii.gz')
 #     >>> iterations = "0"
 #     >>> output_stem = ""
@@ -609,4 +609,9 @@ def fill_volume_with_surface_labels(hemi, left_mask, right_mask,
 #
 #     return output_transform_file
 
-
+#=============================================================================
+# Doctests
+#=============================================================================
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

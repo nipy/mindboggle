@@ -64,7 +64,7 @@ def main(**extra_args):
           requires=REQUIRES,
           provides=PROVIDES,
           packages=['mindboggle',
-                    'mindboggle.evaluate',
+                    #'mindboggle.evaluate',
                     'mindboggle.features',
                     'mindboggle.guts',
                     'mindboggle.mio',

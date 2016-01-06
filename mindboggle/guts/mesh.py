@@ -34,7 +34,7 @@ def find_neighbors_from_file(input_vtk):
     >>> from mindboggle.mio.vtks import rewrite_scalars
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> vtk_file = os.path.join(path, 'freesurfer', 'lh.pial.vtk')
     >>> #
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> #
@@ -89,7 +89,7 @@ def find_neighbors(faces, npoints):
     >>> from mindboggle.guts.mesh import find_neighbors
     >>> from mindboggle.mio.vtks import read_faces_points, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> vtk_file = os.path.join(path, 'freesurfer', 'lh.pial.vtk')
     >>> faces, points, npoints = read_faces_points(vtk_file)
     >>> #
     >>> neighbor_lists = find_neighbors(faces, npoints)
@@ -257,12 +257,12 @@ def find_endpoints(indices, neighbor_lists):
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> # Select a single fold:
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> fold_number = 11
     >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_number]
     >>> # Create a track from the minimum-depth vertex:
-    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> vtk_file = os.path.join(path, 'freesurfer', 'lh.pial.vtk')
     >>> values, name = read_scalars(vtk_file, True, True)
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> seed = indices_fold[np.argmin(values[indices_fold])]
@@ -629,7 +629,7 @@ def reindex_faces_points(faces, points=[]):
         ([[5, 0, 1], [0, 1, 4], [2, 4, 5], [1, 0, 3]], None)
     >>> # Reindex faces of a single fold of the brain:
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
+    >>> fold_file = os.path.join(path, 'features', 'fold11.vtk')
     >>> faces, points, npoints = read_faces_points(fold_file)
     >>> new_faces, new_points, original_indices = reindex_faces_points(faces, points)
 
@@ -759,7 +759,7 @@ def decimate(points, faces, reduction=0.75, smooth_steps=25,
     >>> from mindboggle.guts.mesh import remove_faces, decimate
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
+    >>> label_file = os.path.join(path, 'labels', 'lh.labels.DKT31.manual.vtk')
     >>> points, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(label_file)
     >>> I22 = [i for i,x in enumerate(labels) if x==14] # postcentral
     >>> faces = remove_faces(faces, I22)
@@ -932,7 +932,7 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100,
     >>> from mindboggle.guts.mesh import decimate_file
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_vtk = os.path.join(path, 'arno', 'labels', 'label22.vtk')
+    >>> input_vtk = os.path.join(path, 'labels', 'label22.vtk')
     >>> #input_vtk='/drop/MB/data/arno/labels/lh.labels.DKT31.manual.vtk'
     >>> save_vtk = True
     >>> output_vtk = ''
@@ -1000,7 +1000,7 @@ def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
     >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
+    >>> input_vtk = os.path.join(path, 'shapes', 'lh.pial.travel_depth.vtk')
     >>> indices = []
     >>> nedges = 10
     >>> p = 99
@@ -1013,7 +1013,7 @@ def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
     >>>     indices, nedges, p, set_max_to_1, save_file, output_filestring, background_value)
     >>> #
     >>> # View rescaled scalar values per fold:
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file)
     >>> #
     >>> rewrite_scalars(rescaled_scalars_file, rescaled_scalars_file,
@@ -1102,8 +1102,8 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
     >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
-    >>> labels_or_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
+    >>> input_vtk = os.path.join(path, 'shapes', 'lh.pial.travel_depth.vtk')
+    >>> labels_or_file = os.path.join(path, 'features', 'subfolds.vtk')
     >>> save_file = True
     >>> output_filestring = 'rescaled_scalars'
     >>> #
@@ -1111,7 +1111,7 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
     >>>     labels_or_file, save_file, output_filestring)
     >>> #
     >>> # View rescaled scalar values per fold:
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file)
     >>> #
     >>> rewrite_scalars(rescaled_scalars_file, rescaled_scalars_file,
@@ -1197,3 +1197,11 @@ def area_of_faces(points, faces):
         area[i] = np.sqrt(s*(s-a)*(s-b)*(s-c))
 
     return area
+
+
+#=============================================================================
+# Doctests
+#=============================================================================
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

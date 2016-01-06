@@ -133,7 +133,7 @@ args = parser.parse_args()
 #=============================================================================
 # Configure mount directories and variables below
 #=============================================================================
-mindboggle_version = "1"
+mindboggle_version = "1.0"
 vagrantfile_api_version = "2"
 home = os.environ['HOME']
 

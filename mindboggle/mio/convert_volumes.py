@@ -170,3 +170,11 @@ def xyz2nii(input_xyz_file, output_nii_file='', origin=[], pad=10):
     img.to_filename(output_nii_file)
 
     return output_nii_file
+
+
+#=============================================================================
+# Doctests
+#=============================================================================
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

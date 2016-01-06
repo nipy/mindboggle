@@ -95,3 +95,11 @@ def list_strings(string1='', string2='', string3='', string4=''):
         string_list.append(string4)
 
     return string_list
+
+
+#=============================================================================
+# Doctests
+#=============================================================================
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

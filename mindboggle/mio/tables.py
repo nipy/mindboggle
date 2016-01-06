@@ -98,7 +98,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     >>> fundi_file = os.path.join(path, 'features', 'left_cortical_surface', 'fundus_per_sulcus.vtk')
     >>> sulci, name = read_scalars(sulci_file)
     >>> fundi, name = read_scalars(fundi_file)
-    >>> affine_transform_files = [] #os.path.join(path, 'arno', 'mri', 't1weighted_brain.MNI152Affine.txt')
+    >>> affine_transform_files = [] #os.path.join(path, 'mri', 't1weighted_brain.MNI152Affine.txt')
     >>> inverse_booleans = []
     >>> #transform_format = 'mat'
     >>> transform_format = 'itk'
@@ -454,20 +454,20 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     >>> #
     >>> output_table = ''#vertex_shapes.csv'
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> labels_or_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
-    >>> fundi_file = os.path.join(path, 'arno', 'features', 'fundi.vtk')
+    >>> labels_or_file = os.path.join(path, 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> sulci_file = os.path.join(path, 'features', 'sulci.vtk')
+    >>> fundi_file = os.path.join(path, 'features', 'fundi.vtk')
     >>> sulci, name = read_scalars(sulci_file)
     >>> fundi, name = read_scalars(fundi_file)
-    >>> affine_transform_files = [os.path.join(path, 'arno', 'mri',
+    >>> affine_transform_files = [os.path.join(path, 'mri',
     >>>     't1weighted_brain.MNI152Affine.txt')]
     >>> inverse_booleans = [1]
     >>> transform_format = 'itk'
     >>> swap_xy = True
-    >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
-    >>> mean_curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> travel_depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
-    >>> geodesic_depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.geodesic_depth.vtk')
+    >>> area_file = os.path.join(path, 'shapes', 'lh.pial.area.vtk')
+    >>> mean_curvature_file = os.path.join(path, 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> travel_depth_file = os.path.join(path, 'shapes', 'lh.pial.travel_depth.vtk')
+    >>> geodesic_depth_file = os.path.join(path, 'shapes', 'lh.pial.geodesic_depth.vtk')
     >>> freesurfer_thickness_file = ''
     >>> freesurfer_curvature_file = ''
     >>> freesurfer_sulc_file = ''
@@ -993,3 +993,9 @@ def explode_mindboggle_tables(subject, subject_path='', output_path='',
                 print('Unable to make directory {0}'.format(output_dir))
 
 
+#=============================================================================
+# Doctests
+#=============================================================================
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
