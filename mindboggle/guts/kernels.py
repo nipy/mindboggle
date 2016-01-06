@@ -48,3 +48,10 @@ def inverse_distance(x1, x2, epsilon):
 
     return 1.0/(np.linalg.norm(x1 - x2) + epsilon)
 
+
+#=============================================================================
+# Doctests
+#=============================================================================
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

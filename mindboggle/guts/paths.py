@@ -62,9 +62,9 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> #
-    >>> curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> curv_file = os.path.join(path, 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> points, indices, lines, faces, curvs, scalar_names, npoints, input_vtk = read_vtk(curv_file, True,True)
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'travel_depth_rescaled.vtk')
+    >>> depth_file = os.path.join(path, 'shapes', 'travel_depth_rescaled.vtk')
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> values = curvs * depths
     >>> neighbor_lists = find_neighbors_from_file(curv_file)
@@ -72,7 +72,7 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     >>> #
     >>> # Single fold:
     >>> fold_number = 1 #11
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>> S = background_value * np.ones(len(values))
@@ -92,7 +92,7 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     >>> erode_min_size = 10
     >>> save_steps = [] #range(0,500,50)
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> save_vtk = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> save_vtk = os.path.join(path, 'freesurfer', 'lh.pial.vtk')
     >>> skeleton = connect_points_erosion(S, neighbor_lists,
     >>>     outer_anchors, inner_anchors, values, erode_ratio, erode_min_size,
     >>>     save_steps, save_vtk, background_value)
@@ -294,21 +294,21 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists,
     >>> from mindboggle.guts.paths import find_outer_anchors, connect_points_hmmf
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> vtk_file = os.path.join(path, 'freesurfer', 'lh.pial.vtk')
     >>> background_value = -1
     >>> # Get neighbor_lists, scalars
     >>> faces, points, npoints = read_faces_points(vtk_file)
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> # Select a single fold:
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> fold_number = 1 #11
     >>> folds[folds != fold_number] = background_value
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>> # Find endpoints:
-    >>> values_seeding_file = os.path.join(path, 'arno', 'shapes', 'travel_depth_rescaled.vtk')
+    >>> values_seeding_file = os.path.join(path, 'shapes', 'travel_depth_rescaled.vtk')
     >>> values_seeding, name = read_scalars(values_seeding_file, True, True)
-    >>> values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
+    >>> values_file = os.path.join(path, 'shapes', 'likelihoods.vtk')
     >>> values, name = read_scalars(values_file, True, True)
     >>> min_separation = 10
     >>> keep, tracks = find_outer_anchors(indices,
@@ -611,12 +611,12 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> from mindboggle.guts.paths import smooth_skeleton
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> likelihoods_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
+    >>> likelihoods_file = os.path.join(path, 'shapes', 'likelihoods.vtk')
     >>> likelihoods, name = read_scalars(likelihoods_file, True, True)
-    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> skeletons_file = os.path.join(path, 'arno', 'features', 'fundi.vtk')
+    >>> vtk_file = os.path.join(path, 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> skeletons_file = os.path.join(path, 'features', 'fundi.vtk')
     >>> skeletons, name = read_scalars(skeletons_file, True, True)
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
     >>> bounds, name = read_scalars(folds_file, True, True)
     >>> background_value = -1
     >>> if single_fold:
@@ -783,9 +783,9 @@ def track_values(seed, indices, neighbor_lists, values, sink=[]):
     >>> from mindboggle.guts.paths import track_values
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
-    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
-    >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
+    >>> values_file = os.path.join(path, 'shapes', 'likelihoods.vtk')
+    >>> vtk_file = os.path.join(path, 'shapes', 'lh.pial.travel_depth.vtk')
+    >>> fold_file = os.path.join(path, 'features', 'fold11.vtk')
     >>> values, name = read_scalars(values_file, True, True)
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> fold, name = read_scalars(fold_file)
@@ -881,9 +881,9 @@ def track_segments(seed, segments, neighbor_lists, values, sink,
     >>> from mindboggle.guts.paths import track_segments
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
-    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> values_file = os.path.join(path, 'shapes', 'likelihoods.vtk')
+    >>> vtk_file = os.path.join(path, 'freesurfer', 'lh.pial.vtk')
+    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
     >>> values, name = read_scalars(values_file, True, True)
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> background_value = -1
@@ -1005,18 +1005,18 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     >>> from mindboggle.guts.paths import find_outer_anchors
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> values_seeding_file = os.path.join(path, 'arno', 'shapes', 'travel_depth_rescaled.vtk')
+    >>> values_seeding_file = os.path.join(path, 'shapes', 'travel_depth_rescaled.vtk')
     >>> values_seeding, name = read_scalars(values_seeding_file, True, True)
-    >>> values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
+    >>> values_file = os.path.join(path, 'shapes', 'likelihoods.vtk')
     >>> values, name = read_scalars(values_file, True, True)
-    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> vtk_file = os.path.join(path, 'freesurfer', 'lh.pial.vtk')
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> min_separation = 10
     >>> #
     >>> #---------------------------------------------------------------------
     >>> # Extract endpoints and their tracks from a single fold:
     >>> #---------------------------------------------------------------------
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> fold_number = 11
     >>> folds[folds != fold_number] = -1
@@ -1036,7 +1036,7 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     >>> # Extract endpoints and their tracks on every fold in a hemisphere:
     >>> #---------------------------------------------------------------------
     >>> min_size = 50
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
+    >>> folds_file = os.path.join(path, 'features', 'subfolds.vtk')
     >>> folds, name = read_scalars(folds_file)
     >>> fold_numbers = [x for x in np.unique(folds) if x != -1]
     >>> nfolds = len(fold_numbers)
@@ -1240,10 +1240,10 @@ def find_max_values(points, values, min_separation=10, thr=0.5):
     >>> from mindboggle.mio.vtks import read_vtk, read_scalars, rewrite_scalars
     >>> from mindboggle.guts.paths import find_max_values
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file)
     >>> #
-    >>> likelihood_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
+    >>> likelihood_file = os.path.join(path, 'shapes', 'likelihoods.vtk')
     >>> points, indices, lines, faces, values, scalar_names, npoints, input_vtk = read_vtk(likelihood_file, return_first=True, return_array=True)
     >>> # Select a single fold
     >>> plot_single_fold = True
@@ -1357,11 +1357,11 @@ def find_max_values(points, values, min_separation=10, thr=0.5):
 #     >>> from mindboggle.mio.vtks import read_vtk, read_scalars, rewrite_scalars
 #     >>> from mindboggle.guts.paths import find_anchors
 #     >>> path = os.environ['MINDBOGGLE_DATA']
-#     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+#     >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
 #     >>> folds, name = read_scalars(folds_file)
 #     >>> #
-#     >>> likelihood_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
-#     >>> min_curvature_vector_file = os.path.join(path, 'arno', 'shapes',
+#     >>> likelihood_file = os.path.join(path, 'shapes', 'likelihoods.vtk')
+#     >>> min_curvature_vector_file = os.path.join(path, 'shapes',
 #     >>>                                          'lh.pial.curv.min.dir.txt')
 #     >>> points, indices, lines, faces, values, scalar_names, npoints, input_vtk = read_vtk(likelihood_file,
 #     >>>     return_first=True, return_array=True)
@@ -1446,51 +1446,59 @@ def find_max_values(points, values, min_separation=10, thr=0.5):
 
 
 #=============================================================================
-# Example: connect_points_erosion()
+# Doctests
 #=============================================================================
 if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
 
-    # Extract a skeleton to connect endpoints in a fold:
-    import os
-    import numpy as np
-    from mindboggle.mio.vtks import read_scalars, rewrite_scalars
-    from mindboggle.guts.mesh import find_neighbors_from_file
-    from mindboggle.guts.paths import connect_points_erosion, find_outer_anchors
-    path = os.environ['MINDBOGGLE_DATA']
 
-    values_seeding_file = os.path.join(path, 'arno', 'shapes',
-                                       'travel_depth_rescaled.vtk')
-    values_seeding, name = read_scalars(values_seeding_file, True, True)
-    values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
-    values, name = read_scalars(values_file, True, True)
-    vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
-    neighbor_lists = find_neighbors_from_file(vtk_file)
-
-    # Select a single fold:
-    fold_number = 1 #11
-    folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
-    folds, name = read_scalars(folds_file, True, True)
-    indices = [i for i,x in enumerate(folds) if x == fold_number]
-    S = -1 * np.ones(len(values))
-    S[indices] = 1
-
-    # Find endpoints:
-    min_separation = 10
-    keep, tracks = find_outer_anchors(indices,
-        neighbor_lists, values, values_seeding, min_separation)
-
-    erode_ratio = 0.10
-    min_size = 10
-    skeleton = connect_points_erosion(S, keep, neighbor_lists, values,
-                                      erode_ratio, min_size)
-
-    # Write out vtk file and view:
-    D = -1 * np.ones(len(values))
-    D[indices] = 1
-    D[skeleton] = 2
-    D[keep] = 3
-    folds[folds != fold_number] = -1
-    rewrite_scalars(folds_file, 'connect_points_erosion.vtk',
-                    D, 'skeleton', folds)
-    from mindboggle.mio.plots import plot_surfaces
-    plot_surfaces('connect_points_erosion.vtk')
+#=============================================================================
+# Example: connect_points_erosion()
+#=============================================================================
+# if __name__ == "__main__":
+#
+#     # Extract a skeleton to connect endpoints in a fold:
+#     import os
+#     import numpy as np
+#     from mindboggle.mio.vtks import read_scalars, rewrite_scalars
+#     from mindboggle.guts.mesh import find_neighbors_from_file
+#     from mindboggle.guts.paths import connect_points_erosion, find_outer_anchors
+#     path = os.environ['MINDBOGGLE_DATA']
+#
+#     values_seeding_file = os.path.join(path, 'shapes',
+#                                        'travel_depth_rescaled.vtk')
+#     values_seeding, name = read_scalars(values_seeding_file, True, True)
+#     values_file = os.path.join(path, 'shapes', 'likelihoods.vtk')
+#     values, name = read_scalars(values_file, True, True)
+#     vtk_file = os.path.join(path, 'freesurfer', 'lh.pial.vtk')
+#     neighbor_lists = find_neighbors_from_file(vtk_file)
+#
+#     # Select a single fold:
+#     fold_number = 1 #11
+#     folds_file = os.path.join(path, 'features', 'folds.vtk')
+#     folds, name = read_scalars(folds_file, True, True)
+#     indices = [i for i,x in enumerate(folds) if x == fold_number]
+#     S = -1 * np.ones(len(values))
+#     S[indices] = 1
+#
+#     # Find endpoints:
+#     min_separation = 10
+#     keep, tracks = find_outer_anchors(indices,
+#         neighbor_lists, values, values_seeding, min_separation)
+#
+#     erode_ratio = 0.10
+#     min_size = 10
+#     skeleton = connect_points_erosion(S, keep, neighbor_lists, values,
+#                                       erode_ratio, min_size)
+#
+#     # Write out vtk file and view:
+#     D = -1 * np.ones(len(values))
+#     D[indices] = 1
+#     D[skeleton] = 2
+#     D[keep] = 3
+#     folds[folds != fold_number] = -1
+#     rewrite_scalars(folds_file, 'connect_points_erosion.vtk',
+#                     D, 'skeleton', folds)
+#     from mindboggle.mio.plots import plot_surfaces
+#     plot_surfaces('connect_points_erosion.vtk')

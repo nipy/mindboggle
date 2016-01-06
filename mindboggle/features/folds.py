@@ -72,37 +72,36 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
     Examples
     --------
     >>> import os
-    >>> import numpy as np
-    >>> import pylab
-    >>> from scipy.ndimage.filters import gaussian_filter1d
-    >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.guts.mesh import find_neighbors_from_file
-    >>> from mindboggle.mio.plots import plot_surfaces
     >>> from mindboggle.features.folds import extract_folds
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = 'travel_depth.vtk' #os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
+    >>> depth_file = os.path.join(path, 'shapes', 'lh.pial.travel_depth.vtk')
     >>> neighbor_lists = find_neighbors_from_file(depth_file)
     >>> min_vertices = 10000
     >>> min_fold_size = 50
     >>> do_fill_holes = False #True
     >>> min_hole_depth = 0.001
     >>> save_file = True
-    >>> #
     >>> folds, n_folds, thr, bins, bin_edges, folds_file = extract_folds(depth_file,
-    >>>     min_vertices, min_fold_size, do_fill_holes, min_hole_depth, save_file)
-    >>> #
-    >>> # View folds:
-    >>> plot_surfaces('folds.vtk')
-    >>> # Plot histogram and depth threshold:
-    >>> depths, name = read_scalars(depth_file)
-    >>> nbins = np.round(len(depths) / 100.0)
-    >>> a,b,c = pylab.hist(depths, bins=nbins)
-    >>> pylab.plot(thr*np.ones((100,1)), np.linspace(0, max(bins), 100), 'r.')
-    >>> pylab.show()
-    >>> # Plot smoothed histogram:
-    >>> bins_smooth = gaussian_filter1d(bins.tolist(), 5)
-    >>> pylab.plot(range(len(bins)), bins, '.', range(len(bins)), bins_smooth,'-')
-    >>> pylab.show()
+    ...     min_vertices, min_fold_size, do_fill_holes, min_hole_depth, save_file)
+    >>>
+    >>> ## View folds:
+    >>> #import numpy as np
+    >>> #import pylab
+    >>> #from scipy.ndimage.filters import gaussian_filter1d
+    >>> #from mindboggle.mio.vtks import read_scalars
+    >>> #from mindboggle.mio.plots import plot_surfaces
+    >>> #plot_surfaces('folds.vtk')
+    >>> ## Plot histogram and depth threshold:
+    >>> #depths, name = read_scalars(depth_file)
+    >>> #nbins = np.round(len(depths) / 100.0)
+    >>> #a,b,c = pylab.hist(depths, bins=nbins)
+    >>> #pylab.plot(thr*np.ones((100,1)), np.linspace(0, max(bins), 100), 'r.')
+    >>> #pylab.show()
+    >>> ## Plot smoothed histogram:
+    >>> #bins_smooth = gaussian_filter1d(bins.tolist(), 5)
+    >>> #pylab.plot(range(len(bins)), bins, '.', range(len(bins)), bins_smooth,'-')
+    >>> #pylab.show()
 
     """
     import os
@@ -295,20 +294,19 @@ def extract_subfolds(depth_file, folds, min_size=10, depth_factor=0.25,
     >>> from mindboggle.features.folds import extract_subfolds
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> depth_file = os.path.join(path, 'shapes', 'lh.pial.travel_depth.vtk')
+    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file)
     >>> min_size = 10
     >>> depth_factor = 0.5
     >>> depth_ratio = 0.1
     >>> tolerance = 0.01
-    >>> #
     >>> subfolds, n_subfolds, subfolds_file = extract_subfolds(depth_file,
-    >>>     folds, min_size, depth_factor, depth_ratio, tolerance, True)
-    >>> #
-    >>> # View:
-    >>> rewrite_scalars(depth_file, 'subfolds.vtk', subfolds, 'subfolds', subfolds)
-    >>> plot_surfaces('subfolds.vtk')
+    ...     folds, min_size, depth_factor, depth_ratio, tolerance, True)
+    >>>
+    >>> ## View:
+    >>> #rewrite_scalars(depth_file, 'subfolds.vtk', subfolds, 'subfolds', subfolds)
+    >>> #plot_surfaces('subfolds.vtk')
 
     """
     import os
@@ -360,3 +358,10 @@ def extract_subfolds(depth_file, folds, min_size=10, depth_factor=0.25,
         subfolds_file = None
 
     return subfolds, n_subfolds, subfolds_file
+
+#=============================================================================
+# Doctests
+#=============================================================================
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

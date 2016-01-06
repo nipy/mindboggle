@@ -40,7 +40,7 @@ def relabel_volume(input_file, old_labels, new_labels, output_file=''):
     >>> from mindboggle.mio.plots import plot_volumes
     >>> # Convert DKT31 to DKT25 protocol:
     >>> #data_path = os.environ['MINDBOGGLE_DATA']
-    >>> #input_file = os.path.join(data_path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
+    >>> #input_file = os.path.join(data_path, 'labels', 'labels.DKT31.manual.nii.gz')
     >>> #old_labels = [1010,1023,1026,1027,1019,1020,2010,2023,2026,2027,2019,2020]
     >>> #new_labels = [1002,1002,1002,1003,1018,1018,2002,2002,2002,2003,2018,2018]
     >>> # Convert labels to non/cortex segmentation:
@@ -119,8 +119,8 @@ def remove_volume_labels(input_file, labels_to_remove, output_file='',
     >>> import os
     >>> from mindboggle.guts.relabel import remove_volume_labels
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> input_file = os.path.join(data_path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
-    >>> second_file = os.path.join(data_path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
+    >>> input_file = os.path.join(data_path, 'labels', 'labels.DKT31.manual.nii.gz')
+    >>> second_file = os.path.join(data_path, 'labels', 'labels.DKT25.manual.nii.gz')
     >>> labels_to_remove = range(1,300) # Remove noncortical (+aseg) labels
     >>> labels_to_remove.extend([1000,1001,2000,2001])
     >>> labels_to_remove.extend(range(2000,2036)) # Remove right cortical labels
@@ -214,8 +214,8 @@ def keep_volume_labels(input_file, labels_to_keep, output_file='',
     >>> import os
     >>> from mindboggle.guts.relabel import keep_volume_labels
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> input_file = os.path.join(data_path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
-    >>> second_file = os.path.join(data_path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
+    >>> input_file = os.path.join(data_path, 'labels', 'labels.DKT31.manual.nii.gz')
+    >>> second_file = os.path.join(data_path, 'labels', 'labels.DKT25.manual.nii.gz')
     >>> labels_to_keep = range(1000, 1036)
     >>> output_file = ''
     >>> keep_volume_labels(input_file, labels_to_keep, output_file, second_file)
@@ -319,7 +319,7 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
     >>> from mindboggle.guts.relabel import relabel_surface
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> vtk_file = os.path.join(path, 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> hemi = 'lh'
     >>> old_labels = [1003,1009,1030]
     >>> new_labels = [3,9,30]
@@ -433,8 +433,8 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
     >>> from mindboggle.guts.relabel import overwrite_volume_labels
     >>> from mindboggle.mio.plots import plot_volumes
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> source = os.path.join(data_path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
-    >>> target = os.path.join(data_path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
+    >>> source = os.path.join(data_path, 'labels', 'labels.DKT31.manual.nii.gz')
+    >>> target = os.path.join(data_path, 'labels', 'labels.DKT25.manual.nii.gz')
     >>> output_file = ''
     >>> ignore_labels = [0]
     >>> erase_labels = True
@@ -491,3 +491,10 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
 
     return output_file
 
+
+#=============================================================================
+# Doctests
+#=============================================================================
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

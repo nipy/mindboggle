@@ -357,3 +357,11 @@ def fetch_ants_data(segmented_file, use_ants_transforms=True):
 
     return mask, segments, affine_subject2template, warp_subject2template, \
                            affine_template2subject, warp_template2subject
+
+
+#=============================================================================
+# Doctests
+#=============================================================================
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

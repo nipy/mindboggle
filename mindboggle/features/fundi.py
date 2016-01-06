@@ -61,9 +61,9 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     >>> from mindboggle.features.fundi import extract_fundi
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'travel_depth_rescaled.vtk')
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> curv_file = os.path.join(path, 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> depth_file = os.path.join(path, 'shapes', 'travel_depth_rescaled.vtk')
+    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> if single_fold:
     >>>     fold_number = 2 #11
@@ -74,9 +74,9 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     >>> save_file = True
     >>> o1, o2, fundus_per_fold_file = extract_fundi(folds, curv_file,
     ...     depth_file, min_separation, erode_ratio, erode_min_size, save_file)
-    >>> #
+    >>>
     >>> # View:
-    >>> plot_surfaces(fundi_file)
+    >>> #plot_surfaces(fundi_file)
 
     """
 
@@ -88,8 +88,10 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     from mindboggle.mio.vtks import read_scalars, read_vtk, rewrite_scalars
     from mindboggle.guts.compute import median_abs_dev
     from mindboggle.guts.paths import find_max_values
-    from mindboggle.guts.mesh import find_neighbors_from_file, find_complete_faces
-    from mindboggle.guts.paths import find_outer_anchors, connect_points_erosion
+    from mindboggle.guts.mesh import find_neighbors_from_file
+    from mindboggle.guts.mesh import find_complete_faces
+    from mindboggle.guts.paths import find_outer_anchors
+    from mindboggle.guts.paths import connect_points_erosion
 
     if isinstance(folds, list):
         folds = np.array(folds)
@@ -131,7 +133,8 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
             #-----------------------------------------------------------------
             # Find inner anchor points:
             #-----------------------------------------------------------------
-            inner_anchors = find_max_values(points, values, min_separation, thr)
+            inner_anchors = find_max_values(points, values, min_separation,
+                                            thr)
 
             #-----------------------------------------------------------------
             # Connect anchor points to create skeleton:
@@ -214,13 +217,12 @@ def segment_fundi(fundus_per_fold, sulci=[], vtk_file='', save_file=False):
     >>> import os
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.features.fundi import extract_fundi, segment_fundi
-    >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
+    >>> vtk_file = os.path.join(path, 'features', 'sulci.vtk')
     >>> sulci, name = read_scalars(vtk_file, True, True)
-    >>> curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'travel_depth_rescaled.vtk')
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> curv_file = os.path.join(path, 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> depth_file = os.path.join(path, 'shapes', 'travel_depth_rescaled.vtk')
+    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> if single_fold:
     >>>     fold_number = 2 #11
@@ -229,11 +231,15 @@ def segment_fundi(fundus_per_fold, sulci=[], vtk_file='', save_file=False):
     >>> erode_ratio = 0.10
     >>> erode_min_size = 10
     >>> save_file = True
-    >>> fundus_per_fold, o1, o2 = extract_fundi(folds, curv_file, depth_file, min_separation, erode_ratio, erode_min_size, save_file)
-    >>> o1, o2, fundus_per_sulcus_file = segment_fundi(fundus_per_fold, sulci, vtk_file, save_file)
-    >>> #
+    >>> fundus_per_fold, o1, o2 = extract_fundi(folds,
+    ...     curv_file, depth_file, min_separation, erode_ratio,
+    ...     erode_min_size, save_file)
+    >>> o1, o2, fundus_per_sulcus_file = segment_fundi(fundus_per_fold,
+    ...     sulci, vtk_file, save_file)
+    >>>
     >>> # View:
-    >>> plot_surfaces(fundus_per_sulcus_file)
+    >>> #from mindboggle.mio.plots import plot_surfaces
+    >>> #plot_surfaces(fundus_per_sulcus_file)
 
     """
 
@@ -280,3 +286,10 @@ def segment_fundi(fundus_per_fold, sulci=[], vtk_file='', save_file=False):
                 raise(IOError(fundus_per_sulcus_file + " not found"))
 
     return fundus_per_sulcus, n_fundi, fundus_per_sulcus_file
+
+#=============================================================================
+# Doctests
+#=============================================================================
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

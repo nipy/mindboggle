@@ -115,7 +115,7 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     >>> from mindboggle.guts.mesh import remove_faces
     >>> from mindboggle.shapes.zernike.zernike import zernike_moments
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
+    >>> label_file = os.path.join(path, 'labels', 'lh.labels.DKT31.manual.vtk')
     >>> points, indices, lines, faces, labels, scalar_names, npoints, input_vtk = read_vtk(label_file)
     >>> I22 = [i for i,x in enumerate(labels) if x==22] # postcentral
     >>> faces = remove_faces(faces, I22)
@@ -134,7 +134,7 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     >>> from mindboggle.guts.mesh import remove_faces
     >>> from mindboggle.shapes.zernike.zernike import zernike_moments
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
+    >>> label_file = os.path.join(path, 'labels', 'lh.labels.DKT31.manual.vtk')
     >>> points, indices, lines, faces, labels, scalar_names, npoints, input_vtk = read_vtk(label_file)
     >>> I20 = [i for i,x in enumerate(labels) if x==20] # pars triangularis
     >>> I22 = [i for i,x in enumerate(labels) if x==22] # postcentral
@@ -342,3 +342,11 @@ def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
                 label_list.append(label)
 
     return descriptors_lists, label_list
+
+
+#=============================================================================
+# Doctests
+#=============================================================================
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

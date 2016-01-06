@@ -82,10 +82,10 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> trained_file = os.path.join(path, 'atlases', 'depth_curv_border_nonborder_parameters.pkl')
-    >>> #depth_file = os.path.join(path, 'arno', 'shapes', 'travel_depth_rescaled.vtk')
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
-    >>> curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> #depth_file = os.path.join(path, 'shapes', 'travel_depth_rescaled.vtk')
+    >>> depth_file = os.path.join(path, 'shapes', 'lh.pial.travel_depth.vtk')
+    >>> curvature_file = os.path.join(path, 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file)
     >>> save_file = True
     >>> #
@@ -208,11 +208,11 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
     >>> # Train on a single surface mesh:
     >>> if do_test:
     >>>     path = os.environ['MINDBOGGLE_DATA']
-    >>>     #depth_file = os.path.join(path, 'arno', 'shapes', 'travel_depth_rescaled.vtk')
-    >>>     depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
-    >>>     curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>>     folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
-    >>>     labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>>     #depth_file = os.path.join(path, 'shapes', 'travel_depth_rescaled.vtk')
+    >>>     depth_file = os.path.join(path, 'shapes', 'lh.pial.travel_depth.vtk')
+    >>>     curv_file = os.path.join(path, 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>>     folds_file = os.path.join(path, 'features', 'folds.vtk')
+    >>>     labels_file = os.path.join(path, 'labels', 'lh.labels.DKT25.manual.vtk')
     >>>     depth_files = [depth_file]
     >>>     curv_files = [curv_file]
     >>>     fold_files = [folds_file]
@@ -321,9 +321,9 @@ def concatenate_sulcus_scalars(scalar_files, fold_files, label_files):
     >>> import os
     >>> from mindboggle.shapes.likelihood import concatenate_sulcus_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
-    >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> depth_file = os.path.join(path, 'shapes', 'depth_rescaled.vtk')
+    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
+    >>> labels_file = os.path.join(path, 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> scalar_files = [depth_file, depth_file]
     >>> fold_files = [folds_file, folds_file]
     >>> label_files = [labels_file, labels_file]
@@ -410,7 +410,7 @@ def fit_normals_to_histogram(data, x):
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.shapes.likelihood import fit_normals_to_histogram
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
+    >>> depth_file = os.path.join(path, 'shapes', 'depth_rescaled.vtk')
     >>> scalars, name = read_scalars(depth_file)
     >>> x = np.linspace(0, 1, 51, endpoint=True)
     >>> #
@@ -464,3 +464,11 @@ def fit_normals_to_histogram(data, x):
     print('    weights: {0}'.format(weights))
 
     return means, sigmas, weights
+
+
+#=============================================================================
+# Doctests
+#=============================================================================
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

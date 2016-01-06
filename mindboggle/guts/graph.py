@@ -195,3 +195,11 @@ def graph_laplacian(W, type_of_laplacian='norm1'):
         Laplacian = 0
 
     return Laplacian
+
+
+#=============================================================================
+# Doctests
+#=============================================================================
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

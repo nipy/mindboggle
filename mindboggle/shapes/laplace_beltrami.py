@@ -355,7 +355,7 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None):
     >>> from mindboggle.mio.vtks import read_faces_points
     >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'labels',
+    >>> vtk_file = os.path.join(path, 'labels',
     >>>                         'lh.labels.DKT25.manual.vtk')
     >>> faces, points, npoints = read_faces_points(vtk_file)
     >>> fem_laplacian(points, faces, spectrum_size=6, normalization=None)
@@ -371,13 +371,13 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None):
     >>> from mindboggle.guts.mesh import remove_faces, reindex_faces_points
     >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
+    >>> label_file = os.path.join(path, 'labels', 'lh.labels.DKT31.manual.vtk')
     >>> points, indices, lines, faces, labels, scalar_names, npoints, input_vtk = read_vtk(label_file)
     >>> I22 = [i for i,x in enumerate(labels) if x==22] # postcentral
     >>> faces = remove_faces(faces, I22)
     >>> faces, points, o1 = reindex_faces_points(faces, points)
     >>> #from mindboggle.mio.vtks import read_faces_points
-    >>> #label_file = os.path.join(path, 'arno', 'labels', 'label22.vtk')
+    >>> #label_file = os.path.join(path, 'labels', 'label22.vtk')
     >>> #faces, points, npoints = read_faces_points(label_file)
     >>> fem_laplacian(points, faces, spectrum_size=6, normalization=None)
     [6.3469513010430304e-18,
@@ -493,8 +493,8 @@ def spectrum_of_largest(points, faces, spectrum_size=10, exclude_labels=[-1],
     >>> from mindboggle.guts.mesh import remove_faces, reindex_faces_points
     >>> from mindboggle.shapes.laplace_beltrami import spectrum_of_largest
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
-    >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
+    >>> label_file = os.path.join(path, 'labels', 'lh.labels.DKT31.manual.vtk')
+    >>> area_file = os.path.join(path, 'shapes', 'lh.pial.area.vtk')
     >>> spectrum_size = 6
     >>> exclude_labels = [-1]
     >>> normalization = None
@@ -595,7 +595,7 @@ def spectrum_from_file(vtk_file, spectrum_size=10, exclude_labels=[-1],
     >>> import os
     >>> from mindboggle.shapes.laplace_beltrami import spectrum_from_file
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> vtk_file = os.path.join(path, 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> spectrum_from_file(vtk_file, spectrum_size=6)
     [4.829758648026223e-18,
      0.00012841730024671977,
@@ -608,7 +608,7 @@ def spectrum_from_file(vtk_file, spectrum_size=10, exclude_labels=[-1],
     >>> import os
     >>> from mindboggle.shapes.laplace_beltrami import spectrum_from_file
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'labels', 'label22.vtk')
+    >>> vtk_file = os.path.join(path, 'labels', 'label22.vtk')
     >>> spectrum_from_file(vtk_file, spectrum_size=6)
     [6.3469513010430304e-18,
      0.0005178862383467463,
@@ -678,8 +678,8 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
     >>> import os
     >>> from mindboggle.shapes.laplace_beltrami import spectrum_per_label
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
-    >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
+    >>> vtk_file = os.path.join(path, 'labels', 'lh.labels.DKT31.manual.vtk')
+    >>> area_file = os.path.join(path, 'shapes', 'lh.pial.area.vtk')
     >>> spectrum_size = 6
     >>> exclude_labels = [0]  #[-1]
     >>> largest_segment = True
@@ -760,3 +760,10 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
     # print("Linear FEM Laplace-Beltrami spectrum\n\t{0}\n".format(
     #     fem_laplacian(points, faces, spectrum_size=5)))
 
+
+#=============================================================================
+# Doctests
+#=============================================================================
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

@@ -58,8 +58,8 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> # Load labels, folds, neighbor lists, and sulcus names and label pairs
-    >>> labels_file = os.path.join(path, 'arno', 'labels', 'relabeled_lh.DKTatlas40.gcs.vtk')
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> labels_file = os.path.join(path, 'labels', 'relabeled_lh.DKTatlas40.gcs.vtk')
+    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
     >>> folds_or_file, name = read_scalars(folds_file)
     >>> hemi = 'lh'
     >>> min_boundary = 10
@@ -366,4 +366,9 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     return sulci, n_sulci, sulci_file
 
 
-#if __name__ == "__main__":
+#=============================================================================
+# Doctests
+#=============================================================================
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

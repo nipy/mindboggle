@@ -487,9 +487,9 @@ def means_per_label(values, labels, include_labels=[], exclude_labels=[], areas=
     >>> from mindboggle.mio.vtks import read_scalars, read_vtk
     >>> from mindboggle.guts.compute import means_per_label
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> values_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> area_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.area.vtk')
-    >>> labels_file = os.path.join(data_path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> values_file = os.path.join(data_path, 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> area_file = os.path.join(data_path, 'shapes', 'lh.pial.area.vtk')
+    >>> labels_file = os.path.join(data_path, 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> values, name = read_scalars(values_file, True, True)
     >>> #areas, name = read_scalars(area_file, True, True)
     >>> labels, name = read_scalars(labels_file)
@@ -597,8 +597,8 @@ def sum_per_label(values, labels, include_labels=[], exclude_labels=[]):
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.guts.compute import sum_per_label
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> values_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.area.vtk')
-    >>> labels_file = os.path.join(data_path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> values_file = os.path.join(data_path, 'shapes', 'lh.pial.area.vtk')
+    >>> labels_file = os.path.join(data_path, 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> values, name = read_scalars(values_file, True, True)
     >>> labels, name = read_scalars(labels_file)
     >>> include_labels = []
@@ -692,9 +692,9 @@ def stats_per_label(values, labels, include_labels=[], exclude_labels=[],
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.guts.compute import stats_per_label
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> values_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> area_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.area.vtk')
-    >>> labels_file = os.path.join(data_path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> values_file = os.path.join(data_path, 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> area_file = os.path.join(data_path, 'shapes', 'lh.pial.area.vtk')
+    >>> labels_file = os.path.join(data_path, 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> values, name = read_scalars(values_file, True, True)
     >>> areas, name = read_scalars(area_file, True, True)
     >>> labels, name = read_scalars(labels_file)
@@ -983,7 +983,7 @@ def compute_image_histogram(infile, nbins=100, threshold=0.0):
     >>> import os
     >>> from mindboggle.guts.compute import compute_image_histogram
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> infile = os.path.join(path, 'arno', 'mri', 't1weighted.nii.gz')
+    >>> infile = os.path.join(path, 'mri', 't1weighted.nii.gz')
     >>> compute_image_histogram(infile, nbins=100, threshold=0.1)
 
     """
@@ -1011,3 +1011,10 @@ def compute_image_histogram(infile, nbins=100, threshold=0.0):
 
     return histogram_values
 
+
+#=============================================================================
+# Doctests
+#=============================================================================
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

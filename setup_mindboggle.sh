@@ -213,7 +213,7 @@ source $MB_ENV
 #-----------------------------------------------------------------------------
 # Finally, remove non-essential directories:
 #-----------------------------------------------------------------------------
-rm_extras=0
+rm_extras=1
 if [ $rm_extras -eq 1 ]; then
     rm -r ${DL_PREFIX}/*
 fi
