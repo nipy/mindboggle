@@ -32,7 +32,7 @@ mounted directories, and set the number of processors to 6::
 RUN MINDBOGGLE:
 ---------------
     vagrant up
-    vagrant ssh mindboggle  # "vagrant status" to find virtual machines
+    vagrant ssh mindboggle
 
 MISC COMMANDS:
 --------------
@@ -43,7 +43,7 @@ MISC COMMANDS:
 ADVANCED: To build the above Mindboggle box from scratch::
 
     # Run this file in your setup directory, and build the box:
-    python setup_mindboggle_vm --build
+    python setup_mindboggle_vm --build --install
     vagrant up build
     VBoxManage list vms  # to find <vm name> below
     vagrant package --base <vm name> --output mindboggle.<version>.box
@@ -52,7 +52,8 @@ ADVANCED: To build the above Mindboggle box from scratch::
     rsync -avz --sparse -e /usr/bin/ssh mindboggle.<version>.box
         binarybottle@binarybottle.com:media.mindboggle.info/vm/
 
-    # After downloading, ssh into the box:
+    # The --install argument downloads the above box and installs mindboggle
+    # and dependencies on it.  Alternatively, you can ssh into the box:
     vagrant box add my_mindboggle mindboggle.<version>.box
     vagrant init my_mindboggle
     vagrant up
@@ -63,7 +64,7 @@ Tutorial for building a box:
 https://scotch.io/tutorials/how-to-create-a-vagrant-base-box-from-an-existing-one
 
 Authors:
-     - Arno Klein, 2014-2015  (arno@mindboggle.info)  http://binarybottle.com
+     - Arno Klein, 2014-2016  (arno@mindboggle.info)  http://binarybottle.com
 
 Copyright 2015,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
@@ -216,7 +217,7 @@ Vagrant.configure({0}) do |config|
         # (VirtualBox caches it so you only download once):
         install_config.vm.box = "mindboggle"
         install_config.vm.box_url = "mindboggle.{2}.box"
-        #http://mindboggle.info/vm/mindboggle.{2}.box"
+        #http://media.mindboggle.info/vm/mindboggle.{2}.box"
         install_config.vm.hostname = "mindboggler"
 
         # Create a forwarded port mapping to allow access to a specific port
