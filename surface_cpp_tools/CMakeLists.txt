@@ -4,9 +4,12 @@ IF(COMMAND CMAKE_POLICY)
   CMAKE_POLICY(SET CMP0003 NEW)
 ENDIF(COMMAND CMAKE_POLICY)
 
+# David Gobbi on vtkusers mailing list:
 # For building a binary package to share with others,
 # set to a reasonably old deployment target (e.g. 10.7) and SDK (e.g. 10.9):
-SET(CMAKE_OSX_DEPLOYMENT_TARGET "10.11")
+#SET(CMAKE_OSX_DEPLOYMENT_TARGET "10.7")
+#SET(CMAKE_OSX_SYSROOT "macosx10.9")
+SET(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
 #SET(CMAKE_OSX_SYSROOT "macosx10.9")
 
 PROJECT(mindboggle_surface)

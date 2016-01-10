@@ -92,25 +92,30 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     >>> import os
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.mio.tables import write_shape_stats
-    >>> path = '/homedir/mindboggled/Twins-2-1'
-    >>> labels_or_file = os.path.join(path, 'labels', 'left_cortical_surface', 'freesurfer_cortex_labels.vtk')
-    >>> sulci_file = os.path.join(path, 'features', 'left_cortical_surface', 'sulci.vtk')
-    >>> fundi_file = os.path.join(path, 'features', 'left_cortical_surface', 'fundus_per_sulcus.vtk')
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> labels_or_file = os.path.join(path, 'labels', 'left_cortical_surface',
+    ...     'freesurfer_cortex_labels.vtk')
+    >>> sulci_file = os.path.join(path, 'features', 'left_cortical_surface',
+    ...     'sulci.vtk')
+    >>> fundi_file = os.path.join(path, 'features', 'left_cortical_surface',
+    ...     'fundus_per_sulcus.vtk')
     >>> sulci, name = read_scalars(sulci_file)
     >>> fundi, name = read_scalars(fundi_file)
-    >>> affine_transform_files = [] #os.path.join(path, 'mri', 't1weighted_brain.MNI152Affine.txt')
+    >>> affine_transform_files = []
     >>> inverse_booleans = []
-    >>> #transform_format = 'mat'
     >>> transform_format = 'itk'
-    >>> area_file = os.path.join(path, 'shapes', 'left_cortical_surface', 'area.vtk')
+    >>> area_file = os.path.join(path, 'shapes', 'left_cortical_surface',
+    ...     'area.vtk')
     >>> normalize_by_area = False
-    >>> mean_curvature_file = os.path.join(path, 'shapes', 'left_cortical_surface', 'mean_curvature.vtk')
-    >>> travel_depth_file = os.path.join(path, 'shapes', 'left_cortical_surface', 'travel_depth.vtk')
-    >>> geodesic_depth_file = os.path.join(path, 'shapes', 'left_cortical_surface', 'geodesic_depth.vtk')
+    >>> mean_curvature_file = os.path.join(path, 'shapes',
+    ...     'left_cortical_surface', 'mean_curvature.vtk')
+    >>> travel_depth_file = os.path.join(path, 'shapes',
+    ...     'left_cortical_surface', 'travel_depth.vtk')
+    >>> geodesic_depth_file = os.path.join(path, 'shapes',
+    ...     'left_cortical_surface', 'geodesic_depth.vtk')
     >>> freesurfer_thickness_file = ''
     >>> freesurfer_curvature_file = ''
     >>> freesurfer_sulc_file = ''
-    >>> #
     >>> labels, name = read_scalars(labels_or_file)
     >>> labels_spectra = []
     >>> labels_spectra_IDs = []
@@ -121,7 +126,6 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     >>> sulci_zernike = []
     >>> sulci_zernike_IDs = []
     >>> exclude_labels = [-1]
-    >>> #
     >>> write_shape_stats(labels_or_file, sulci, fundi,
     >>>     affine_transform_files, inverse_booleans, transform_format,
     >>>     area_file, normalize_by_area,
@@ -451,10 +455,10 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     >>> import os
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.mio.tables import write_vertex_measures
-    >>> #
-    >>> output_table = ''#vertex_shapes.csv'
+    >>> output_table = '' #vertex_shapes.csv'
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> labels_or_file = os.path.join(path, 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> labels_or_file = os.path.join(path, 'labels',
+    ...     'lh.labels.DKT25.manual.vtk')
     >>> sulci_file = os.path.join(path, 'features', 'sulci.vtk')
     >>> fundi_file = os.path.join(path, 'features', 'fundi.vtk')
     >>> sulci, name = read_scalars(sulci_file)
@@ -465,17 +469,20 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     >>> transform_format = 'itk'
     >>> swap_xy = True
     >>> area_file = os.path.join(path, 'shapes', 'lh.pial.area.vtk')
-    >>> mean_curvature_file = os.path.join(path, 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> travel_depth_file = os.path.join(path, 'shapes', 'lh.pial.travel_depth.vtk')
-    >>> geodesic_depth_file = os.path.join(path, 'shapes', 'lh.pial.geodesic_depth.vtk')
+    >>> mean_curvature_file = os.path.join(path, 'shapes',
+    ...     'lh.pial.mean_curvature.vtk')
+    >>> travel_depth_file = os.path.join(path, 'shapes',
+    ...     'lh.pial.travel_depth.vtk')
+    >>> geodesic_depth_file = os.path.join(path, 'shapes',
+    ...     'lh.pial.geodesic_depth.vtk')
     >>> freesurfer_thickness_file = ''
     >>> freesurfer_curvature_file = ''
     >>> freesurfer_sulc_file = ''
-    >>> #
     >>> write_vertex_measures(output_table, labels_or_file, sulci, fundi,
-    >>>     affine_transform_files, inverse_booleans, transform_format, area_file,
-    >>>     mean_curvature_file, travel_depth_file, geodesic_depth_file,
-    >>>     freesurfer_thickness_file, freesurfer_curvature_file, freesurfer_sulc_file)
+    ...     affine_transform_files, inverse_booleans, transform_format,
+    ...     area_file, mean_curvature_file, travel_depth_file,
+    ...     geodesic_depth_file, freesurfer_thickness_file,
+    ...     freesurfer_curvature_file, freesurfer_sulc_file)
 
     """
     import os
@@ -590,11 +597,12 @@ def write_face_vertex_averages(input_file, output_table='', area_file=''):
     --------
     >>> import os
     >>> from mindboggle.mio.tables import write_face_vertex_averages
-    >>> path = '/homedir/mindboggled'
-    >>> input_file = os.path.join(path, 'Twins-2-1', 'shapes', 'left_cortical_surface', 'freesurfer_thickness.vtk')
-    >>> area_file = os.path.join(path, 'Twins-2-1', 'shapes', 'left_cortical_surface', 'area.vtk')
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> input_file = os.path.join(path, 'shapes', 'left_cortical_surface',
+    ...     'freesurfer_thickness.vtk')
+    >>> area_file = os.path.join(path, 'shapes', 'left_cortical_surface',
+    ...      'area.vtk')
     >>> output_table = ''
-    >>> #
     >>> write_face_vertex_averages(input_file, output_table, area_file)
 
     """
@@ -664,17 +672,19 @@ def write_average_face_values_per_label(input_indices_vtk,
     --------
     >>> import os
     >>> from mindboggle.mio.tables import write_average_face_values_per_label
-    >>> path = '/homedir/mindboggled'
-    >>> input_indices_vtk = os.path.join(path, 'Twins-2-1', 'labels', 'left_cortical_surface', 'freesurfer_cortex_labels.vtk')
-    >>> input_values_vtk = os.path.join(path, 'Twins-2-1', 'shapes', 'left_cortical_surface', 'freesurfer_thickness.vtk')
-    >>> area_file = os.path.join(path, 'Twins-2-1', 'shapes', 'left_cortical_surface', 'area.vtk')
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> input_indices_vtk = os.path.join(path, 'labels',
+    ...     'left_cortical_surface', 'freesurfer_cortex_labels.vtk')
+    >>> input_values_vtk = os.path.join(path, 'shapes',
+    ...     'left_cortical_surface', 'freesurfer_thickness.vtk')
+    >>> area_file = os.path.join(path, 'shapes', 'left_cortical_surface',
+    ...     'area.vtk')
     >>> output_stem = 'labels_thickness'
     >>> exclude_values = [-1]
     >>> background_value = -1
-    >>> #
     >>> write_average_face_values_per_label(input_indices_vtk,
-    >>>     input_values_vtk, area_file, output_stem, exclude_values, background_value)
-    >>> #
+    ...     input_values_vtk, area_file, output_stem, exclude_values,
+    ...     background_value)
     >>> # View:
     >>> #example_vtk = os.path.join(os.getcwd(), output_stem + '0.vtk')
     >>> #from mindboggle.mio.plots import plot_surfaces
@@ -785,11 +795,14 @@ def select_column_from_tables(tables, index=0, write_table=True,
 
     Examples
     --------
+    >>> import os
     >>> from mindboggle.mio.tables import select_column_from_tables
-    >>> path = '/homedir/mindboggled'
-    >>> tables = [os.path.join(path, 'Twins-2-1', 'tables', 'thickinthehead_per_freesurfer_cortex_label.csv'),
-    >>>           os.path.join(path, 'Twins-2-1', 'tables', 'thickinthehead_per_freesurfer_cortex_label.csv')]
-    >>> index = '2'
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> tables = [os.path.join(path, 'tables',
+    ...           'thickinthehead_per_freesurfer_cortex_label.csv'),
+    ...           os.path.join(path, 'tables',
+    ...           'thickinthehead_per_freesurfer_cortex_label.csv')]
+    >>> index = 2
     >>> write_table = True
     >>> output_table = ''
     >>> select_column_from_tables(tables, index, write_table, output_table)
@@ -797,7 +810,6 @@ def select_column_from_tables(tables, index=0, write_table=True,
     """
     import os
     import pandas as pd
-    import numpy as np
 
     #-------------------------------------------------------------------------
     # Construct a table:
@@ -873,17 +885,21 @@ def select_column_from_mindboggle_tables(subjects, hemi, index, tables_dir,
     --------
     >>> import os
     >>> from mindboggle.mio.tables import select_column_from_mindboggle_tables
-    >>> subjects = ['Twins-2-1', 'Colin27-1']
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> subject1 = os.path.basename(path)
+    >>> subject2 = os.path.basename(path)
+    >>> subjects = [subject1, subject2]
     >>> hemi = 'left'
     >>> index = 2
-    >>> tables_dir = os.path.join(os.environ['HOME'], 'mindboggled')
+    >>> tables_dir = os.path.dirname(path)
     >>> table_name = "label_shapes.csv"
     >>> label_name = 'Label name'
     >>> is_surface_table = True
     >>> write_table = True
     >>> output_table = ''
-    >>> select_column_from_mindboggle_tables(subjects, hemi, index, tables_dir,
-    >>>     table_name, is_surface_table, write_table, output_table)
+    >>> select_column_from_mindboggle_tables(subjects, hemi, index,
+    ...     tables_dir, table_name, is_surface_table, write_table,
+    ...     output_table)
 
     """
     import os
@@ -910,7 +926,8 @@ def select_column_from_mindboggle_tables(subjects, hemi, index, tables_dir,
 
     return tables, columns, output_table
 
-def explode_mindboggle_tables(subject, subject_path='', output_path='',
+
+def explode_mindboggle_tables(subject_path='', output_path='',
                               break_column='label ID'):
     """
     Given a subject name corresponding to Mindboggle outputs, break up each
@@ -918,10 +935,8 @@ def explode_mindboggle_tables(subject, subject_path='', output_path='',
 
     Parameters
     ----------
-    subject : string
-        name of subject run through Mindboggle
     subject_path : string
-        path to subject's parent directory
+        path to subject directory
     output_path : string
         output path/directory
     break_column : string
@@ -929,12 +944,12 @@ def explode_mindboggle_tables(subject, subject_path='', output_path='',
 
     Examples
     --------
+    >>> import os
     >>> from mindboggle.mio.tables import explode_mindboggle_tables
-    >>> subject = 'Twins-2-1'
-    >>> subject_path = '/Users/arno/mindboggled'
-    >>> output_path = '/desk'
+    >>> subject_path = os.environ['MINDBOGGLE_DATA']
+    >>> output_path = '.'
     >>> break_column = 'label ID'
-    >>> explode_mindboggle_tables(subject, subject_path, output_path, break_column)
+    >>> explode_mindboggle_tables(subject_path, output_path, break_column)
     """
     import os
     import numpy as np
@@ -952,7 +967,7 @@ def explode_mindboggle_tables(subject, subject_path='', output_path='',
                 os.mkdir(output_dir)
             if os.path.exists(output_dir):
 
-                vertices_table = os.path.join(subject_path, subject, 'tables',
+                vertices_table = os.path.join(subject_path, 'tables',
                                               side + '_cortical_surface',
                                               'vertices.csv')
                 shape_column_names = ['travel depth',
