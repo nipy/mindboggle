@@ -7,6 +7,9 @@
 # Tested on Ubuntu 14.04 and MacOSX 10.11 x86_64 machines.
 #
 # Usage:
+#     bash setup_mindboggle.sh
+#
+#     Or with arguments:
 #     bash setup_mindboggle.sh <download_dir> <install_dir> <env>
 #                              <os> <ants> <sudo>
 #
@@ -16,13 +19,14 @@
 #                              /home/vagrant/.bash_profile \
 #                              Linux  0  1
 # Note:
-#     <download_dir>, <install_dir>, and <env> will be created locally
-#                                              if they don't exist.
+#     All arguments are optional:
+#     <download_dir>, <install_dir>, and <env> will be created if required.
 #     <env> is a global environment sourcing script
 #           to set environment variables, such as .bash_profile.
 #     <os> is the operating system, either "Linux" or "MacOSX".
-#     <ants> is set to 1 or 0, to run ANTS or not.
-#     <sudo> is set to 1 or 0, to run commands with sudo or not.
+#     <ants> is set to 1 or 0, to install/enable ANTS or not.
+#     <sudo> is set to 1 or 0, to install system-wide dependencies on Linux
+#            using sudo or not.
 #
 # Authors:
 #     - Daniel Clark, 2014
