@@ -14,7 +14,7 @@
 #     bash setup_mindboggle.sh /home/vagrant/downloads \
 #                              /home/vagrant/install \
 #                              /home/vagrant/.bash_profile \
-#                              linux  0  0
+#                              Linux  0  1
 # Note:
 #     <download_dir>, <install_dir>, and <env> will be created locally
 #                                              if they don't exist.
@@ -78,7 +78,7 @@ if [ -z "$ANTS" ]; then
     ANTS=0
 fi
 if [ -z "$SUDO" ]; then
-    SUDO=0
+    SUDO=1
 fi
 
 #-----------------------------------------------------------------------------
@@ -124,27 +124,27 @@ conda install --yes cmake pip
 # "No rule to make target `/usr/lib/x86_64-linux-gnu/libGLU.so'"
 # ...
 # http://techtidings.blogspot.com/2012/01/problem-with-libglso-on-64-bit-ubuntu.html
-if [ $OS = "Linux" ]; then
-    if [ $SUDO -eq 1 ]; then
-        sudo mkdir /usr/lib64
-        sudo ln -s /usr/lib/x86_64-linux-gnu/libGLU.so.1 /usr/lib64/libGLU.so
-        sudo ln -s /usr/lib/x86_64-linux-gnu/libSM.so.6 /usr/lib64/libSM.so
-        sudo ln -s /usr/lib/x86_64-linux-gnu/libICE.so.6 /usr/lib64/libICE.so
-        sudo ln -s /usr/lib/x86_64-linux-gnu/libX11.so.6 /usr/lib64/libX11.so
-        sudo ln -s /usr/lib/x86_64-linux-gnu/libXext.so.6 /usr/lib64/libXext.so
-        sudo ln -s /usr/lib/x86_64-linux-gnu/libXt.so.6 /usr/lib64/libXt.so
-        sudo ln -s /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1 /usr/lib64/libGL.so
-    else
-        mkdir /usr/lib64
-        ln -s /usr/lib/x86_64-linux-gnu/libGLU.so.1 /usr/lib64/libGLU.so
-        ln -s /usr/lib/x86_64-linux-gnu/libSM.so.6 /usr/lib64/libSM.so
-        ln -s /usr/lib/x86_64-linux-gnu/libICE.so.6 /usr/lib64/libICE.so
-        ln -s /usr/lib/x86_64-linux-gnu/libX11.so.6 /usr/lib64/libX11.so
-        ln -s /usr/lib/x86_64-linux-gnu/libXext.so.6 /usr/lib64/libXext.so
-        ln -s /usr/lib/x86_64-linux-gnu/libXt.so.6 /usr/lib64/libXt.so
-        ln -s /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1 /usr/lib64/libGL.so
-    fi
-fi
+#if [ $OS = "Linux" ]; then
+#    if [ $SUDO -eq 1 ]; then
+#        sudo mkdir /usr/lib64
+#        sudo ln -s /usr/lib/x86_64-linux-gnu/libGLU.so.1 /usr/lib64/libGLU.so
+#        sudo ln -s /usr/lib/x86_64-linux-gnu/libSM.so.6 /usr/lib64/libSM.so
+#        sudo ln -s /usr/lib/x86_64-linux-gnu/libICE.so.6 /usr/lib64/libICE.so
+#        sudo ln -s /usr/lib/x86_64-linux-gnu/libX11.so.6 /usr/lib64/libX11.so
+#        sudo ln -s /usr/lib/x86_64-linux-gnu/libXext.so.6 /usr/lib64/libXext.so
+#        sudo ln -s /usr/lib/x86_64-linux-gnu/libXt.so.6 /usr/lib64/libXt.so
+#        sudo ln -s /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1 /usr/lib64/libGL.so
+#    else
+#        mkdir /usr/lib64
+#        ln -s /usr/lib/x86_64-linux-gnu/libGLU.so.1 /usr/lib64/libGLU.so
+#        ln -s /usr/lib/x86_64-linux-gnu/libSM.so.6 /usr/lib64/libSM.so
+#        ln -s /usr/lib/x86_64-linux-gnu/libICE.so.6 /usr/lib64/libICE.so
+#        ln -s /usr/lib/x86_64-linux-gnu/libX11.so.6 /usr/lib64/libX11.so
+#        ln -s /usr/lib/x86_64-linux-gnu/libXext.so.6 /usr/lib64/libXext.so
+#        ln -s /usr/lib/x86_64-linux-gnu/libXt.so.6 /usr/lib64/libXt.so
+#        ln -s /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1 /usr/lib64/libGL.so
+#    fi
+#fi
 
 #-----------------------------------------------------------------------------
 # Python packages:
@@ -200,6 +200,7 @@ echo "export PATH=${INSTALL_PREFIX}/bin:\$PATH" >> $MB_ENV
 echo "# Mindboggle" >> $MB_ENV
 echo "export surface_cpp_tools=${INSTALL_PREFIX}/mindboggle/surface_cpp_tools/bin" >> $MB_ENV
 echo "export PATH=\$surface_cpp_tools:\$PATH" >> $MB_ENV
+echo "export PYTHONPATH=\$PYTHONPATH:\${INSTALL_PREFIX}/mindboggle" >> $MB_ENV
 
 # -- ANTs --
 if [ $ANTS -eq 1 ]; then
@@ -213,7 +214,7 @@ source $MB_ENV
 #-----------------------------------------------------------------------------
 # Finally, remove non-essential directories:
 #-----------------------------------------------------------------------------
-rm_extras=1
+rm_extras=0
 if [ $rm_extras -eq 1 ]; then
     rm -r ${DL_PREFIX}/*
 fi
