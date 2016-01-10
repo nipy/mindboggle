@@ -26,7 +26,7 @@
 #
 # Authors:
 #     - Daniel Clark, 2014
-#     - Arno Klein, 2014-2015  (arno@mindboggle.info)  http://binarybottle.com
+#     - Arno Klein, 2014-2016  (arno@mindboggle.info)  http://binarybottle.com
 #
 # Copyright 2015,  Mindboggle team, Apache v2.0 License
 #=============================================================================
@@ -34,9 +34,9 @@
 #-----------------------------------------------------------------------------
 # Assign download and installation path arguments:
 #-----------------------------------------------------------------------------
-#DL_PREFIX=/homedir/downloads
-#INSTALL_PREFIX=/homedir/software/install
-#MB_ENV=/homedir/.bash_profile
+#DL_PREFIX=~/downloads
+#INSTALL_PREFIX=~/Software/install
+#MB_ENV=~/.bash_profile
 DL_PREFIX=$1
 INSTALL_PREFIX=$2
 MB_ENV=$3
