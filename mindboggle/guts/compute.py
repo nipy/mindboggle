@@ -4,15 +4,13 @@ Compute functions.
 
 
 Authors:
-    - Arno Klein, 2012-2015  (arno@mindboggle.info)  http://binarybottle.com
+    - Arno Klein, 2012-2016  (arno@mindboggle.info)  http://binarybottle.com
 
-Copyright 2015,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-#------------------------------------------------------------------------------
-# Compute distance
-#------------------------------------------------------------------------------
+
 def point_distance(point, points):
     """
     Compute the Euclidean distance from one point to a second (set) of points.
@@ -38,10 +36,10 @@ def point_distance(point, points):
     >>> point = [1,2,3]
     >>> points = [[10,2.0,3], [0,1.5,2]]
     >>> point_distance(point, points)
-      (1.5, 1)
+    (1.5, 1)
 
     Notes
-    --------
+    -----
     Future plan is to use scipy.spatial.distance.cdist to compute distances
     scipy.spatial.distance.cdist is available in scipy v0.12 or later
 
@@ -76,6 +74,7 @@ def point_distance(point, points):
     else:
         return None, None
 
+
 def vector_distance(vector1, vector2, normalize=False):
     """
     Compute the Euclidean distance between two equal-sized vectors.
@@ -101,7 +100,7 @@ def vector_distance(vector1, vector2, normalize=False):
     >>> vector1 = np.array([1.,2.,3.])
     >>> vector2 = np.array([0,1,5])
     >>> vector_distance(vector1, vector2)
-      0.81649658092772592
+    0.81649658092772592
 
     """
     import numpy as np
@@ -125,6 +124,7 @@ def vector_distance(vector1, vector2, normalize=False):
         print("Vectors have to be of equal size to compute distance.")
         return None
 
+
 def pairwise_vector_distances(vectors, save_file=False, normalize=False):
     """
     Compare every pair of equal-sized vectors.
@@ -147,12 +147,16 @@ def pairwise_vector_distances(vectors, save_file=False, normalize=False):
     Examples
     --------
     >>> from mindboggle.guts.compute import pairwise_vector_distances
-    >>> pairwise_vector_distances([[1,2,3],[0,3,5],[0,3.5,5],[1,1,1]])
-        (array([[ 0.        ,  0.81649658,  0.89752747,  0.74535599],
-               [ 0.        ,  0.        ,  0.16666667,  1.52752523],
-               [ 0.        ,  0.        ,  0.        ,  1.60727513],
-               [ 0.        ,  0.        ,  0.        ,  0.        ]]),
-         '')
+    >>> vectors = [[1,2,3],[0,3,5],[0,3.5,5],[1,1,1]]
+    >>> save_file = False
+    >>> normalize = False
+    >>> vector_distances, outfile = pairwise_vector_distances(vectors,
+    ...     save_file, normalize)
+    >>> vector_distances
+    array([[ 0.        ,  0.81649658,  0.89752747,  0.74535599],
+           [ 0.        ,  0.        ,  0.16666667,  1.52752523],
+           [ 0.        ,  0.        ,  0.        ,  1.60727513],
+           [ 0.        ,  0.        ,  0.        ,  0.        ]])
 
     """
     import os
@@ -190,6 +194,7 @@ def pairwise_vector_distances(vectors, save_file=False, normalize=False):
         outfile = ''
 
     return vector_distances, outfile
+
 
 def source_to_target_distances(sourceIDs, targetIDs, points,
                                segmentIDs=[], excludeIDs=[-1]):
@@ -276,6 +281,7 @@ def source_to_target_distances(sourceIDs, targetIDs, points,
 
     return distances, distance_matrix
 
+
 def weighted_to_repeated_values(X, W=[], precision=1):
     """
     Create a list of repeated values from weighted values.
@@ -308,7 +314,7 @@ def weighted_to_repeated_values(X, W=[], precision=1):
     >>> W = np.array([.1,.1,.3,.2,.3])
     >>> precision = 1
     >>> weighted_to_repeated_values(X, W, precision)
-        [1, 2, 4, 4, 4, 7, 7, 8, 8, 8]
+    [1, 2, 4, 4, 4, 7, 7, 8, 8, 8]
 
     """
     import numpy as np
@@ -344,6 +350,7 @@ def weighted_to_repeated_values(X, W=[], precision=1):
 
     return repeat_values
 
+
 def weighted_median(X, W=[], precision=1):
     """
     Compute a weighted median.
@@ -371,7 +378,7 @@ def weighted_median(X, W=[], precision=1):
     >>> precision = 1
     >>> # [1, 2, 4, 4, 4, 7, 7, 8, 8, 8]
     >>> weighted_median(X, W, precision)
-        5.5
+    5.5
 
     """
     import numpy as np
@@ -388,6 +395,7 @@ def weighted_median(X, W=[], precision=1):
     wmedian = np.median(weighted_to_repeated_values(X, W, precision))
 
     return wmedian
+
 
 def median_abs_dev(X, W=[], precision=1, c=1.0):
     """
@@ -421,7 +429,7 @@ def median_abs_dev(X, W=[], precision=1, c=1.0):
     >>> precision = 1
     >>> # [1, 2, 4, 4, 4, 7, 7, 8, 8, 8]
     >>> median_abs_dev(X, W, precision)
-        2.0
+    2.0
 
     """
     import numpy as np
@@ -487,9 +495,12 @@ def means_per_label(values, labels, include_labels=[], exclude_labels=[], areas=
     >>> from mindboggle.mio.vtks import read_scalars, read_vtk
     >>> from mindboggle.guts.compute import means_per_label
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> values_file = os.path.join(data_path, 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> area_file = os.path.join(data_path, 'shapes', 'lh.pial.area.vtk')
-    >>> labels_file = os.path.join(data_path, 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> values_file = os.path.join(data_path, 'shapes',
+    ...     'left_cortical_surface', 'mean_curvature.vtk')
+    >>> area_file = os.path.join(data_path, 'shapes',
+    ...     'left_cortical_surface', 'area.vtk')
+    >>> labels_file = os.path.join(data_path, 'labels',
+    ...     'left_cortical_surface', 'freesurfer_cortex_labels.vtk')
     >>> values, name = read_scalars(values_file, True, True)
     >>> #areas, name = read_scalars(area_file, True, True)
     >>> labels, name = read_scalars(labels_file)
@@ -499,12 +510,18 @@ def means_per_label(values, labels, include_labels=[], exclude_labels=[], areas=
     >>> #
     >>> # Example 1: compute mean curvature per label:
     >>> means, sdevs, label_list, label_areas = means_per_label(values, labels,
-    >>>     include_labels, exclude_labels, areas)
+    ...     include_labels, exclude_labels, areas)
+    >>> means[0:3]
+    [-0.99076805512931965, -0.30049554123055167, -1.5934202292058071]
+    >>> sdevs[0:3]
+    [2.3486044266667516, 2.4022970537134016, 2.3252993828800501]
     >>> #
     >>> # Example 2: compute mean coordinates per label:
-    >>> points, indices, lines, faces, labels, scalar_names, npoints, input_vtk = read_vtk(values_file)
-    >>> means, sdevs, label_list, label_areas = means_per_label(points, labels,
-    >>>     include_labels, exclude_labels, areas)
+    >>> #points, indices, lines, faces, labels, scalar_names, npoints, input_vtk = read_vtk(values_file)
+    >>> #means, sdevs, label_list, label_areas = means_per_label(points, labels,
+    >>> #    include_labels, exclude_labels, areas)
+    >>> #means[0:3]
+    >>> #sdevs[0:3]
 
     """
     import numpy as np
@@ -597,14 +614,19 @@ def sum_per_label(values, labels, include_labels=[], exclude_labels=[]):
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.guts.compute import sum_per_label
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> values_file = os.path.join(data_path, 'shapes', 'lh.pial.area.vtk')
-    >>> labels_file = os.path.join(data_path, 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> values_file = os.path.join(data_path, 'shapes',
+    ...     'left_cortical_surface', 'mean_curvature.vtk')
+    >>> labels_file = os.path.join(data_path, 'labels',
+    ...     'left_cortical_surface', 'freesurfer_cortex_labels.vtk')
     >>> values, name = read_scalars(values_file, True, True)
     >>> labels, name = read_scalars(labels_file)
     >>> include_labels = []
     >>> exclude_labels = [-1]
     >>> # Compute sum area per label:
-    >>> sums, label_list = sum_per_label(values, labels, include_labels, exclude_labels)
+    >>> sums, label_list = sum_per_label(values, labels, include_labels,
+    ...                                  exclude_labels)
+    >>> sums[0:3]
+    [-8228.3286978489996, -424.90069530000005, -1865.8950884000001]
 
     """
     import numpy as np
@@ -628,6 +650,7 @@ def sum_per_label(values, labels, include_labels=[], exclude_labels=[]):
             sums.append(0)
 
     return sums, label_list
+
 
 def stats_per_label(values, labels, include_labels=[], exclude_labels=[],
                     weights=[], precision=1):
@@ -692,9 +715,12 @@ def stats_per_label(values, labels, include_labels=[], exclude_labels=[],
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.guts.compute import stats_per_label
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> values_file = os.path.join(data_path, 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> area_file = os.path.join(data_path, 'shapes', 'lh.pial.area.vtk')
-    >>> labels_file = os.path.join(data_path, 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> values_file = os.path.join(data_path, 'shapes',
+    ...     'left_cortical_surface', 'mean_curvature.vtk')
+    >>> area_file = os.path.join(data_path, 'shapes',
+    ...     'left_cortical_surface', 'area.vtk')
+    >>> labels_file = os.path.join(data_path, 'labels',
+    ...     'left_cortical_surface', 'freesurfer_cortex_labels.vtk')
     >>> values, name = read_scalars(values_file, True, True)
     >>> areas, name = read_scalars(area_file, True, True)
     >>> labels, name = read_scalars(labels_file)
@@ -702,7 +728,16 @@ def stats_per_label(values, labels, include_labels=[], exclude_labels=[],
     >>> exclude_labels = [-1]
     >>> weights = areas
     >>> precision = 1
-    >>> stats_per_label(values, labels, include_labels, exclude_labels, weights, precision)
+    >>> medians, mads, means, sdevs, skews, kurts, lower_quarts, upper_quarts, label_list = stats_per_label(values,
+    ...     labels, include_labels, exclude_labels, weights, precision)
+    >>> medians[0:3]
+    [-1.13602, -1.2296100000000001, -2.4966499999999998]
+    >>> mads[0:3]
+    [1.170255, 1.5045030000000001, 1.28234]
+    >>> means[0:3]
+    [-1.1793044671582793, -1.2140542483504964, -2.4931750523792142]
+    >>> kurts[0:3]
+    [2.3411784448846227, -0.39690083155055289, -0.55786762009358526]
 
     """
     import numpy as np
@@ -833,15 +868,19 @@ def count_per_label(labels, include_labels=[], exclude_labels=[]):
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.mio.labels import DKTprotocol
     >>> from mindboggle.guts.compute import count_per_label
-    >>> input_file = os.path.join(os.environ['HOME'], 'mindboggled', 'Twins-2-1old', 'labels', 'freesurfer_wmparc_filled_labels.nii.gz')
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> input_file = os.path.join(data_path, 'labels',
+    ...     'freesurfer_wmparc_filled_labels.nii.gz')
     >>> img = nb.load(input_file)
     >>> hdr = img.get_header()
     >>> labels = img.get_data().ravel()
     >>> dkt = DKTprotocol()
     >>> include_labels = dkt.label_numbers
     >>> exclude_labels = []
-    >>> unique_labels, counts = count_per_label(labels, include_labels, exclude_labels)
-    >>> print(counts)
+    >>> unique_labels, counts = count_per_label(labels, include_labels,
+    ...                                         exclude_labels)
+    >>> counts[0:5]
+    [972, 2414, 2193, 8329, 2941]
 
     """
     import numpy as np
@@ -868,7 +907,8 @@ def count_per_label(labels, include_labels=[], exclude_labels=[]):
     return unique_labels, counts
 
 
-def compute_overlaps(targets, list1, list2, output_file='', save_output=True):
+def compute_overlaps(targets, list1, list2, output_file='', save_output=True,
+                     verbose=False):
     """
     Compute overlap for each target between two lists of numbers.
 
@@ -882,6 +922,8 @@ def compute_overlaps(targets, list1, list2, output_file='', save_output=True):
         (optional) output file name
     save_output : Boolean
         save output file?
+    verbose : Boolean
+        print statements?
 
     Returns
     -------
@@ -902,7 +944,13 @@ def compute_overlaps(targets, list1, list2, output_file='', save_output=True):
     >>> targets = dkt.cerebrum_cortex_DKT31_numbers
     >>> output_file = ''
     >>> save_output = True
-    >>> compute_overlaps(targets, list1, list2, output_file, save_output)
+    >>> verbose = False
+    >>> dice_overlaps, jacc_overlaps, output_file = compute_overlaps(targets,
+    ...     list1, list2, output_file, save_output, verbose)
+    >>> dice_overlaps[18]
+    0.80000000000000004
+    >>> jacc_overlaps[18]
+    0.66666666666666663
 
     """
     import os
@@ -944,8 +992,9 @@ def compute_overlaps(targets, list1, list2, output_file='', save_output=True):
             jacc = np.float(len_intersection) / len_union
             dice_overlaps[itarget] = dice
             jacc_overlaps[itarget] = jacc
-            print('target: {0}, dice: {1:.2f}, jacc: {2:.2f}'.format(
-                  target, dice, jacc))
+            if verbose:
+                print('target: {0}, dice: {1:.2f}, jacc: {2:.2f}'.format(
+                      target, dice, jacc))
 
     # Save output:
     if save_output:
@@ -983,8 +1032,12 @@ def compute_image_histogram(infile, nbins=100, threshold=0.0):
     >>> import os
     >>> from mindboggle.guts.compute import compute_image_histogram
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> infile = os.path.join(path, 'mri', 't1weighted.nii.gz')
-    >>> compute_image_histogram(infile, nbins=100, threshold=0.1)
+    >>> infile = os.path.join(path, 'labels',
+    ...                       'freesurfer_wmparc_filled_labels.nii.gz')
+    >>> histogram_values = compute_image_histogram(infile, nbins=100,
+    ...                                            threshold=0.5)
+    >>> histogram_values[0:3]
+    array([102865, 119610,      0])
 
     """
     import numpy as np
@@ -995,7 +1048,6 @@ def compute_image_histogram(infile, nbins=100, threshold=0.0):
     # Compute histogram
     #-------------------------------------------------------------------------
     # Load image
-    print(infile)
     data = nb.load(infile).get_data().ravel()
 
     # Threshold image
