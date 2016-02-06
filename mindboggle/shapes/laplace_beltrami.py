@@ -5,6 +5,14 @@ Compute the Laplace-Beltrami spectrum using a linear finite element method.
 We follow the definitions and steps given in Martin Reuter et al.'s 2009 paper:
     ``Discrete Laplace-Beltrami Operators for Shape Analysis and Segmentation''
 
+References (please cite when using for publication):
+Martin Reuter et al.
+    Discrete Laplace-Beltrami Operators for Shape Analysis and Segmentation
+    Computers & Graphics 33(3):381-390, 2009
+Martin Reuter et al.
+    Laplace-Beltrami spectra as "Shape-DNA" of surfaces and solids
+    Computer-Aided Design 38(4):342-366, 2006
+
 Dependency:
     Scipy 0.10 or later to solve the generalized eigenvalue problem.
     Information about using Scipy to solve a generalized eigenvalue problem:
@@ -25,7 +33,7 @@ Acknowledgments:
       explained how eigenvalue problems are solved numerically.
 
 Authors:
-    - Martin Reuter, 2009, http://reuter.mit.edu/ (original MATLAB code)
+    - Martin Reuter, 2009-2016, http://reuter.mit.edu/ (original MATLAB code)
     - Eliezer Stavsky, 2012  (eli.stavsky@gmail.com)
     - Forrest Sheng Bao, 2012-2013  (forrest.bao@gmail.com)  http://fsbao.net
     - Arno Klein, 2012-2013  (arno@mindboggle.info)  http://binarybottle.com
@@ -155,7 +163,7 @@ def computeAB(points, faces):
     cr  = np.cross(v2mv1,v3mv1)
     vol = np.sqrt(np.sum(cr*cr, axis=1))
     # zero vol will cause division by zero below, so set to small value:
-    vol_mean = np.mean(vol)
+    vol_mean = 0.001*np.mean(vol)
     vol = [vol_mean if x == 0 else x for x in vol]
     vol = reshape_and_repeat(vol)
 
@@ -205,7 +213,7 @@ def area_normalize(points, faces, spectrum):
     area = area_of_faces(points, faces)
     total_area = sum(area)
 
-    new_spectrum = [x/total_area for x in spectrum]
+    new_spectrum = [x*total_area for x in spectrum]
 
     return new_spectrum
 
@@ -418,7 +426,7 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None):
         # eigs is for nonsymmetric matrices while
         # eigsh is for real-symmetric or complex-Hermitian matrices:
         eigenvalues, eigenvectors = eigsh(A, k=spectrum_size, M=B,
-                                          sigma=0)
+                                          sigma=-0.01)
         spectrum = eigenvalues.tolist()
 
     #-----------------------------------------------------------------
