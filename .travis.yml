@@ -36,7 +36,7 @@ install:
   - conda info -a
 
   # Dependencies and installation:
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION atlas numpy scipy matplotlib nose pandas vtk
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION atlas numpy scipy networkx matplotlib nose pandas vtk
   - source activate test-environment
 
   # Coverage packages:
