@@ -77,6 +77,7 @@ def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
     kernel : function which determines weights of edges
         - rbf_kernel: Gaussian kernel, with parameter sigma
         - cotangent_kernel: weight calculation for Laplace_Beltrami_Operator
+          (NOTE: option removed until it can be tested)
         - inverse_distance: additional kernel where the weight is the inverse
           of the distance between two nodes
     add_to_graph :  boolean (add to graph?)
@@ -114,7 +115,8 @@ def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
     """
     import numpy as np
     from scipy.sparse import lil_matrix
-    from mindboggle.guts.kernels import rbf_kernel, cotangent_kernel, inverse_distance
+    from mindboggle.guts.kernels import rbf_kernel, inverse_distance
+                                        #cotangent_kernel
 
     if kernel is rbf_kernel or kernel is inverse_distance:
         if verbose:
@@ -149,23 +151,23 @@ def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
         for [i, j, edge_weight] in weighted_edges:
             affinity_matrix[i, j] = affinity_matrix[j, i] = edge_weight
 
-    elif kernel is cotangent_kernel:
-        if verbose:
-            print('Compute weights using cotangents')
-        affinity_matrix = cotangent_kernel(Nodes, Meshes)
-
-        # Add weights to graph
-        if add_to_graph:
-            edges = np.nonzero(affinity_matrix)
-            edge_mat = np.hstack((edges[0].T[:, np.newaxis],
-                                  edges[1].T[:, np.newaxis]))
-            weighted_edges = np.asarray([[edge_mat[i,0],
-                                          edge_mat[i,1],
-                                          affinity_matrix[edge_mat[i]]]
-                                          for i in range(affinity_matrix.shape[0])])
-            if verbose:
-                print('Add weighted edges to the graph')
-            G.add_weighted_edges_from(weighted_edges)
+    # elif kernel is cotangent_kernel:
+    #     if verbose:
+    #         print('Compute weights using cotangents')
+    #     affinity_matrix = cotangent_kernel(Nodes, Meshes)
+    #
+    #     # Add weights to graph
+    #     if add_to_graph:
+    #         edges = np.nonzero(affinity_matrix)
+    #         edge_mat = np.hstack((edges[0].T[:, np.newaxis],
+    #                               edges[1].T[:, np.newaxis]))
+    #         weighted_edges = np.asarray([[edge_mat[i,0],
+    #                                       edge_mat[i,1],
+    #                                       affinity_matrix[edge_mat[i]]]
+    #                                       for i in range(affinity_matrix.shape[0])])
+    #         if verbose:
+    #             print('Add weighted edges to the graph')
+    #         G.add_weighted_edges_from(weighted_edges)
 
     # Return the affinity matrix as a "compressed sparse row" matrix
     # (http://docs.scipy.org/doc/scipy/reference/sparse.html)
