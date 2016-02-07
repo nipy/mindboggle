@@ -64,12 +64,9 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     >>> from mindboggle.guts.mesh import find_neighbors_from_file
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> url1 = urls['left_mean_curvature']
-    >>> url2 = urls['left_travel_depth']
-    >>> url3 = urls['left_folds']
-    >>> curv_file = fetch_data(url1)
-    >>> depth_file = fetch_data(url2)
-    >>> folds_file = fetch_data(url3)
+    >>> curv_file = fetch_data(urls['left_mean_curvature'])
+    >>> depth_file = fetch_data(urls['left_travel_depth'])
+    >>> folds_file = fetch_data(urls['left_folds'])
     >>> points, f1,f2,f3, curvs, f4,f5,f6 = read_vtk(curv_file, True,True)
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> values = curvs * depths
@@ -641,14 +638,10 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
     >>> from mindboggle.guts.mesh import find_neighbors_from_file
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> url1 = urls['left_mean_curvature']
-    >>> url2 = urls['left_travel_depth']
-    >>> url3 = urls['left_folds']
-    >>> url3 = urls['left_fundus_per_sulcus']
-    >>> curv_file = fetch_data(url1)
-    >>> depth_file = fetch_data(url2)
-    >>> folds_file = fetch_data(url3)
-    >>> fundus_file = fetch_data(url3)
+    >>> curv_file = fetch_data(urls['left_mean_curvature'])
+    >>> depth_file = fetch_data(urls['left_travel_depth'])
+    >>> folds_file = fetch_data(urls['left_folds'])
+    >>> fundus_file = fetch_data(urls['left_fundus_per_sulcus'])
     >>> curvs, name = read_scalars(curv_file, True, True)
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> values = curvs * depths
@@ -834,10 +827,8 @@ def track_values(seed, indices, neighbor_lists, values, sink=[]):
     >>> from mindboggle.guts.paths import track_values
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> url1 = urls['left_folds']
-    >>> url2 = urls['left_travel_depth']
-    >>> folds_file = fetch_data(url1)
-    >>> values_file = fetch_data(url2)
+    >>> folds_file = fetch_data(urls['left_folds'])
+    >>> values_file = fetch_data(urls['left_travel_depth'])
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> fold_number = 11
     >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_number]
@@ -937,10 +928,8 @@ def track_segments(seed, segments, neighbor_lists, values, sink,
     >>> from mindboggle.guts.mesh import find_neighbors_from_file
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> url1 = urls['left_folds']
-    >>> url2 = urls['left_travel_depth']
-    >>> folds_file = fetch_data(url1)
-    >>> values_file = fetch_data(url2)
+    >>> folds_file = fetch_data(urls['left_folds'])
+    >>> values_file = fetch_data(urls['left_travel_depth'])
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> fold_number = 11
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
@@ -1067,12 +1056,9 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     >>> from mindboggle.guts.mesh import find_neighbors_from_file
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> url1 = urls['left_mean_curvature']
-    >>> url2 = urls['left_travel_depth']
-    >>> url3 = urls['left_folds']
-    >>> curv_file = fetch_data(url1)
-    >>> depth_file = fetch_data(url2)
-    >>> folds_file = fetch_data(url3)
+    >>> curv_file = fetch_data(urls['left_mean_curvature'])
+    >>> depth_file = fetch_data(urls['left_travel_depth'])
+    >>> folds_file = fetch_data(urls['left_folds'])
     >>> points, f1,f2,f3, curvs, f4,f5,f6 = read_vtk(curv_file, True,True)
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> values = curvs * depths
@@ -1290,12 +1276,9 @@ def find_max_values(points, values, min_separation=10, thr=0.5):
     >>> from mindboggle.guts.compute import median_abs_dev
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> url1 = urls['left_mean_curvature']
-    >>> url2 = urls['left_travel_depth']
-    >>> url3 = urls['left_folds']
-    >>> curv_file = fetch_data(url1)
-    >>> depth_file = fetch_data(url2)
-    >>> folds_file = fetch_data(url3)
+    >>> curv_file = fetch_data(urls['left_mean_curvature'])
+    >>> depth_file = fetch_data(urls['left_travel_depth'])
+    >>> folds_file = fetch_data(urls['left_folds'])
     >>> points, f1,f2,f3, curvs, f4,f5,f6 = read_vtk(curv_file, True,True)
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> values = curvs * depths

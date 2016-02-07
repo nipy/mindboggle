@@ -32,8 +32,7 @@ def find_neighbors_from_file(input_vtk):
     >>> from mindboggle.guts.mesh import find_neighbors_from_file
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> url = urls['left_mean_curvature']
-    >>> vtk_file = fetch_data(url)
+    >>> vtk_file = fetch_data(urls['left_mean_curvature'])
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> neighbor_lists[0:3]
     [[1, 4, 48, 49], [0, 4, 5, 49, 2], [1, 5, 6, 49, 50, 54]]
@@ -94,8 +93,7 @@ def find_neighbors(faces, npoints):
     >>> from mindboggle.mio.vtks import read_faces_points
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> url = urls['left_mean_curvature']
-    >>> vtk_file = fetch_data(url)
+    >>> vtk_file = fetch_data(urls['left_mean_curvature'])
     >>> faces, points, npoints = read_faces_points(vtk_file)
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> neighbor_lists[0:3]
@@ -263,8 +261,7 @@ def find_endpoints(indices, neighbor_lists):
     >>> from mindboggle.guts.mesh import find_neighbors_from_file
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> url1 = urls['left_folds']
-    >>> folds_file = fetch_data(url1)
+    >>> folds_file = fetch_data(urls['left_folds'])
     >>> indices = range(1000)
     >>> neighbor_lists = find_neighbors_from_file(folds_file)
     >>> indices_endpoints = find_endpoints(indices, neighbor_lists)
@@ -643,8 +640,7 @@ def reindex_faces_points(faces, points=[]):
     >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> url = urls['left_folds']
-    >>> folds_file = fetch_data(url)
+    >>> folds_file = fetch_data(urls['left_folds'])
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> fold_number = 11
     >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_number]
@@ -785,8 +781,7 @@ def decimate(points, faces, reduction=0.75, smooth_steps=25,
     >>> from mindboggle.mio.vtks import read_vtk
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> url = urls['left_freesurfer_labels']
-    >>> input_vtk = fetch_data(url)
+    >>> input_vtk = fetch_data(urls['left_freesurfer_labels'])
     >>> points, f1, f2, faces, scalars, f3, f4, f5 = read_vtk(input_vtk)
     >>> reduction = 0.5
     >>> smooth_steps = 25
@@ -955,8 +950,7 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100,
     >>> from mindboggle.mio.vtks import read_vtk
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> url = urls['left_freesurfer_labels']
-    >>> input_vtk = fetch_data(url)
+    >>> input_vtk = fetch_data(urls['left_freesurfer_labels'])
     >>> save_vtk = True
     >>> output_vtk = ''
     >>> reduction = 0.5
@@ -1034,8 +1028,7 @@ def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> url = urls['left_travel_depth']
-    >>> input_vtk = fetch_data(url)
+    >>> input_vtk = fetch_data(urls['left_travel_depth'])
     >>> indices = []
     >>> nedges = 10
     >>> p = 99
@@ -1140,10 +1133,8 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> url1 = urls['left_travel_depth']
-    >>> url2 = urls['left_folds']
-    >>> input_vtk = fetch_data(url1)
-    >>> labels_vtk = fetch_data(url2)
+    >>> input_vtk = fetch_data(urls['left_travel_depth'])
+    >>> labels_vtk = fetch_data(urls['left_folds'])
     >>> save_file = True
     >>> output_filestring = 'rescaled_scalars'
     >>> rescaled, rescaled_label_file = rescale_by_label(input_vtk,
@@ -1228,8 +1219,7 @@ def area_of_faces(points, faces):
     >>> from mindboggle.mio.vtks import read_vtk
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> url = urls['left_area']
-    >>> input_vtk = fetch_data(url)
+    >>> input_vtk = fetch_data(urls['left_area'])
     >>> points, f1, f2, faces, f3, f4, f5, f6 = read_vtk(input_vtk)
     >>> area = area_of_faces(points, faces)
     >>> area[0:5]

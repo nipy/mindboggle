@@ -63,6 +63,8 @@ def propagate(points, faces, region, seeds, labels,
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
     >>> labels_file = os.path.join(path, 'labels', 'lh.labels.DKT25.manual.vtk')
+
+
     >>> folds, name = read_scalars(folds_file, return_first=True, return_array=True)
     >>> points, indices, lines, faces, labels, scalar_names, npoints, input_vtk = read_vtk(labels_file,
     >>>     return_first=True, return_array=True)
