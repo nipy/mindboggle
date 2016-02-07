@@ -586,7 +586,7 @@ def remove_faces(faces, indices):
     >>> from mindboggle.guts.mesh import remove_faces
     >>> faces = [[1,2,3], [2,3,7], [4,7,8], [3,2,5]]
     >>> indices = [0,1,2,3,4,5]
-    >>> remove_faces(faces, indices, verbose=False)
+    >>> remove_faces(faces, indices)
     Reduced 4 to 2 triangular faces.
     [[1, 2, 3], [3, 2, 5]]
 
