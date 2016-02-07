@@ -584,7 +584,7 @@ def topo_test(index, values, neighbor_lists):
     "Simple" is not to be mistaken with the following usage:
     "A vertex is usually assigned one of five possible classifications:
     simple, complex, boundary, interior edge, or corner vertex.
-     A simple vertex is surrounded by a closed fan of triangles".
+    A simple vertex is surrounded by a closed fan of triangles".
 
     Parameters
     ----------
@@ -605,16 +605,19 @@ def topo_test(index, values, neighbor_lists):
     Examples
     --------
     >>> # Square with a center vertex:
+    >>> # indices [[0,1,2],[3,4,6],[7,8,9]] = 0 and indices [2,4,6] = 1:
     >>> import numpy as np
     >>> from mindboggle.guts.morph import topo_test
-    >>> values = np.array([0,1,1,1,0])
-    >>> neighbor_lists = [[1,2,3],[0,2,4],[0,1,3,4],[0,2,4],[1,2,3]]
+    >>> values = np.array([0,0,1,0,1,0,1,0,0])
+    >>> neighbor_lists = [[1,3],[0,2,3,4],[1,4,5],
+    ...                   [0,1,4,6],[1,2,3,5,6,7],[2,4,7,8],
+    ...                   [3,4,7],[4,5,6,8],[5,7]]
     >>> sps = []
-    >>> for index in range(5):
+    >>> for index in range(9):
     >>>     sp, n_inside = topo_test(index, values, neighbor_lists)
     >>>     sps.append(sp)
     >>> sps
-    [False, True, False, True, False]
+    [False, True, True, True, False, True, True, True, False]
 
     """
     import numpy as np
