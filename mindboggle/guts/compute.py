@@ -1063,8 +1063,8 @@ def compute_image_histogram(infile, nbins=100, threshold=0.0):
     >>> url = urls['freesurfer_labels']
     >>> labels_file = fetch_data(url)
     >>> histogram_values = compute_image_histogram(labels_file, nbins=100,
-    ...                                            threshold=0.5) # doctest: +SKIP
-    >>> histogram_values[0:3] # doctest: +SKIP
+    ...                                            threshold=0.5)
+    >>> histogram_values[0:3]
     array([102865, 119610,      0])
 
     """
