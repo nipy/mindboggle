@@ -44,8 +44,9 @@ def relabel_volume(input_file, old_labels, new_labels, output_file=''):
     >>> input_file = input_file + '.nii.gz'
     >>> dkt = DKTprotocol()
     >>> old_labels = dkt.cerebrum_cortex_numbers + dkt.cerebrum_noncortex_numbers
-    >>> new_labels = [5000 for x in dkt.cerebrum_cortex_numbers] + \
-    ...              [6000 for x in dkt.cerebrum_noncortex_numbers]
+    >>> ctx = [5000 for x in dkt.cerebrum_cortex_numbers]
+    >>> nonctx = [6000 for x in dkt.cerebrum_noncortex_numbers]
+    >>> new_labels = ctx + nonctx
     >>> output_file = ''
     >>> output_file = relabel_volume(input_file, old_labels, new_labels,
     ...                              output_file)
@@ -468,7 +469,7 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
     >>> source = source + '.nii.gz'
     >>> os.rename(target, target + '.nii.gz')
     >>> target = target + '.nii.gz'
-    >>> output_file = 'overwrite_volume_labels.nii.gz'
+    >>> output_file = ''
     >>> ignore_labels = [0]
     >>> erase_labels = False
     >>> background_value = -1
