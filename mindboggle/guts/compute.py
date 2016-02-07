@@ -852,7 +852,7 @@ def count_per_label(labels, include_labels=[], exclude_labels=[]):
 
     Parameters
     ----------
-    labels : list of integers
+    labels : numpy 1-D array of integers
         labels (e.g., one label per vertex of a mesh)
     include_labels : list of integers
         labels to include
@@ -869,27 +869,48 @@ def count_per_label(labels, include_labels=[], exclude_labels=[]):
 
     Examples
     --------
-    >>> import nibabel as nb
-    >>> from mindboggle.mio.vtks import read_scalars
-    >>> from mindboggle.mio.labels import DKTprotocol
     >>> from mindboggle.guts.compute import count_per_label
-    >>> from mindboggle.mio.fetch_data import prep_tests
-    >>> urls, fetch_data = prep_tests()
-    >>> url = urls['freesurfer_labels']
-    >>> labels_file = fetch_data(url)
-    >>> img = nb.load(labels_file)
-    >>> hdr = img.get_header()
-    >>> labels = img.get_data().ravel()
-    >>> dkt = DKTprotocol()
-    >>> include_labels = dkt.label_numbers
-    >>> exclude_labels = []
+    >>> labels = [8,8,8,8,8,10,11,12,10,10,11,11,11,12,12,12,12,13]
+    >>> include_labels = [9,10,11,12]
+    >>> exclude_labels = [13]
     >>> unique_labels, counts = count_per_label(labels, include_labels,
     ...                                         exclude_labels)
-    >>> counts[0:5]
+    >>> unique_labels
+    [10, 11, 12]
+    >>> counts
+    [3, 4, 5]
+
+    The following does not work on travis because nibabel won't import:
+
+    >>> import nibabel as nb  # doctest +SKIP
+    >>> from mindboggle.mio.vtks import read_scalars  # doctest +SKIP
+    >>> from mindboggle.mio.labels import DKTprotocol  # doctest +SKIP
+    >>> from mindboggle.guts.compute import count_per_label  # doctest +SKIP
+    >>> from mindboggle.mio.fetch_data import prep_tests  # doctest +SKIP
+    >>> urls, fetch_data = prep_tests()  # doctest +SKIP
+    >>> url = urls['freesurfer_labels']  # doctest +SKIP
+    >>> labels_file = fetch_data(url, 'test.nii.gz')  # doctest +SKIP
+    >>> img = nb.load(labels_file)  # doctest +SKIP
+    >>> hdr = img.get_header()  # doctest +SKIP
+    >>> labels = img.get_data().ravel()  # doctest +SKIP
+    >>> dkt = DKTprotocol()  # doctest +SKIP
+    >>> include_labels = dkt.label_numbers  # doctest +SKIP
+    >>> exclude_labels = []  # doctest +SKIP
+    >>> unique_labels, counts = count_per_label(labels,
+    ...     include_labels, exclude_labels)  # doctest +SKIP
+    >>> counts[0:5]  # doctest +SKIP
     [972, 2414, 2193, 8329, 2941]
 
     """
     import numpy as np
+
+    # Make sure labels is a numpy array:
+    if isinstance(labels, list):
+        labels = np.array(labels)
+    elif isinstance(labels, ndarray):
+        pass
+    else:
+        raise IOError("labels should be a numpy array.")
 
     # Unique list of labels:
     if include_labels:
