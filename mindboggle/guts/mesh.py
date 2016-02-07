@@ -28,23 +28,26 @@ def find_neighbors_from_file(input_vtk):
 
     Examples
     --------
-    >>> import os
     >>> import numpy as np
     >>> from mindboggle.guts.mesh import find_neighbors_from_file
     >>> from mindboggle.mio.vtks import rewrite_scalars
     >>> from mindboggle.mio.plots import plot_surfaces
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'freesurfer', 'lh.pial.vtk')
-    >>> #
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> url = urls['left_mean_curvature']
+    >>> vtk_file = fetch_data(url)
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
-    >>> #
-    >>> # Write results to vtk file and view:
-    >>> index = 0
-    >>> IDs = -1 * np.ones(npoints)
-    >>> IDs[index] = 1
-    >>> IDs[neighbor_lists[index]] = 2
-    >>> rewrite_scalars(vtk_file, 'find_neighbors_from_file.vtk', IDs, 'neighbors', IDs)
-    >>> plot_surfaces('find_neighbors_from_file.vtk')
+    >>> neighbor_lists[0:3]
+    [[1, 4, 48, 49], [0, 4, 5, 49, 2], [1, 5, 6, 49, 50, 54]]
+
+    Write results to vtk file and view (skip test):
+
+    >>> index = 0 # doctest: +SKIP
+    >>> IDs = -1 * np.ones(npoints) # doctest: +SKIP
+    >>> IDs[index] = 1 # doctest: +SKIP
+    >>> IDs[neighbor_lists[index]] = 2 # doctest: +SKIP
+    >>> rewrite_scalars(vtk_file, 'find_neighbors_from_file.vtk', IDs, 'neighbors', IDs) # doctest: +SKIP
+    >>> plot_surfaces('find_neighbors_from_file.vtk') # doctest: +SKIP
 
     """
     from mindboggle.mio.vtks import read_faces_points
@@ -83,25 +86,29 @@ def find_neighbors(faces, npoints):
     >>> find_neighbors(faces, npoints)
         [[1, 2, 3, 4], [0, 2, 4, 3], [0, 1, 3], [0, 2, 4, 1], [0, 3, 1]]
 
-    >>> # Real example:
-    >>> import os
+    Real example:
+
     >>> import numpy as np
     >>> from mindboggle.guts.mesh import find_neighbors
     >>> from mindboggle.mio.vtks import read_faces_points, rewrite_scalars
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'freesurfer', 'lh.pial.vtk')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> url = urls['left_mean_curvature']
+    >>> vtk_file = fetch_data(url)
     >>> faces, points, npoints = read_faces_points(vtk_file)
-    >>> #
     >>> neighbor_lists = find_neighbors(faces, npoints)
-    >>> #
-    >>> # Write results to vtk file and view:
-    >>> index = 0
-    >>> IDs = -1 * np.ones(npoints)
-    >>> IDs[index] = 1
-    >>> IDs[neighbor_lists[index]] = 2
-    >>> rewrite_scalars(vtk_file, 'find_neighbors.vtk', IDs, 'neighbors', IDs)
-    >>> from mindboggle.mio.plots import plot_surfaces
-    >>> plot_surfaces('find_neighbors.vtk')
+    >>> neighbor_lists[0:3]
+    [[1, 4, 48, 49], [0, 4, 5, 49, 2], [1, 5, 6, 49, 50, 54]]
+
+    Write results to vtk file and view (skip test):
+
+    >>> index = 0 # doctest: +SKIP
+    >>> IDs = -1 * np.ones(npoints) # doctest: +SKIP
+    >>> IDs[index] = 1 # doctest: +SKIP
+    >>> IDs[neighbor_lists[index]] = 2 # doctest: +SKIP
+    >>> rewrite_scalars(vtk_file, 'find_neighbors.vtk', IDs, 'neighbors', IDs) # doctest: +SKIP
+    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
+    >>> plot_surfaces('find_neighbors.vtk') # doctest: +SKIP
 
     """
 
@@ -249,36 +256,39 @@ def find_endpoints(indices, neighbor_lists):
     Examples
     --------
     >>> # Extract endpoints from a track in a fold:
-    >>> import os
     >>> import numpy as np
     >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars
     >>> from mindboggle.guts.mesh import find_neighbors_from_file, find_endpoints
     >>> from mindboggle.guts.paths import track_values
     >>> from mindboggle.mio.plots import plot_surfaces
-    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> url1 = urls['left_folds']
+    >>> url2 = urls['left_mean_curvature']
+    >>> folds_file = fetch_data(url1)
+    >>> vtk_file = fetch_data(url2)
     >>> # Select a single fold:
-    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> fold_number = 11
     >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_number]
     >>> # Create a track from the minimum-depth vertex:
-    >>> vtk_file = os.path.join(path, 'freesurfer', 'lh.pial.vtk')
     >>> values, name = read_scalars(vtk_file, True, True)
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> seed = indices_fold[np.argmin(values[indices_fold])]
     >>> indices = track_values(seed, indices_fold, neighbor_lists, values, sink=[])
-    >>> #
     >>> # Extract endpoints:
     >>> indices_endpoints = find_endpoints(indices, neighbor_lists)
-    >>> #
-    >>> # Write results to vtk file and view:
-    >>> IDs = -1 * np.ones(len(values))
-    >>> IDs[indices_fold] = 1
-    >>> IDs[indices] = 2
-    >>> IDs[indices_endpoints] = 3
+
+
+    Write results to vtk file and view (skip test):
+
+    >>> IDs = -1 * np.ones(len(values)) # doctest: +SKIP
+    >>> IDs[indices_fold] = 1 # doctest: +SKIP
+    >>> IDs[indices] = 2 # doctest: +SKIP
+    >>> IDs[indices_endpoints] = 3 # doctest: +SKIP
     >>> rewrite_scalars(vtk_file, 'find_endpoints.vtk',
-    >>>                 IDs, 'endpoints', IDs)
-    >>> plot_surfaces('find_endpoints.vtk')
+    ...                 IDs, 'endpoints', IDs) # doctest: +SKIP
+    >>> plot_surfaces('find_endpoints.vtk') # doctest: +SKIP
 
     """
 
