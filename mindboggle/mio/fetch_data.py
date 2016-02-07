@@ -10,9 +10,6 @@ Copyright 2015,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 
-#-----------------------------------------------------------------------------
-# Get data through a URL call:
-#-----------------------------------------------------------------------------
 def hashes_url():
     """
     Hashes and URL to verify retrieved data used by the Mindboggle software.
@@ -56,6 +53,131 @@ def hashes_url():
     hashes['depth_curv_border_nonborder_parameters.pkl'] = 'a943a0f46c2c2b3bfdfdf5a64176c6c3'
 
     return hashes, url, cache_env, cache
+
+
+def test_urls():
+    """
+    URLs corresponding to Mindboggle test (example output) data.
+
+    Returns
+    -------
+    urls : dictionary
+        dictionary of names and urls for data files
+
+    Examples
+    --------
+    >>> from mindboggle.mio.fetch_data import test_urls
+    >>> urls = test_urls()
+    >>> urls['left_mean_curvature']
+    'http://media.mindboggle.info/data/cache/ex/shapes/left_cortical_surface/mean_curvature.vtk'
+
+    """
+    url = 'http://media.mindboggle.info/data/cache/ex/'
+    F = url + 'features/'
+    L = url + 'labels/'
+    S = url + 'shapes/'
+    T = url + 'tables/'
+    left = 'left_cortical_surface/'
+    right = 'right_cortical_surface/'
+    Fleft = F + left
+    Fright = F + right
+    Lleft = L + left
+    Lright = L + right
+    Sleft = S + left
+    Sright = S + right
+    Tleft = T + left
+    Tright = T + right
+
+    urls = {}
+    #-------------------------------------------------------------------------
+    # Features:
+    #-------------------------------------------------------------------------
+    urls['right_cortex_in_mni'] = Fleft + 'cortex_in_MNI152_space.vtk'
+    urls['left_folds'] = Fleft + 'folds.vtk'
+    urls['left_fundus_per_sulcus'] = Fleft + 'fundus_per_sulcus.vtk'
+    urls['left_sulci'] = Fleft + 'sulci.vtk'
+    urls['right_cortex_in_mni'] = Fright + 'cortex_in_MNI152_space.vtk'
+    urls['right_folds'] = Fright + 'folds.vtk'
+    urls['right_fundus_per_sulcus'] = Fright + 'fundus_per_sulcus.vtk'
+    urls['right_sulci'] = Fright + 'sulci.vtk'
+    #-------------------------------------------------------------------------
+    # Labels:
+    #-------------------------------------------------------------------------
+    urls['ants_labels'] = L + 'ants_filled_labels.nii.gz'
+    urls['freesurfer_labels'] = L + 'freesurfer_wmparc_filled_labels.nii.gz'
+    urls['left_freesurfer_labels'] = Lleft + 'freesurfer_cortex_labels.vtk'
+    urls['right_freesurfer_labels'] = Lright + 'freesurfer_cortex_labels.vtk'
+    #-------------------------------------------------------------------------
+    # Shapes:
+    #-------------------------------------------------------------------------
+    urls['left_area'] = Sleft + 'area.vtk'
+    urls['left_freesurfer_curvature'] = Sleft + 'freesurfer_curvature.vtk'
+    urls['left_freesurfer_sulc'] = Sleft + 'freesurfer_sulc.vtk'
+    urls['left_freesurfer_thickness'] = Sleft + 'freesurfer_thickness.vtk'
+    urls['left_geodesic_depth'] = Sleft + 'geodesic_depth.vtk'
+    urls['left_mean_curvature'] = Sleft + 'mean_curvature.vtk'
+    urls['left_travel_depth'] = Sleft + 'travel_depth.vtk'
+    urls['right_area'] = Sright + 'area.vtk'
+    urls['right_freesurfer_curvature'] = Sright + 'freesurfer_curvature.vtk'
+    urls['right_freesurfer_sulc'] = Sright + 'freesurfer_sulc.vtk'
+    urls['right_freesurfer_thickness'] = Sright + 'freesurfer_thickness.vtk'
+    urls['right_geodesic_depth'] = Sright + 'geodesic_depth.vtk'
+    urls['right_mean_curvature'] = Sright + 'mean_curvature.vtk'
+    urls['right_travel_depth'] = Sright + 'travel_depth.vtk'
+    #-------------------------------------------------------------------------
+    # Tables:
+    #-------------------------------------------------------------------------
+    urls['thickinthehead_ants_labels_table'] = \
+        T + 'thickinthehead_per_ants_cortex_label.csv'
+    urls['thickinthehead_freesurfer_labels_table'] = \
+        T + 'thickinthehead_per_freesurfer_cortex_label.csv'
+    urls['volume_ants_labels_table'] = \
+        T + 'volume_for_each_ants_label.csv'
+    urls['volume_freesurfer_labels_table'] = \
+        T + 'volume_for_each_freesurfer_label.csv'
+    urls['left_fundus_shapes_table'] = Tleft + 'fundus_shapes.csv'
+    urls['left_label_shapes_table'] = Tleft + 'label_shapes.csv'
+    urls['left_sulcus_shapes_table'] = Tleft + 'sulcus_shapes.csv'
+    urls['left_vertices_table'] = Tleft + 'vertices.csv'
+    urls['right_fundus_shapes_table'] = Tright + 'fundus_shapes.csv'
+    urls['right_label_shapes_table'] = Tright + 'label_shapes.csv'
+    urls['right_sulcus_shapes_table'] = Tright + 'sulcus_shapes.csv'
+    urls['right_vertices_table'] = Tright + 'vertices.csv'
+
+    # Prepend with url:
+    #for key in urls:
+    #    urls[key] = url + urls[key]
+
+    return urls
+
+
+def prep_tests():
+    """
+    Prepare to fetch data in docstring tests.
+
+    Returns
+    -------
+    urls : dictionary
+        dictionary of names and urls for data files
+    fetch_data : function
+        fetch_data() function
+
+    Examples
+    --------
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> urls['left_mean_curvature']
+    'http://media.mindboggle.info/data/cache/ex/shapes/left_cortical_surface/mean_curvature.vtk'
+    >>> fetch_data
+    <function mindboggle.mio.fetch_data.fetch_data>
+
+    """
+    from mindboggle.mio.fetch_data import fetch_data
+    from mindboggle.mio.fetch_data import test_urls
+
+    urls = test_urls()
+
+    return urls, fetch_data
 
 
 def fetch_hash(data_file):
@@ -168,7 +290,6 @@ def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
 
     Examples
     --------
-    >>> import os
     >>> from mindboggle.mio.fetch_data import hashes_url
     >>> from mindboggle.mio.fetch_data import fetch_check_data
     >>> hashes, url, cache_env, cache = hashes_url()

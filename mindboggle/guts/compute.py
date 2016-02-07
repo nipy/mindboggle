@@ -491,32 +491,38 @@ def means_per_label(values, labels, include_labels=[], exclude_labels=[], areas=
 
     Examples
     --------
-    >>> import os
     >>> from mindboggle.mio.vtks import read_scalars, read_vtk
     >>> from mindboggle.guts.compute import means_per_label
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> values_file = os.path.join(data_path, 'shapes',
-    ...     'left_cortical_surface', 'mean_curvature.vtk')
-    >>> area_file = os.path.join(data_path, 'shapes',
-    ...     'left_cortical_surface', 'area.vtk')
-    >>> labels_file = os.path.join(data_path, 'labels',
-    ...     'left_cortical_surface', 'freesurfer_cortex_labels.vtk')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> url1 = urls['left_mean_curvature']
+    >>> url2 = urls['left_freesurfer_labels']
+    >>> url3 = urls['left_area']
+    >>> values_file = fetch_data(url1)
+    >>> labels_file = fetch_data(url2)
+    >>> area_file = fetch_data(url3)
     >>> values, name = read_scalars(values_file, True, True)
-    >>> #areas, name = read_scalars(area_file, True, True)
     >>> labels, name = read_scalars(labels_file)
+    >>> areas, name = read_scalars(area_file, True, True)
     >>> include_labels = []
     >>> exclude_labels = [-1]
-    >>> areas = [] #areas
-    >>> #
-    >>> # Example 1: compute mean curvature per label:
+    >>> print("Compute mean curvature per label normalized by area:")
+    >>> means, sdevs, label_list, label_areas = means_per_label(values, labels,
+    ...     include_labels, exclude_labels, areas)
+    >>> means[0:3]
+    [-1.1793044671582817, -1.2140542483504968, -2.493175052379216]
+    >>> sdevs[0:3]
+    [2.4382673224633384, 2.3385730827461524, 2.0185030879621064]
+    >>> print("Compute mean curvature per label:")
+    >>> areas = []
     >>> means, sdevs, label_list, label_areas = means_per_label(values, labels,
     ...     include_labels, exclude_labels, areas)
     >>> means[0:3]
     [-0.99076805512931965, -0.30049554123055167, -1.5934202292058071]
     >>> sdevs[0:3]
     [2.3486044266667516, 2.4022970537134016, 2.3252993828800501]
-    >>> #
-    >>> # Example 2: compute mean coordinates per label:
+
+    >>> # FIX: compute mean coordinates per label:
     >>> #points, indices, lines, faces, labels, scalar_names, npoints, input_vtk = read_vtk(values_file)
     >>> #means, sdevs, label_list, label_areas = means_per_label(points, labels,
     >>> #    include_labels, exclude_labels, areas)
@@ -610,14 +616,14 @@ def sum_per_label(values, labels, include_labels=[], exclude_labels=[]):
 
     Examples
     --------
-    >>> import os
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.guts.compute import sum_per_label
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> values_file = os.path.join(data_path, 'shapes',
-    ...     'left_cortical_surface', 'mean_curvature.vtk')
-    >>> labels_file = os.path.join(data_path, 'labels',
-    ...     'left_cortical_surface', 'freesurfer_cortex_labels.vtk')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> url1 = urls['left_mean_curvature']
+    >>> url2 = urls['left_freesurfer_labels']
+    >>> values_file = fetch_data(url1)
+    >>> labels_file = fetch_data(url2)
     >>> values, name = read_scalars(values_file, True, True)
     >>> labels, name = read_scalars(labels_file)
     >>> include_labels = []
@@ -711,16 +717,16 @@ def stats_per_label(values, labels, include_labels=[], exclude_labels=[],
 
     Examples
     --------
-    >>> import os
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.guts.compute import stats_per_label
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> values_file = os.path.join(data_path, 'shapes',
-    ...     'left_cortical_surface', 'mean_curvature.vtk')
-    >>> area_file = os.path.join(data_path, 'shapes',
-    ...     'left_cortical_surface', 'area.vtk')
-    >>> labels_file = os.path.join(data_path, 'labels',
-    ...     'left_cortical_surface', 'freesurfer_cortex_labels.vtk')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> url1 = urls['left_mean_curvature']
+    >>> url2 = urls['left_freesurfer_labels']
+    >>> url3 = urls['left_area']
+    >>> values_file = fetch_data(url1)
+    >>> labels_file = fetch_data(url2)
+    >>> area_file = fetch_data(url3)
     >>> values, name = read_scalars(values_file, True, True)
     >>> areas, name = read_scalars(area_file, True, True)
     >>> labels, name = read_scalars(labels_file)
@@ -863,15 +869,15 @@ def count_per_label(labels, include_labels=[], exclude_labels=[]):
 
     Examples
     --------
-    >>> import os
     >>> import nibabel as nb
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.mio.labels import DKTprotocol
     >>> from mindboggle.guts.compute import count_per_label
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> input_file = os.path.join(data_path, 'labels',
-    ...     'freesurfer_wmparc_filled_labels.nii.gz')
-    >>> img = nb.load(input_file)
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> url = urls['freesurfer_labels']
+    >>> labels_file = fetch_data(url)
+    >>> img = nb.load(labels_file)
     >>> hdr = img.get_header()
     >>> labels = img.get_data().ravel()
     >>> dkt = DKTprotocol()
@@ -1029,12 +1035,12 @@ def compute_image_histogram(infile, nbins=100, threshold=0.0):
 
     Examples
     --------
-    >>> import os
     >>> from mindboggle.guts.compute import compute_image_histogram
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> infile = os.path.join(path, 'labels',
-    ...                       'freesurfer_wmparc_filled_labels.nii.gz')
-    >>> histogram_values = compute_image_histogram(infile, nbins=100,
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> url = urls['freesurfer_labels']
+    >>> labels_file = fetch_data(url)
+    >>> histogram_values = compute_image_histogram(labels_file, nbins=100,
     ...                                            threshold=0.5)
     >>> histogram_values[0:3]
     array([102865, 119610,      0])
