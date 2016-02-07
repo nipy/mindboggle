@@ -506,14 +506,14 @@ def means_per_label(values, labels, include_labels=[], exclude_labels=[], areas=
     >>> areas, name = read_scalars(area_file, True, True)
     >>> include_labels = []
     >>> exclude_labels = [-1]
-    >>> print("Compute mean curvature per label normalized by area:")
+    >>> # Compute mean curvature per label normalized by area:
     >>> means, sdevs, label_list, label_areas = means_per_label(values, labels,
     ...     include_labels, exclude_labels, areas)
     >>> means[0:3]
     [-1.1793044671582817, -1.2140542483504968, -2.493175052379216]
     >>> sdevs[0:3]
     [2.4382673224633384, 2.3385730827461524, 2.0185030879621064]
-    >>> print("Compute mean curvature per label:")
+    >>> # Compute mean curvature per label:
     >>> areas = []
     >>> means, sdevs, label_list, label_areas = means_per_label(values, labels,
     ...     include_labels, exclude_labels, areas)
@@ -1041,8 +1041,8 @@ def compute_image_histogram(infile, nbins=100, threshold=0.0):
     >>> url = urls['freesurfer_labels']
     >>> labels_file = fetch_data(url)
     >>> histogram_values = compute_image_histogram(labels_file, nbins=100,
-    ...                                            threshold=0.5)
-    >>> histogram_values[0:3]
+    ...                                            threshold=0.5) # doctest: +SKIP
+    >>> histogram_values[0:3] # doctest: +SKIP
     array([102865, 119610,      0])
 
     """

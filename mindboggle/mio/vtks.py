@@ -206,7 +206,7 @@ def read_scalars(filename, return_first=True, return_array=False):
     >>> mean_curvatures, name = read_scalars(curv_file)
 
     """
-    import os
+    #import os
     import vtk
     if return_first and return_array:
         import numpy as np
@@ -224,14 +224,14 @@ def read_scalars(filename, return_first=True, return_array=False):
         for scalar_index in range(Reader.GetNumberOfScalarsInFile()):
             scalar_name = Reader.GetScalarsNameInFile(scalar_index)
 
-            n_scalars = scalar_index + 1
-            if n_scalars == 1:
-                print("Load \"{0}\" scalars from {1}".
-                      format(scalar_name, os.path.basename(filename)))
-            else:
-                print("Load \"{0}\" (of {1} scalars) from {2}".
-                      format(scalar_name, n_scalars,
-                             os.path.basename(filename)))
+            #n_scalars = scalar_index + 1
+            #if n_scalars == 1:
+            #    print("Load \"{0}\" scalars from {1}".
+            #          format(scalar_name, os.path.basename(filename)))
+            #else:
+            #    print("Load \"{0}\" (of {1} scalars) from {2}".
+            #          format(scalar_name, n_scalars,
+            #                 os.path.basename(filename)))
 
             scalar_array = PointData.GetArray(scalar_name)
             scalar = [scalar_array.GetValue(i)
@@ -303,7 +303,7 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
     >>> points, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(input_vtk)
 
     """
-    import os
+    #import os
     import vtk
     if return_first and return_array:
         import numpy as np
@@ -346,14 +346,14 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
         for scalar_index in range(Reader.GetNumberOfScalarsInFile()):
             scalar_name = Reader.GetScalarsNameInFile(scalar_index)
 
-            n_scalars = scalar_index + 1
-            if n_scalars == 1:
-                print("Load \"{0}\" scalars from {1}".
-                      format(scalar_name, os.path.basename(input_vtk)))
-            else:
-                print("Load \"{0}\" (of {1} scalars) from {2}".
-                      format(scalar_name, n_scalars,
-                             os.path.basename(input_vtk)))
+            #n_scalars = scalar_index + 1
+            #if n_scalars == 1:
+            #    print("Load \"{0}\" scalars from {1}".
+            #          format(scalar_name, os.path.basename(input_vtk)))
+            #else:
+            #    print("Load \"{0}\" (of {1} scalars) from {2}".
+            #          format(scalar_name, n_scalars,
+            #                 os.path.basename(input_vtk)))
 
             scalar_array = PointData.GetArray(scalar_name)
             if scalar_array:
