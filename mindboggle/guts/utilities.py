@@ -23,16 +23,16 @@ def execute(cmd, type='os'):
 
     Examples
     --------
-    >>> from mindboggle.guts.utilities import execute
-    >>> cmd = ['date', '-r', '0']
-    >>> type = 'subprocess'
-    >>> execute(cmd, type)
+    >>> from mindboggle.guts.utilities import execute # doctest: +SKIP
+    >>> cmd = ['date', '-r', '0'] # doctest: +SKIP
+    >>> type = 'subprocess' # doctest: +SKIP
+    >>> execute(cmd, type) # doctest: +SKIP
     Wed Dec 31 19:00:00 EST 1969
-    >>> type = 'os'
-    >>> execute(cmd, type)
+    >>> type = 'os' # doctest: +SKIP
+    >>> execute(cmd, type) # doctest: +SKIP
     Wed Dec 31 19:00:00 EST 1969
-    >>> cmd = 'date -r 0'
-    >>> execute(cmd)
+    >>> cmd = 'date -r 0' # doctest: +SKIP
+    >>> execute(cmd) # doctest: +SKIP
     Wed Dec 31 19:00:00 EST 1969
 
     """
