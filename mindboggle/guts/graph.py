@@ -8,8 +8,9 @@ Graph operations:
 
 Authors:
     - Eliezer Stavsky, 2012 (eli.stavsky@gmail.com)
+    - Arno Klein, 2016  (arno@mindboggle.info)  http://binarybottle.com
 
-Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 import networkx as nx
@@ -17,9 +18,6 @@ import networkx as nx
 from mindboggle.guts.kernels import rbf_kernel
 
 
-#-----------------------------------------------------------------------------
-#    Diagonal degree matrix
-#-----------------------------------------------------------------------------
 def diagonal_degree_matrix(W, inverse=False, square_root=False):
     """
     Compute diagonal degree matrix.
@@ -35,8 +33,18 @@ def diagonal_degree_matrix(W, inverse=False, square_root=False):
     ddm : N x N sparse matrix in csr format (diagonal matrix)
          "csr" stands for "compressed sparse row" matrix
          (http://docs.scipy.org/doc/scipy/reference/sparse.html)
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from mindboggle.guts.graph import diagonal_degree_matrix
+    >>> W = np.array([[10,2.3,3], [0,0,3], [0,1.5,0]])
+    >>> tocsr = diagonal_degree_matrix(W, inverse=False, square_root=False)
+    >>> tocsr.data
+    array([ 15.3,   3. ,   1.5])
+
     """
-    import math
+    import numpy as np
     from scipy.sparse import lil_matrix
 
     stability_term = 0.000001
@@ -47,7 +55,8 @@ def diagonal_degree_matrix(W, inverse=False, square_root=False):
         if not square_root:
             ddm.setdiag(1 / (W.sum(axis=1) + stability_term))
         else:
-            ddm.setdiag(math.sqrt(1 / (W.sum(axis=1) + stability_term)))
+            #ddm.setdiag(math.sqrt(1 / (W.sum(axis=1) + stability_term)))
+            ddm.setdiag(np.sqrt(1 / (W.sum(axis=1) + stability_term)))
 
     else:
         ddm.setdiag(W.sum(axis=1))
@@ -55,11 +64,8 @@ def diagonal_degree_matrix(W, inverse=False, square_root=False):
     return ddm.tocsr()
 
 
-#-----------------------------------------------------------------------------
-#    Matrix weights and affinity matrix
-#-----------------------------------------------------------------------------
 def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
-                 G=nx.Graph(), sigma=20):
+                 G=nx.Graph(), sigma=20, verbose=False):
     """
     Construct weighted edges of a graph and compute an affinity matrix.
 
@@ -76,11 +82,34 @@ def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
     add_to_graph :  boolean (add to graph?)
     G :  networkx graph
     sigma :  float (parameter for rbf_kernel)
+    verbose : Boolean
+        print statements?
 
     Returns
     -------
     G :  networkx graph
     affinity_matrix :  numpy array (sparse affinity matrix)
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import networkx as nx
+    >>> from mindboggle.guts.kernels import rbf_kernel
+    >>> from mindboggle.guts.graph import weight_graph
+    >>> Nodes = np.array([0,1,2,3,4])
+    >>> Indices = [0,1,2,3,4]
+    >>> Meshes = np.array([[1,2,3],[0,1,2],[0,1,3],[0,1,4],[0,2,3],[0,3,4]])
+    >>> kernel = rbf_kernel
+    >>> add_to_graph = True
+    >>> G = nx.Graph()
+    >>> sigma = 20
+    >>> verbose = False
+    >>> G, affinity_matrix = weight_graph(Nodes, Indices, Meshes, kernel,
+    ...                                   add_to_graph, G, sigma, verbose)
+    >>> G.size()
+    9
+    >>> G.degree()
+    {0.0: 4, 1.0: 4, 2.0: 3, 3.0: 4, 4.0: 3}
 
     """
     import numpy as np
@@ -88,7 +117,7 @@ def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
     from mindboggle.guts.kernels import rbf_kernel, cotangent_kernel, inverse_distance
 
     if kernel is rbf_kernel or kernel is inverse_distance:
-        if kernel is rbf_kernel:
+        if verbose and kernel is rbf_kernel:
             print('Compute weights using rbf kernel (sigma={0})'.format(sigma))
         else:
             print('Compute weights using inverse distance kernel (sigma={0})'.
@@ -110,14 +139,16 @@ def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
             G.add_weighted_edges_from(weighted_edges)
 
         # Construct affinity matrix
-        print('Construct sparse affinity matrix of size {0}'.
-              format(Nodes.shape[0]))
+        if verbose:
+            print('Construct sparse affinity matrix of size {0}'.
+                format(Nodes.shape[0]))
         affinity_matrix = lil_matrix((Nodes.shape[0], Nodes.shape[0]))
         for [i, j, edge_weight] in weighted_edges:
             affinity_matrix[i, j] = affinity_matrix[j, i] = edge_weight
 
     elif kernel is cotangent_kernel:
-        print('Compute weights using cotangents')
+        if verbose:
+            print('Compute weights using cotangents')
         affinity_matrix = cotangent_kernel(Nodes, Meshes)
 
         # Add weights to graph
@@ -129,7 +160,8 @@ def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
                                           edge_mat[i,1],
                                           affinity_matrix[edge_mat[i]]]
                                           for i in range(affinity_matrix.shape[0])])
-            print('Add weighted edges to the graph')
+            if verbose:
+                print('Add weighted edges to the graph')
             G.add_weighted_edges_from(weighted_edges)
 
     # Return the affinity matrix as a "compressed sparse row" matrix
@@ -140,10 +172,7 @@ def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
         return affinity_matrix.tocsr()
 
 
-#-----------------------------------------------------------------------------
-#    Graph Laplacian
-#-----------------------------------------------------------------------------
-def graph_laplacian(W, type_of_laplacian='norm1'):
+def graph_laplacian(W, type_of_laplacian='norm1', verbose=False):
     """
     Compute normalized and unnormalized graph Laplacians.
 
@@ -158,40 +187,69 @@ def graph_laplacian(W, type_of_laplacian='norm1'):
         - norm2: normalized Laplacian (Lap = ddmi_sq * W * ddmi_sq)
         - norm3: normalized Laplacian (Lap = inv(D) * L)
         - random_walk: random walk Laplacian (Lap = inv(D) * W)
+    verbose : Boolean
+        print statements?
 
     Returns
     -------
     Laplacian : N x N sparse matrix in csr format
                (Graph Laplacian of affinity matrix)
 
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import scipy.sparse as sparse
+    >>> from mindboggle.guts.graph import graph_laplacian
+    >>> row = np.array([0, 0, 1, 2, 2, 2])
+    >>> col = np.array([0, 2, 2, 0, 1, 2])
+    >>> data = np.array([1, 2, 3, 4, 5, 6])
+    >>> W = sparse.csr_matrix((data, (row, col)), shape=(3, 3)).toarray()
+    >>> W
+    array([[1, 0, 2],
+           [0, 0, 3],
+           [4, 5, 6]])
+    >>> type_of_laplacian = 'norm1'
+    >>> verbose = False
+    >>> Laplacian = graph_laplacian(W, type_of_laplacian, verbose)
+    >>> Laplacian
+    matrix([[ 0.66666644,  0.        , -0.29814234],
+            [ 0.        ,  0.99999967, -0.44721351],
+            [-0.59628467, -0.74535584,  0.59999996]])
+
     """
 
     if type_of_laplacian is 'basic':
-        print("Calculate unnormalized Laplacian")
+        if verbose:
+            print("Calculate unnormalized Laplacian")
         Laplacian = diagonal_degree_matrix(W) - W
 
     elif type_of_laplacian is 'norm1':
-        print("Normalize the Laplacian")
+        if verbose:
+            print("Normalize the Laplacian")
         ddmi_sq = diagonal_degree_matrix(W, inverse=True, square_root=True)
         Laplacian = ddmi_sq * (diagonal_degree_matrix(W, inverse=False, square_root=False) - W) * ddmi_sq
 
     elif type_of_laplacian is 'norm2':
-        print("Normalize the Laplacian")
+        if verbose:
+            print("Normalize the Laplacian")
         ddmi_sq = diagonal_degree_matrix(W, inverse=True, square_root=True)
         Laplacian = ddmi_sq * W * ddmi_sq
 
     elif type_of_laplacian is 'norm3':
-        print("Normalize the Laplacian")
+        if verbose:
+            print("Normalize the Laplacian")
         ddmi = diagonal_degree_matrix(W, inverse=True, square_root=False)
         Laplacian = ddmi * (diagonal_degree_matrix(W, inverse=False, square_root=False) - W)
 
     elif type_of_laplacian is 'random_walk':
-        print("Compute Random Walk Laplacian")
+        if verbose:
+            print("Compute Random Walk Laplacian")
         ddmi = diagonal_degree_matrix(W, inverse=True, square_root=False)
         Laplacian = ddmi * W
 
     else:
-        print('Option is not available')
+        if verbose:
+            print('Option is not available')
         Laplacian = 0
 
     return Laplacian

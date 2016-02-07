@@ -880,7 +880,8 @@ def count_per_label(labels, include_labels=[], exclude_labels=[]):
     >>> counts
     [3, 4, 5]
 
-    The following does not work on travis because nibabel won't import:
+    Skip the following when testing on https://travis-ci.org/nipy/mindboggle
+    because the travis.yml file doesn't install nibabel (requires sudo):
 
     >>> import nibabel as nb  # doctest: +SKIP
     >>> from mindboggle.mio.vtks import read_scalars  # doctest: +SKIP

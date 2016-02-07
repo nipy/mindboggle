@@ -184,7 +184,8 @@ class Bounds:
         # Step 1. Construct affinity matrix - compute edge weights
         if self.Points.shape and self.Indices.shape and self.Faces.shape:
             self.affinity_matrix = go.weight_graph(self.Points, self.Indices,
-                self.Faces, kernel=kernel, sigma=sigma, add_to_graph=False)
+                self.Faces, kernel=kernel, sigma=sigma, add_to_graph=False,
+                verbose=False)
         else:
             print("  Missing data!")
             sys.exit()
