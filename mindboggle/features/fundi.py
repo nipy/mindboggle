@@ -127,8 +127,9 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
             # Find outer anchor points on the boundary of the surface region,
             # to serve as fundus endpoints:
             #-----------------------------------------------------------------
+            verbose = False
             outer_anchors, tracks = find_outer_anchors(indices_fold,
-                neighbor_lists, values, depths, min_separation)
+                neighbor_lists, values, depths, min_separation, verbose)
 
             #-----------------------------------------------------------------
             # Find inner anchor points:
@@ -142,8 +143,8 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
             B = -1 * np.ones(npoints)
             B[indices_fold] = 1
             skeleton = connect_points_erosion(B, neighbor_lists,
-                outer_anchors, inner_anchors, values,
-                erode_ratio, erode_min_size, save_steps=[], save_vtk='')
+                outer_anchors, inner_anchors, values, erode_ratio,
+                erode_min_size, save_steps=[], save_vtk='', verbose=False)
             if skeleton:
                 skeletons.extend(skeleton)
 
