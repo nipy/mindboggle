@@ -24,31 +24,36 @@ def execute(cmd, type='os'):
     Examples
     --------
     >>> from mindboggle.guts.utilities import execute
-    >>> cmd = ['ls', '-l', '-a', '.']
+    >>> cmd = ['date', '-r', '0']
     >>> type = 'subprocess'
     >>> execute(cmd, type)
+    Wed Dec 31 19:00:00 EST 1969
     >>> type = 'os'
     >>> execute(cmd, type)
-    >>> cmd = 'ls -l -a .'
+    Wed Dec 31 19:00:00 EST 1969
+    >>> cmd = 'date -r 0'
     >>> execute(cmd)
+    Wed Dec 31 19:00:00 EST 1969
 
     """
     from subprocess import call
-    import sys
 
-    if isinstance(cmd, str):
-        print(cmd)
-    else:
-        print(' '.join(cmd))
+    verbose = False
+    if verbose:
+        if isinstance(cmd, str):
+            print(cmd)
+        else:
+            print(' '.join(cmd))
 
     # Use subprocess.call:
     if type == 'subprocess':
         try:
             retcode = call(cmd)
             if retcode < 0:
-                print >>sys.stderr, "Child terminated by signal", -retcode
+                raise IOError("Child terminated by signal: retcode {0}".
+                              format(retcode))
         except OSError, e:
-            print >>sys.stderr, "Execution failed:", e
+            raise OSError("Execution failed: {0}".format(e))
 
     # Use os.system:
     elif type == 'os':
@@ -61,10 +66,10 @@ def execute(cmd, type='os'):
         try:
             system(cmd)
         except OSError, e:
-            print >>sys.stderr, "Execution failed:", e
+            raise OSError("Execution failed: {0}".format(e))
 
     else:
-        sys.exit('Select either "subprocess" or "os" for execution type.')
+        raise IOError('Select either "subprocess" or "os" for execution type.')
 
 
 def list_strings(string1='', string2='', string3='', string4=''):
@@ -82,16 +87,28 @@ def list_strings(string1='', string2='', string3='', string4=''):
     -------
     string_list : list of strings
 
+    Examples
+    --------
+    >>> from mindboggle.guts.utilities import list_strings
+    >>> string1 = 'a b c'
+    >>> string2 = 'd e f'
+    >>> string3 = ''
+    >>> string4 = 'j k l'
+    >>> output_file = ''
+    >>> string_list = list_strings(string1, string2, string3, string4)
+    >>> string_list
+    ['a b c', 'd e f', 'j k l']
+
     """
 
     string_list = []
-    if string1:
+    if string1 and isinstance(string1, str):
         string_list.append(string1)
-    if string2:
+    if string2 and isinstance(string1, str):
         string_list.append(string2)
-    if string3:
+    if string3 and isinstance(string1, str):
         string_list.append(string3)
-    if string4:
+    if string4 and isinstance(string1, str):
         string_list.append(string4)
 
     return string_list

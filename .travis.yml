@@ -55,7 +55,7 @@ script:
 #  - nosetests --with-coverage --with-doctest mindboggle/guts/
 #  - nosetests --with-coverage --with-doctest mindboggle/shapes/
 #  - nosetests --with-coverage --with-doctest mindboggle/mio/vtks.py
-  - nosetests --with-coverage --with-doctest mindboggle/guts/paths.py
+  - nosetests --with-coverage --with-doctest mindboggle/guts/utilities.py
 
 ## Calculate coverage:
 #after_success:
