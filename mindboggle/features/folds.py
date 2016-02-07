@@ -14,7 +14,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #=============================================================================
 def extract_folds(depth_file, min_vertices=10000, min_fold_size=50, 
                   do_fill_holes=False, min_hole_depth=0.001, 
-                  save_file=False):
+                  save_file=False, verbose=False):
     """
     Use depth to extract folds from a triangular surface mesh.
 
@@ -53,6 +53,8 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
         largest non-zero depth value that will stop a hole from being filled
     save_file : Boolean
         save output VTK file?
+    verbose : Boolean
+        verbose output?
 
     Returns
     -------
@@ -75,47 +77,56 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
     >>> from mindboggle.guts.mesh import find_neighbors_from_file
     >>> from mindboggle.features.folds import extract_folds
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'shapes', 'lh.pial.travel_depth.vtk')
+    >>> depth_file = os.path.join(path, 'shapes', 'left_cortical_surface', 'travel_depth.vtk')
     >>> neighbor_lists = find_neighbors_from_file(depth_file)
     >>> min_vertices = 10000
     >>> min_fold_size = 50
     >>> do_fill_holes = False #True
     >>> min_hole_depth = 0.001
     >>> save_file = True
+    >>> verbose = False
     >>> folds, n_folds, thr, bins, bin_edges, folds_file = extract_folds(depth_file,
-    ...     min_vertices, min_fold_size, do_fill_holes, min_hole_depth, save_file)
+    ...     min_vertices, min_fold_size, do_fill_holes, min_hole_depth,
+    ...     save_file, verbose)  # doctest: +ELLIPSIS
+    >>> n_folds
+    26
+    >>> [len([x for x in folds if x == y]) for y in range(n_folds)]  # doctest: +ELLIPSIS
+    [790, 84008, 2856, 1209, 6623, 211, ..., 101, 158, 140, 235, 71, 73]
     >>>
-    >>> ## View folds:
-    >>> #import numpy as np
-    >>> #import pylab
-    >>> #from scipy.ndimage.filters import gaussian_filter1d
-    >>> #from mindboggle.mio.vtks import read_scalars
-    >>> #from mindboggle.mio.plots import plot_surfaces
-    >>> #plot_surfaces('folds.vtk')
-    >>> ## Plot histogram and depth threshold:
-    >>> #depths, name = read_scalars(depth_file)
-    >>> #nbins = np.round(len(depths) / 100.0)
-    >>> #a,b,c = pylab.hist(depths, bins=nbins)
-    >>> #pylab.plot(thr*np.ones((100,1)), np.linspace(0, max(bins), 100), 'r.')
-    >>> #pylab.show()
-    >>> ## Plot smoothed histogram:
-    >>> #bins_smooth = gaussian_filter1d(bins.tolist(), 5)
-    >>> #pylab.plot(range(len(bins)), bins, '.', range(len(bins)), bins_smooth,'-')
-    >>> #pylab.show()
+    >>> # View folds:
+    >>> def vis():
+    ...     import numpy as np
+    ...     import pylab
+    ...     from scipy.ndimage.filters import gaussian_filter1d
+    ...     from mindboggle.mio.vtks import read_scalars
+    ...     from mindboggle.mio.plots import plot_surfaces
+    ...     plot_surfaces('folds.vtk')
+    ...     # Plot histogram and depth threshold:
+    ...     depths, name = read_scalars(depth_file)
+    ...     nbins = np.round(len(depths) / 100.0)
+    ...     a,b,c = pylab.hist(depths, bins=nbins)
+    ...     pylab.plot(thr*np.ones((100,1)), np.linspace(0, max(bins), 100), 'r.')
+    ...     pylab.show()
+    ...     # Plot smoothed histogram:
+    ...     bins_smooth = gaussian_filter1d(bins.tolist(), 5)
+    ...     pylab.plot(range(len(bins)), bins, '.', range(len(bins)), bins_smooth,'-')
+    ...     pylab.show()
+    >>> vis() # doctest: +SKIP
 
     """
     import os
-    import sys
     import numpy as np
     from time import time
     from scipy.ndimage.filters import gaussian_filter1d
+
     from mindboggle.mio.vtks import rewrite_scalars, read_vtk
     from mindboggle.guts.mesh import find_neighbors
     from mindboggle.guts.morph import fill_holes
     from mindboggle.guts.segment import segment
 
-    print("Extract folds in surface mesh")
-    t0 = time()
+    if verbose:
+        print("Extract folds in surface mesh")
+        t0 = time()
 
     #-------------------------------------------------------------------------
     # Load depth values for all vertices
@@ -134,7 +145,7 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
     if npoints > min_vertices:
         nbins = np.round(npoints / 100.0)
     else:
-        sys.err("  Expecting at least {0} vertices to create depth histogram".
+        raise IOError("  Expecting at least {0} vertices to create depth histogram".
             format(min_vertices))
     bins, bin_edges = np.histogram(depths, bins=nbins)
 
@@ -162,20 +173,23 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
         #---------------------------------------------------------------------
         # Segment deep vertices as an initial set of folds
         #---------------------------------------------------------------------
-        print("  Segment vertices deeper than {0:.2f} as folds".format(depth_threshold))
-        t1 = time()
+        if verbose:
+            print("  Segment vertices deeper than {0:.2f} as folds".format(depth_threshold))
+            t1 = time()
         folds = segment(indices_deep, neighbor_lists)
         # Slightly slower alternative -- fill boundaries:
         #regions = -1 * np.ones(len(points))
         #regions[indices_deep] = 1
         #folds = segment_by_filling_borders(regions, neighbor_lists)
-        print('  ...Segmented folds ({0:.2f} seconds)'.format(time() - t1))
+        if verbose:
+            print('  ...Segmented folds ({0:.2f} seconds)'.format(time() - t1))
 
         #---------------------------------------------------------------------
         # Remove small folds
         #---------------------------------------------------------------------
         if min_fold_size > 1:
-            print('  Remove folds smaller than {0}'.format(min_fold_size))
+            if verbose:
+                print('  Remove folds smaller than {0}'.format(min_fold_size))
             unique_folds = [x for x in np.unique(folds) if x != -1]
             for nfold in unique_folds:
                 indices_fold = [i for i,x in enumerate(folds) if x == nfold]
@@ -188,7 +202,8 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
         #       so exclude_range includes outer surface values close to zero.
         #---------------------------------------------------------------------
         if do_fill_holes:
-            print("  Find and fill holes in the folds")
+            if verbose:
+                print("  Find and fill holes in the folds")
             folds = fill_holes(folds, neighbor_lists, values=depths,
                                exclude_range=[0, min_hole_depth])
 
@@ -204,10 +219,12 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
         n_folds = i_fold + 1
 
         # Print statement
-        print('  ...Extracted {0} folds ({1:.2f} seconds)'.
-              format(n_folds, time() - t0))
+        if verbose:
+            print('  ...Extracted {0} folds ({1:.2f} seconds)'.
+                  format(n_folds, time() - t0))
     else:
-        print('  No deep vertices')
+        if verbose:
+            print('  No deep vertices')
 
     folds = [int(x) for x in folds]
 
@@ -228,136 +245,155 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
     return folds, n_folds, depth_threshold, bins, bin_edges, folds_file
 
 
-#=============================================================================
-# Extract subfolds
-#=============================================================================
-def extract_subfolds(depth_file, folds, min_size=10, depth_factor=0.25,
-                     depth_ratio=0.1, tolerance=0.01, save_file=False):
-    """
-    Use depth to segment folds into subfolds in a triangular surface mesh.
-
-    Note ::
-
-        The function extract_sulci() performs about the same whether folds
-        or subfolds are used as input.  The latter leads to some loss of
-        small subfolds and possibly holes for small subfolds in the middle
-        of other subfolds.
-
-    Note about the watershed() function:
-    The watershed() function performs individual seed growing from deep seeds,
-    repeats segmentation from the resulting seeds until each seed's segment
-    touches a boundary. The function segment() fills in the rest. Finally
-    segments are joined if their seeds are too close to each other.
-    Despite these precautions, the order of seed selection in segment() could
-    possibly influence the resulting borders between adjoining segments.
-    [The propagate() function is slower and insensitive to depth,
-     but is not biased by seed order.]
-
-    Parameters
-    ----------
-    depth_file : string
-        surface mesh file in VTK format with faces and depth scalar values
-    folds : list of integers
-        fold numbers for all vertices (-1 for non-fold vertices)
-    min_size : integer
-        minimum number of vertices for a subfold
-    depth_factor : float
-        watershed() depth_factor:
-        factor to determine whether to merge two neighboring watershed catchment
-        basins -- they are merged if the Euclidean distance between their basin
-        seeds is less than this fraction of the maximum Euclidean distance
-        between points having minimum and maximum depths
-    depth_ratio : float
-        watershed() depth_ratio:
-        the minimum fraction of depth for a neighboring shallower
-        watershed catchment basin (otherwise merged with the deeper basin)
-    tolerance : float
-        watershed() tolerance:
-        tolerance for detecting differences in depth between vertices
-    save_file : Boolean
-        save output VTK file?
-
-    Returns
-    -------
-    subfolds : list of integers
-        fold numbers for all vertices (-1 for non-fold vertices)
-    n_subfolds :  int
-        number of subfolds
-    subfolds_file : string (if save_file)
-        name of output VTK file with fold IDs (-1 for non-fold vertices)
-
-    Examples
-    --------
-    >>> import os
-    >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars
-    >>> from mindboggle.guts.mesh import find_neighbors_from_file
-    >>> from mindboggle.features.folds import extract_subfolds
-    >>> from mindboggle.mio.plots import plot_surfaces
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'shapes', 'lh.pial.travel_depth.vtk')
-    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
-    >>> folds, name = read_scalars(folds_file)
-    >>> min_size = 10
-    >>> depth_factor = 0.5
-    >>> depth_ratio = 0.1
-    >>> tolerance = 0.01
-    >>> subfolds, n_subfolds, subfolds_file = extract_subfolds(depth_file,
-    ...     folds, min_size, depth_factor, depth_ratio, tolerance, True)
-    >>>
-    >>> ## View:
-    >>> #rewrite_scalars(depth_file, 'subfolds.vtk', subfolds, 'subfolds', subfolds)
-    >>> #plot_surfaces('subfolds.vtk')
-
-    """
-    import os
-    import numpy as np
-    from time import time
-    from mindboggle.mio.vtks import rewrite_scalars, read_vtk
-    from mindboggle.guts.mesh import find_neighbors
-    from mindboggle.guts.segment import segment, propagate, watershed
-
-    print("Segment folds into subfolds")
-    t0 = time()
-
-    #-------------------------------------------------------------------------
-    # Load depth values for all vertices
-    #-------------------------------------------------------------------------
-    points, indices, lines, faces, depths, scalar_names, npoints, \
-        input_vtk = read_vtk(depth_file, return_first=True, return_array=True)
-
-    #-------------------------------------------------------------------------
-    # Find neighbors for each vertex
-    #-------------------------------------------------------------------------
-    neighbor_lists = find_neighbors(faces, npoints)
-
-    #-------------------------------------------------------------------------
-    # Segment folds into "watershed basins"
-    #-------------------------------------------------------------------------
-    indices_folds = [i for i,x in enumerate(folds) if x != -1]
-    subfolds, seed_indices = watershed(depths, points, indices_folds,
-                                 neighbor_lists, min_size, depth_factor=0.25,
-                                 depth_ratio=0.1, tolerance=0.01, regrow=True)
-
-    # Print statement
-    n_subfolds = len([x for x in np.unique(subfolds) if x != -1])
-    print('  ...Extracted {0} subfolds ({1:.2f} seconds)'.
-          format(n_subfolds, time() - t0))
-
-    #-------------------------------------------------------------------------
-    # Return subfolds, number of subfolds, file name
-    #-------------------------------------------------------------------------
-    if save_file:
-        subfolds_file = os.path.join(os.getcwd(), 'subfolds.vtk')
-        rewrite_scalars(depth_file, subfolds_file,
-                        subfolds, 'subfolds', subfolds)
-
-        if not os.path.exists(subfolds_file):
-            raise(IOError(subfolds_file + " not found"))
-
-    else:
-        subfolds_file = None
-
-    return subfolds, n_subfolds, subfolds_file
+# #=============================================================================
+# # Extract subfolds
+# #=============================================================================
+# def extract_subfolds(depth_file, folds, min_size=10, depth_factor=0.25,
+#                      depth_ratio=0.1, tolerance=0.01, save_file=False,
+#                      verbose=False):
+#     """
+#     Use depth to segment folds into subfolds in a triangular surface mesh.
+#
+#     Note ::
+#
+#         The function extract_sulci() performs about the same whether folds
+#         or subfolds are used as input.  The latter leads to some loss of
+#         small subfolds and possibly holes for small subfolds in the middle
+#         of other subfolds.
+#
+#     Note about the watershed() function:
+#     The watershed() function performs individual seed growing from deep seeds,
+#     repeats segmentation from the resulting seeds until each seed's segment
+#     touches a boundary. The function segment() fills in the rest. Finally
+#     segments are joined if their seeds are too close to each other.
+#     Despite these precautions, the order of seed selection in segment() could
+#     possibly influence the resulting borders between adjoining segments.
+#     [The propagate() function is slower and insensitive to depth,
+#      but is not biased by seed order.]
+#
+#     Parameters
+#     ----------
+#     depth_file : string
+#         surface mesh file in VTK format with faces and depth scalar values
+#     folds : list of integers
+#         fold numbers for all vertices (-1 for non-fold vertices)
+#     min_size : integer
+#         minimum number of vertices for a subfold
+#     depth_factor : float
+#         watershed() depth_factor:
+#         factor to determine whether to merge two neighboring watershed
+#         catchment basins -- they are merged if the Euclidean distance between
+#         their basin seeds is less than this fraction of the maximum Euclidean
+#         distance between points having minimum and maximum depths
+#     depth_ratio : float
+#         watershed() depth_ratio:
+#         the minimum fraction of depth for a neighboring shallower
+#         watershed catchment basin (otherwise merged with the deeper basin)
+#     tolerance : float
+#         watershed() tolerance:
+#         tolerance for detecting differences in depth between vertices
+#     save_file : Boolean
+#         save output VTK file?
+#     verbose : Boolean
+#         verbose output?
+#
+#     Returns
+#     -------
+#     subfolds : list of integers
+#         fold numbers for all vertices (-1 for non-fold vertices)
+#     n_subfolds :  int
+#         number of subfolds
+#     subfolds_file : string (if save_file)
+#         name of output VTK file with fold IDs (-1 for non-fold vertices)
+#
+#     Examples
+#     --------
+#     >>> import os
+#     >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars
+#     >>> from mindboggle.guts.mesh import find_neighbors_from_file
+#     >>> from mindboggle.features.folds import extract_subfolds
+#     >>> from mindboggle.mio.plots import plot_surfaces
+#     >>> path = os.environ['MINDBOGGLE_DATA']
+#     >>> depth_file = os.path.join(path, 'shapes', 'left_cortical_surface',
+#     ...     'travel_depth.vtk')
+#     >>> folds_file = os.path.join(path, 'features', 'left_cortical_surface',
+#     ...     'folds.vtk')
+#     >>> folds, name = read_scalars(folds_file)
+#     >>> min_size = 10
+#     >>> depth_factor = 0.5
+#     >>> depth_ratio = 0.1
+#     >>> tolerance = 0.01
+#     >>> save_file = False
+#     >>> verbose = False
+#     >>> subfolds, n_subfolds, subfolds_file = extract_subfolds(depth_file,
+#     ...     folds, min_size, depth_factor, depth_ratio, tolerance, save_file,
+#     ...     verbose)
+#     >>> n_subfolds
+#     288
+#     >>> [len([x for x in subfolds if x == y]) for y in range(n_subfolds)]  # doctest: +ELLIPSIS
+#     [3406, 31, 678, 1208, 1241, 30,, ...,  93, 107, 68, 90, 131, 71]
+#     >>>
+#     >>> # View:
+#     >>> def vis():
+#     ...     rewrite_scalars(depth_file, 'subfolds.vtk', subfolds, 'subfolds',
+#     ...                     subfolds)
+#     ...     plot_surfaces('subfolds.vtk')
+#     >>> vis() # doctest: +SKIP
+#
+#     """
+#     import os
+#     import numpy as np
+#     from time import time
+#     from mindboggle.mio.vtks import rewrite_scalars, read_vtk
+#     from mindboggle.guts.mesh import find_neighbors
+#     from mindboggle.guts.segment import watershed
+#
+#     if verbose:
+#         print("Segment folds into subfolds")
+#         t0 = time()
+#
+#     #-------------------------------------------------------------------------
+#     # Load depth values for all vertices
+#     #-------------------------------------------------------------------------
+#     points, indices, lines, faces, depths, scalar_names, npoints, \
+#         input_vtk = read_vtk(depth_file, return_first=True, return_array=True)
+#
+#     #-------------------------------------------------------------------------
+#     # Find neighbors for each vertex
+#     #-------------------------------------------------------------------------
+#     neighbor_lists = find_neighbors(faces, npoints)
+#
+#     #-------------------------------------------------------------------------
+#     # Segment folds into "watershed basins"
+#     #-------------------------------------------------------------------------
+#     indices_folds = [i for i,x in enumerate(folds) if x != -1]
+#     subfolds, seed_indices = watershed(depths, points, indices_folds,
+#                                        neighbor_lists, min_size,
+#                                        depth_factor=0.25, depth_ratio=0.1,
+#                                        tolerance=0.01, regrow=True,
+#                                        verbose=False)
+#
+#     # Print statement
+#     n_subfolds = len([x for x in np.unique(subfolds) if x != -1])
+#     if verbose:
+#         print('  Extracted {0} subfolds ({1:.2f} seconds)'.
+#               format(n_subfolds, time() - t0))
+#
+#     #-------------------------------------------------------------------------
+#     # Return subfolds, number of subfolds, file name
+#     #-------------------------------------------------------------------------
+#     if save_file:
+#         subfolds_file = os.path.join(os.getcwd(), 'subfolds.vtk')
+#         rewrite_scalars(depth_file, subfolds_file,
+#                         subfolds, 'subfolds', subfolds)
+#
+#         if not os.path.exists(subfolds_file):
+#             raise(IOError(subfolds_file + " not found"))
+#
+#     else:
+#         subfolds_file = None
+#
+#     return subfolds, n_subfolds, subfolds_file
 
 #=============================================================================
 # Doctests

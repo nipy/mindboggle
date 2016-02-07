@@ -776,32 +776,37 @@ def track_values(seed, indices, neighbor_lists, values, sink=[]):
     Examples
     --------
     >>> # Track from deepest point in a fold to its boundary:
-    >>> import os
     >>> import numpy as np
-    >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars
+    >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.guts.mesh import find_neighbors_from_file
     >>> from mindboggle.guts.paths import track_values
-    >>> from mindboggle.mio.plots import plot_surfaces
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> values_file = os.path.join(path, 'shapes', 'likelihoods.vtk')
-    >>> vtk_file = os.path.join(path, 'shapes', 'lh.pial.travel_depth.vtk')
-    >>> fold_file = os.path.join(path, 'features', 'fold11.vtk')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> url1 = urls['left_folds']
+    >>> url2 = urls['left_travel_depth']
+    >>> folds_file = fetch_data(url1)
+    >>> values_file = fetch_data(url2)
+    >>> folds, name = read_scalars(folds_file, True, True)
+    >>> fold_number = 11
+    >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_number]
+    >>> neighbor_lists = find_neighbors_from_file(values_file)
     >>> values, name = read_scalars(values_file, True, True)
-    >>> neighbor_lists = find_neighbors_from_file(vtk_file)
-    >>> fold, name = read_scalars(fold_file)
-    >>> indices = [i for i,x in enumerate(fold) if x != -1]
-    >>> # Start from initial track points on boundary of a thresholded indices:
-    >>> seeds = [18267, 38339, 39689]
-    >>> seed = seeds[0]
-    >>> #
-    >>> track = track_values(seed, indices, neighbor_lists, values, sink=[])
-    >>> #
-    >>> # View:
-    >>> T = -1 * np.ones(len(values))
-    >>> T[track] = 1
-    >>> T[seed] = 2
-    >>> rewrite_scalars(vtk_file, 'track.vtk', T, 'track', fold)
-    >>> plot_surfaces('track.vtk')
+    >>> seed = indices_fold[np.argmin(values[indices_fold])]
+    >>> sink = []
+    >>> track = track_values(seed, indices_fold, neighbor_lists, values, sink)
+    >>> track[0:10]
+    [38198, 38207, 39702, 39714, 41177, 41193, 41210, 41222, 41234, 41247]
+
+    View track in fold on surface (skip test):
+
+    >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP
+    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
+    >>> T = -1 * np.ones(len(values)) # doctest: +SKIP
+    >>> T[indices_fold] = 1 # doctest: +SKIP
+    >>> T[track] = 2 # doctest: +SKIP
+    >>> T[seed] = 3 # doctest: +SKIP
+    >>> rewrite_scalars(values_file, 'track.vtk', T, 'track', [], -1) # doctest: +SKIP
+    >>> plot_surfaces('track.vtk') # doctest: +SKIP
 
     """
     import numpy as np
