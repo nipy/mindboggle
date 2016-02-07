@@ -36,7 +36,7 @@ def dilate(indices, nedges, neighbor_lists):
     >>> import numpy as np
     >>> from mindboggle.guts.morph import dilate
     >>> from mindboggle.guts.mesh import find_neighbors_from_file
-    >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars
+    >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
     >>> url1 = urls['left_travel_depth']
@@ -56,6 +56,7 @@ def dilate(indices, nedges, neighbor_lists):
     Write results to vtk file and view (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
+    >>> from mindboggle.mio.vtks import rewrite_scalars
     >>> IDs = -1 * np.ones(len(folds)) # doctest: +SKIP
     >>> IDs[dilated_indices] = 2 # doctest: +SKIP
     >>> IDs[indices] = 1 # doctest: +SKIP
@@ -317,7 +318,6 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[],
     >>> regions = fill_holes(regions, neighbor_lists, values, exclude_range,
     ...                      background_value)
     >>> indices2 = [i for i,x in enumerate(regions) if x != background_value]
-    >>> [x for x in indices and not in indices2]
     >>> filter(lambda x:x not in indices2, indices)
     [925, 926, 1292, 1293, 1294, 1305, 1306]
 
