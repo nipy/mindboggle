@@ -11,18 +11,65 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 
 def rbf_kernel(x1, x2, sigma):
+    """
+    Compute normalized and unnormalized graph Laplacians.
+
+    Parameters
+    ----------
+    x1 : Nx1 numpy array
+    x2 : Nx1 numpy array
+    sigma : float
+
+    Returns
+    -------
+    rbf : float
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from mindboggle.guts.kernels import rbf_kernel
+    >>> x1 = np.array([0.1,0.2,0.4,0])
+    >>> x2 = np.array([0.1,0.3,0.5,0])
+    >>> sigma = 0.5
+    >>> rbf_kernel(x1, x2, sigma)
+    0.96078943915232318
+
+    """
     import numpy as np
 
     return np.exp(-np.linalg.norm(x1 - x2) ** 2 / (2 * sigma ** 2))
 
 
 def cotangent_kernel(Nodes, Meshes):
+    """
+    Cotangent kernel.
+
+    Parameters
+    ----------
+    Nodes : numpy array
+    Meshes : numpy array
+
+    Returns
+    -------
+    W : N x N matrix
+        weight matrix
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from mindboggle.guts.kernels import cotangent_kernel
+    >>> Nodes = np.array([0,1,2,3,4])
+    >>> Meshes = np.array([[1,2,3],[0,1,2],[0,1,3],[0,1,4],[0,2,3],[0,3,4]])
+    >>> cotangent_kernel(Nodes, Meshes)
+    0.96078943915232318
+
+    """
     import numpy as np
     from scipy.sparse import lil_matrix
 
     num_nodes = Nodes.shape[0]
     W = lil_matrix((num_nodes, num_nodes))
-    print('Constructing sparse affinity matrix...')
+    #print('Constructing sparse affinity matrix...')
     for c in Meshes:
         # Obtain vertices which comprise face
         v0, v1, v2 = Nodes[c[0]], Nodes[c[1]], Nodes[c[2]]
@@ -44,6 +91,30 @@ def cotangent_kernel(Nodes, Meshes):
 
 
 def inverse_distance(x1, x2, epsilon):
+    """
+    Inverse distance kernel.
+
+    Parameters
+    ----------
+    x1 : Nx1 numpy array
+    x2 : Nx1 numpy array
+    epsilon : float
+
+    Returns
+    -------
+    d : float
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from mindboggle.guts.kernels import inverse_distance
+    >>> x1 = np.array([0.1,0.2,0.4,0])
+    >>> x2 = np.array([0.1,0.3,0.5,0])
+    >>> epsilon = 0.05
+    >>> inverse_distance(x1, x2, epsilon)
+    5.2240774992748289
+
+    """
     import numpy as np
 
     return 1.0/(np.linalg.norm(x1 - x2) + epsilon)
