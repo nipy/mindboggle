@@ -3,10 +3,10 @@
 Curves, tracks, skeletons connecting surface mesh vertices.
 
 Authors:
-    - Arno Klein, 2012-2013  (arno@mindboggle.info)  http://binarybottle.com
+    - Arno Klein, 2012-2016  (arno@mindboggle.info)  http://binarybottle.com
     - Yrjo Hame, 2012  (yrjo.hame@gmail.com)
 
-Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -1100,8 +1100,8 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP
     >>> S[outer_anchors] = 10 # doctest: +SKIP
     >>> rewrite_scalars(folds_file, 'find_outer_anchors.vtk',
-    >>>                 S, 'tracks_endpoints_on_folds', [], -1)
-    >>> plot_surfaces('find_outer_anchors.vtk')
+    ...                 S, 'tracks_endpoints_on_folds', [], -1) # doctest: +SKIP
+    >>> plot_surfaces('find_outer_anchors.vtk') # doctest: +SKIP
 
     """
     import numpy as np
@@ -1312,10 +1312,10 @@ def find_max_values(points, values, min_separation=10, thr=0.5):
 
     >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
     >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP
-    >>> values[inner_anchors] = np.max(values) + 0.1
+    >>> values[inner_anchors] = np.max(values) + 0.1 # doctest: +SKIP
     >>> rewrite_scalars(depth_file, 'find_max_values.vtk',
-    >>>                 values, 'find_max_values', [], -1)
-    >>> plot_surfaces('find_max_values.vtk')
+    ...                 values, 'find_max_values', [], -1) # doctest: +SKIP
+    >>> plot_surfaces('find_max_values.vtk') # doctest: +SKIP
 
     """
     import numpy as np

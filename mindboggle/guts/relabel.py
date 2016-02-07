@@ -37,21 +37,23 @@ def relabel_volume(input_file, old_labels, new_labels, output_file=''):
     >>> import os
     >>> from mindboggle.guts.relabel import relabel_volume
     >>> from mindboggle.mio.labels import DKTprotocol
-    >>> from mindboggle.mio.plots import plot_volumes
-    >>> # Convert DKT31 to DKT25 protocol:
-    >>> #data_path = os.environ['MINDBOGGLE_DATA']
-    >>> #input_file = os.path.join(data_path, 'labels', 'labels.DKT31.manual.nii.gz')
-    >>> #old_labels = [1010,1023,1026,1027,1019,1020,2010,2023,2026,2027,2019,2020]
-    >>> #new_labels = [1002,1002,1002,1003,1018,1018,2002,2002,2002,2003,2018,2018]
-    >>> # Convert labels to non/cortex segmentation:
-    >>> input_file = os.path.join(os.environ['HOME'], 'mindboggled/OASIS-TRT-20-1/labels/FreeSurfer_labels.nii.gz')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> input_file = fetch_data(urls['freesurfer_labels'])
+    >>> os.rename(input_file, input_file + '.nii.gz')
+    >>> input_file = input_file + '.nii.gz'
     >>> dkt = DKTprotocol()
-    >>> old_labels = dkt.cortex_numbers + dkt.noncortex_numbers
-    >>> new_labels = [2 for x in dkt.cortex_numbers] + [3 for x in dkt.noncortex_numbers]
+    >>> old_labels = dkt.cerebrum_cortex_numbers + dkt.cerebrum_noncortex_numbers
+    >>> new_labels = [2 for x in dkt.cerebrum_cortex_numbers] + \
+    ...              [3 for x in dkt.cerebrum_noncortex_numbers]
     >>> output_file = ''
-    >>> output_file = relabel_volume(input_file, old_labels, new_labels, output_file)
-    >>> # View
-    >>> plot_volumes(output_file)
+    >>> output_file = relabel_volume(input_file, old_labels, new_labels,
+    ...                              output_file)
+
+    Write out nifti file and view (skip test):
+
+    >>> from mindboggle.mio.plots import plot_volumes # doctest: +SKIP
+    >>> plot_volumes(output_file) # doctest: +SKIP
 
     """
     import os
