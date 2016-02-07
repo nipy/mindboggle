@@ -255,37 +255,37 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[],
     >>> # Find a vertex whose removal (with its neighbors) would create a hole
     >>> I = np.where(folds==n_fold)[0]
     >>> for index1 in I:
-    >>>     N1 = neighbor_lists[index1]
-    >>>     stop = True
-    >>>     for n in N1:
-    >>>         if any(folds[neighbor_lists[n]] == background_value):
-    >>>             stop = False
-    >>>             break
-    >>>         else:
-    >>>             for f in neighbor_lists[n]:
-    >>>                 if any(folds[neighbor_lists[f]] == background_value):
-    >>>                     stop = False
-    >>>                     break
-    >>>     if stop:
-    >>>         break
+    ...     N1 = neighbor_lists[index1]
+    ...     stop = True
+    ...     for n in N1:
+    ...         if any(folds[neighbor_lists[n]] == background_value):
+    ...             stop = False
+    ...             break
+    ...         else:
+    ...             for f in neighbor_lists[n]:
+    ...                 if any(folds[neighbor_lists[f]] == background_value):
+    ...                     stop = False
+    ...                     break
+    ...     if stop:
+    ...         break
     >>> folds[index1] = background_value
     >>> folds[N1] = background_value
     >>> # Hole 2:
     >>> I = np.where(folds==n_fold)[0]
     >>> for index2 in I:
-    >>>     N2 = neighbor_lists[index2]
-    >>>     stop = True
-    >>>     for n in N2:
-    >>>         if any(folds[neighbor_lists[n]] == background_value):
-    >>>             stop = False
-    >>>             break
-    >>>         else:
-    >>>             for f in neighbor_lists[n]:
-    >>>                 if any(folds[neighbor_lists[f]] == background_value):
-    >>>                     stop = False
-    >>>                     break
-    >>>     if stop:
-    >>>         break
+    ...     N2 = neighbor_lists[index2]
+    ...     stop = True
+    ...     for n in N2:
+    ...         if any(folds[neighbor_lists[n]] == background_value):
+    ...             stop = False
+    ...             break
+    ...         else:
+    ...             for f in neighbor_lists[n]:
+    ...                 if any(folds[neighbor_lists[f]] == background_value):
+    ...                     stop = False
+    ...                     break
+    ...     if stop:
+    ...         break
     >>> folds[index2] = background_value
     >>> folds[N2] = background_value
     >>> values = np.zeros(len(folds))
