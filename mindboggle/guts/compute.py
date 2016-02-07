@@ -882,23 +882,23 @@ def count_per_label(labels, include_labels=[], exclude_labels=[]):
 
     The following does not work on travis because nibabel won't import:
 
-    >>> import nibabel as nb  # doctest +SKIP
-    >>> from mindboggle.mio.vtks import read_scalars  # doctest +SKIP
-    >>> from mindboggle.mio.labels import DKTprotocol  # doctest +SKIP
-    >>> from mindboggle.guts.compute import count_per_label  # doctest +SKIP
-    >>> from mindboggle.mio.fetch_data import prep_tests  # doctest +SKIP
-    >>> urls, fetch_data = prep_tests()  # doctest +SKIP
-    >>> url = urls['freesurfer_labels']  # doctest +SKIP
-    >>> labels_file = fetch_data(url, 'test.nii.gz')  # doctest +SKIP
-    >>> img = nb.load(labels_file)  # doctest +SKIP
-    >>> hdr = img.get_header()  # doctest +SKIP
-    >>> labels = img.get_data().ravel()  # doctest +SKIP
-    >>> dkt = DKTprotocol()  # doctest +SKIP
-    >>> include_labels = dkt.label_numbers  # doctest +SKIP
-    >>> exclude_labels = []  # doctest +SKIP
+    >>> import nibabel as nb  # doctest: +SKIP
+    >>> from mindboggle.mio.vtks import read_scalars  # doctest: +SKIP
+    >>> from mindboggle.mio.labels import DKTprotocol  # doctest: +SKIP
+    >>> from mindboggle.guts.compute import count_per_label  # doctest: +SKIP
+    >>> from mindboggle.mio.fetch_data import prep_tests  # doctest: +SKIP
+    >>> urls, fetch_data = prep_tests()  # doctest: +SKIP
+    >>> url = urls['freesurfer_labels']  # doctest: +SKIP
+    >>> labels_file = fetch_data(url, 'test.nii.gz')  # doctest: +SKIP
+    >>> img = nb.load(labels_file)  # doctest: +SKIP
+    >>> hdr = img.get_header()  # doctest: +SKIP
+    >>> labels = img.get_data().ravel()  # doctest: +SKIP
+    >>> dkt = DKTprotocol()  # doctest: +SKIP
+    >>> include_labels = dkt.label_numbers  # doctest: +SKIP
+    >>> exclude_labels = []  # doctest: +SKIP
     >>> unique_labels, counts = count_per_label(labels,
-    ...     include_labels, exclude_labels)  # doctest +SKIP
-    >>> counts[0:5]  # doctest +SKIP
+    ...     include_labels, exclude_labels)  # doctest: +SKIP
+    >>> counts[0:5]  # doctest: +SKIP
     [972, 2414, 2193, 8329, 2941]
 
     """
