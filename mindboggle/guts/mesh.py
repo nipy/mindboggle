@@ -587,7 +587,6 @@ def remove_faces(faces, indices):
     >>> faces = [[1,2,3], [2,3,7], [4,7,8], [3,2,5]]
     >>> indices = [0,1,2,3,4,5]
     >>> remove_faces(faces, indices)
-    Reduced 4 to 2 triangular faces.
     [[1, 2, 3], [3, 2, 5]]
 
     """
@@ -597,10 +596,10 @@ def remove_faces(faces, indices):
     faces = [lst for lst in faces if len(fs.intersection(lst)) == 3]
     faces = np.reshape(np.ravel(faces), (-1, 3))
 
-    len_faces = len(faces)
-    if verbose and len(faces) < len_faces:
-       print('Reduced {0} to {1} triangular faces'.
-           format(len_faces, len(faces)))
+    #len_faces = len(faces)
+    #if verbose and len(faces) < len_faces:
+    #    print('Reduced {0} to {1} triangular faces'.
+    #        format(len_faces, len(faces)))
 
     return faces.tolist()
 
