@@ -597,10 +597,10 @@ def remove_faces(faces, indices):
     faces = [lst for lst in faces if len(fs.intersection(lst)) == 3]
     faces = np.reshape(np.ravel(faces), (-1, 3))
 
-    #len_faces = len(faces)
-    #if verbose and len(faces) < len_faces:
-    #    print('Reduced {0} to {1} triangular faces'.
-    #        format(len_faces, len(faces)))
+    len_faces = len(faces)
+    if verbose and len(faces) < len_faces:
+       print('Reduced {0} to {1} triangular faces'.
+           format(len_faces, len(faces)))
 
     return faces.tolist()
 
