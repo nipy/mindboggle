@@ -1057,13 +1057,18 @@ def compute_image_histogram(infile, nbins=100, threshold=0.0):
 
     Examples
     --------
+    >>> import os
     >>> from mindboggle.guts.compute import compute_image_histogram
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
     >>> url = urls['freesurfer_labels']
     >>> labels_file = fetch_data(url)
-    >>> histogram_values = compute_image_histogram(labels_file, nbins=100,
-    ...                                            threshold=0.5)
+    >>> os.rename(labels_file, labels_file + '.nii.gz')
+    >>> labels_file = labels_file + '.nii.gz'
+    >>> nbins = 100
+    >>> threshold = 0.5
+    >>> histogram_values = compute_image_histogram(labels_file, nbins,
+    ...                                            threshold)
     >>> histogram_values[0:3]
     array([102865, 119610,      0])
 
