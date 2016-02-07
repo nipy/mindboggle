@@ -117,11 +117,13 @@ def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
     from mindboggle.guts.kernels import rbf_kernel, cotangent_kernel, inverse_distance
 
     if kernel is rbf_kernel or kernel is inverse_distance:
-        if verbose and kernel is rbf_kernel:
-            print('Compute weights using rbf kernel (sigma={0})'.format(sigma))
-        else:
-            print('Compute weights using inverse distance kernel (sigma={0})'.
-                  format(sigma))
+        if verbose:
+            if kernel is rbf_kernel:
+                print('Compute weights using rbf kernel (sigma={0})'.
+                      format(sigma))
+            else:
+                print('Compute weights using inverse distance kernel '
+                      '(sigma={0})'.format(sigma))
 
         # Construct matrix of edge lines by breaking triangle into three edges.
         if Meshes.shape[1] == 3:
@@ -135,7 +137,8 @@ def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
 
         # Add weights to graph
         if add_to_graph:
-            print('Add weighted edges to the graph')
+            if verbose:
+                print('Add weighted edges to the graph')
             G.add_weighted_edges_from(weighted_edges)
 
         # Construct affinity matrix
