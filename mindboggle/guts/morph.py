@@ -33,30 +33,34 @@ def dilate(indices, nedges, neighbor_lists):
 
     Examples
     --------
-    >>> import os
     >>> import numpy as np
-    >>> from mindboggle.guts.mesh import find_neighbors_from_file
     >>> from mindboggle.guts.morph import dilate
+    >>> from mindboggle.guts.mesh import find_neighbors_from_file
     >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars
-    >>> from mindboggle.mio.plots import plot_surfaces
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'freesurfer', 'lh.pial.vtk')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> url1 = urls['left_travel_depth']
+    >>> url2 = urls['left_folds']
+    >>> vtk_file = fetch_data(url1)
+    >>> folds_file = fetch_data(url2)
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> nedges = 3
     >>> # Select a single fold:
-    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
-    >>> fold_number = 11 #11
+    >>> fold_number = 11
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
-    >>> #
     >>> dilated_indices = dilate(indices, nedges, neighbor_lists)
-    >>> #
-    >>> # Write results to vtk file and view:
-    >>> IDs = -1 * np.ones(len(folds))
-    >>> IDs[dilated_indices] = 2
-    >>> IDs[indices] = 1
-    >>> rewrite_scalars(vtk_file, 'dilate.vtk', IDs, 'dilated_fold', IDs)
-    >>> plot_surfaces('dilate.vtk')
+    >>> (len(indices), len(dilated_indices))
+    (1065, 1540)
+
+    Write results to vtk file and view (skip test):
+
+    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
+    >>> IDs = -1 * np.ones(len(folds)) # doctest: +SKIP
+    >>> IDs[dilated_indices] = 2 # doctest: +SKIP
+    >>> IDs[indices] = 1 # doctest: +SKIP
+    >>> rewrite_scalars(vtk_file, 'dilate.vtk', IDs, 'dilated_fold', IDs) # doctest: +SKIP
+    >>> plot_surfaces('dilate.vtk') # doctest: +SKIP
 
     """
     from mindboggle.guts.mesh import find_neighborhood
@@ -91,30 +95,34 @@ def erode(indices, nedges, neighbor_lists):
 
     Examples
     --------
-    >>> import os
     >>> import numpy as np
-    >>> from mindboggle.guts.mesh import find_neighbors_from_file
     >>> from mindboggle.guts.morph import erode
+    >>> from mindboggle.guts.mesh import find_neighbors_from_file
     >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars
-    >>> from mindboggle.mio.plots import plot_surfaces
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'freesurfer', 'lh.pial.vtk')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> url1 = urls['left_freesurfer_labels']
+    >>> url2 = urls['left_folds']
+    >>> vtk_file = fetch_data(url1)
+    >>> folds_file = fetch_data(url2)
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> nedges = 3
     >>> # Select a single fold:
-    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
-    >>> fold_number = 11 #11
+    >>> fold_number = 11
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
-    >>> #
     >>> eroded_indices = erode(indices, nedges, neighbor_lists)
-    >>> #
-    >>> # Write results to vtk file and view:
-    >>> IDs = -1 * np.ones(len(folds))
-    >>> IDs[indices] = 1
-    >>> IDs[eroded_indices] = 2
-    >>> rewrite_scalars(vtk_file, 'erode.vtk', IDs, 'eroded_fold', IDs)
-    >>> plot_surfaces('erode.vtk')
+    >>> (len(indices), len(eroded_indices))
+    (1065, 680)
+
+    Write results to vtk file and view (skip test):
+
+    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
+    >>> IDs = -1 * np.ones(len(folds)) # doctest: +SKIP
+    >>> IDs[indices] = 1 # doctest: +SKIP
+    >>> IDs[eroded_indices] = 2 # doctest: +SKIP
+    >>> rewrite_scalars(vtk_file, 'erode.vtk', IDs, 'eroded_fold', IDs) # doctest: +SKIP
+    >>> plot_surfaces('erode.vtk') # doctest: +SKIP
 
     """
     from mindboggle.guts.mesh import find_neighborhood
@@ -147,29 +155,33 @@ def extract_edge(indices, neighbor_lists):
 
     Examples
     --------
-    >>> import os
     >>> import numpy as np
-    >>> from mindboggle.guts.mesh import find_neighbors_from_file
     >>> from mindboggle.guts.morph import extract_edge
+    >>> from mindboggle.guts.mesh import find_neighbors_from_file
     >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars
-    >>> from mindboggle.mio.plots import plot_surfaces
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'freesurfer', 'lh.pial.vtk')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> url1 = urls['left_freesurfer_labels']
+    >>> url2 = urls['left_folds']
+    >>> vtk_file = fetch_data(url1)
+    >>> folds_file = fetch_data(url2)
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> # Select a single fold:
-    >>> fold_number = 11 #11
-    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
+    >>> fold_number = 11
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
-    >>> #
     >>> edge_indices = extract_edge(indices, neighbor_lists)
-    >>> #
-    >>> # Write results to vtk file and view:
-    >>> IDs = -1 * np.ones(len(folds))
-    >>> IDs[indices] = 1
-    >>> IDs[edge_indices] = 2
-    >>> rewrite_scalars(vtk_file, 'extract_edge.vtk', IDs, 'edge', IDs)
-    >>> plot_surfaces('extract_edge.vtk')
+    >>> (len(indices), len(edge_indices))
+    (1065, 131)
+
+    Write results to vtk file and view (skip test):
+
+    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
+    >>> IDs = -1 * np.ones(len(folds)) # doctest: +SKIP
+    >>> IDs[indices] = 1 # doctest: +SKIP
+    >>> IDs[edge_indices] = 2 # doctest: +SKIP
+    >>> rewrite_scalars(vtk_file, 'edge.vtk', IDs, 'edges_of_fold', IDs) # doctest: +SKIP
+    >>> plot_surfaces('edge.vtk') # doctest: +SKIP
 
     """
     from mindboggle.guts.mesh import find_neighborhood
@@ -219,23 +231,25 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[],
 
     Examples
     --------
-    >>> import os
     >>> import numpy as np
-    >>> from mindboggle.guts.mesh import find_neighbors, remove_faces
     >>> from mindboggle.guts.morph import fill_holes
-    >>> from mindboggle.mio.vtks import read_scalars, read_vtk, write_vtk
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> #
+    >>> from mindboggle.guts.mesh import find_neighbors, remove_faces
+    >>> from mindboggle.mio.vtks import read_scalars, read_vtk
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> url1 = urls['left_freesurfer_labels']
+    >>> url2 = urls['left_folds']
+    >>> vtk_file = fetch_data(url1)
+    >>> folds_file = fetch_data(url2)
     >>> background_value = -1
     >>> # Select one fold
-    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
-    >>> folds, name = read_scalars(folds_file, return_first=True, return_array=True)
-    >>> vtk_file = os.path.join(path, 'freesurfer', 'lh.pial.vtk')
-    >>> points, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(vtk_file, return_first=True, return_array=True)
+    >>> folds, name = read_scalars(folds_file, return_first=True,
+    ...                            return_array=True)
+    >>> points, indices, lines, faces, f1,f2, npoints, f3 = read_vtk(vtk_file,
+    ...     return_first=True, return_array=True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> n_fold = np.unique(folds)[1]
     >>> folds[folds != n_fold] = background_value
-    >>> #
     >>> # Make two holes in fold (background value and excluded values)
     >>> # Hole 1:
     >>> # Find a vertex whose removal (with its neighbors) would create a hole
@@ -277,31 +291,42 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[],
     >>> values = np.zeros(len(folds))
     >>> values[index2] = 100
     >>> values[N2] = 200
-    >>> #
-    >>> # Write holes to vtk file and view:
+    >>> # Write to vtk files:
     >>> holes = folds.copy()
     >>> holes[index1] = 10
     >>> holes[N1] = 20
     >>> holes[index2] = 30
     >>> holes[N2] = 40
     >>> indices = [i for i,x in enumerate(holes) if x != background_value]
+    >>> indices[0:10]
+    [259, 535, 536, 539, 540, 541, 545, 546, 547, 548]
+
+    View holes (skip test):
+
+    >>> from mindboggle.mio.vtks import write_vtk # doctest: +SKIP
+    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
     >>> write_vtk('holes.vtk', points, indices, lines,
-    >>>           remove_faces(faces, indices), [holes.tolist()], ['holes'], 'int')
-    >>> from mindboggle.mio.plots import plot_surfaces
-    >>> plot_surfaces('holes.vtk')
-    >>> #
+    ...           remove_faces(faces, indices),
+    ...           [holes.tolist()], ['holes'], 'int') # doctest: +SKIP
+    >>> plot_surfaces('holes.vtk') # doctest: +SKIP
+
     >>> # Fill Hole 1 but not Hole 2:
     >>> # (because values has an excluded value in the hole)
     >>> regions = np.copy(folds)
-    >>> exclude_range = [99,101],
-    >>> regions = fill_holes(regions, neighbor_lists, values, exclude_range, background_value)
-    >>> #
-    >>> # Write results to vtk file and view:
-    >>> indices = [i for i,x in enumerate(regions) if x != background_value]
-    >>> write_vtk('fill_holes.vtk', points, indices, lines,
-    >>>           remove_faces(faces, indices), regions.tolist(), 'regions', 'int')
-    >>> from mindboggle.mio.plots import plot_surfaces
-    >>> plot_surfaces('fill_holes.vtk')
+    >>> exclude_range = [99,101]
+    >>> regions = fill_holes(regions, neighbor_lists, values, exclude_range,
+    ...                      background_value)
+    >>> indices2 = [i for i,x in enumerate(regions) if x != background_value]
+    >>> [x for x in indices and not in indices2]
+    >>> filter(lambda x:x not in indices2, indices)
+    [925, 926, 1292, 1293, 1294, 1305, 1306]
+
+    View filled hole (one of two holes filled) (skip test):
+
+    >>> write_vtk('fill_holes.vtk', points, indices2, lines,
+    ...     remove_faces(faces, indices2), regions.tolist(),
+    ...     'regions', 'int') # doctest: +SKIP
+    >>> plot_surfaces('fill_holes.vtk') # doctest: +SKIP
 
     """
     import numpy as np
@@ -465,11 +490,8 @@ def close_surface_pair(faces, points1, points2, scalars, background_value=-1):
 
     Examples
     --------
-    >>> # Example 1: build a cube by closing two parallel planes:
-    >>> import os
+    >>> # Build a cube by closing two parallel planes:
     >>> from mindboggle.guts.morph import close_surface_pair
-    >>> from mindboggle.mio.plots import plot_surfaces
-    >>> from mindboggle.mio.vtks import write_vtk
     >>> # Build plane:
     >>> background_value = -1
     >>> n = 10  # plane edge length
@@ -489,32 +511,18 @@ def close_surface_pair(faces, points1, points2, scalars, background_value=-1):
     >>>         faces.append([x+y*n,x+1+y*n,x+n+1+y*n])
     >>> #write_vtk('plane.vtk', points1, [], [], faces, scalars)
     >>> #plot_surfaces('plane.vtk') # doctest: +SKIP
-    >>> closed_faces, closed_points, closed_scalars = close_surface_pair(faces, points1, points2, scalars, background_value)
-    >>> # View:
-    >>> write_vtk('cube.vtk', closed_points, [], [], closed_faces, closed_scalars, 'int')
+    >>> closed_faces, closed_points, closed_scalars = close_surface_pair(faces,
+    ...     points1, points2, scalars, background_value)
+    >>> closed_faces[0:4]
+    [[44, 54, 55], [44, 45, 55], [144, 154, 155], [144, 145, 155]]
+
+    View cube (skip test):
+
+    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
+    >>> from mindboggle.mio.vtks import write_vtk # doctest: +SKIP
+    >>> write_vtk('cube.vtk', closed_points, [],[], closed_faces,
+    ...     closed_scalars, 'int') # doctest: +SKIP
     >>> plot_surfaces('cube.vtk') # doctest: +SKIP
-    >>> #
-    >>> # Example 2: Gray and white cortical brain surfaces:
-    >>> import os
-    >>> from mindboggle.guts.morph import close_surface_pair
-    >>> from mindboggle.mio.plots import plot_surfaces
-    >>> from mindboggle.mio.vtks import read_scalars, read_vtk, read_points, write_vtk
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> patch_surface1 = 'fold.pial.vtk'
-    >>> whole_surface2 = 'fold.white.vtk'
-    >>> # Select a single fold:
-    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
-    >>> points1 = read_points(folds_file)
-    >>> scalars, name = read_scalars(folds_file, True, True)
-    >>> fold_number = 11
-    >>> scalars[scalars != fold_number] = -1
-    >>> white_surface = os.path.join(path, 'freesurfer', 'lh.white.vtk')
-    >>> points2, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(white_surface)
-    >>> background_value = -1
-    >>> closed_faces, closed_points, closed_scalars = close_surface_pair(faces, points1, points2, scalars, background_value)
-    >>> # View:
-    >>> write_vtk('closed.vtk', closed_points, [], [], closed_faces, closed_scalars, name, 'int')
-    >>> plot_surfaces('closed.vtk') # doctest: +SKIP
 
     """
     import sys
@@ -566,100 +574,6 @@ def close_surface_pair(faces, points1, points2, scalars, background_value=-1):
     return closed_faces, closed_points, closed_scalars
 
 
-def close_surface_pair_from_files(patch_surface1, whole_surface2,
-                                  background_value=-1, output_vtk=''):
-    """
-    Close a surface patch by connecting its border vertices with
-    corresponding vertices in a second surface file.
-
-    Assumes no lines or indices when reading VTK files in.
-
-    Note ::
-
-        The first VTK file contains scalar values different than background
-        for a surface patch.  The second VTK file contains the (entire)
-        surface whose corresponding vertices are shifted in position.
-        For pial vs. gray-white matter, the two surfaces are not parallel,
-        so connecting the vertices leads to intersecting faces.
-
-    Parameters
-    ----------
-    patch_surface1 : string
-        vtk file with surface patch of non-background scalar values
-    whole_surface2 : string
-        second vtk file with 1-to-1 vertex correspondence with patch_surface1
-        (whole surface so as to derive vertex neighbor lists)
-    background_value : integer
-        scalar value for background vertices
-    output_vtk : string
-        output vtk file name with closed surface patch
-
-    Returns
-    -------
-    output_vtk : string
-        output vtk file name with closed surface patch
-
-    Examples
-    --------
-    >>> import os
-    >>> from mindboggle.guts.morph import close_surface_pair_from_files
-    >>> from mindboggle.mio.plots import plot_surfaces
-    >>> from mindboggle.mio.vtks import read_scalars, read_vtk, read_points, write_vtk
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> patch_surface1 = 'fold.pial.vtk'
-    >>> whole_surface2 = 'fold.white.vtk'
-    >>> # Select a single fold:
-    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
-    >>> points = read_points(folds_file)
-    >>> folds, name = read_scalars(folds_file, True, True)
-    >>> fold_number = 11
-    >>> folds[folds != fold_number] = -1
-    >>> white_surface = os.path.join(path, 'freesurfer', 'lh.white.vtk')
-    >>> points2, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(white_surface)
-    >>> write_vtk(patch_surface1, points, [], [], faces, folds, name)
-    >>> write_vtk(whole_surface2, points2, [], [], faces, folds, name)
-    >>> background_value = -1
-    >>> output_vtk = ''
-    >>> close_surface_pair_from_files(patch_surface1, whole_surface2, background_value, output_vtk)
-    >>> # View:
-    >>> plot_surfaces('closed.vtk') # doctest: +SKIP
-
-    """
-    import os
-    import numpy as np
-
-    from mindboggle.mio.vtks import read_vtk, write_vtk
-    from mindboggle.guts.morph import close_surface_pair
-
-    # Read VTK surface mesh files:
-    points1, indices, lines, faces, scalars, scalar_names, npoints, \
-        input_vtk = read_vtk(patch_surface1, True, True)
-    points2, indices, lines, faces, scalars, scalar_names, npoints, \
-        input_vtk = read_vtk(whole_surface2, True, True)
-
-    # Close surface:
-    closed_faces, closed_points, closed_scalars = close_surface_pair(faces,
-        points1, points2, scalars, background_value)
-
-    # Write output file:
-    if not output_vtk:
-        output_vtk = os.path.join(os.getcwd(), 'closed.vtk')
-    # closed_scalars is a list
-    if np.ndim(closed_scalars) == 1:
-        scalar_type = type(closed_scalars[0]).__name__
-    elif np.ndim(closed_scalars) == 2:
-        scalar_type = type(closed_scalars[0][0]).__name__
-    else:
-        print("Undefined scalar type!")
-    write_vtk(output_vtk, closed_points, [], [], closed_faces, closed_scalars,
-              scalar_names, scalar_type=scalar_type)
-
-    return output_vtk
-
-
-#-----------------------------------------------------------------------------
-# Test for simple points
-#-----------------------------------------------------------------------------
 def topo_test(index, values, neighbor_lists):
     """
     Test to see if vertex is a "simple point".
@@ -687,6 +601,20 @@ def topo_test(index, values, neighbor_lists):
         simple point or not?
     n_inside : integer
         number of neighboring vertices with a value greater than threshold
+
+    Examples
+    --------
+    >>> # Square with a center vertex:
+    >>> import numpy as np
+    >>> from mindboggle.guts.morph import topo_test
+    >>> values = np.array([0,1,1,1,0])
+    >>> neighbor_lists = [[1,2,3],[0,2,4],[0,1,3,4],[0,2,4],[1,2,3]]
+    >>> sps = []
+    >>> for index in range(5):
+    >>>     sp, n_inside = topo_test(index, values, neighbor_lists)
+    >>>     sps.append(sp)
+    >>> sps
+    [False, True, False, True, False]
 
     """
     import numpy as np
