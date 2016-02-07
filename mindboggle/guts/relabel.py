@@ -44,13 +44,13 @@ def relabel_volume(input_file, old_labels, new_labels, output_file=''):
     >>> input_file = input_file + '.nii.gz'
     >>> dkt = DKTprotocol()
     >>> old_labels = dkt.cerebrum_cortex_numbers + dkt.cerebrum_noncortex_numbers
-    >>> new_labels = [2 for x in dkt.cerebrum_cortex_numbers] + \
-    ...              [3 for x in dkt.cerebrum_noncortex_numbers]
+    >>> new_labels = [5000 for x in dkt.cerebrum_cortex_numbers] + \
+    ...              [6000 for x in dkt.cerebrum_noncortex_numbers]
     >>> output_file = ''
     >>> output_file = relabel_volume(input_file, old_labels, new_labels,
     ...                              output_file)
 
-    Write out nifti file and view (skip test):
+    View nifti file (skip test):
 
     >>> from mindboggle.mio.plots import plot_volumes # doctest: +SKIP
     >>> plot_volumes(output_file) # doctest: +SKIP
@@ -120,14 +120,24 @@ def remove_volume_labels(input_file, labels_to_remove, output_file='',
     >>> # Remove subcortical labels
     >>> import os
     >>> from mindboggle.guts.relabel import remove_volume_labels
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> input_file = os.path.join(data_path, 'labels', 'labels.DKT31.manual.nii.gz')
-    >>> second_file = os.path.join(data_path, 'labels', 'labels.DKT25.manual.nii.gz')
-    >>> labels_to_remove = range(1,300) # Remove noncortical (+aseg) labels
+    >>> from mindboggle.mio.labels import DKTprotocol
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> input_file = fetch_data(urls['freesurfer_labels'])
+    >>> os.rename(input_file, input_file + '.nii.gz')
+    >>> input_file = input_file + '.nii.gz'
+    >>> second_file = ''
+    >>> labels_to_remove = range(1,300) # Remove noncortex (+aseg) labels
     >>> labels_to_remove.extend([1000,1001,2000,2001])
-    >>> labels_to_remove.extend(range(2000,2036)) # Remove right cortical labels
+    >>> labels_to_remove.extend(range(2000,2036)) # Remove right cortex labels
     >>> output_file = ''
-    >>> remove_volume_labels(input_file, labels_to_remove, output_file, second_file)
+    >>> output_file = remove_volume_labels(input_file, labels_to_remove,
+    ...                                    output_file, second_file)
+
+    View nifti file (skip test):
+
+    >>> from mindboggle.mio.plots import plot_volumes # doctest: +SKIP
+    >>> plot_volumes(output_file) # doctest: +SKIP
 
     """
     import os
@@ -215,12 +225,22 @@ def keep_volume_labels(input_file, labels_to_keep, output_file='',
     >>> # Remove right hemisphere labels
     >>> import os
     >>> from mindboggle.guts.relabel import keep_volume_labels
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> input_file = os.path.join(data_path, 'labels', 'labels.DKT31.manual.nii.gz')
-    >>> second_file = os.path.join(data_path, 'labels', 'labels.DKT25.manual.nii.gz')
+    >>> from mindboggle.mio.labels import DKTprotocol
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> input_file = fetch_data(urls['freesurfer_labels'])
+    >>> os.rename(input_file, input_file + '.nii.gz')
+    >>> input_file = input_file + '.nii.gz'
+    >>> second_file = ''
     >>> labels_to_keep = range(1000, 1036)
     >>> output_file = ''
-    >>> keep_volume_labels(input_file, labels_to_keep, output_file, second_file)
+    >>> output_file = keep_volume_labels(input_file, labels_to_keep,
+    ...                                  output_file, second_file)
+
+    View nifti file (skip test):
+
+    >>> from mindboggle.mio.plots import plot_volumes # doctest: +SKIP
+    >>> plot_volumes(output_file) # doctest: +SKIP
 
     """
     import os
@@ -317,23 +337,29 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
 
     Examples
     --------
-    >>> import os
+    >>> import numpy as np
     >>> from mindboggle.guts.relabel import relabel_surface
-    >>> from mindboggle.mio.plots import plot_surfaces
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> from mindboggle.mio.vtks import read_scalars
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> vtk_file = fetch_data(urls['left_freesurfer_labels'])
     >>> hemi = 'lh'
     >>> old_labels = [1003,1009,1030]
-    >>> new_labels = [3,9,30]
-    >>> erase_remaining = False
+    >>> new_labels = [0,500,1000]
+    >>> erase_remaining = True
     >>> erase_labels = [0]
     >>> erase_value = -1
     >>> output_file = ''
-    >>> #
-    >>> relabel_surface(vtk_file, hemi, old_labels, new_labels, erase_remaining, erase_labels, erase_value, output_file)
-    >>> # View
-    >>> plot_surfaces('relabeled_FreeSurfer_cortex_labels.vtk')
-    >>> #plot_surfaces('relabeled_rh.labels.DKT31.manual.vtk')
+    >>> output_file = relabel_surface(vtk_file, hemi, old_labels, new_labels,
+    ...     erase_remaining, erase_labels, erase_value, output_file)
+    >>> labels, name = read_scalars(output_file, True, True)
+    >>> np.unique(labels)
+    array([  -1, 1000, 1500, 2000])
+
+    View relabeled surface file (skip test):
+
+    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
+    >>> plot_surfaces(output_file) # doctest: +SKIP
 
     """
     import os
@@ -433,17 +459,26 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
     >>> # Overwrite DKT25 with DKT31 labels
     >>> import os
     >>> from mindboggle.guts.relabel import overwrite_volume_labels
-    >>> from mindboggle.mio.plots import plot_volumes
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> source = os.path.join(data_path, 'labels', 'labels.DKT31.manual.nii.gz')
-    >>> target = os.path.join(data_path, 'labels', 'labels.DKT25.manual.nii.gz')
-    >>> output_file = ''
+    >>> from mindboggle.mio.labels import DKTprotocol
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> source = fetch_data(urls['freesurfer_labels'])
+    >>> target = fetch_data(urls['ants_labels'])
+    >>> os.rename(source, source + '.nii.gz')
+    >>> source = source + '.nii.gz'
+    >>> os.rename(target, target + '.nii.gz')
+    >>> target = target + '.nii.gz'
+    >>> output_file = 'overwrite_volume_labels.nii.gz'
     >>> ignore_labels = [0]
-    >>> erase_labels = True
+    >>> erase_labels = False
     >>> background_value = -1
-    >>> output_file = overwrite_volume_labels(source, target, output_file, ignore_labels, erase_labels, background_value)
-    >>> # View
-    >>> plot_volumes(output_file)
+    >>> output_file = overwrite_volume_labels(source, target, output_file,
+    ...     ignore_labels, erase_labels, background_value)
+
+    View nifti file (skip test):
+
+    >>> from mindboggle.mio.plots import plot_volumes # doctest: +SKIP
+    >>> plot_volumes(output_file) # doctest: +SKIP
 
     """
     import os
@@ -488,8 +523,8 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
     img.to_filename(output_file)
 
     if not os.path.exists(output_file):
-        s = "overwrite_volume_labels() did not create " + output_file + "."
-        raise(IOError(s))
+        raise IOError("overwrite_volume_labels() did not create {0}."
+                      .format(output_file))
 
     return output_file
 
