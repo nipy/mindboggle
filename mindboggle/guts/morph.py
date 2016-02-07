@@ -3,10 +3,10 @@
 Morphological image operations on surface mesh vertices.
 
 Authors:
-    - Arno Klein, 2012-2013  (arno@mindboggle.info)  http://binarybottle.com
+    - Arno Klein, 2012-2016  (arno@mindboggle.info)  http://binarybottle.com
     - Yrjo Hame, 2012  (yrjo.hame@gmail.com)
 
-Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -510,7 +510,7 @@ def close_surface_pair(faces, points1, points2, scalars, background_value=-1):
     >>>         faces.append([x+y*n,x+n+y*n,x+n+1+y*n])
     >>>         faces.append([x+y*n,x+1+y*n,x+n+1+y*n])
     >>> #write_vtk('plane.vtk', points1, [], [], faces, scalars)
-    >>> #plot_surfaces('plane.vtk') # doctest: +SKIP
+    >>> #plot_surfaces('plane.vtk')
     >>> closed_faces, closed_points, closed_scalars = close_surface_pair(faces,
     ...     points1, points2, scalars, background_value)
     >>> closed_faces[0:4]
@@ -614,8 +614,8 @@ def topo_test(index, values, neighbor_lists):
     ...                   [3,4,7],[4,5,6,8],[5,7]]
     >>> sps = []
     >>> for index in range(9):
-    >>>     sp, n_inside = topo_test(index, values, neighbor_lists)
-    >>>     sps.append(sp)
+    >>>         sp, n_inside = topo_test(index, values, neighbor_lists)
+    >>>         sps.append(sp)
     >>> sps
     [False, True, True, True, False, True, True, True, False]
 

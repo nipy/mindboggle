@@ -4,9 +4,9 @@ Operations on surface mesh vertices.
 
 Authors:
     - Forrest Bao, 2012  (forrest.bao@gmail.com)
-    - Arno Klein, 2012-2013  (arno@mindboggle.info)  http://binarybottle.com
+    - Arno Klein, 2012-2016  (arno@mindboggle.info)  http://binarybottle.com
 
-Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 

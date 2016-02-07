@@ -4,8 +4,9 @@ Kernels.
 
 Authors:
     - Eliezer Stavsky, 2012  (eli.stavsky@gmail.com)
+    - Arno Klein, 2016  (arno@mindboggle.info)
 
-Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 

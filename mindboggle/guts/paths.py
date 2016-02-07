@@ -412,8 +412,7 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists,
             costs = hmmfs * (1.1 - likelihoods) + \
                     wN * np.sum(diff, axis=0) / numbers_of_neighbors
         else:
-            import sys
-            sys.exit('ERROR: No HMMF neighbors to compute cost.')
+            raise IOError('No HMMF neighbors to compute cost.')
 
         return costs
 
