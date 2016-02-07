@@ -497,18 +497,18 @@ def close_surface_pair(faces, points1, points2, scalars, background_value=-1):
     >>> n = 10  # plane edge length
     >>> points1 = []
     >>> for x in range(n):
-    >>>     for y in range(n):
-    >>>         points1.append([x,y,0])
+    ...     for y in range(n):
+    ...          points1.append([x,y,0])
     >>> points2 = [[x[0],x[1],1] for x in points1]
     >>> scalars = [background_value for x in range(len(points1))]
     >>> p = n*(n-1)/2 - 1
     >>> for i in [p, p+1, p+n, p+n+1]:
-    >>>     scalars[i] = 1
+    ...     scalars[i] = 1
     >>> faces = []
     >>> for x in range(n-1):
-    >>>     for y in range(n-1):
-    >>>         faces.append([x+y*n,x+n+y*n,x+n+1+y*n])
-    >>>         faces.append([x+y*n,x+1+y*n,x+n+1+y*n])
+    ...     for y in range(n-1):
+    ...         faces.append([x+y*n,x+n+y*n,x+n+1+y*n])
+    ...         faces.append([x+y*n,x+1+y*n,x+n+1+y*n])
     >>> #write_vtk('plane.vtk', points1, [], [], faces, scalars)
     >>> #plot_surfaces('plane.vtk')
     >>> closed_faces, closed_points, closed_scalars = close_surface_pair(faces,
@@ -614,8 +614,8 @@ def topo_test(index, values, neighbor_lists):
     ...                   [3,4,7],[4,5,6,8],[5,7]]
     >>> sps = []
     >>> for index in range(9):
-    >>>         sp, n_inside = topo_test(index, values, neighbor_lists)
-    >>>         sps.append(sp)
+    ...     sp, n_inside = topo_test(index, values, neighbor_lists)
+    ...     sps.append(sp)
     >>> sps
     [False, True, True, True, False, True, True, True, False]
 
