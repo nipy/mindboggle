@@ -48,12 +48,12 @@ ADVANCED: To build the above Mindboggle box from scratch::
     VBoxManage list vms  # to find <vm name> below
     vagrant package --base <vm name> --output mindboggle.<version>.box
 
-    # Upload the box to a website (example):
+    # Upload the box to a website:
     rsync -avz --sparse -e /usr/bin/ssh mindboggle.<version>.box
         binarybottle@binarybottle.com:media.mindboggle.info/vm/
 
-    # The --install argument downloads the above box and installs mindboggle
-    # and dependencies on it.  Alternatively, you can ssh into the box:
+    # The --install argument downloads the box and configures mindboggle.
+    # Alternatively, you can ssh into the box:
     vagrant box add my_mindboggle mindboggle.<version>.box
     vagrant init my_mindboggle
     vagrant up

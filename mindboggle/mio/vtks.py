@@ -769,7 +769,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
             elif np.ndim(new_scalar_list) == 2:
                 scalar_type = type(new_scalar_list[0][0]).__name__
             else:
-                print("Undefined scalar type!")
+                raise(IOError("Undefined scalar type!"))
             if i == 0:
                 new_scalar_name = new_scalar_names[0]
                 write_scalars(Fp, new_scalar_list, new_scalar_name,
@@ -784,8 +784,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
                               begin_scalars=False,
                               scalar_type=scalar_type)
     else:
-        print('Error: new_scalars is empty')
-        exit()
+        raise(IOError('new_scalars is empty'))
 
     Fp.close()
 
@@ -1546,7 +1545,7 @@ def freesurfer_surface_to_vtk(surface_file, output_vtk=''):
             np.concatenate((points, np.ones((np.shape(points)[0],1))),
                            axis=1))))[:,0:3]
     else:
-        raise IOError((orig_file + " does not exist in the FreeSurfer "
+        raise(IOError(orig_file + " does not exist in the FreeSurfer "
                        "subjects directory."))
 
     if not output_vtk:

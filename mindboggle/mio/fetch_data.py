@@ -474,7 +474,7 @@ def fetch_ants_data(segmented_file, use_ants_transforms=True):
     for s in files:
         if not os.path.exists(s):
             str1 = 'antsCorticalThickness.sh output ' + s + ' does not exist.'
-            raise IOError(str1)
+            raise(IOError(str1))
 
     return mask, segments, affine_subject2template, warp_subject2template, \
                            affine_template2subject, warp_template2subject

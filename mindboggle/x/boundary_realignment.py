@@ -80,8 +80,8 @@ def realign_boundaries_to_fundus_lines(
         boundary_segments, num_points)
 
     # build the affinity matrix
-    affinity_matrix = go.weight_graph(
-       np.array(points), indices, np.array(faces), sigma=10, add_to_graph=False)
+    affinity_matrix = go.weight_graph(np.array(points), indices,
+        np.array(faces), sigma=10, add_to_graph=False, verbose=False)
 
     ## propagate boundaries to fundus line vertices
     learned_matrix = _propagate_labels(

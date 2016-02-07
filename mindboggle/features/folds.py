@@ -145,8 +145,8 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
     if npoints > min_vertices:
         nbins = np.round(npoints / 100.0)
     else:
-        raise IOError("  Expecting at least {0} vertices to create depth histogram".
-            format(min_vertices))
+        raise(IOError("  Expecting at least {0} vertices to create "
+                      "depth histogram".format(min_vertices)))
     bins, bin_edges = np.histogram(depths, bins=nbins)
 
     #-------------------------------------------------------------------------

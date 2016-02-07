@@ -83,8 +83,9 @@ def find_neighbors(faces, npoints):
     >>> from mindboggle.guts.mesh import find_neighbors
     >>> faces = [[0,1,2],[0,2,3],[0,3,4],[0,1,4],[4,3,1]]
     >>> npoints = 5
-    >>> find_neighbors(faces, npoints)
-        [[1, 2, 3, 4], [0, 2, 4, 3], [0, 1, 3], [0, 2, 4, 1], [0, 3, 1]]
+    >>> neighbor_lists = find_neighbors(faces, npoints)
+    >>> neighbor_lists
+    [[1, 2, 3, 4], [0, 2, 4, 3], [0, 1, 3], [0, 2, 4, 1], [0, 3, 1]]
 
     Real example:
 
@@ -159,8 +160,9 @@ def find_neighbors_vertex(faces, index):
     >>> from mindboggle.guts.mesh import find_neighbors_vertex
     >>> faces = [[0,1,2],[0,2,3],[0,3,4],[0,1,4]]
     >>> index = 1
-    >>> find_neighbors_vertex(faces, index)
-        [0, 2, 4]
+    >>> neighbor_lists = find_neighbors_vertex(faces, index)
+    >>> neighbor_lists
+    [0, 2, 4]
 
     """
     import numpy as np
@@ -208,8 +210,9 @@ def find_neighborhood(neighbor_lists, indices, nedges=1):
     >>> from mindboggle.guts.mesh import find_neighborhood
     >>> neighbor_lists = [[0,1],[0,2],[1,4,5],[2],[],[0,1,4,5]]
     >>> indices = [1,3,4]
-    >>> find_neighborhood(neighbor_lists, indices, 2)
-        [0, 2, 5]
+    >>> neighborhood = find_neighborhood(neighbor_lists, indices, 2)
+    >>> neighborhood
+    [0, 2, 5]
 
     """
 
@@ -362,25 +365,11 @@ def find_faces_at_edges(faces):
     >>> # Simple example:
     >>> from mindboggle.guts.mesh import find_faces_at_edges
     >>> faces=[[0,1,2], [0,1,4], [1,2,3], [0,2,5]]
-    >>> find_faces_at_edges(faces)
-        {(0, 1): [0, 1],
-         (0, 2): [0, 3],
-         (0, 4): [1],
-         (0, 5): [3],
-         (1, 0): [0, 1],
-         (1, 2): [0, 2],
-         (1, 3): [2],
-         (1, 4): [1],
-         (2, 0): [0, 3],
-         (2, 1): [0, 2],
-         (2, 3): [2],
-         (2, 5): [3],
-         (3, 1): [2],
-         (3, 2): [2],
-         (4, 0): [1],
-         (4, 1): [1],
-         (5, 0): [3],
-         (5, 2): [3]}
+    >>> faces_at_edges = find_faces_at_edges(faces)
+    >>> faces_at_edges[(0,2)]
+    [0, 3]
+    >>> faces_at_edges[(2,1)]
+    [0, 2]
 
     Notes ::
         The faces are assumed to be triangular.
@@ -489,16 +478,13 @@ def find_adjacent_faces(faces):
     >>> # Simple example:
     >>> from mindboggle.guts.mesh import find_adjacent_faces
     >>> faces = [[0,1,2],[0,2,3],[0,3,4],[0,1,4],[4,3,1]]
-    >>> find_adjacent_faces(faces)
-    [[[-1, 1, 3], [-1, 3, 4]],
-     [[-1, 2, 0], [-1, 4, 1]],
-     [[4, 3, 1], [1, 1, 2]],
-     [[4, 2, 0], [3, 3, 2]],
-     [[-1, 3, 2], [-1, 0, 0]]]
+    >>> adjacent_faces = find_adjacent_faces(faces)
+    >>> adjacent_faces[0:2]
+    [[[-1, 1, 3], [-1, 3, 4]], [[-1, 2, 0], [-1, 4, 1]]]
 
     """
 
-    print "Calculating face neighbor list"
+    #print("Calculating face neighbor list")
 
     n_faces = len(faces)
 
@@ -607,12 +593,14 @@ def remove_faces(faces, indices):
     """
     import numpy as np
 
-    len_faces = len(faces)
     fs = frozenset(indices)
     faces = [lst for lst in faces if len(fs.intersection(lst)) == 3]
     faces = np.reshape(np.ravel(faces), (-1, 3))
-    if verbose and len(faces) < len_faces:
-        print('Reduced {0} to {1} triangular faces'.format(len_faces, len(faces)))
+
+    #len_faces = len(faces)
+    #if verbose and len(faces) < len_faces:
+    #    print('Reduced {0} to {1} triangular faces'.
+    #        format(len_faces, len(faces)))
 
     return faces.tolist()
 
@@ -644,8 +632,10 @@ def reindex_faces_points(faces, points=[]):
     >>> from mindboggle.guts.mesh import reindex_faces_points
     >>> # Reindex faces:
     >>> faces = [[8,2,3], [2,3,7], [4,7,8], [3,2,5]]
-    >>> reindex_faces_points(faces, points=[])
-    ([[5, 0, 1], [0, 1, 4], [2, 4, 5], [1, 0, 3]], None)
+    >>> new_faces, new_points, original_indices =  reindex_faces_points(faces,
+    ...     points=[])
+    >>> new_faces
+    [[5, 0, 1], [0, 1, 4], [2, 4, 5], [1, 0, 3]]
 
     Reindex faces of a single fold of the brain:
 
@@ -661,9 +651,10 @@ def reindex_faces_points(faces, points=[]):
     >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_number]
     >>> T = -1 * np.ones(len(folds))
     >>> T[indices_fold] = 1
-    >>> rewrite_scalars(folds_file, 'fold.vtk', T, 'fold', [], -1)
+    >>> output_vtk = rewrite_scalars(folds_file, 'fold.vtk', T, 'fold', [],-1)
     >>> faces, points, npoints = read_faces_points('fold.vtk')
-    >>> new_faces, new_points, original_indices = reindex_faces_points(faces, points)
+    >>> new_faces, new_points, original_indices = reindex_faces_points(faces,
+    ...     points)
 
     View reindexed fold on surface (skip test):
 
@@ -971,7 +962,8 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100,
     >>> output_vtk = ''
     >>> reduction = 0.5
     >>> smooth_steps = 25
-    >>> decimate_file(input_vtk,reduction,smooth_steps,save_vtk,output_vtk)
+    >>> output_vtk = decimate_file(input_vtk, reduction, smooth_steps,
+    ...     save_vtk, output_vtk)
     >>> f1, f2, f3, faces1, f4, f5, npoints1, f6 = read_vtk(input_vtk)
     >>> f1, f2, f3, faces2, f4, f5, npoints2, f6 = read_vtk('decimated.vtk')
     >>> (npoints1, npoints2)
@@ -1187,7 +1179,7 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
 
     # Loop through labels:
     for label in unique_labels:
-        #print("  Rescaling scalar values within label {0} of {1} labels...".format(
+        #print("  Rescaling values within label {0} of {1} labels...".format(
         #    int(label), len(unique_labels)))
         indices = [i for i,x in enumerate(labels) if x == label]
         if indices:
@@ -1202,7 +1194,8 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
     #-------------------------------------------------------------------------
     if save_file:
 
-        rescaled_scalars_file = os.path.join(os.getcwd(), output_filestring + '.vtk')
+        rescaled_scalars_file = os.path.join(os.getcwd(),
+                                             output_filestring + '.vtk')
         rewrite_scalars(input_vtk, rescaled_scalars_file,
                         rescaled_scalars, 'rescaled_scalars', labels)
         if not os.path.exists(rescaled_scalars_file):

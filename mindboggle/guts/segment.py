@@ -10,11 +10,10 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-#-----------------------------------------------------------------------------
-# Propagate ring_labels to segment surface into contiguous regions
-#-----------------------------------------------------------------------------
+
 def propagate(points, faces, region, seeds, labels,
-              max_iters=500, tol=0.001, sigma=10, background_value=-1):
+              max_iters=500, tol=0.001, sigma=10, background_value=-1,
+              verbose=False):
     """
     Propagate labels to segment surface into contiguous regions,
     starting from seed vertices.
@@ -41,6 +40,8 @@ def propagate(points, faces, region, seeds, labels,
         gaussian kernel parameter
     background_value : integer
         background value
+    verbose : Boolean
+        print statements?
 
     Returns
     -------
@@ -83,8 +84,8 @@ def propagate(points, faces, region, seeds, labels,
     >>>     I = [x for i,x in enumerate(indices_borders)
     >>>          if np.sort(label_pairs[i]).tolist() in label_pair_list]
     >>>     seeds[I] = ilist
-    >>> #
-    >>> segments = propagate(points, faces, fold_array, seeds, labels)
+    >>> verbose = False
+    >>> segments = propagate(points, faces, fold_array, seeds, labels, verbose)
     >>> #
     >>> # Write results to vtk file and view:
     >>> rewrite_scalars(labels_file, 'propagate.vtk',
@@ -113,15 +114,17 @@ def propagate(points, faces, region, seeds, labels,
             local_indices_region = background_value * np.ones(labels.shape)
             local_indices_region[indices_region] = range(len(indices_region))
 
-            n_sets = len(np.unique([x for x in seeds if x != background_value]))
-            if n_sets == 1:
-                print('Segment {0} vertices from 1 set of seed vertices'.
-                      format(len(indices_region)))
-            else:
-                print('Segment {0} vertices from {1} sets of seed vertices'.
-                      format(len(indices_region), n_sets))
+            if verbose:
+                n_sets = len(np.unique([x for x in seeds
+                                        if x != background_value]))
+                if n_sets == 1:
+                    print('Segment {0} vertices from 1 set of seed vertices'.
+                          format(len(indices_region)))
+                else:
+                    print('Segment {0} vertices from {1} sets of seed '
+                          'vertices'.format(len(indices_region), n_sets))
 
-            # Remove faces whose three vertices are not among specified indices:
+            # Remove faces whose 3 vertices are not among specified indices:
             refaces = remove_faces(faces, indices_region)
 
             # Set up rebound Bounds class instance:
@@ -135,9 +138,13 @@ def propagate(points, faces, region, seeds, labels,
                 B.num_points = len(B.Points)
 
                 # Propagate seed IDs from seeds:
-                B.graph_based_learning(method='propagate_labels', realign=False,
-                                       kernel=kernels.rbf_kernel, sigma=sigma,
-                                       max_iters=max_iters, tol=tol, vis=False)
+                B.graph_based_learning(method='propagate_labels',
+                                       realign=False,
+                                       kernel=kernels.rbf_kernel,
+                                       sigma=sigma,
+                                       max_iters=max_iters,
+                                       tol=tol,
+                                       vis=False)
 
                 # Assign maximum probability seed IDs to each point of region:
                 max_prob_labels = B.assign_max_prob_label()
@@ -145,19 +152,18 @@ def propagate(points, faces, region, seeds, labels,
                 # Return segment IDs in original vertex array:
                 segments[indices_region] = max_prob_labels
             else:
-                print("  No faces")
+                if verbose:
+                    print("  No faces")
     else:
         segments = []
 
     return segments
 
-#-----------------------------------------------------------------------------
-# Segment vertices of surface into contiguous regions by seed growing
-#-----------------------------------------------------------------------------
+
 def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
             seed_lists=[], keep_seeding=False, spread_within_labels=False,
-            labels=[], label_lists=[], values=[], max_steps='', verbose=False,
-            background_value=-1):
+            labels=[], label_lists=[], values=[], max_steps='',
+            background_value=-1, verbose=False):
     """
     Segment vertices of surface into contiguous regions by seed growing,
     starting from zero or more lists of seed vertices.
@@ -186,10 +192,10 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
         (segment in direction of lower values)
     max_steps : integer (or empty string for infinity)
         maximum number of segmentation steps to take for each seed list
-    verbose : Boolean
-        print out text?
     background_value : integer
         background value
+    verbose : Boolean
+        print statements?
 
     Returns
     -------
@@ -229,9 +235,16 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> seed_lists = []
     >>> for label_pair_list in dkt.sulcus_label_pair_lists:
     >>>     seed_lists.append([x for i,x in enumerate(indices_borders) if np.sort(label_pairs[i]).tolist() in label_pair_list])
-    >>> #
+    >>> keep_seeding = True
+    >>> spread_within_labels = True
+    >>> values = []
+    >>> max_steps = ''
+    >>> background_value = -1
+    >>> verbose = False
     >>> sulci = segment(vertices_to_segment, neighbor_lists, 1,
-    >>>                 seed_lists, True, True, labels, label_lists, values=[])
+    ...                 seed_lists, keep_seeding, spread_within_labels,
+    ...                 labels, label_lists, values, max_steps,
+    ...                 background_value, verbose)
     >>> #
     >>> # Write results to vtk file and view:
     >>> rewrite_scalars(depth_file, 'segment_seeds.vtk', sulci, 'sulci', sulci)
@@ -446,10 +459,9 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
 
     return segments
 
-#-----------------------------------------------------------------------------
-# Fill borders on a surface mesh to segment vertices into contiguous regions
-#-----------------------------------------------------------------------------
-def segment_by_filling_borders(regions, neighbor_lists, background_value=-1):
+
+def segment_by_filling_borders(regions, neighbor_lists, background_value=-1,
+                               verbose=False):
     """
     Fill borders (contours) on a surface mesh
     to segment vertices into contiguous regions.
@@ -471,6 +483,8 @@ def segment_by_filling_borders(regions, neighbor_lists, background_value=-1):
         each list contains indices to neighboring vertices for each vertex
     background_value : integer
         background value
+    verbose : Boolean
+        print statements?
 
     Returns
     -------
@@ -487,13 +501,16 @@ def segment_by_filling_borders(regions, neighbor_lists, background_value=-1):
     >>> from mindboggle.mio.vtks import read_vtk, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'shapes', 'lh.pial.travel_depth.vtk')
-    >>> points, indices, lines, faces, depths, scalar_names, npoints, input_vtk = read_vtk(depth_file, return_first=True, return_array=True)
+    >>> points, indices, lines, faces, depths, scalar_names, npoints,
+    ...     input_vtk = read_vtk(depth_file, return_first=True,
+    ...     return_array=True)
     >>> background_value = -1
     >>> regions = background_value * np.ones(npoints)
     >>> regions[depths > 0.50] = 1
     >>> neighbor_lists = find_neighbors(faces, npoints)
-    >>> #
-    >>> folds = segment_by_filling_borders(regions, neighbor_lists, background_value)
+    >>> verbose = False
+    >>> folds = segment_by_filling_borders(regions, neighbor_lists,
+    ...                                    background_value, verbose)
     >>> #
     >>> # Write results to vtk file and view:
     >>> rewrite_scalars(depth_file, 'segment_by_filling_borders.vtk', folds, 'folds', folds)
@@ -511,10 +528,12 @@ def segment_by_filling_borders(regions, neighbor_lists, background_value=-1):
     if not isinstance(regions, np.ndarray):
         regions = np.array(regions)
 
-    print('Segment vertices using region borders')
+    if verbose:
+        print('Segment vertices using region borders')
 
     # Extract region borders (assumed to be closed contours)
-    print('  Extract region borders (assumed to be closed contours)')
+    if verbose:
+        print('  Extract region borders (assumed to be closed contours)')
     indices_borders, foo1, foo2 = extract_borders(range(len(regions)),
                                         regions, neighbor_lists)
     # Extract background
@@ -522,7 +541,8 @@ def segment_by_filling_borders(regions, neighbor_lists, background_value=-1):
     difference(indices_borders))
 
     # Segment borders into separate, contiguous borders
-    print('  Segment borders into separate, contiguous borders')
+    if verbose:
+        print('  Segment borders into separate, contiguous borders')
     borders = segment(indices_borders, neighbor_lists, 1)
 
     # For each boundary
@@ -530,8 +550,9 @@ def segment_by_filling_borders(regions, neighbor_lists, background_value=-1):
     segments = background_value * np.ones(len(regions))
     for boundary_number in unique_borders:
 
-        print('  Boundary {0} of {1}:'.format(int(boundary_number),
-                                              len(unique_borders)))
+        if verbose:
+            print('  Boundary {0} of {1}:'.format(int(boundary_number),
+                                                  len(unique_borders)))
         border_indices = [i for i,x in enumerate(borders)
                           if x == boundary_number]
         # Find the neighbors to either side of the boundary
@@ -543,11 +564,14 @@ def segment_by_filling_borders(regions, neighbor_lists, background_value=-1):
         difference(indices_borders))
 
         # Segment the neighbors into exterior and interior sets of neighbors
-        print('    Segment the neighbors into exterior and interior sets of neighbors')
+        if verbose:
+            print('    Segment the neighbors into exterior and interior sets '
+                  'of neighbors')
         neighbors = segment(indices_neighbors, neighbor_lists, 1)
 
         # Find the interior (smaller) sets of neighbors
-        print('    Find the interior (smaller) sets of neighbors')
+        if verbose:
+            print('    Find the interior (smaller) sets of neighbors')
         seed_lists = []
         unique_neighbors = [x for x in np.unique(neighbors)
                             if x != background_value]
@@ -565,7 +589,8 @@ def segment_by_filling_borders(regions, neighbor_lists, background_value=-1):
         [seed_list.extend(x) for x in seed_lists if len(x) > 2]
 
         # Fill the contours formed by the interior neighbors
-        print('    Fill the contour formed by the interior neighbors')
+        if verbose:
+            print('    Fill the contour formed by the interior neighbors')
         vertices_to_segment = list(frozenset(indices_background).
         difference(indices_borders))
         segment_region = segment(vertices_to_segment, neighbor_lists, 1, [seed_list])
@@ -576,6 +601,7 @@ def segment_by_filling_borders(regions, neighbor_lists, background_value=-1):
         segments[segment_region != background_value] = boundary_number
 
     return segments
+
 
 def segment_rings(region, seeds, neighbor_lists, step=1, background_value=-1):
     """
@@ -685,7 +711,7 @@ def segment_rings(region, seeds, neighbor_lists, step=1, background_value=-1):
 #-----------------------------------------------------------------------------
 def watershed(depths, points, indices, neighbor_lists, min_size=1,
               depth_factor=0.25, depth_ratio=0.1, tolerance=0.01, regrow=True,
-              background_value=-1):
+              background_value=-1, verbose=False):
     """
     Segment vertices of a surface mesh into contiguous "watershed basins"
     by seed growing from an iterative selection of the deepest vertices.
@@ -732,6 +758,8 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
         regrow segments from watershed seeds?
     background_value : integer
         background value
+    verbose : Boolean
+        print statements?
 
     Returns
     -------
@@ -760,10 +788,10 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
     >>> tolerance = 0.01
     >>> regrow = True
     >>> background_value = -1
-    >>> #
+    >>> verbose = False
     >>> segments, seed_indices = watershed(depths, points,
     >>>     indices, neighbor_lists, min_size, depth_factor, depth_ratio,
-    >>>     tolerance, regrow, background_value)
+    >>>     tolerance, regrow, background_value, verbose)
     >>> #
     >>> # Write results to vtk file and view:
     >>> rewrite_scalars(depth_file, 'watershed.vtk',
@@ -788,9 +816,13 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
     if isinstance(indices, np.ndarray):
         indices = indices.tolist()
 
-    print('Segment {0} vertices by a surface watershed algorithm'.
-          format(len(indices)))
-    verbose = False
+    if verbose:
+        print('Segment {0} vertices by a surface watershed algorithm'.
+              format(len(indices)))
+        verbose2 = False
+    else:
+        verbose2 = False
+
     merge = True
     t0 = time()
     tiny = 0.000001
@@ -887,18 +919,21 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
                 terminate = True
 
             # Display current number and size of region:
-            if verbose:
+            if verbose2:
                 print("    {0} vertices remain".format(len(indices)))
 
-    print('  ...Segmented {0} initial watershed regions ({1:.2f} seconds)'.
-          format(counter, time() - t0))
+    if verbose:
+        print('  ...Segmented {0} initial watershed regions ({1:.2f} seconds)'.
+              format(counter, time() - t0))
 
     #-------------------------------------------------------------------------
     # Regrow from (deep) watershed seeds, stopping at borders:
     #-------------------------------------------------------------------------
     if regrow:
 
-        print('  Regrow segments from watershed seeds, stopping at borders')
+        if verbose:
+            print('  Regrow segments from watershed seeds, '
+                  'stopping at borders')
         indices = original_indices[:]
         segments = background_value * np.ones(len(depths))
         all_regions = []
@@ -949,7 +984,7 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
                         segments[region] = iseed
 
                     # Display current number and size of region:
-                    if verbose:
+                    if verbose2:
                         print("    {0} vertices remain".format(len(indices)))
 
         #---------------------------------------------------------------------
@@ -963,8 +998,9 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
             seed_lists=seed_lists, keep_seeding=False, spread_within_labels=False,
             labels=[], label_lists=[], values=[], max_steps='', verbose=False)
 
-        print('  ...Regrew {0} watershed regions from seeds ({1:.2f} seconds)'.
-              format(iseed+1, time() - t0))
+        if verbose:
+            print('  ...Regrew {0} watershed regions from seeds '
+                  '({1:.2f} seconds)'.format(iseed+1, time() - t0))
 
     #-------------------------------------------------------------------------
     # Merge watershed catchment basins:
@@ -972,9 +1008,11 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
     if merge:
 
         # Extract segments pairs at borders between watershed basins:
-        print('  Merge watershed catchment basins with deeper neighboring basins')
         if verbose:
-            print('    Extract basin borders')
+            print('  Merge watershed catchment basins with deeper '
+                  'neighboring basins')
+            if verbose2:
+                print('    Extract basin borders')
         foo1, foo2, pairs = extract_borders(original_indices, segments,
                                             neighbor_lists,
                                             ignore_values=[background_value],
@@ -984,7 +1022,7 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
         Isort.reverse()
 
         # Find neighboring basins to each of the sorted basins:
-        if verbose:
+        if verbose2:
             print("    Find neighboring basins")
         basin_pairs = []
         for index in Isort:
@@ -1009,7 +1047,7 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
 
         # Merge shallow watershed catchment basins:
         if basin_pairs:
-            if verbose:
+            if verbose2:
                 print('    Merge basins with deeper neighboring basins')
             for basin_pair in basin_pairs:
                 segments[np.where(segments == basin_pair[0])] = basin_pair[1]
@@ -1024,14 +1062,15 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
         segments = renumber_segments
 
         # Print statement:
-        print('  ...Merged segments to form {0} watershed regions ({1:.2f} seconds)'.
-              format(i_segment + 1, time() - t0))
+        if verbose:
+            print('  ...Merged segments to form {0} watershed regions '
+                  '({1:.2f} seconds)'.format(i_segment + 1, time() - t0))
 
     return segments.tolist(), seed_indices
 
 
 def select_largest(points, faces, exclude_labels=[-1], areas=None,
-                   reindex=True):
+                   reindex=True, verbose=False):
     """
     Select the largest segment (connected set of indices) in a mesh.
 
@@ -1050,6 +1089,8 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
         surface area scalar values for all vertices
     reindex : Boolean
         reindex indices in faces?
+    verbose : Boolean
+        print statements?
 
     Returns
     -------
@@ -1077,9 +1118,9 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
     >>> faces = remove_faces(faces, I28)
     >>> areas, u1 = read_scalars(area_file, True, True)
     >>> reindex = True
-    >>> #
+    >>> verbose = False
     >>> points2, faces2 = select_largest(points, faces, exclude_labels, areas,
-    >>>                                  reindex)
+    >>>                                  reindex, verbose)
     >>> # View:
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> scalars = np.zeros(np.shape(labels))
@@ -1108,8 +1149,9 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
     min_npoints = 4
     npoints = len(points)
     if npoints < min_npoints or len(faces) < min_npoints:
-        print("The input size {0} ({1} faces) should be much larger "
-              "than {2}". format(npoints, len(faces), min_npoints))
+        if verbose:
+            print("The input size {0} ({1} faces) should be much larger "
+                  "than {2}". format(npoints, len(faces), min_npoints))
         return None
     else:
 
@@ -1147,15 +1189,19 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
                     max_segment_area = segment_area
 
                 # Print message:
-                if use_area:
-                    print('Segment {0}: {1} vertices ({2:.2f} area)'.
-                          format(int(segment_number), len(segment_indices),
-                                 segment_area))
-                else:
-                    print('Segment {0}: {1} vertices'.
-                          format(int(segment_number), len(segment_indices)))
-            print('Largest of {0} segments: {1:.2f}'.
-                  format(len(unique_segments), max_segment_area))
+                if verbose:
+                    if use_area:
+                        print('Segment {0}: {1} vertices ({2:.2f} area)'.
+                              format(int(segment_number),
+                                     len(segment_indices),
+                                     segment_area))
+                    else:
+                        print('Segment {0}: {1} vertices'.
+                              format(int(segment_number),
+                                     len(segment_indices)))
+            if verbose:
+                print('Largest of {0} segments: {1:.2f}'.
+                      format(len(unique_segments), max_segment_area))
 
             #-----------------------------------------------------------------
             # Renumber faces for the selected indices:

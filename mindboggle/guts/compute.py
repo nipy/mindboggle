@@ -911,7 +911,7 @@ def count_per_label(labels, include_labels=[], exclude_labels=[]):
     elif isinstance(labels, ndarray):
         pass
     else:
-        raise IOError("labels should be a numpy array.")
+        raise(IOError("labels should be a numpy array."))
 
     # Unique list of labels:
     if include_labels:

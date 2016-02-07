@@ -348,7 +348,7 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
        (hemi and hemi not in ['lh','rh']) or \
        (new_labels and len(old_labels) != len(new_labels)) or \
        (erase_remaining and not old_labels):
-        raise IOError("Please check inputs for relabel_surface().")
+        raise(IOError("Please check inputs for relabel_surface()."))
 
     # Loop through unique labels in scalars:
     ulabels = np.unique(scalars)
