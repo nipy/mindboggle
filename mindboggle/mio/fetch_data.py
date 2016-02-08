@@ -72,11 +72,13 @@ def test_urls():
     'http://media.mindboggle.info/data/cache/ex/shapes/left_cortical_surface/mean_curvature.vtk'
 
     """
-    url = 'http://media.mindboggle.info/data/cache/ex/'
-    F = url + 'features/'
-    L = url + 'labels/'
-    S = url + 'shapes/'
-    T = url + 'tables/'
+    url = 'http://media.mindboggle.info/data/cache/'
+    ANTS = url + 'ants/'
+    MBW = url + 'mindboggle_working/Mindboggle/'
+    F = url + 'mindboggled/features/'
+    L = url + 'mindboggled/labels/'
+    S = url + 'mindboggled/shapes/'
+    T = url + 'mindboggled/tables/'
     left = 'left_cortical_surface/'
     right = 'right_cortical_surface/'
     Fleft = F + left
@@ -90,7 +92,15 @@ def test_urls():
 
     urls = {}
     #-------------------------------------------------------------------------
-    # Features:
+    # ants (antsCorticalThickness.sh) output:
+    #-------------------------------------------------------------------------
+    urls['ants_segmentation'] = ANTS + 'antsBrainSegmentation.nii.gz'
+    #-------------------------------------------------------------------------
+    # Mindboggle working directory (including converted FreeSurfer output):
+    #-------------------------------------------------------------------------
+    urls['freesurfer_segmentation'] = MBW + 'mgh_to_nifti/001.mgz.nii.gz'
+    #-------------------------------------------------------------------------
+    # Mindboggle features:
     #-------------------------------------------------------------------------
     urls['right_cortex_in_mni'] = Fleft + 'cortex_in_MNI152_space.vtk'
     urls['left_folds'] = Fleft + 'folds.vtk'
@@ -101,14 +111,14 @@ def test_urls():
     urls['right_fundus_per_sulcus'] = Fright + 'fundus_per_sulcus.vtk'
     urls['right_sulci'] = Fright + 'sulci.vtk'
     #-------------------------------------------------------------------------
-    # Labels:
+    # Mindboggle labels:
     #-------------------------------------------------------------------------
     urls['ants_labels'] = L + 'ants_filled_labels.nii.gz'
     urls['freesurfer_labels'] = L + 'freesurfer_wmparc_filled_labels.nii.gz'
     urls['left_freesurfer_labels'] = Lleft + 'freesurfer_cortex_labels.vtk'
     urls['right_freesurfer_labels'] = Lright + 'freesurfer_cortex_labels.vtk'
     #-------------------------------------------------------------------------
-    # Shapes:
+    # Mindboggle shapes:
     #-------------------------------------------------------------------------
     urls['left_area'] = Sleft + 'area.vtk'
     urls['left_freesurfer_curvature'] = Sleft + 'freesurfer_curvature.vtk'
@@ -125,7 +135,7 @@ def test_urls():
     urls['right_mean_curvature'] = Sright + 'mean_curvature.vtk'
     urls['right_travel_depth'] = Sright + 'travel_depth.vtk'
     #-------------------------------------------------------------------------
-    # Tables:
+    # Mindboggle tables:
     #-------------------------------------------------------------------------
     urls['thickinthehead_ants_labels_table'] = \
         T + 'thickinthehead_per_ants_cortex_label.csv'
