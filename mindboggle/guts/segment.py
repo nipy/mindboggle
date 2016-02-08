@@ -84,20 +84,20 @@ def propagate(points, faces, region, seeds, labels,
     Need to fix the example above before continuing!
 
     >>> # Select boundary segments in the sulcus labeling protocol:
-    >>> seeds = background_value * np.ones(npoints)
-    >>> #for ilist,label_pair_list in enumerate(dkt.sulcus_label_pair_lists):
-    ... #    I = [x for i,x in enumerate(indices_borders)
-    ... #         if np.sort(label_pairs[i]).tolist() in label_pair_list]
-    ... #    seeds[I] = ilist
-    >>> #verbose = False
-    >>> #segments = propagate(points, faces, fold_array, seeds, labels, verbose)
+    >>> seeds = background_value * np.ones(npoints) # doctest: +SKIP
+    >>> for ilist,label_pair_list in enumerate(dkt.sulcus_label_pair_lists): # doctest: +SKIP
+    ...     I = [x for i,x in enumerate(indices_borders) # doctest: +SKIP
+    ...          if np.sort(label_pairs[i]).tolist() in label_pair_list] # doctest: +SKIP
+    ...     seeds[I] = ilist # doctest: +SKIP
+    >>> verbose = False # doctest: +SKIP
+    >>> segments = propagate(points, faces, fold_array, seeds, labels, verbose) # doctest: +SKIP
 
     Write results to vtk file and view (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
     >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP
     >>> rewrite_scalars(labels_file, 'propagate.vtk',
-    >>>                 segments, 'segments', segments) # doctest: +SKIP
+    ...                 segments, 'segments', segments) # doctest: +SKIP
     >>> plot_surfaces('propagate.vtk') # doctest: +SKIP
 
     """
@@ -252,10 +252,10 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> labels_file = fetch_data(urls['left_freesurfer_labels'])
     >>> labels, name = read_scalars(labels_file)
     >>> indices_borders, label_pairs, foo = extract_borders(vertices_to_segment,
-    >>>     labels, neighbor_lists, ignore_values=[], return_label_pairs=True)
+    ...     labels, neighbor_lists, ignore_values=[], return_label_pairs=True)
     >>> seed_lists = []
     >>> for label_pair_list in dkt.sulcus_label_pair_lists:
-    >>>     seed_lists.append([x for i,x in enumerate(indices_borders) if np.sort(label_pairs[i]).tolist() in label_pair_list])
+    ...     seed_lists.append([x for i,x in enumerate(indices_borders) if np.sort(label_pairs[i]).tolist() in label_pair_list])
     >>> keep_seeding = True
     >>> spread_within_labels = True
     >>> values = []
@@ -701,11 +701,10 @@ def segment_rings(region, seeds, neighbor_lists, step=1, background_value=-1):
     ...     B = background_value * np.ones(len(values))
     ...     B[indices_high] = 2
     ...     seeds, foo1, foo2 = extract_borders(range(len(values)), B, neighbor_lists)
-    >>> # Or initialize P with the maximum value point:
-    >>> else:
+    ... # Or initialize P with the maximum value point:
+    ... else:
     ...     seeds = [indices[np.argmax(values[indices])]]
     ...     indices_high = []
-    >>> #
     >>> indices = list(frozenset(indices).difference(indices_high))
     >>> indices = list(frozenset(indices).difference(seeds))
     >>> segments = segment_rings(indices, seeds, neighbor_lists, step=1)
@@ -839,9 +838,9 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
     >>> background_value = -1
     >>> verbose = False
     >>> segments, seed_indices = watershed(depths, points,
-    >>>     indices, neighbor_lists, min_size, depth_factor, depth_ratio,
-    >>>     tolerance, regrow, background_value, verbose)
-    >>> len(np.unique(segments))
+    ...     indices, neighbor_lists, min_size, depth_factor, depth_ratio,
+    ...     tolerance, regrow, background_value, verbose)
+    ... len(np.unique(segments))
     202
     >>> len_segments = []
     >>> for useg in np.unique(segments):
@@ -857,7 +856,7 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
     >>> segments_array = np.array(segments)
     >>> segments_array[seed_indices] = 1.5 * np.max(segments_array)
     >>> rewrite_scalars(depth_file, 'watershed.vtk',
-    >>>                 segments_array, 'segments', [], -1) # doctest: +SKIP
+    ...                 segments_array, 'segments', [], -1) # doctest: +SKIP
     >>> plot_surfaces('watershed.vtk') # doctest: +SKIP
 
     """
@@ -1176,7 +1175,7 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
     >>> reindex = True
     >>> verbose = False
     >>> points2, faces2 = select_largest(points, faces, exclude_labels, areas,
-    >>>                                  reindex, verbose)
+    ...                                  reindex, verbose)
     >>> points2[0:10]
     [[-1.4894376993179321, 53.260337829589844, 56.523414611816406],
      [-2.2537832260131836, 53.045711517333984, 56.23670959472656],
@@ -1345,10 +1344,14 @@ def extract_borders(indices, labels, neighbor_lists,
     >>> labels = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, -1, -1]
     >>> neighbor_lists = [[1,2,3], [1,2], [2,3], [2], [4,7], [3,2,3],
     ...                   [2,3,7,8], [2,6,7], [3,4,8], [7], [7,8], [3,2,3]]
-    >>> extract_borders(indices, labels, neighbor_lists, [], True)
-    ([0, 1, 2, 4, 5, 8],
-     [[20, 30, 40], [20, 30], [30, 40], [50, 80], [30, 40], [40, 50, 90]],
-     [[20, 30, 40], [20, 30], [30, 40], [50, 80], [40, 50, 90]])
+    >>> border_indices, border_label_tuples, ubLT = extract_borders(indices,
+    ...     labels, neighbor_lists, [], True)
+    >>> border_indices
+    [0, 1, 2, 4, 5, 8]
+    >>> border_label_tuples
+    [[20, 30, 40], [20, 30], [30, 40], [50, 80], [30, 40], [40, 50, 90]]
+    >>> ubLT
+    [[20, 30, 40], [20, 30], [30, 40], [50, 80], [40, 50, 90]]
 
     Real example -- extract sulcus label boundaries:
 
@@ -1362,8 +1365,8 @@ def extract_borders(indices, labels, neighbor_lists,
     >>> f1,f2,f3, faces, labels, f4, npoints, f5 = read_vtk(label_file,
     ...                                                     True, True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
-    >>> indices_borders, label_pairs, foo = extract_borders(range(npoints),
-    >>>     labels, neighbor_lists)
+    >>> indices_borders, label_pairs, f1 = extract_borders(range(npoints),
+    ...     labels, neighbor_lists)
     >>> indices_borders[0:10]
     [115, 116, 120, 121, 125, 126, 130, 131, 281, 286]
 
@@ -1374,13 +1377,13 @@ def extract_borders(indices, labels, neighbor_lists,
     >>> IDs = -1 * np.ones(npoints) # doctest: +SKIP
     >>> IDs[indices_borders] = 1 # doctest: +SKIP
     >>> rewrite_scalars(label_file, 'extract_borders.vtk',
-    >>>                 IDs, 'borders') # doctest: +SKIP
+    ...                 IDs, 'borders') # doctest: +SKIP
     >>> plot_surfaces('extract_borders.vtk') # doctest: +SKIP
 
     Write just the borders to vtk file and view (skip test):
 
     >>> rewrite_scalars(label_file, 'extract_borders.vtk',
-    >>>                 IDs, 'borders', borders) # doctest: +SKIP
+    ...                 IDs, 'borders', borders) # doctest: +SKIP
     >>> plot_surfaces('extract_borders.vtk') # doctest: +SKIP
 
     """

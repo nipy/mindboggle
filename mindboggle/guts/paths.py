@@ -661,7 +661,7 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
     ...     bounds, curv_file, values, wN_max, erode_again, save_file,
     ...     background_value, verbose)
     >>> np.where(np.array(smooth_skeletons)!=-1)[0][0:10]
-    array([79227, 80430, 80439, 80449, 80533, 81532, 81533, 81536, 81573, 81585])
+    array([ 848,  852,  864, 1209, 1210, 1221, 1228, 1236, 1241, 1507])
 
     NOTE: Output file is unreadable:
     "Error reading ascii data. Possible mismatch of datasize with declaration."
