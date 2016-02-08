@@ -32,7 +32,7 @@ def hashes_url():
     import os
 
     hashes = {}
-    url = 'http://media.mindboggle.info/data/cache/'
+    url = 'http://media.mindboggle.info/data/cache/atlases/'
     cache_env = 'MINDBOGGLE_CACHE'
     cache = os.environ.get(cache_env, os.path.join(os.environ['HOME'],
                                                    'mindboggle_cache'))
