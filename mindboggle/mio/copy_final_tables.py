@@ -49,11 +49,3 @@ for dir in dirs:
     cmd = 'cp -R {0} {1}'.format(in_tables, out_tables)
 
     os.system(cmd)
-
-
-#=============================================================================
-# Doctests
-#=============================================================================
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod()

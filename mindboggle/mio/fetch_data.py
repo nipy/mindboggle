@@ -154,10 +154,6 @@ def test_urls():
     urls['right_sulcus_shapes_table'] = Tright + 'sulcus_shapes.csv'
     urls['right_vertices_table'] = Tright + 'vertices.csv'
 
-    # Prepend with url:
-    #for key in urls:
-    #    urls[key] = url + urls[key]
-
     return urls
 
 
@@ -178,8 +174,7 @@ def prep_tests():
     >>> urls, fetch_data = prep_tests()
     >>> urls['left_mean_curvature']
     'http://media.mindboggle.info/data/cache/mindboggled/shapes/left_cortical_surface/mean_curvature.vtk'
-    >>> fetch_data
-    <function mindboggle.mio.fetch_data.fetch_data>
+    >>> fetch_data # doctest: +SKIP
 
     """
     from mindboggle.mio.fetch_data import fetch_data
@@ -469,8 +464,7 @@ def fetch_ants_data(segmented_file, use_ants_transforms=True):
     >>> segmented_file = 'ants/OASIS-TRT-20-1/tmpBrainSegmentation.nii.gz'
     >>> use_ants_transforms = True
     >>> m, s, a_s2t, w_s2t, a_t2s, w_t2s = fetch_ants_data(segmented_file,
-    ...     use_ants_transforms)
-    IOError: antsCorticalThickness.sh output ants/OASIS-TRT-20-1/tmpBrainExtractionMask.nii.gz does not exist.
+    ...     use_ants_transforms) # doctest: +SKIP
 
     """
     import os
