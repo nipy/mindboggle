@@ -89,34 +89,27 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
 
     Examples
     --------
-    >>> import os
-    >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.mio.tables import write_shape_stats
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> labels_or_file = os.path.join(path, 'labels', 'left_cortical_surface',
-    ...     'freesurfer_cortex_labels.vtk')
-    >>> sulci_file = os.path.join(path, 'features', 'left_cortical_surface',
-    ...     'sulci.vtk')
-    >>> fundi_file = os.path.join(path, 'features', 'left_cortical_surface',
-    ...     'fundus_per_sulcus.vtk')
-    >>> sulci, name = read_scalars(sulci_file)
-    >>> fundi, name = read_scalars(fundi_file)
-    >>> affine_transform_files = []
-    >>> inverse_booleans = []
-    >>> transform_format = 'itk'
-    >>> area_file = os.path.join(path, 'shapes', 'left_cortical_surface',
-    ...     'area.vtk')
-    >>> normalize_by_area = False
-    >>> mean_curvature_file = os.path.join(path, 'shapes',
-    ...     'left_cortical_surface', 'mean_curvature.vtk')
-    >>> travel_depth_file = os.path.join(path, 'shapes',
-    ...     'left_cortical_surface', 'travel_depth.vtk')
-    >>> geodesic_depth_file = os.path.join(path, 'shapes',
-    ...     'left_cortical_surface', 'geodesic_depth.vtk')
+    >>> from mindboggle.mio.vtks import read_scalars
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> label_file = fetch_data(urls['left_freesurfer_labels'])
+    >>> sulci_file = fetch_data(urls['left_sulci'])
+    >>> fundi_file = '' #fetch_data(urls['left_fundi'])
+    >>> mean_curvature_file = fetch_data(urls['left_mean_curvature'])
+    >>> travel_depth_file = fetch_data(urls['left_travel_depth'])
+    >>> geodesic_depth_file = fetch_data(urls['left_geodesic_depth'])
+    >>> area_file = fetch_data(urls['left_area'])
     >>> freesurfer_thickness_file = ''
     >>> freesurfer_curvature_file = ''
     >>> freesurfer_sulc_file = ''
-    >>> labels, name = read_scalars(labels_or_file)
+    >>> sulci, name = read_scalars(sulci_file)
+    >>> fundi = []  #fundi, name = read_scalars(fundi_file)
+    >>> affine_transform_files = []
+    >>> inverse_booleans = []
+    >>> transform_format = 'itk'
+    >>> normalize_by_area = False
+    >>> labels, name = read_scalars(label_file)
     >>> labels_spectra = []
     >>> labels_spectra_IDs = []
     >>> sulci_spectra = []
@@ -126,17 +119,15 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     >>> sulci_zernike = []
     >>> sulci_zernike_IDs = []
     >>> exclude_labels = [-1]
-    >>> write_shape_stats(labels_or_file, sulci, fundi,
-    >>>     affine_transform_files, inverse_booleans, transform_format,
-    >>>     area_file, normalize_by_area,
-    >>>     mean_curvature_file, travel_depth_file, geodesic_depth_file,
-    >>>     freesurfer_thickness_file, freesurfer_curvature_file,
-    >>>     freesurfer_sulc_file,
-    >>>     labels_spectra, labels_spectra_IDs,
-    >>>     sulci_spectra, sulci_spectra_IDs,
-    >>>     labels_zernike, labels_zernike_IDs,
-    >>>     sulci_zernike, sulci_zernike_IDs,
-    >>>     exclude_labels)
+    >>> label_table, sulcus_table, fundus_table = write_shape_stats(label_file,
+    ...     sulci, fundi, affine_transform_files, inverse_booleans,
+    ...     transform_format, area_file, normalize_by_area,
+    ...     mean_curvature_file, travel_depth_file, geodesic_depth_file,
+    ...     freesurfer_thickness_file, freesurfer_curvature_file,
+    ...     freesurfer_sulc_file, labels_spectra, labels_spectra_IDs,
+    ...     sulci_spectra, sulci_spectra_IDs, labels_zernike,
+    ...     labels_zernike_IDs, sulci_zernike, sulci_zernike_IDs,
+    ...     exclude_labels)
 
     """
     import os

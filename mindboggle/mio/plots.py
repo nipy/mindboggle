@@ -368,7 +368,7 @@ def boxplots_of_lists(columns, xlabel='', ylabel='', ylimit=None, title=''):
     --------
     >>> from mindboggle.mio.plots import boxplots_of_lists
     >>> columns = [[1,1,2,2,2,2,2,2,3,3,3,4,4,8],[2,2,3,3,3,3,5,6,7],
-    >>>            [2,2,2.5,2,2,2,3,3,3,3,5,6,7]]
+    ...            [2,2,2.5,2,2,2,3,3,3,3,5,6,7]]
     >>> xlabel = 'xlabel'
     >>> ylabel = 'ylabel'
     >>> ylimit = None
