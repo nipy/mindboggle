@@ -60,11 +60,11 @@ def propagate(points, faces, region, seeds, labels,
     >>> from mindboggle.mio.labels import DKTprotocol
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> labels_file = fetch_data(urls['left_freesurfer_labels'])
+    >>> label_file = fetch_data(urls['left_freesurfer_labels'])
     >>> folds_file = fetch_data(urls['left_folds'])
     >>> dkt = DKTprotocol()
     >>> folds, name = read_scalars(folds_file, True, True)
-    >>> points, f1,f2, faces, labels, f3, npoints, f4 = read_vtk(labels_file,
+    >>> points, f1,f2, faces, labels, f3, npoints, f4 = read_vtk(label_file,
     ...     True, True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> indices_borders, label_pairs, foo = extract_borders(range(npoints),
@@ -77,12 +77,7 @@ def propagate(points, faces, region, seeds, labels,
     >>> fold_array[indices_fold] = 1
     >>> # Extract the boundary for this fold:
     >>> indices_borders, label_pairs, foo = extract_borders(indices_fold,
-    ...     labels, neighbor_lists)
-    >>> print(len(label_pairs))
-    0
-
-    Need to fix the example above before continuing!
-
+    ...     labels, neighbor_lists, [], True)
     >>> # Select boundary segments in the sulcus labeling protocol:
     >>> seeds = background_value * np.ones(npoints) # doctest: +SKIP
     >>> for ilist,label_pair_list in enumerate(dkt.sulcus_label_pair_lists): # doctest: +SKIP
@@ -91,13 +86,22 @@ def propagate(points, faces, region, seeds, labels,
     ...     seeds[I] = ilist # doctest: +SKIP
     >>> verbose = False # doctest: +SKIP
     >>> segments = propagate(points, faces, fold_array, seeds, labels, verbose) # doctest: +SKIP
+    >>> len(np.unique(segments))
+    4
+    >>> np.unique(segments)[0:10]
+    array([ -1.,  10.,  12.,  23.])
+    >>> len_segments = []
+    >>> for useg in np.unique(segments):
+    ...     len_segments.append(len(np.where(segments == useg)[0]))
+    >>> len_segments[0:10]
+    [142213, 2693, 21, 142]
 
     Write results to vtk file and view (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
     >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP
-    >>> rewrite_scalars(labels_file, 'propagate.vtk',
-    ...                 segments, 'segments', segments) # doctest: +SKIP
+    >>> rewrite_scalars(label_file, 'propagate.vtk',
+    ...                 segments, 'segments', [], -1) # doctest: +SKIP
     >>> plot_surfaces('propagate.vtk') # doctest: +SKIP
 
     """
@@ -1312,6 +1316,8 @@ def extract_borders(indices, labels, neighbor_lists,
         each list contains indices to neighboring vertices for each vertex
     ignore_values : list of integers
         integers to ignore (e.g., background)
+    return_label_pairs : Boolean
+        return label pairs?
 
     Returns
     -------
