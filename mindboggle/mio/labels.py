@@ -46,6 +46,7 @@ def return_numbers_names_colors():
 
     Examples
     --------
+    >>> import numpy as np
     >>> from mindboggle.mio.labels import return_numbers_names_colors
     >>> numbers, names, colors = return_numbers_names_colors()
     >>> len(np.unique(numbers))
@@ -3913,7 +3914,12 @@ See http://mindboggle.info/faq/labels.html for additional information.
     --------
     >>> from mindboggle.mio.labels import DKTprotocol
     >>> dkt = DKTprotocol()
-    >>> dkt.left_cerebrum_names
+    >>> dkt.left_cerebrum_names[0:3]
+    ['Left-Cerebral-Cortex', 'Left-Insula', 'Left-Operculum']
+    >>> dkt.left_cerebrum_numbers[0:10]
+    [3, 19, 20, 1000, 1001, 1002, 1003, 1005, 1006, 1007]
+    >>> dkt.left_cerebrum_colors[0]
+    [205, 62, 78]
 
     """
     from mindboggle.mio.labels import return_numbers_names_colors

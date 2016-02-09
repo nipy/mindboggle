@@ -68,8 +68,7 @@ def test_urls():
     --------
     >>> from mindboggle.mio.fetch_data import test_urls
     >>> urls = test_urls()
-    >>> urls['left_mean_curvature']
-    'http://media.mindboggle.info/data/cache/ex/shapes/left_cortical_surface/mean_curvature.vtk'
+    >>> urls['left_mean_curvature'] # doctest: +SKIP
 
     """
     url = 'http://media.mindboggle.info/data/cache/'
