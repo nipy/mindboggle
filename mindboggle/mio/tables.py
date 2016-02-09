@@ -21,7 +21,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
         sulci_spectra=[], sulci_spectra_IDs=[],
         labels_zernike=[], labels_zernike_IDs=[],
         sulci_zernike=[], sulci_zernike_IDs=[],
-        exclude_labels=[-1]):
+        exclude_labels=[-1], verbose=False):
     """
     Make tables of shape statistics per label, sulcus, and/or fundus.
 
@@ -77,6 +77,8 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
         unique sulcus IDs for sulci_zernike
     exclude_labels : list of lists of integers
         indices to be excluded (in addition to -1)
+    verbose : Boolean
+        print statements?
 
     Returns
     -------
@@ -119,6 +121,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     >>> sulci_zernike = []
     >>> sulci_zernike_IDs = []
     >>> exclude_labels = [-1]
+    >>> verbose = False
     >>> label_table, sulcus_table, fundus_table = write_shape_stats(label_file,
     ...     sulci, fundi, affine_transform_files, inverse_booleans,
     ...     transform_format, area_file, normalize_by_area,
@@ -127,17 +130,18 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     ...     freesurfer_sulc_file, labels_spectra, labels_spectra_IDs,
     ...     sulci_spectra, sulci_spectra_IDs, labels_zernike,
     ...     labels_zernike_IDs, sulci_zernike, sulci_zernike_IDs,
-    ...     exclude_labels)
+    ...     exclude_labels, verbose)
 
     """
     import os
     import numpy as np
     import pandas as pd
 
-    from mindboggle.guts.compute import means_per_label, stats_per_label, \
-        sum_per_label
-    from mindboggle.mio.vtks import read_scalars, read_vtk, \
-        apply_affine_transforms
+    from mindboggle.guts.compute import stats_per_label
+    from mindboggle.guts.compute import means_per_label
+    from mindboggle.guts.compute import sum_per_label
+    from mindboggle.mio.vtks import read_scalars, read_vtk
+    from mindboggle.mio.vtks import apply_affine_transforms
     from mindboggle.mio.labels import DKTprotocol
 
     dkt = DKTprotocol()
@@ -155,8 +159,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
         fundi = [int(x) for x in fundi]
 
     if not labels and not sulci and not fundi:
-        import sys
-        sys.exit('No feature data to tabulate in write_shape_stats().')
+        raise IOError('No feature data to tabulate in write_shape_stats().')
 
     spectrum_start = 1  # Store all columns of spectral components (0),
                         # or start from higher frequency components (>=1)
@@ -251,8 +254,9 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
             column_names.extend(column_names[:])
             for ishape, shape_array in enumerate(shape_arrays):
                 shape = shape_names[ishape]
-                print('  Compute statistics on {0} {1}...'.
-                      format(feature_name, shape))
+                if verbose:
+                    print('  Compute statistics on {0} {1}...'.
+                        format(feature_name, shape))
                 #-------------------------------------------------------------
                 # Append feature areas to columns:
                 #-------------------------------------------------------------
@@ -443,34 +447,29 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
 
     Examples
     --------
-    >>> import os
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.mio.tables import write_vertex_measures
     >>> output_table = '' #vertex_shapes.csv'
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> labels_or_file = os.path.join(path, 'labels',
-    ...     'lh.labels.DKT25.manual.vtk')
-    >>> sulci_file = os.path.join(path, 'features', 'sulci.vtk')
-    >>> fundi_file = os.path.join(path, 'features', 'fundi.vtk')
-    >>> sulci, name = read_scalars(sulci_file)
-    >>> fundi, name = read_scalars(fundi_file)
-    >>> affine_transform_files = [os.path.join(path, 'mri',
-    >>>     't1weighted_brain.MNI152Affine.txt')]
-    >>> inverse_booleans = [1]
-    >>> transform_format = 'itk'
-    >>> swap_xy = True
-    >>> area_file = os.path.join(path, 'shapes', 'lh.pial.area.vtk')
-    >>> mean_curvature_file = os.path.join(path, 'shapes',
-    ...     'lh.pial.mean_curvature.vtk')
-    >>> travel_depth_file = os.path.join(path, 'shapes',
-    ...     'lh.pial.travel_depth.vtk')
-    >>> geodesic_depth_file = os.path.join(path, 'shapes',
-    ...     'lh.pial.geodesic_depth.vtk')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> label_file = fetch_data(urls['left_freesurfer_labels'])
+    >>> sulci_file = fetch_data(urls['left_sulci'])
+    >>> fundi_file = '' #fetch_data(urls['left_fundi'])
+    >>> mean_curvature_file = fetch_data(urls['left_mean_curvature'])
+    >>> travel_depth_file = fetch_data(urls['left_travel_depth'])
+    >>> geodesic_depth_file = fetch_data(urls['left_geodesic_depth'])
+    >>> area_file = fetch_data(urls['left_area'])
     >>> freesurfer_thickness_file = ''
     >>> freesurfer_curvature_file = ''
     >>> freesurfer_sulc_file = ''
-    >>> write_vertex_measures(output_table, labels_or_file, sulci, fundi,
-    ...     affine_transform_files, inverse_booleans, transform_format,
+    >>> sulci, name = read_scalars(sulci_file)
+    >>> fundi = [] #fundi, name = read_scalars(fundi_file)
+    >>> affine_transform_files = [] #['t1weighted_brain.MNI152Affine.txt']
+    >>> inverse_booleans = [1]
+    >>> transform_format = 'itk'
+    >>> swap_xy = True
+    >>> output_table = write_vertex_measures(output_table, label_file, sulci,
+    ...     fundi, affine_transform_files, inverse_booleans, transform_format,
     ...     area_file, mean_curvature_file, travel_depth_file,
     ...     geodesic_depth_file, freesurfer_thickness_file,
     ...     freesurfer_curvature_file, freesurfer_sulc_file)
@@ -586,15 +585,14 @@ def write_face_vertex_averages(input_file, output_table='', area_file=''):
 
     Examples
     --------
-    >>> import os
     >>> from mindboggle.mio.tables import write_face_vertex_averages
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_file = os.path.join(path, 'shapes', 'left_cortical_surface',
-    ...     'freesurfer_thickness.vtk')
-    >>> area_file = os.path.join(path, 'shapes', 'left_cortical_surface',
-    ...      'area.vtk')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> input_file = fetch_data(urls['left_travel_depth'])
+    >>> area_file = fetch_data(urls['left_area'])
     >>> output_table = ''
-    >>> write_face_vertex_averages(input_file, output_table, area_file)
+    >>> output_table = write_face_vertex_averages(input_file, output_table,
+    ...                                           area_file)
 
     """
     import os
@@ -637,8 +635,8 @@ def write_face_vertex_averages(input_file, output_table='', area_file=''):
 
 
 def write_average_face_values_per_label(input_indices_vtk,
-                    input_values_vtk='', area_file='',
-                    output_stem='', exclude_values=[-1], background_value=-1):
+        input_values_vtk='', area_file='', output_stem='',
+        exclude_values=[-1], background_value=-1, verbose=False):
     """
     Write out a separate VTK file for each integer
     in (the first) scalar list of an input VTK file.
@@ -658,28 +656,31 @@ def write_average_face_values_per_label(input_indices_vtk,
         background value in output VTK files
     scalar_name : string
         name of a lookup table of scalars values
+    verbose : Boolean
+        print statements?
 
     Examples
     --------
     >>> import os
     >>> from mindboggle.mio.tables import write_average_face_values_per_label
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_indices_vtk = os.path.join(path, 'labels',
-    ...     'left_cortical_surface', 'freesurfer_cortex_labels.vtk')
-    >>> input_values_vtk = os.path.join(path, 'shapes',
-    ...     'left_cortical_surface', 'freesurfer_thickness.vtk')
-    >>> area_file = os.path.join(path, 'shapes', 'left_cortical_surface',
-    ...     'area.vtk')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> input_indices_vtk = fetch_data(urls['left_freesurfer_labels'])
+    >>> input_values_vtk = fetch_data(urls['left_mean_curvature'])
+    >>> area_file = fetch_data(urls['left_area'])
     >>> output_stem = 'labels_thickness'
     >>> exclude_values = [-1]
     >>> background_value = -1
+    >>> verbose = False
     >>> write_average_face_values_per_label(input_indices_vtk,
     ...     input_values_vtk, area_file, output_stem, exclude_values,
-    ...     background_value)
-    >>> # View:
-    >>> #example_vtk = os.path.join(os.getcwd(), output_stem + '0.vtk')
-    >>> #from mindboggle.mio.plots import plot_surfaces
-    >>> #plot_surfaces(example_vtk)
+    ...     background_value, verbose)
+
+    View vtk file (skip test):
+
+    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
+    >>> example_vtk = os.path.join(os.getcwd(), output_stem + '0.vtk') # doctest: +SKIP
+    >>> plot_surfaces(example_vtk) # doctest: +SKIP
 
     """
     import os
@@ -694,16 +695,15 @@ def write_average_face_values_per_label(input_indices_vtk,
         input_vtk = read_vtk(input_indices_vtk, True, True)
     if area_file:
         area_scalars, name = read_scalars(area_file, True, True)
-    print("Explode the scalar list in {0}".
-          format(os.path.basename(input_indices_vtk)))
+    if verbose:
+        print("Explode the scalar list in {0}".
+            format(os.path.basename(input_indices_vtk)))
     if input_values_vtk != input_indices_vtk:
-        values, name = read_scalars(input_values_vtk, True, True)
-        print("Explode the scalar list of values in {0} "
-              "with the scalar list of indices in {1}".
-              format(os.path.basename(input_values_vtk),
-                     os.path.basename(input_indices_vtk)))
-    else:
-        values = np.copy(scalars)
+        if verbose:
+            print("Explode the scalar list of values in {0} "
+                  "with the scalar list of indices in {1}".
+                format(os.path.basename(input_values_vtk),
+                       os.path.basename(input_indices_vtk)))
 
     # Loop through unique (non-excluded) scalar values:
     unique_scalars = [int(x) for x in np.unique(scalars)
@@ -717,7 +717,9 @@ def write_average_face_values_per_label(input_indices_vtk,
         select_scalars = np.copy(scalars)
         select_scalars[scalars != scalar] = background_value
         scalar_indices = [i for i,x in enumerate(select_scalars) if x==scalar]
-        print("  Scalar {0}: {1} vertices".format(scalar, len(scalar_indices)))
+        if verbose:
+            print("  Scalar {0}: {1} vertices".format(scalar,
+                                                      len(scalar_indices)))
 
         #---------------------------------------------------------------------
         # For each face, average vertex values:
@@ -739,12 +741,6 @@ def write_average_face_values_per_label(input_indices_vtk,
         #-----------------------------------------------------------------
         df = pd.DataFrame({'': columns})
         df.to_csv(output_table, index=False)
-
-        # Write VTK file with scalar value:
-        #output_vtk = os.path.join(os.getcwd(), output_stem + str(scalar) + '.vtk')
-        #write_vtk(output_vtk, points, indices, lines, new_faces,
-        #          [select_values.tolist()], [output_scalar_name])
-
         if not os.path.exists(output_table):
             raise(IOError(output_table + " not found"))
 
@@ -754,12 +750,14 @@ def select_column_from_tables(tables, index=0, write_table=True,
     """
     Select column from list of tables, make a new table.
 
+    Note: If more than one table, column must be of the same length.
+
     Parameters
     ----------
     tables : list of strings
         table files (full paths)
     index : integer
-        index for column to select
+        index for column to select (from each table)
     write_table : Boolean
         write output table?
     output_table : string
@@ -786,17 +784,23 @@ def select_column_from_tables(tables, index=0, write_table=True,
 
     Examples
     --------
-    >>> import os
     >>> from mindboggle.mio.tables import select_column_from_tables
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> tables = [os.path.join(path, 'tables',
-    ...           'thickinthehead_per_freesurfer_cortex_label.csv'),
-    ...           os.path.join(path, 'tables',
-    ...           'thickinthehead_per_freesurfer_cortex_label.csv')]
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> tables = [fetch_data(urls['thickinthehead_freesurfer_labels_table']),
+    ...           fetch_data(urls['thickinthehead_freesurfer_labels_table'])]
     >>> index = 2
     >>> write_table = True
     >>> output_table = ''
-    >>> select_column_from_tables(tables, index, write_table, output_table)
+    >>> output = select_column_from_tables(tables, index, write_table,
+    ...                                    output_table)
+    >>> columns = output[1][0]
+    >>> columns[0]
+    2.8010000000000002
+    >>> columns[1]
+    3.9430000000000001
+    >>> columns[2]
+    4.0280000000000005
 
     """
     import os
@@ -828,7 +832,7 @@ def select_column_from_tables(tables, index=0, write_table=True,
             df = pd.DataFrame({'': columns})
             df.to_csv(output_table, index=False)
         else:
-            print('Not saving table.')
+            raise IOError('Not saving table.')
 
     return tables, columns, output_table
 
@@ -875,22 +879,28 @@ def select_column_from_mindboggle_tables(subjects, hemi, index, tables_dir,
     Examples
     --------
     >>> import os
-    >>> from mindboggle.mio.tables import select_column_from_mindboggle_tables
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> subject1 = os.path.basename(path)
-    >>> subject2 = os.path.basename(path)
-    >>> subjects = [subject1, subject2]
-    >>> hemi = 'left'
-    >>> index = 2
-    >>> tables_dir = os.path.dirname(path)
-    >>> table_name = "label_shapes.csv"
-    >>> label_name = 'Label name'
-    >>> is_surface_table = True
-    >>> write_table = True
-    >>> output_table = ''
-    >>> select_column_from_mindboggle_tables(subjects, hemi, index,
-    ...     tables_dir, table_name, is_surface_table, write_table,
-    ...     output_table)
+    >>> from mindboggle.mio.tables import select_column_from_mindboggle_tables # doctest: +SKIP
+    >>> path = os.environ['MINDBOGGLE_DATA'] # doctest: +SKIP
+    >>> subject1 = os.path.basename(path) # doctest: +SKIP
+    >>> subject2 = os.path.basename(path) # doctest: +SKIP
+    >>> subjects = [subject1, subject2] # doctest: +SKIP
+    >>> hemi = 'left' # doctest: +SKIP
+    >>> index = 2 # doctest: +SKIP
+    >>> tables_dir = os.path.dirname(path) # doctest: +SKIP
+    >>> table_name = "label_shapes.csv" # doctest: +SKIP
+    >>> label_name = 'Label name' # doctest: +SKIP
+    >>> is_surface_table = True # doctest: +SKIP
+    >>> write_table = True # doctest: +SKIP
+    >>> output_table = '' # doctest: +SKIP
+    >>> tables, cols, output = select_column_from_mindboggle_tables(subjects,
+    ...     hemi, index, tables_dir, table_name, is_surface_table,
+    ...     write_table, output_table) # doctest: +SKIP
+    >>> cols[0][0]
+    878.03969839999979
+    >>> cols[0][1]
+    3085.6236725000008
+    >>> cols[0][2]
+    1761.2330760000002
 
     """
     import os
@@ -919,7 +929,7 @@ def select_column_from_mindboggle_tables(subjects, hemi, index, tables_dir,
 
 
 def explode_mindboggle_tables(subject_path='', output_path='',
-                              break_column='label ID'):
+                              break_column='label ID', verbose=False):
     """
     Given a subject name corresponding to Mindboggle outputs, break up each
     hemisphere's vertices.csv file into a separate table file for each label.
@@ -932,29 +942,36 @@ def explode_mindboggle_tables(subject_path='', output_path='',
         output path/directory
     break_column : string
         column header that contains the integers to break up into tables
+    verbose : Boolean
+        print statements?
 
     Examples
     --------
     >>> import os
-    >>> from mindboggle.mio.tables import explode_mindboggle_tables
-    >>> subject_path = os.environ['MINDBOGGLE_DATA']
-    >>> output_path = '.'
-    >>> break_column = 'label ID'
-    >>> explode_mindboggle_tables(subject_path, output_path, break_column)
+    >>> from mindboggle.mio.tables import explode_mindboggle_tables # doctest: +SKIP
+    >>> subject_path = os.environ['MINDBOGGLE_DATA'] # doctest: +SKIP
+    >>> output_path = '.' # doctest: +SKIP
+    >>> break_column = 'label ID' # doctest: +SKIP
+    >>> verbose = False # doctest: +SKIP
+    >>> explode_mindboggle_tables(subject_path, output_path, break_column,
+    ...                           verbose) # doctest: +SKIP
     """
     import os
     import numpy as np
     import pandas as pd
 
     if not os.path.exists(output_path):
-        print("{0} does not exist".format(output_path))
+        if verbose:
+            print("{0} does not exist".format(output_path))
     else:
 
         for side in ['left', 'right']:
 
             output_dir = os.path.join(output_path, side + '_exploded_tables')
             if not os.path.exists(output_dir):
-                print("Create missing output directory: {0}".format(output_dir))
+                if verbose:
+                    print("Create missing output directory: {0}".
+                          format(output_dir))
                 os.mkdir(output_dir)
             if os.path.exists(output_dir):
 
@@ -974,8 +991,9 @@ def explode_mindboggle_tables(subject_path='', output_path='',
                                        'freesurfer_thickness',
                                        'freesurfer_sulc']
 
-                print("Explode {0} by {1} values".
-                      format(vertices_table, break_column))
+                if verbose:
+                    print("Explode {0} by {1} values".
+                        format(vertices_table, break_column))
 
                 df = pd.read_csv(vertices_table,
                         header=0,
@@ -996,7 +1014,8 @@ def explode_mindboggle_tables(subject_path='', output_path='',
                     if not os.path.exists(out_file):
                         raise(IOError(out_file + " not found"))
             else:
-                print('Unable to make directory {0}'.format(output_dir))
+                raise IOError('Unable to make directory {0}'.
+                              format(output_dir))
 
 
 #=============================================================================
