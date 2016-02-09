@@ -861,7 +861,8 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
 def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
                     exclude_values=[-1], background_value=-1,
                     output_scalar_name='scalars',
-                    remove_background_faces=True, reindex=True):
+                    remove_background_faces=True,
+                    reindex=True, verbose=False):
     """
     Write out a separate VTK file for each integer (not in exclude_values)
     in (the first) scalar list of an input VTK file.
@@ -885,45 +886,44 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
         remove all faces whose three vertices are not all a given index?
     reindex : Boolean
         reindex all indices in faces?
+    verbose : Boolean
+        print statements?
 
     Examples
     --------
     >>> # Example 1:  explode sulci with thickness values
-    >>> import os
     >>> from mindboggle.mio.vtks import explode_scalars
-    >>> from mindboggle.mio.plots import plot_surfaces
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_indices_vtk = os.path.join(path, 'features', 'sulci.vtk')
-    >>> input_values_vtk = os.path.join(path, 'shapes', 'lh.pial.travel_depth.vtk')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> input_indices_vtk = fetch_data(urls['left_sulci'])
+    >>> input_values_vtk = fetch_data(urls['left_travel_depth'])
     >>> output_stem = 'sulci_depth'
-    >>> #
-    >>> explode_scalars(input_indices_vtk, input_values_vtk, output_stem)
-    >>> #
-    >>> # View:
-    >>> example_vtk = os.path.join(os.getcwd(), output_stem + '0.vtk')
-    >>> plot_surfaces(example_vtk)
-    >>> #
-    >>> # Example 2:  explode labels
-    >>> import os
-    >>> from mindboggle.mio.vtks import explode_scalars
+    >>> verbose = False
+    >>> explode_scalars(input_indices_vtk, input_values_vtk, output_stem,
+    ...                 verbose)
+
+    View Example 1 results (skip test):
+
     >>> from mindboggle.mio.plots import plot_surfaces
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_values_vtk = os.path.join(path, 'labels',
-    >>>                                 'lh.labels.DKT25.manual.vtk')
-    >>> input_indices_vtk = input_values_vtk
+    >>> plot_surfaces(output_stem + '1.vtk')
+
+    Example 2:  explode labels
+
     >>> output_stem = 'label'
     >>> exclude_values = [-1]
     >>> background_value = -1,
     >>> output_scalar_name = 'scalars'
     >>> remove_background_faces = True
     >>> reindex = True
-    >>> #
+    >>> verbose = False
     >>> explode_scalars(input_indices_vtk, input_values_vtk, output_stem,
-    >>>                 exclude_values, background_value,
-    >>>                 output_scalar_name, remove_background_faces, reindex)
-    >>> # View:
-    >>> example_vtk = os.path.join(os.getcwd(), output_stem + '2.vtk')
-    >>> plot_surfaces(example_vtk)
+    ...     exclude_values, background_value, output_scalar_name,
+    ...     remove_background_faces, reindex, verbose)
+
+    View Example 2 results (skip test):
+
+    >>> from mindboggle.mio.plots import plot_surfaces
+    >>> plot_surfaces(output_stem + '1.vtk')
 
     """
     import os
@@ -937,14 +937,16 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     # Load VTK file:
     points, indices, lines, faces, scalars, scalar_names, npoints, \
         input_vtk = read_vtk(input_indices_vtk, True, True)
-    print("Explode the scalar list in {0}".
-          format(os.path.basename(input_indices_vtk)))
+    if verbose:
+        print("Explode the scalar list in {0}".
+            format(os.path.basename(input_indices_vtk)))
     if input_values_vtk != input_indices_vtk:
         values, name = read_scalars(input_values_vtk, True, True)
-        print("Explode the scalar list of values in {0} "
-              "with the scalar list of indices in {1}".
-              format(os.path.basename(input_values_vtk),
-                     os.path.basename(input_indices_vtk)))
+        if verbose:
+            print("Explode the scalar list of values in {0} "
+                  "with the scalar list of indices in {1}".
+                format(os.path.basename(input_values_vtk),
+                       os.path.basename(input_indices_vtk)))
     else:
         values = np.copy(scalars)
 
@@ -983,7 +985,8 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
             len_indices = len([i for i,x in enumerate(select_values)
                                if x != background_value])
 
-        print("  Scalar {0}: {1} vertices".format(scalar, len_indices))
+        if verbose:
+            print("  Scalar {0}: {1} vertices".format(scalar, len_indices))
 
         if len_indices > 0:
             # Write VTK file with scalar values (list of values):
@@ -992,7 +995,8 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
             elif np.ndim(select_values) == 2:
                 scalar_type = type(select_values[0][0]).__name__
             else:
-                print("Undefined scalar type!")
+                if verbose:
+                    print("Undefined scalar type!")
             output_vtk = os.path.join(os.getcwd(),
                                       output_stem + str(scalar) + '.vtk')
             write_vtk(output_vtk, select_points, indices, lines, scalar_faces,
