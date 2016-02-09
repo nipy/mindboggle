@@ -108,7 +108,7 @@ def propagate(points, faces, region, seeds, labels,
     import numpy as np
     from mindboggle.guts.mesh import remove_faces
     import mindboggle.guts.kernels as kernels
-    import mindboggle.guts.rebound as rb
+    import mindboggle.guts.rebound as rebound
 
     # Make sure arguments are numpy arrays:
     if not isinstance(seeds, np.ndarray):
@@ -139,7 +139,7 @@ def propagate(points, faces, region, seeds, labels,
             refaces = remove_faces(faces, indices_region)
 
             # Set up rebound Bounds class instance:
-            B = rb.Bounds()
+            B = rebound.Bounds()
             if refaces:
                 B.Faces = np.array(refaces)
                 B.Indices = local_indices_region
@@ -147,6 +147,7 @@ def propagate(points, faces, region, seeds, labels,
                 B.Labels = labels[indices_region]
                 B.seed_labels = seeds[indices_region]
                 B.num_points = len(B.Points)
+                B.verbose = verbose
 
                 # Propagate seed IDs from seeds:
                 B.graph_based_learning(method='propagate_labels',
@@ -155,10 +156,11 @@ def propagate(points, faces, region, seeds, labels,
                                        sigma=sigma,
                                        max_iters=max_iters,
                                        tol=tol,
-                                       vis=False)
+                                       vis=False,
+                                       verbose=False)
 
                 # Assign maximum probability seed IDs to each point of region:
-                max_prob_labels = B.assign_max_prob_label()
+                max_prob_labels = B.assign_max_prob_label(verbose=False)
 
                 # Return segment IDs in original vertex array:
                 segments[indices_region] = max_prob_labels
