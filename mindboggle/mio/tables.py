@@ -4,9 +4,9 @@ Functions for creating tables.
 
 
 Authors:
-    - Arno Klein, 2012-2015  (arno@mindboggle.info)  http://binarybottle.com
+    - Arno Klein, 2012-2016  (arno@mindboggle.info)  http://binarybottle.com
 
-Copyright 2015,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -895,12 +895,12 @@ def select_column_from_mindboggle_tables(subjects, hemi, index, tables_dir,
     >>> tables, cols, output = select_column_from_mindboggle_tables(subjects,
     ...     hemi, index, tables_dir, table_name, is_surface_table,
     ...     write_table, output_table) # doctest: +SKIP
-    >>> cols[0][0]
-    878.03969839999979
-    >>> cols[0][1]
-    3085.6236725000008
-    >>> cols[0][2]
-    1761.2330760000002
+    >>> cols[0][0] # doctest: +SKIP
+    878.03969839999979 # doctest: +SKIP
+    >>> cols[0][1] # doctest: +SKIP
+    3085.6236725000008 # doctest: +SKIP
+    >>> cols[0][2] # doctest: +SKIP
+    1761.2330760000002 # doctest: +SKIP
 
     """
     import os
