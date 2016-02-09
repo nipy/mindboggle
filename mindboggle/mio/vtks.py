@@ -1680,7 +1680,7 @@ def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk=''):
 
     if not output_vtk:
         output_vtk = os.path.join(os.getcwd(),
-            os.path.basename(annot_file).strip('.annot') + '.vtk')
+            os.path.basename(annot_file).split('.annot', 1)[0] + '.vtk')
 
     rewrite_scalars(vtk_file, output_vtk, labels, 'Labels')
 

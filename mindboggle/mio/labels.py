@@ -48,6 +48,12 @@ def return_numbers_names_colors():
     --------
     >>> from mindboggle.mio.labels import return_numbers_names_colors
     >>> numbers, names, colors = return_numbers_names_colors()
+    >>> len(np.unique(numbers))
+    1266
+    >>> names[0:3]
+    ['Unknown', 'Left-Cerebral-Exterior', 'Left-Cerebral-White-Matter']
+    >>> colors[0:3]
+    [[0, 0, 0], [70, 130, 180], [245, 245, 245]]
 
     """
 
@@ -4386,7 +4392,13 @@ def print_colormap(colormap):
     >>> from mindboggle.mio.labels import DKTprotocol, print_colormap
     >>> dkt = DKTprotocol()
     >>> colormap = dkt.colormap_normalized
-    >>> print_colormap(colormap)
+    >>> colormap[0]
+    [3, 1, 0.803921568627451, 0.24313725490196078, 0.3058823529411765]
+    >>> colormap[1]
+    [19, 1, 0.3137254901960784, 0.7686274509803922, 0.3843137254901961]
+    >>> colormap[2]
+    [20, 1, 0.23529411764705882, 0.22745098039215686, 0.8235294117647058]
+    >>> print_colormap(colormap) # doctest: +SKIP
 
     """
 
@@ -4424,9 +4436,9 @@ def extract_numbers_names_colors(FreeSurferColorLUT=''):
 
     Examples
     --------
-    >>> from mindboggle.mio.labels import extract_numbers_names_colors
-    >>> ennc = extract_numbers_names_colors
-    >>> en1,en2,ec = ennc('/Applications/freesurfer/FreeSurferColorLUT.txt')
+    >>> from mindboggle.mio.labels import extract_numbers_names_colors # doctest: +SKIP
+    >>> ennc = extract_numbers_names_colors # doctest: +SKIP
+    >>> en1,en2,ec = ennc('/Applications/freesurfer/FreeSurferColorLUT.txt') # doctest: +SKIP
 
     """
     import os

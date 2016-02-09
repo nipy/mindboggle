@@ -177,7 +177,7 @@ def prep_tests():
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
     >>> urls['left_mean_curvature']
-    'http://media.mindboggle.info/data/cache/ex/shapes/left_cortical_surface/mean_curvature.vtk'
+    'http://media.mindboggle.info/data/cache/mindboggled/shapes/left_cortical_surface/mean_curvature.vtk'
     >>> fetch_data
     <function mindboggle.mio.fetch_data.fetch_data>
 
@@ -206,14 +206,14 @@ def fetch_hash(data_file):
 
     Examples
     --------
-    >>> import os
-    >>> from mindboggle.mio.fetch_data import hashes_url
     >>> from mindboggle.mio.fetch_data import fetch_hash
-    >>> cache_env = 'MINDBOGGLE_CACHE'
+    >>> from mindboggle.mio.fetch_data import hashes_url, fetch_data
     >>> hashes, url, cache_env, cache = hashes_url()
-    >>> data_file = hashes.keys()[0]
-    >>> data_path = os.path.join(os.environ[cache_env], data_file)
-    >>> fetch_hash(data_path)
+    >>> data_file = fetch_data(url + 'atlases/OASIS-30_Atropos_template.nii.gz')
+    >>> fetch_hash(data_file)
+    '29aa74c732d09489adddf5704e413519'
+
+    NOTE: hashes['OASIS-30_Atropos_template.nii.gz'] = 'f95dbe37ab40e8ad59c1b1eabc7f230c'
 
     """
     import hashlib
@@ -243,11 +243,11 @@ def fetch_data(url, output_file=''):
     Examples
     --------
     >>> from mindboggle.mio.fetch_data import fetch_data
-    >>> from mindboggle.mio.fetch_data import hashes_url
-    >>> hashes, url = hashes_url()
-    >>> data_file = hashes.keys()[0]
-    >>> output_file = 'test_output.nii.gz'
-    >>> fetch_data(url, output_file)
+    >>> from mindboggle.mio.fetch_data import hashes_url, fetch_hash
+    >>> hashes, url, cache_env, cache = hashes_url()
+    >>> data_file = fetch_data(url + 'atlases/OASIS-30_Atropos_template.nii.gz')
+    >>> fetch_hash(data_file)
+    '29aa74c732d09489adddf5704e413519'
 
     """
     import urllib
@@ -263,7 +263,7 @@ def fetch_data(url, output_file=''):
 
 
 def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
-                  return_missing=False, lookup=True):
+                     return_missing=False, lookup=True, verbose=False):
     """
     Get data file through a URL call and check its hash.
 
@@ -292,6 +292,8 @@ def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
         if data_file not in hash, simply download data_file and return path
     lookup : Boolean
         Simply return data_file path
+    verbose : Boolean
+        print statements?
 
     Returns
     -------
@@ -300,15 +302,16 @@ def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
 
     Examples
     --------
-    >>> from mindboggle.mio.fetch_data import hashes_url
     >>> from mindboggle.mio.fetch_data import fetch_check_data
+    >>> from mindboggle.mio.fetch_data import hashes_url
     >>> hashes, url, cache_env, cache = hashes_url()
     >>> data_file = hashes.keys()[0]
-    >>> fetch_check_data(data_file, url, hashes, cache_env, cache)
+    >>> verbose = False
+    >>> data_path = fetch_check_data(data_file, url, hashes, cache_env, cache,
+    ...                              verbose)
 
     """
     import os
-    import sys
     import shutil
 
     from mindboggle.mio.fetch_data import fetch_data, fetch_hash
@@ -331,12 +334,13 @@ def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
             if data_file not in hashes.keys():
                 if return_missing:
                     data_path = data_file
-                    print("Retrieved file not in hashes: {0}".
-                          format(data_path))
+                    if verbose:
+                        print("Retrieved file not in hashes: {0}".
+                            format(data_path))
                     return data_path
                 else:
-                    sys.exit("Data file '{0}' not in hash table.".
-                    format(data_file))
+                    raise IOError("Data file '{0}' not in hash table.".
+                                  format(data_file))
             else:
                 stored_hash = hashes[data_file]
     
@@ -346,12 +350,15 @@ def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
                 if cache_env in os.environ.keys():
                     cache = os.environ[cache_env]
                 if not os.path.exists(cache):
-                    print("Create missing cache directory: {0}".format(cache))
+                    if verbose:
+                            print("Create missing cache directory: {0}".
+                                  format(cache))
                     os.mkdir(cache)
                 hash_dir = os.path.join(cache, stored_hash)
                 if not os.path.exists(hash_dir):
-                    print("Create missing hash directory: {0}".
-                          format(hash_dir))
+                    if verbose:
+                        print("Create missing hash directory: {0}".
+                            format(hash_dir))
                     os.mkdir(os.path.join(hash_dir))
         
                 #-------------------------------------------------------------
@@ -365,8 +372,9 @@ def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
                 # If file not in cache, download, compute hash, and verify:
                 #-------------------------------------------------------------
                 else:
-                    print("Retrieve file from the Mindboggle website: {0}".
-                          format(url+data_file))
+                    if verbose:
+                        print("Retrieve file from the Mindboggle website: {0}".
+                            format(url+data_file))
         
                     # Download file as a temporary file:
                     temp_file = fetch_data(url+data_file)
@@ -376,11 +384,13 @@ def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
         
                     # If hash matches name of the hash directory, save file:
                     if os.path.join(cache, data_hash) == hash_dir:
-                        print("Copy file to cache: {0}".format(data_path))
+                        if verbose:
+                            print("Copy file to cache: {0}".format(data_path))
                         shutil.copyfile(temp_file, data_path)
                         return data_path
                     else:
-                        print("Retrieved hash does not match stored hash.")
+                        if verbose:
+                            print("Retrieved hash does not match stored hash.")
     
         #---------------------------------------------------------------------
         # If hashes not provided, simply download file:
@@ -388,7 +398,9 @@ def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
         elif url:
             # Download file as a temporary file:
             data_path = fetch_data(url+data_file)
-            print("Hashes not provided. Retrieved file: {0}".format(data_path))
+            if verbose:
+                print("Hashes not provided. Retrieved file: {0}".
+                      format(data_path))
             return data_path
     
         #---------------------------------------------------------------------
@@ -396,8 +408,9 @@ def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
         #---------------------------------------------------------------------
         else:
             data_path = data_file
-            print("Neither hashes nor URL provided. "
-                  "Returning file path: {0}".format(data_path))
+            if verbose:
+                print("Neither hashes nor URL provided. "
+                    "Returning file path: {0}".format(data_path))
             return data_path
 
     #-------------------------------------------------------------------------
@@ -405,7 +418,8 @@ def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
     #-------------------------------------------------------------------------
     else:
         data_path = data_file
-        print("Returning file path: {0}".format(data_path))
+        if verbose:
+            print("Returning file path: {0}".format(data_path))
         return data_path
 
 
@@ -452,13 +466,16 @@ def fetch_ants_data(segmented_file, use_ants_transforms=True):
     Examples
     --------
     >>> from mindboggle.mio.fetch_data import fetch_ants_data
-    >>> segmented_file = 'ants_subjects/OASIS-TRT-20-1/tmpBrainSegmentation.nii.gz'
-    >>> fetch_ants_data(segmented_file)
+    >>> segmented_file = 'ants/OASIS-TRT-20-1/tmpBrainSegmentation.nii.gz'
+    >>> use_ants_transforms = True
+    >>> m, s, a_s2t, w_s2t, a_t2s, w_t2s = fetch_ants_data(segmented_file,
+    ...     use_ants_transforms)
+    IOError: antsCorticalThickness.sh output ants/OASIS-TRT-20-1/tmpBrainExtractionMask.nii.gz does not exist.
 
     """
     import os
 
-    prefix = segmented_file.strip('BrainSegmentation.nii.gz')
+    prefix = segmented_file.split('BrainSegmentation.nii.gz', 1)[0]
 
     mask = prefix + 'BrainExtractionMask.nii.gz'
     segments = segmented_file
@@ -481,10 +498,10 @@ def fetch_ants_data(segmented_file, use_ants_transforms=True):
     # The existence of the transform files are checked only if
     # use_ants_transforms == True. Transforms are generated by
     # antsCorticalThickness.sh when the -k argument is used.
-    for s in files:
-        if not os.path.exists(s):
-            str1 = 'antsCorticalThickness.sh output ' + s + ' does not exist.'
-            raise(IOError(str1))
+    for ants_file in files:
+        if not os.path.exists(ants_file):
+            raise(IOError('antsCorticalThickness.sh output ' + ants_file +
+                          ' does not exist.'))
 
     return mask, segments, affine_subject2template, warp_subject2template, \
                            affine_template2subject, warp_template2subject

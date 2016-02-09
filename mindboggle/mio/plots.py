@@ -44,12 +44,14 @@ def plot_surfaces(vtk_files, use_colormap=False, colormap_file=''):
     --------
     >>> import os
     >>> from mindboggle.mio.plots import plot_surfaces
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_files = os.path.join(path, 'labels', 'lh.labels.DKT31.manual.vtk')
-    >>> #vtk_files = [os.path.join(path, 'cube.vtk'), os.path.join(path, 'test_one_label.vtk')]
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> label_file = fetch_data(urls['freesurfer_labels'])
+    >>> os.rename(label_file, label_file + '.nii.gz')
+    >>> label_file = label_file + '.nii.gz'
     >>> use_colormap = True
-    >>> colormap_file = '/software/surface_cpp_tools/colormap.xml'
-    >>> plot_surfaces(vtk_files, use_colormap, colormap_file)
+    >>> colormap_file = '/software/surface_cpp_tools/colormap.xml' # doctest: +SKIP
+    >>> plot_surfaces(vtk_files, use_colormap, colormap_file) # doctest: +SKIP
 
     """
     import os
@@ -88,7 +90,7 @@ def plot_mask_surface(vtk_file, mask_file='', nonmask_value=-1,
     If a mask_file is provided, a temporary masked file is saved,
     and it is this file that is viewed.
 
-    If using vtkviewer, can optionally provide colormap file
+    If using vtkviewer, optionally provide colormap file
     or set $COLORMAP environment variable.
 
     Parameters
@@ -115,16 +117,20 @@ def plot_mask_surface(vtk_file, mask_file='', nonmask_value=-1,
     --------
     >>> import os
     >>> from mindboggle.mio.plots import plot_mask_surface
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'labels', 'lh.labels.DKT31.manual.vtk')
-    >>> mask_file = os.path.join(path, 'test_one_label.vtk')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> vtk_file = fetch_data(urls['freesurfer_labels'])
+    >>> os.rename(vtk_file, vtk_file + '.nii.gz')
+    >>> vtk_file = vtk_file + '.nii.gz'
+    >>> mask_file = ''
     >>> nonmask_value = 0 #-1
     >>> masked_output = ''
     >>> remove_nonmask = True
     >>> program = 'vtkviewer'
     >>> use_colormap = True
-    >>> colormap_file = '' #'/software/surface_cpp_tools/colormap.xml'
-    >>> plot_mask_surface(vtk_file, mask_file, nonmask_value, masked_output, remove_nonmask, program, use_colormap, colormap_file)
+    >>> colormap_file = ''
+    >>> plot_mask_surface(vtk_file, mask_file, nonmask_value, masked_output,
+    ...     remove_nonmask, program, use_colormap, colormap_file) # doctest: +SKIP
 
     """
     import os
@@ -209,13 +215,18 @@ def plot_volumes(volume_files, command='fslview'):
     --------
     >>> import os
     >>> from mindboggle.mio.plots import plot_volumes
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> volume_file1 = os.path.join(path, 'Twins-2-1', 'mri', 't1weighted.nii.gz')
-    >>> volume_file2 = os.path.join(path, 'Twins-2-1', 'mri', 't1weighted_brain.nii.gz')
-    >>> volume_files = [volume_file1, volume_file2]
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> label_file1 = fetch_data(urls['freesurfer_labels'])
+    >>> os.rename(label_file1, label_file1 + '.nii.gz')
+    >>> label_file1 = label_file1 + '.nii.gz'
+    >>> label_file2 = fetch_data(urls['freesurfer_labels'])
+    >>> os.rename(label_file2, label_file2 + '.nii.gz')
+    >>> label_file2 = label_file2 + '.nii.gz'
+    >>> volume_files = [label_file1, label_file2]
     >>> command = 'fslview'
     >>> command = '/Applications/ITK-SNAP.app/Contents/MacOS/InsightSNAP'
-    >>> plot_volumes(volume_files, command=command)
+    >>> plot_volumes(volume_files, command=command) # doctest: +SKIP
 
     """
     from mindboggle.guts.utilities import execute
@@ -250,9 +261,12 @@ def histogram_of_vtk_scalars(vtk_file, nbins=100):
     --------
     >>> import os
     >>> from mindboggle.mio.plots import histogram_of_vtk_scalars
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> histogram_of_vtk_scalars(vtk_file, nbins=500)
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> vtk_file = fetch_data(urls['left_mean_curvature'])
+    >>> os.rename(vtk_file, vtk_file + '.nii.gz')
+    >>> vtk_file = vtk_file + '.nii.gz'
+    >>> histogram_of_vtk_scalars(vtk_file, nbins=500) # doctest: +SKIP
 
     """
     import matplotlib.pyplot as plt
@@ -299,7 +313,8 @@ def histograms_of_lists(columns, column_name='', ignore_columns=[],
     >>> nbins = 100
     >>> axis_limits = []
     >>> titles = ['title1','title2']
-    >>> histograms_of_lists(columns, column_name, ignore_columns, nbins, axis_limits, titles)
+    >>> histograms_of_lists(columns, column_name, ignore_columns, nbins,
+    ...                     axis_limits, titles) # doctest: +SKIP
 
     """
     import numpy as np
@@ -358,7 +373,7 @@ def boxplots_of_lists(columns, xlabel='', ylabel='', ylimit=None, title=''):
     >>> ylabel = 'ylabel'
     >>> ylimit = None
     >>> title = 'title'
-    >>> boxplots_of_lists(columns, xlabel, ylabel, ylimit, title)
+    >>> boxplots_of_lists(columns, xlabel, ylabel, ylimit, title) # doctest: +SKIP
 
     """
     import matplotlib.pyplot as plt
@@ -424,7 +439,9 @@ def scatterplot_lists(y_columns, x_column, ignore_columns=[], plot_line=True,
     >>> y_label = 'ylabel'
     >>> legend = True
     >>> legend_labels = ['mark1','mark2']
-    >>> scatterplot_lists(y_columns, x_column, ignore_columns, plot_line, connect_markers, mstyle, msize, title, x_label, y_label, legend, legend_labels)
+    >>> scatterplot_lists(y_columns, x_column, ignore_columns, plot_line,
+    ...                   connect_markers, mstyle, msize, title, x_label,
+    ...                   y_label, legend, legend_labels) # doctest: +SKIP
 
     """
     import matplotlib.pyplot as plt
@@ -533,8 +550,8 @@ def scatterplot_list_pairs(columns, ignore_first_column=False, plot_line=True,
     --------
     >>> from mindboggle.mio.plots import scatterplot_list_pairs
     >>> columns = [['labels'], [1,1,2,2,2,3,3,4,4,8],[2,2,3,3,3,3,5,6,7,7],
-    >>>            [1,1.5,2.1,1.8,2.2,3,3.1,5,7,6],
-    >>>            [1.2,0.5,2,1.3,1.2,3,1,5.2,4,4.5]]
+    ...            [1,1.5,2.1,1.8,2.2,3,3.1,5,7,6],
+    ...            [1.2,0.5,2,1.3,1.2,3,1,5.2,4,4.5]]
     >>> ignore_first_column = True
     >>> plot_line = True
     >>> connect_markers = True
@@ -547,7 +564,9 @@ def scatterplot_list_pairs(columns, ignore_first_column=False, plot_line=True,
     >>> limit = None
     >>> legend = True
     >>> legend_labels = ['mark1','mark2']
-    >>> scatterplot_list_pairs(columns, ignore_first_column, plot_line, connect_markers, mstyle, msize, mcolor, title, x_label, y_label, limit, legend, legend_labels)
+    >>> scatterplot_list_pairs(columns, ignore_first_column, plot_line,
+    ...                        connect_markers, mstyle, msize, mcolor, title,
+    ...                        x_label, y_label, limit, legend, legend_labels) # doctest: +SKIP
 
     """
     import matplotlib.pyplot as plt
@@ -627,86 +646,94 @@ def scatterplot_list_pairs(columns, ignore_first_column=False, plot_line=True,
     plt.show()
 
 
-#-----------------------------------------------------------------------------
-# Example: Plot scan-rescan thickness values from table (alternating columns)
-#-----------------------------------------------------------------------------
-if __name__ == '__main__':
+#=============================================================================
+# Doctests
+#=============================================================================
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
 
-    import os
-    import numpy as np
-    from mindboggle.mio.plots import scatterplot_list_pairs
-    from mindboggle.mio.plots import boxplots_of_lists
-    from mindboggle.mio.plots import histograms_of_lists
 
-    #-------------------------------------------------------------------------
-    # Load thickness values from table (alternating columns are scan-rescan):
-    #-------------------------------------------------------------------------
-    tablename = '/desk/th_embarc40_antslabels.csv'
-    title = 'Thickinthehead, ANTs labels propagated through FS+ANTs gray (62 labels, 40 EMBARC controls)'
-
-    f1 = open(tablename,'r')
-    f1 = f1.readlines()
-    columns = [[] for x in f1[0].split()]
-    for row in f1:
-        row = row.split()
-        for icolumn, column in enumerate(row):
-            columns[icolumn].append(np.float(column))
-    columns1 = [columns[0]]
-    for i in range(1, len(columns)):
-        if np.mod(i,2) == 1:
-            columns1.append(columns[i])
-
-    #-------------------------------------------------------------------------
-    # Scatter plot:
-    #-------------------------------------------------------------------------
-    scat = True
-    if scat:
-        ignore_first_column = True
-        plot_line = False
-        connect_markers = False
-        mstyle = 'o'
-        msize = 10
-        mcolor = 'black'
-        xlabel = 'scan thickness (mm)'
-        ylabel = 'rescan thickness (mm)'
-        limit = 6.5
-        legend = True
-        legend_labels = ['mark1','mark2']
-        scatterplot_list_pairs(columns, ignore_first_column, plot_line,
-                               connect_markers, mstyle, msize, mcolor, title,
-                               xlabel, ylabel, limit, legend, legend_labels)
-
-    #-------------------------------------------------------------------------
-    # Box plot per label:
-    #-------------------------------------------------------------------------
-    box_per_label = True
-    if box_per_label:
-        rows1 = []
-        for row in f1:
-            rows1.append([np.float(x) for x in row.split()[1::]])
-        xlabel = 'label index'
-        ylabel = 'thickness (mm)'
-        ylimit = 6.5
-        boxplots_of_lists(rows1, xlabel, ylabel, ylimit, title)
-
-    #-------------------------------------------------------------------------
-    # Box plot per scan:
-    #-------------------------------------------------------------------------
-    box_per_scan = True #False
-    if box_per_scan:
-        xlabel = 'scan index'
-        ylabel = 'thickness (mm)'
-        ylimit = 6.5
-        boxplots_of_lists(columns1[1::], xlabel, ylabel, ylimit, title)
-
-    #-------------------------------------------------------------------------
-    # Histogram:
-    #-------------------------------------------------------------------------
-    hist = False
-    if hist:
-        ignore_columns = [0]
-        nbins = 10
-        axis_limits = [0, 5, 0, 10]
-        titles = []
-        histograms_of_lists(columns, 'thickness', ignore_columns, nbins,
-                            axis_limits, titles)
+# #-----------------------------------------------------------------------------
+# # Example: Plot scan-rescan thickness values from table (alternating columns)
+# #-----------------------------------------------------------------------------
+# if __name__ == '__main__':
+#
+#     import os
+#     import numpy as np
+#     from mindboggle.mio.plots import scatterplot_list_pairs
+#     from mindboggle.mio.plots import boxplots_of_lists
+#     from mindboggle.mio.plots import histograms_of_lists
+#
+#     #-------------------------------------------------------------------------
+#     # Load thickness values from table (alternating columns are scan-rescan):
+#     #-------------------------------------------------------------------------
+#     tablename = '/desk/th_embarc40_antslabels.csv'
+#     title = 'Thickinthehead, ANTs labels propagated through FS+ANTs gray (62 labels, 40 EMBARC controls)'
+#
+#     f1 = open(tablename,'r')
+#     f1 = f1.readlines()
+#     columns = [[] for x in f1[0].split()]
+#     for row in f1:
+#         row = row.split()
+#         for icolumn, column in enumerate(row):
+#             columns[icolumn].append(np.float(column))
+#     columns1 = [columns[0]]
+#     for i in range(1, len(columns)):
+#         if np.mod(i,2) == 1:
+#             columns1.append(columns[i])
+#
+#     #-------------------------------------------------------------------------
+#     # Scatter plot:
+#     #-------------------------------------------------------------------------
+#     scat = True
+#     if scat:
+#         ignore_first_column = True
+#         plot_line = False
+#         connect_markers = False
+#         mstyle = 'o'
+#         msize = 10
+#         mcolor = 'black'
+#         xlabel = 'scan thickness (mm)'
+#         ylabel = 'rescan thickness (mm)'
+#         limit = 6.5
+#         legend = True
+#         legend_labels = ['mark1','mark2']
+#         scatterplot_list_pairs(columns, ignore_first_column, plot_line,
+#                                connect_markers, mstyle, msize, mcolor, title,
+#                                xlabel, ylabel, limit, legend, legend_labels)
+#
+#     #-------------------------------------------------------------------------
+#     # Box plot per label:
+#     #-------------------------------------------------------------------------
+#     box_per_label = True
+#     if box_per_label:
+#         rows1 = []
+#         for row in f1:
+#             rows1.append([np.float(x) for x in row.split()[1::]])
+#         xlabel = 'label index'
+#         ylabel = 'thickness (mm)'
+#         ylimit = 6.5
+#         boxplots_of_lists(rows1, xlabel, ylabel, ylimit, title)
+#
+#     #-------------------------------------------------------------------------
+#     # Box plot per scan:
+#     #-------------------------------------------------------------------------
+#     box_per_scan = True #False
+#     if box_per_scan:
+#         xlabel = 'scan index'
+#         ylabel = 'thickness (mm)'
+#         ylimit = 6.5
+#         boxplots_of_lists(columns1[1::], xlabel, ylabel, ylimit, title)
+#
+#     #-------------------------------------------------------------------------
+#     # Histogram:
+#     #-------------------------------------------------------------------------
+#     hist = False
+#     if hist:
+#         ignore_columns = [0]
+#         nbins = 10
+#         axis_limits = [0, 5, 0, 10]
+#         titles = []
+#         histograms_of_lists(columns, 'thickness', ignore_columns, nbins,
+#                             axis_limits, titles)

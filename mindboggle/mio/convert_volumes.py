@@ -4,9 +4,9 @@ Functions for reading and writing nifti volume files.
 
 
 Authors:
-    - Arno Klein, 2012-2014  (arno@mindboggle.info)  http://binarybottle.com
+    - Arno Klein, 2012-2016  (arno@mindboggle.info)  http://binarybottle.com
 
-Copyright 2014,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -45,15 +45,23 @@ def convert2nii(input_file, reference_file, output_file='', interp='continuous')
     --------
     >>> import os
     >>> from mindboggle.mio.convert_volumes import convert2nii
-    >>> subject = 'Twins-2-1'
-    >>> input_file = os.path.join(os.environ['SUBJECTS_DIR'],subject,'mri','aparc+aseg.mgz')
-    >>> reference_file = os.path.join(os.environ['SUBJECTS_DIR'],subject,'mri','orig','001.mgz')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> input_file = fetch_data(urls['freesurfer_labels'])
+    >>> reference_file = fetch_data(urls['freesurfer_segmentation'])
+    >>> os.rename(input_file, input_file + '.nii.gz')
+    >>> input_file = input_file + '.nii.gz'
+    >>> os.rename(reference_file, reference_file + '.nii.gz')
+    >>> reference_file = reference_file + '.nii.gz'
     >>> output_file = ''
     >>> interp = 'nearest'
-    >>> output_file = convert2nii(input_file, reference_file, output_file, interp)
-    >>> #from mindboggle.mio.plots import plot_volumes
-    >>> #command = '/Applications/ITK-SNAP.app/Contents/MacOS/InsightSNAP'
-    >>> #plot_volumes('orig.mgz.nii.gz', command=command)
+    >>> output_file = convert2nii(input_file, reference_file, output_file,
+    ...                           interp)
+
+    View nifti file (skip test):
+
+    >>> from mindboggle.mio.plots import plot_volumes # doctest: +SKIP
+    >>> plot_volumes(output_file) # doctest: +SKIP
 
     """
     import os
@@ -134,12 +142,17 @@ def xyz2nii(input_xyz_file, output_nii_file='', origin=[], pad=10):
 
     Examples
     --------
-    >>> from mindboggle.mio.convert_volumes import xyz2nii
-    >>> input_xyz_file = '/Users/arno/Dropbox/MSSM/Nebojsa/face.xyz.txt'
-    >>> origin = []
-    >>> pad = 10
-    >>> output_nii_file = ''
-    >>> xyz2nii(input_xyz_file)
+    >>> from mindboggle.mio.convert_volumes import xyz2nii # doctest: +SKIP
+    >>> input_xyz_file = 'face.xyz.txt' # doctest: +SKIP
+    >>> origin = [] # doctest: +SKIP
+    >>> pad = 10 # doctest: +SKIP
+    >>> output_nii_file = '' # doctest: +SKIP
+    >>> xyz2nii(input_xyz_file) # doctest: +SKIP
+
+    View nifti file (skip test):
+
+    >>> from mindboggle.mio.plots import plot_volumes # doctest: +SKIP
+    >>> plot_volumes('xyz.nii.gz') # doctest: +SKIP
 
     """
     import os

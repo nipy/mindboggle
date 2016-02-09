@@ -54,8 +54,12 @@ script:
 #  - nosetests --with-coverage --with-doctest mindboggle/features/
 #  - nosetests --with-coverage --with-doctest mindboggle/guts/
 #  - nosetests --with-coverage --with-doctest mindboggle/shapes/
-#  - nosetests --with-coverage --with-doctest mindboggle/mio/vtks.py
-  - nosetests --with-coverage --with-doctest mindboggle/guts/segment.py
+#  - nosetests --with-coverage --with-doctest mindboggle/mio/
+  - nosetests --with-coverage --with-doctest mindboggle/mio/convert_volumes.py
+  - nosetests --with-coverage --with-doctest mindboggle/mio/copy_final_tables.py
+  - nosetests --with-coverage --with-doctest mindboggle/mio/fetch_data.py
+  - nosetests --with-coverage --with-doctest mindboggle/mio/labels.py
+  - nosetests --with-coverage --with-doctest mindboggle/mio/plots.py
 
 ## Calculate coverage:
 #after_success:
