@@ -79,12 +79,12 @@ def propagate(points, faces, region, seeds, labels,
     >>> indices_borders, label_pairs, foo = extract_borders(indices_fold,
     ...     labels, neighbor_lists, [], True)
     >>> # Select boundary segments in the sulcus labeling protocol:
-    >>> seeds = background_value * np.ones(npoints) # doctest: +SKIP
-    >>> for ilist,label_pair_list in enumerate(dkt.sulcus_label_pair_lists): # doctest: +SKIP
-    ...     I = [x for i,x in enumerate(indices_borders) # doctest: +SKIP
-    ...          if np.sort(label_pairs[i]).tolist() in label_pair_list] # doctest: +SKIP
-    ...     seeds[I] = ilist # doctest: +SKIP
-    >>> verbose = False # doctest: +SKIP
+    >>> seeds = background_value * np.ones(npoints)
+    >>> for ilist,label_pair_list in enumerate(dkt.sulcus_label_pair_lists):
+    ...     I = [x for i,x in enumerate(indices_borders)
+    ...          if np.sort(label_pairs[i]).tolist() in label_pair_list]
+    ...     seeds[I] = ilist
+    >>> verbose = False
     >>> segments = propagate(points, faces, fold_array, seeds, labels, verbose)
     >>> len(np.unique(segments))
     4
@@ -1186,8 +1186,12 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
     [-2.2537832260131836, 53.045711517333984, 56.23670959472656]
     >>> points2[2]
     [-13.091879844665527, 56.41604232788086, 59.330955505371094]
-    >>> faces2[0:3]
-    [[7640, 5629, 7639],[7632, 7640, 7641],[7639, 8052, 7640]]
+    >>> faces2[0]
+    [7640, 5629, 7639]
+    >>> faces2[1]
+    [7632, 7640, 7641]
+    >>> faces2[2]
+    [7639, 8052, 7640]
 
     Write two surfaces to vtk file and view (skip test):
 
