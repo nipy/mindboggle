@@ -4,25 +4,24 @@ Functions related to reading and writing VTK format files.
 
 Authors:
     - Forrest Sheng Bao, 2012-2013  (forrest.bao@gmail.com)  http://fsbao.net
-    - Arno Klein, 2012-2014  (arno@mindboggle.info)  http://binarybottle.com
+    - Arno Klein, 2012-2016  (arno@mindboggle.info)  http://binarybottle.com
     - Oliver Hinds, 2013 (ohinds@gmail.com)
     - Daniel Haehn, 2013 (daniel.haehn@childrens.harvard.edu)
 
-Copyright 2015,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
 
-#=============================================================================
-# Functions for reading VTK files
-#=============================================================================
-def read_vertices(Filename):
+def read_vertices(filename):
     """
-    Load VERTICES segment from a VTK file (actually indices to vertices)
+    Load VERTICES segment from a VTK file (actually indices to vertices).
+
+    Not currently in use by Mindboggle.
 
     Parameters
     ----------
-    Filename : string
+    filename : string
         The path/filename of a VTK format file.
 
     Returns
@@ -39,11 +38,19 @@ def read_vertices(Filename):
         Vertices here are as vertices in VTK terminology.
         It may not be the vertices in your 3-D surface.
 
+    Examples
+    --------
+    >>> from mindboggle.mio.vtks import read_vertices # doctest: +SKIP
+    >>> from mindboggle.mio.fetch_data import prep_tests # doctest: +SKIP
+    >>> urls, fetch_data = prep_tests() # doctest: +SKIP
+    >>> depth_file = fetch_data(urls['left_travel_depth']) # doctest: +SKIP
+    >>> indices = read_vertices(depth_file) # doctest: +SKIP
+
     """
     import vtk
 
     Reader = vtk.vtkDataSetReader()
-    Reader.SetFileName(Filename)
+    Reader.SetFileName(filename)
     Reader.Update()
 
     Data = Reader.GetOutput()
@@ -54,17 +61,20 @@ def read_vertices(Filename):
     return indices
 
 
-def read_lines(Filename):
+def read_lines(filename):
     """
     Load LINES from a VTK file, along with the scalar values.
 
     The line that extracts vertices from a VTK
     iterates from 1 to Vrts.GetSize(), rather than from 0.
 
+    Not currently in use by Mindboggle.
+    This was intended for use with the fundus line extraction algorithm.
+
     Parameters
     ----------
-    Filename : string
-        The path/filename of a VTK format file.
+    filename : string
+        the path/filename of a VTK format file
 
     Returns
     -------
@@ -74,11 +84,19 @@ def read_lines(Filename):
     scalars : list of floats
         each element is a scalar value corresponding to a vertex
 
+    Examples
+    --------
+    >>> from mindboggle.mio.vtks import read_lines # doctest: +SKIP
+    >>> from mindboggle.mio.fetch_data import prep_tests # doctest: +SKIP
+    >>> urls, fetch_data = prep_tests() # doctest: +SKIP
+    >>> fundus_file = fetch_data(urls['left_fundi']) # doctest: +SKIP
+    >>> lines, scalars  = read_lines(fundus_file) # doctest: +SKIP
+
     """
     import vtk
 
     Reader = vtk.vtkDataSetReader()
-    Reader.SetFileName(Filename)
+    Reader.SetFileName(filename)
     Reader.Update()
 
     Data = Reader.GetOutput()
@@ -89,7 +107,7 @@ def read_lines(Filename):
 
     PointData = Data.GetPointData()
     print("There are {0} scalars in file {1}".format(
-        Reader.GetNumberOfscalarsInFile(), Filename))
+        Reader.GetNumberOfscalarsInFile(), filename))
     print("Loading the scalar {0}".format(Reader.GetScalarsNameInFile(0)))
     ScalarsArray = PointData.GetArray(Reader.GetScalarsNameInFile(0))
     scalars = [ScalarsArray.GetValue(i)
@@ -102,6 +120,8 @@ def read_points(filename):
     """
     Load points of a VTK surface file.
 
+    Not currently in use by Mindboggle.
+
     Parameters
     ----------
     filename : string
@@ -111,6 +131,20 @@ def read_points(filename):
     -------
     points : list of lists of floats
         each element is a list of 3-D coordinates of a surface mesh vertex
+
+    Examples
+    --------
+    >>> from mindboggle.mio.vtks import read_points
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()]
+    >>> depth_file = fetch_data(urls['left_travel_depth'])
+    >>> points  = read_points(depth_file)
+    >>> points[0]
+    [-13.792400360107422, -76.09729766845703, -2.575939893722534]
+    >>> points[1]
+    [-14.22249984741211, -76.23619842529297, -2.734250068664551]
+    >>> points[2]
+    [-14.961700439453125, -76.24970245361328, -2.629240036010742]
 
     """
     import vtk
@@ -148,11 +182,21 @@ def read_faces_points(filename):
 
     Examples
     --------
-    >>> import os
     >>> from mindboggle.mio.vtks import read_faces_points
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
-    >>> faces, points, npoints = read_faces_points(folds_file)
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> depth_file = fetch_data(urls['left_travel_depth'])
+    >>> faces, points, npoints  = read_faces_points(depth_file)
+    >>> npoints
+    145069
+    >>> faces[0:5]
+    [[0, 1, 4], [5, 4, 1], [0, 48, 49], [0, 49, 1], [0, 4, 48]]
+    >>> points[0]
+    [-13.792400360107422, -76.09729766845703, -2.575939893722534]
+    >>> points[1]
+    [-14.22249984741211, -76.23619842529297, -2.734250068664551]
+    >>> points[2]
+    [-14.961700439453125, -76.24970245361328, -2.629240036010742]
 
     """
     import vtk
@@ -199,11 +243,15 @@ def read_scalars(filename, return_first=True, return_array=False):
 
     Examples
     --------
-    >>> import os
     >>> from mindboggle.mio.vtks import read_scalars
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> curv_file = os.path.join(path, 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> mean_curvatures, name = read_scalars(curv_file)
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> depth_file = fetch_data(urls['left_travel_depth'])
+    >>> depths, name = read_scalars(depth_file)
+    >>> name
+    'scalars'
+    >>> depths[0:5]
+    [0.0202597, 0.0600915, 0.128586, 0.0456398, 0.00774247]
 
     """
     #import os
@@ -296,11 +344,23 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
 
     Examples
     --------
-    >>> import os
     >>> from mindboggle.mio.vtks import read_vtk
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_vtk = os.path.join(path, 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> points, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(input_vtk)
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> depth_file = fetch_data(urls['left_travel_depth'])
+    >>> points, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(depth_file)
+    >>> points[0]
+    [-13.792400360107422, -76.09729766845703, -2.575939893722534]
+    >>> points[1]
+    [-14.22249984741211, -76.23619842529297, -2.734250068664551]
+    >>> points[2]
+    [-14.961700439453125, -76.24970245361328, -2.629240036010742]
+    >>> faces[0:5]
+    [[0, 1, 4], [5, 4, 1], [0, 48, 49], [0, 49, 1], [0, 4, 48]]
+    >>> npoints
+    145069
+    >>> scalars[0:5]
+    [0.0202597, 0.0600915, 0.128586, 0.0456398, 0.00774247]
 
     """
     #import os
@@ -376,9 +436,6 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
            npoints, input_vtk
 
 
-#=============================================================================
-# Functions for writing VTK elements/files
-#=============================================================================
 def write_header(Fp, Header='# vtk DataFile Version 2.0',
                      Title='Generated by Mindboggle (www.mindboggle.info)',
                      fileType='ASCII', dataType='POLYDATA'):
@@ -437,7 +494,7 @@ def write_points(Fp, points, dataType="float"):
             [R, A] = point
             Fp.write('{0} {1}\n'.format(R, A))
         else:
-            print('ERROR: Unrecognized number of coordinates per point')
+            raise IOError('ERROR: Unrecognized number of coordinates per point')
 
 
 def write_faces(Fp, faces):
@@ -462,7 +519,7 @@ def write_faces(Fp, faces):
         Fp.write('{0} {1} {2}\n'.format(face_name, len(faces),
                  len(faces) * (n + 1)))
     else:
-        print('ERROR: Unrecognized number of vertices per face')
+        raise IOError('ERROR: Unrecognized number of vertices per face')
 
     for face in faces:
         if n == 3:
@@ -594,31 +651,33 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     >>> # Toy example
     >>> import random, os
     >>> from mindboggle.mio.vtks import write_vtk
-    >>> from mindboggle.mio.plots import plot_surfaces
     >>> points = [[random.random() for i in [1,2,3]] for j in range(4)]
     >>> indices = [1,2,3,0]
     >>> lines = [[1,2],[3,4]]
     >>> faces = [[1,2,3],[0,1,3]]
-    >>> scalars = [[random.random() for i in range(4)] for j in [1,2]]
+    >>> #scalars = [[random.random() for i in range(4)] for j in [1,2]]
+    >>> scalars = [[1,3,5,7],[2,4,6,8]]
     >>> scalar_names = ['curv','depth']
     >>> output_vtk = 'write_vtk.vtk'
     >>> scalar_type = 'float'
     >>> write_vtk(output_vtk, points, indices, lines, faces, scalars, scalar_names, scalar_type)
-    >>> # View:
-    >>> plot_surfaces(output_vtk)
-    >>> #
-    >>> # Write vtk file with curvature values and view:
-    >>> import os
-    >>> from mindboggle.mio.vtks import read_vtk, write_vtk
-    >>> from mindboggle.mio.plots import plot_surfaces
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_vtk = os.path.join(path, 'shapes', 'lh.pial.mean_curvature.vtk')
+
+    View resulting vtk file (skip test):
+
+    >>> from mindboggle.mio.plots import plot_surfaces # doctest: SKIP+
+    >>> plot_surfaces(output_vtk) # doctest: SKIP+
+
+    Write vtk file with depth values and view (skip plot in test):
+
+    >>> from mindboggle.mio.vtks import read_vtk
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> input_vtk = fetch_data(urls['left_travel_depth'])
     >>> points, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(input_vtk)
     >>> output_vtk = 'write_vtk.vtk'
     >>> scalar_type = 'float'
     >>> write_vtk(output_vtk, points, indices, lines, faces, scalars, scalar_names, scalar_type)
-    >>> # View:
-    >>> plot_surfaces(output_vtk)
+    >>> plot_surfaces(output_vtk) # doctest: SKIP+
 
     """
     import os
@@ -697,12 +756,13 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
 
     Examples
     --------
-    >>> # Write vtk file with curvature values on sulci
-    >>> import os
-    >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_vtk = os.path.join(path, 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> sulci_file = os.path.join(path, 'features', 'sulci.vtk')
+    >>> # Write vtk file with depth values on sulci
+    >>> from mindboggle.mio.vtks import rewrite_scalars
+    >>> from mindboggle.mio.vtks import read_scalars
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> input_vtk = fetch_data(urls['left_travel_depth'])
+    >>> sulci_file = fetch_data(urls['left_sulci'])
     >>> output_vtk = 'rewrite_scalars.vtk'
     >>> curvs, name = read_scalars(input_vtk, True,True)
     >>> sulci, name = read_scalars(sulci_file)
@@ -710,18 +770,19 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     >>> new_scalar_names = ['curvs', 'sulci']
     >>> filter_scalars = sulci
     >>> background_value = -1
-    >>> #
-    >>> rewrite_scalars(input_vtk, output_vtk, new_scalars, new_scalar_names, filter_scalars, background_value)
-    >>> #
-    >>> # View:
-    >>> from mindboggle.mio.plots import plot_surfaces
-    >>> plot_surfaces('rewrite_scalars.vtk')
+    >>> output_vtk = rewrite_scalars(input_vtk, output_vtk, new_scalars,
+    ...     new_scalar_names, filter_scalars, background_value)
+
+    View resulting vtk file (skip test):
+
+    >>> from mindboggle.mio.plots import plot_surfaces # doctest: SKIP+
+    >>> plot_surfaces(output_vtk) # doctest: SKIP+
 
     """
     import os
     import numpy as np
 
-    from mindboggle.guts.mesh import remove_faces
+    from mindboggle.guts.mesh import remove_faces, reindex_faces_points
     from mindboggle.mio.vtks import write_header, write_points, \
         write_vertices, write_faces, write_scalars, read_vtk, scalars_checker
 
@@ -742,10 +803,11 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     if filter_scalars:
         indices_keep = [i for i,x in enumerate(filter_scalars)
                         if x != background_value]
-        indices_remove = [i for i,x in enumerate(filter_scalars)
-                          if x == background_value]
+        #indices_remove = [i for i,x in enumerate(filter_scalars)
+        #                  if x == background_value]
         # Remove surface faces whose three vertices are not all in indices
         faces = remove_faces(faces, indices_keep)
+        faces, points, original_indices = reindex_faces_points(faces, points)
 
     # Write VTK file
     Fp = open(output_vtk,'w')
@@ -762,8 +824,10 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
         # scalars_checker() returns a list of lists for scalars:
         for i, new_scalar_list in enumerate(new_scalars):
             if filter_scalars:
-                for iremove in indices_remove:
-                    new_scalar_list[iremove] = background_value
+                new_scalar_list = np.array(new_scalar_list)[original_indices].\
+                    tolist()
+            #    for iremove in indices_remove:
+            #        new_scalar_list[iremove] = background_value
             if np.ndim(new_scalar_list) == 1:
                 scalar_type = type(new_scalar_list[0]).__name__
             elif np.ndim(new_scalar_list) == 2:
@@ -1130,9 +1194,6 @@ def scalars_checker(scalars, scalar_names):
     return scalars, scalar_names
 
 
-#-----------------------------------------------------------------------------
-# Read and apply an affine transform to the points of a VTK surface mesh
-#-----------------------------------------------------------------------------
 def read_itk_transform_old(transform_file):
     """
     Read ITK transform file and output transform array.

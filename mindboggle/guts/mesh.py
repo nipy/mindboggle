@@ -570,7 +570,7 @@ def remove_faces(faces, indices):
     ----------
     faces : list of lists of three integers
         the integers for each face are indices to vertices, starting from zero
-    indices : integers
+    indices : list of integers
         indices to vertices of the surface mesh that are to be retained
 
     Returns
@@ -628,7 +628,7 @@ def reindex_faces_points(faces, points=[]):
     >>> from mindboggle.guts.mesh import reindex_faces_points
     >>> # Reindex faces:
     >>> faces = [[8,2,3], [2,3,7], [4,7,8], [3,2,5]]
-    >>> new_faces, new_points, original_indices =  reindex_faces_points(faces,
+    >>> new_faces, new_points, original_indices = reindex_faces_points(faces,
     ...     points=[])
     >>> new_faces
     [[5, 0, 1], [0, 1, 4], [2, 4, 5], [1, 0, 3]]
@@ -657,7 +657,15 @@ def reindex_faces_points(faces, points=[]):
     >>> plot_surfaces('fold.vtk') # doctest: +SKIP
 
     """
+    import numpy as np
     import itertools
+
+    if isinstance(points, list):
+        pass
+    elif isinstance(points, np.ndarray):
+        points = points.tolist()
+    else:
+        raise IOError("points should be either a list or a numpy array.")
 
     # set() to remove repeated indices and list() to order them for later use:
     indices_to_keep = list(set(itertools.chain(*faces)))
@@ -686,7 +694,7 @@ def remove_neighbor_lists(neighbor_lists, indices):
     ----------
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
-    indices : integers
+    indices : list of integers
         indices to vertices of the surface mesh
 
     Returns
