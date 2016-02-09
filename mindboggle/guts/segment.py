@@ -85,7 +85,7 @@ def propagate(points, faces, region, seeds, labels,
     ...          if np.sort(label_pairs[i]).tolist() in label_pair_list] # doctest: +SKIP
     ...     seeds[I] = ilist # doctest: +SKIP
     >>> verbose = False # doctest: +SKIP
-    >>> segments = propagate(points, faces, fold_array, seeds, labels, verbose) # doctest: +SKIP
+    >>> segments = propagate(points, faces, fold_array, seeds, labels, verbose)
     >>> len(np.unique(segments))
     4
     >>> np.unique(segments)[0:10]
