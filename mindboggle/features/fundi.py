@@ -178,7 +178,7 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
             rewrite_scalars(curv_file, fundus_per_fold_file, fundus_per_fold,
                             'fundi', folds)
             if not os.path.exists(fundus_per_fold_file):
-                raise(IOError(fundus_per_fold_file + " not found"))
+                raise IOError(fundus_per_fold_file + " not found")
         else:
             fundus_per_fold_file = None
 
@@ -284,7 +284,7 @@ def segment_fundi(fundus_per_fold, sulci=[], vtk_file='', save_file=False):
                             fundus_per_sulcus, 'fundus_per_sulcus',
                             fundus_per_sulcus)
             if not os.path.exists(fundus_per_sulcus_file):
-                raise(IOError(fundus_per_sulcus_file + " not found"))
+                raise IOError(fundus_per_sulcus_file + " not found")
 
     return fundus_per_sulcus, n_fundi, fundus_per_sulcus_file
 

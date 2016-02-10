@@ -136,7 +136,7 @@ def read_points(filename):
     --------
     >>> from mindboggle.mio.vtks import read_points
     >>> from mindboggle.mio.fetch_data import prep_tests
-    >>> urls, fetch_data = prep_tests()]
+    >>> urls, fetch_data = prep_tests()
     >>> depth_file = fetch_data(urls['left_travel_depth'])
     >>> points  = read_points(depth_file)
     >>> points[0]
@@ -494,7 +494,7 @@ def write_points(Fp, points, dataType="float"):
             [R, A] = point
             Fp.write('{0} {1}\n'.format(R, A))
         else:
-            raise IOError('ERROR: Unrecognized number of coordinates per point')
+            raise IOError('Unrecognized number of coordinates per point')
 
 
 def write_faces(Fp, faces):
@@ -519,7 +519,7 @@ def write_faces(Fp, faces):
         Fp.write('{0} {1} {2}\n'.format(face_name, len(faces),
                  len(faces) * (n + 1)))
     else:
-        raise IOError('ERROR: Unrecognized number of vertices per face')
+        raise IOError('Unrecognized number of vertices per face')
 
     for face in faces:
         if n == 3:
@@ -660,7 +660,8 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     >>> scalar_names = ['curv','depth']
     >>> output_vtk = 'write_vtk.vtk'
     >>> scalar_type = 'float'
-    >>> write_vtk(output_vtk, points, indices, lines, faces, scalars, scalar_names, scalar_type)
+    >>> write_vtk(output_vtk, points, indices, lines, faces, scalars,
+    ...           scalar_names, scalar_type)
 
     View resulting vtk file (skip test):
 
@@ -676,7 +677,8 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     >>> points, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(input_vtk)
     >>> output_vtk = 'write_vtk.vtk'
     >>> scalar_type = 'float'
-    >>> write_vtk(output_vtk, points, indices, lines, faces, scalars, scalar_names, scalar_type)
+    >>> write_vtk(output_vtk, points, indices, lines, faces, scalars,
+    ...           scalar_names, scalar_type)
     >>> plot_surfaces(output_vtk) # doctest: +SKIP
 
     """
@@ -723,9 +725,7 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     Fp.close()
 
     if not os.path.exists(output_vtk):
-        raise(IOError(output_vtk + " not found"))
-
-    return output_vtk
+        raise IOError(output_vtk + " not found")
 
 
 def rewrite_scalars(input_vtk, output_vtk, new_scalars,
@@ -833,7 +833,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
             elif np.ndim(new_scalar_list) == 2:
                 scalar_type = type(new_scalar_list[0][0]).__name__
             else:
-                raise(IOError("Undefined scalar type!"))
+                raise IOError("Undefined scalar type!")
             if i == 0:
                 new_scalar_name = new_scalar_names[0]
                 write_scalars(Fp, new_scalar_list, new_scalar_name,
@@ -848,12 +848,12 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
                               begin_scalars=False,
                               scalar_type=scalar_type)
     else:
-        raise(IOError('new_scalars is empty'))
+        raise IOError('new_scalars is empty')
 
     Fp.close()
 
     if not os.path.exists(output_vtk):
-        raise(IOError(output_vtk + " not found"))
+        raise IOError(output_vtk + " not found")
 
     return output_vtk
 
@@ -898,9 +898,15 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     >>> input_indices_vtk = fetch_data(urls['left_sulci'])
     >>> input_values_vtk = fetch_data(urls['left_travel_depth'])
     >>> output_stem = 'sulci_depth'
-    >>> verbose = False
+    >>> exclude_values = [-1]
+    >>> background_value = -1,
+    >>> output_scalar_name = 'scalars'
+    >>> remove_background_faces = True
+    >>> reindex = True
+    >>> verbose = True
     >>> explode_scalars(input_indices_vtk, input_values_vtk, output_stem,
-    ...                 verbose)
+    ...     exclude_values, background_value, output_scalar_name,
+    ...     remove_background_faces, reindex, verbose)
 
     View Example 1 results (skip test):
 
@@ -909,13 +915,8 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
 
     Example 2:  explode labels
 
+    >>> input_indices_vtk = fetch_data(urls['left_freesurfer_labels'])
     >>> output_stem = 'label'
-    >>> exclude_values = [-1]
-    >>> background_value = -1,
-    >>> output_scalar_name = 'scalars'
-    >>> remove_background_faces = True
-    >>> reindex = True
-    >>> verbose = False
     >>> explode_scalars(input_indices_vtk, input_values_vtk, output_stem,
     ...     exclude_values, background_value, output_scalar_name,
     ...     remove_background_faces, reindex, verbose)
@@ -1070,8 +1071,8 @@ def explode_scalars_mindboggle(subject, subject_path='', output_path='',
                                           side + '_cortical_surface',
                                           pieces + '.vtk')
                 else:
-                    raise(IOError("Choose from: "
-                          "{'labels', 'sulci'}")) #, 'fundus_per_sulcus', 'folds'}"))
+                    raise IOError("Choose from: {'labels', 'sulci'}")
+                                  #'fundus_per_sulcus', 'folds'}")
 
                 labels_vtk = os.path.join(subject_path, subject, File)
                 shapes_path = os.path.join(subject_path, subject, 'shapes',
@@ -1127,16 +1128,16 @@ def scalars_checker(scalars, scalar_names):
     ([[1, 2], [3, 4]], ['list1', 'list1'])
     >>> scalars_checker([1,2,3,4], ["123"])
     ([[1, 2, 3, 4]], ['123'])
-    >>> scalars_checker(1, ["123"])
-    Error: scalars is neither a list nor a numpy array.
+    >>> scalars_checker(1, ["123"]) # doctest: +SKIP
+    Error: scalars is neither a list nor a numpy array. # doctest: +SKIP
     >>> scalars_checker(np.array([1,2,3]), ["123"])
     ([[1, 2, 3]], ['123'])
     >>> scalars_checker(np.array([[1,2,3]]), ["123"])
     ([[1, 2, 3]], ['123'])
     >>> scalars_checker(np.array([[1,2,3],[4,5,6]]), ["123"])
     ([[1, 2, 3], [4, 5, 6]], ['123', '123'])
-    >>> scalars_checker(np.array([[[1,2,3]]]), ["123"])
-    Error: Dimension of new_scalars is too high.
+    >>> scalars_checker(np.array([[[1,2,3]]]), ["123"]) # doctest: +SKIP
+    Error: Dimension of new_scalars is too high. # doctest: +SKIP
     >>> scalars_checker(np.array([np.array([0,7,9]),[1,2,3]]), ["123"])
     ([[0, 7, 9], [1, 2, 3]], ['123', '123'])
 
@@ -1294,7 +1295,7 @@ def read_itk_transform(transform_file):
     >>> import os
     >>> from mindboggle.mio.vtks import read_itk_transform
     >>> transform_file = os.path.join('mri',
-    >>>                               't1weighted_brain.MNI152Affine.txt') # doctest: +SKIP
+    ...                               't1weighted_brain.MNI152Affine.txt') # doctest: +SKIP
     >>> read_itk_transform(transform_file) # doctest: +SKIP
     array([[  9.07680e-01,   4.35290e-02,   1.28917e-02,   -8.16765e-01],
            [ -4.54455e-02,   8.68937e-01,   4.06098e-01,   -2.31926e+01],
@@ -1551,7 +1552,7 @@ def transform_to_volume(vtk_file, volume_file, output_volume=''):
     img.to_filename(output_volume)
 
     if not os.path.exists(output_volume):
-        raise(IOError(output_volume + " not found"))
+        raise IOError(output_volume + " not found")
 
     return output_volume
 
@@ -1628,8 +1629,8 @@ def freesurfer_surface_to_vtk(surface_file, orig_file='', output_vtk=''):
             np.concatenate((points, np.ones((np.shape(points)[0],1))),
                            axis=1))))[:,0:3]
     else:
-        raise(IOError(orig_file + " does not exist in the FreeSurfer "
-                       "subjects directory."))
+        raise IOError(orig_file + " does not exist in the FreeSurfer "
+                      "subjects directory.")
 
     if not output_vtk:
         output_vtk = os.path.join(os.getcwd(),
@@ -1641,7 +1642,7 @@ def freesurfer_surface_to_vtk(surface_file, orig_file='', output_vtk=''):
     Fp.close()
 
     if not os.path.exists(output_vtk):
-        raise(IOError("Output VTK file " + output_vtk + " not created."))
+        raise IOError("Output VTK file " + output_vtk + " not created.")
 
     return output_vtk
 
@@ -1695,7 +1696,7 @@ def freesurfer_curvature_to_vtk(surface_file, vtk_file, output_vtk=''):
                                   os.path.basename(surface_file)+'.vtk')
     rewrite_scalars(vtk_file, output_vtk, curvature_values, scalar_names)
     if not os.path.exists(output_vtk):
-        raise(IOError("Output VTK file " + output_vtk + " not created."))
+        raise IOError("Output VTK file " + output_vtk + " not created.")
 
     return output_vtk
 
@@ -1775,7 +1776,7 @@ def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk=''):
     rewrite_scalars(vtk_file, output_vtk, labels, 'Labels')
 
     if not os.path.exists(output_vtk):
-        raise(IOError("Output VTK file " + output_vtk + " not created."))
+        raise IOError("Output VTK file " + output_vtk + " not created.")
 
     return labels, output_vtk
 

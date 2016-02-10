@@ -83,7 +83,7 @@ def antsApplyTransformsToPoints(points, transform_files, inverse_booleans=[0]):
     execute(cmd, 'os')
     if not os.path.exists(transformed_points_file):
         str1 = "antsApplyTransformsToPoints did not create "
-        raise(IOError(str1 + transformed_points_file + "."))
+        raise IOError(str1 + transformed_points_file + ".")
 
     #-------------------------------------------------------------------------
     # Return transformed points:
@@ -163,7 +163,7 @@ def ImageMath(volume1, volume2, operator='m', output_file=''):
     cmd = ['ImageMath', '3', output_file, operator, volume1, volume2]
     execute(cmd, 'os')
     if not os.path.exists(output_file):
-        raise(IOError("ImageMath did not create " + output_file + "."))
+        raise IOError("ImageMath did not create " + output_file + ".")
 
     return output_file
 
@@ -217,7 +217,7 @@ def ThresholdImage(volume, output_file='', threshlo=1, threshhi=10000):
                                                     threshlo, threshhi)
     execute(cmd, 'os')
     if not os.path.exists(output_file):
-        raise(IOError("ThresholdImage did not create " + output_file + "."))
+        raise IOError("ThresholdImage did not create " + output_file + ".")
 
     return output_file
 
@@ -310,7 +310,7 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
         cmd.extend(stopvalue)
     execute(cmd, 'os')
     if not os.path.exists(output_file):
-        raise(IOError("ImageMath did not create " + output_file + "."))
+        raise IOError("ImageMath did not create " + output_file + ".")
 
     return output_file
 
@@ -403,7 +403,7 @@ def fill_volume_with_surface_labels(hemi, left_mask, right_mask,
                                              binarize)
     if not os.path.exists(output_file):
         str1 = "PropagateLabelsThroughMask() did not create "
-        raise(IOError(str1 + output_file + "."))
+        raise IOError(str1 + output_file + ".")
 
     return output_file  # surface_in_volume
 
@@ -468,11 +468,11 @@ def fill_volume_with_surface_labels(hemi, left_mask, right_mask,
 #     nonlinear_inverse_transform = output_stem + 'InverseWarp.nii.gz'
 #
 #     if not os.path.exists(affine_transform):
-#         raise(IOError("ANTs did not create " + affine_transform + "."))
+#         raise IOError("ANTs did not create " + affine_transform + ".")
 #     if not os.path.exists(nonlinear_transform):
-#         raise(IOError("ANTs did not create " + nonlinear_transform + "."))
+#         raise IOError("ANTs did not create " + nonlinear_transform + ".")
 #     if not os.path.exists(nonlinear_inverse_transform):
-#         raise(IOError("ANTs did not create " + nonlinear_inverse_transform + "."))
+#         raise IOError("ANTs did not create " + nonlinear_inverse_transform + ".")
 #
 #     return affine_transform, nonlinear_transform,\
 #            nonlinear_inverse_transform, output_stem
@@ -551,7 +551,7 @@ def fill_volume_with_surface_labels(hemi, left_mask, right_mask,
 #     execute(cmd, 'os')
 #
 #     if not os.path.exists(output):
-#         raise(IOError("WarpImageMultiTransform did not create " + output + "."))
+#         raise IOError("WarpImageMultiTransform did not create " + output + ".")
 #
 #     return output
 #
@@ -605,7 +605,7 @@ def fill_volume_with_surface_labels(hemi, left_mask, right_mask,
 #     print(cmd)
 #     execute(cmd, 'os')
 #     #if not os.path.exists(output_transform_file):
-#     #    raise(IOError(output_transform_file + " not found"))
+#     #    raise IOError(output_transform_file + " not found")
 #
 #     return output_transform_file
 

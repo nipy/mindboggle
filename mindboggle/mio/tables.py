@@ -382,7 +382,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                 df.to_csv(output_table, index=False)
 
             if not os.path.exists(output_table):
-                raise(IOError(output_table + " not found"))
+                raise IOError(output_table + " not found")
 
             #-----------------------------------------------------------------
             # Return correct table file name:
@@ -559,7 +559,7 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     df.to_csv(output_table, index=False)
 
     if not os.path.exists(output_table):
-        raise(IOError(output_table + " not found"))
+        raise IOError(output_table + " not found")
 
     return output_table
 
@@ -629,7 +629,7 @@ def write_face_vertex_averages(input_file, output_table='', area_file=''):
     df.to_csv(output_table, index=False)
 
     if not os.path.exists(output_table):
-        raise(IOError(output_table + " not found"))
+        raise IOError(output_table + " not found")
 
     return output_table
 
@@ -742,7 +742,7 @@ def write_average_face_values_per_label(input_indices_vtk,
         df = pd.DataFrame({'': columns})
         df.to_csv(output_table, index=False)
         if not os.path.exists(output_table):
-            raise(IOError(output_table + " not found"))
+            raise IOError(output_table + " not found")
 
 
 def select_column_from_tables(tables, index=0, write_table=True,
@@ -816,7 +816,7 @@ def select_column_from_tables(tables, index=0, write_table=True,
         # Extract column from the table for each subject:
         #---------------------------------------------------------------------
         if not os.path.exists(input_table):
-            raise(IOError(input_table + " not found"))
+            raise IOError(input_table + " not found")
         else:
             input_columns = pd.read_csv(input_table)
             columns.append(input_columns.iloc[:, index])
@@ -1012,7 +1012,7 @@ def explode_mindboggle_tables(subject_path='', output_path='',
                     label_table.to_csv(out_file, index=False)
 
                     if not os.path.exists(out_file):
-                        raise(IOError(out_file + " not found"))
+                        raise IOError(out_file + " not found")
             else:
                 raise IOError('Unable to make directory {0}'.
                               format(output_dir))

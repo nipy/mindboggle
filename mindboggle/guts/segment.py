@@ -1506,7 +1506,7 @@ def extract_borders_2nd_surface(labels_file, values_file='',
                     'label_borders_in_mask')
 
     if not os.path.exists(border_file):
-        raise(IOError(border_file + " not found"))
+        raise IOError(border_file + " not found")
 
     return border_file, border_values, indices_borders
 
@@ -1625,7 +1625,7 @@ def combine_2labels_in_2volumes(file1, file2, label1=3, label2=2,
     img.to_filename(output_file)
 
     if not os.path.exists(output_file):
-        raise(IOError(output_file + " not found"))
+        raise IOError(output_file + " not found")
 
     return output_file
 
@@ -1718,7 +1718,7 @@ def split_brain(image_file, label_file, left_labels, right_labels):
     img2.to_filename(right_brain)
 
     if not os.path.exists(right_brain) or not os.path.exists(left_brain):
-        raise(IOError(right_brain + " or " + left_brain + "not found"))
+        raise IOError(right_brain + " or " + left_brain + "not found")
 
     return left_brain, right_brain
 

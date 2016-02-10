@@ -70,9 +70,9 @@ def convert2nii(input_file, reference_file, output_file='', interp='continuous')
     from scipy import ndimage, linalg
 
     if not os.path.exists(input_file):
-        raise(IOError("Input file " + input_file + " not found"))
+        raise IOError("Input file " + input_file + " not found")
     if not os.path.exists(reference_file):
-        raise(IOError("Reference file " + reference_file + " not found."))
+        raise IOError("Reference file " + reference_file + " not found.")
     if not output_file:
         output_file = os.path.join(os.getcwd(),
                                    os.path.basename(input_file) + '.nii.gz')

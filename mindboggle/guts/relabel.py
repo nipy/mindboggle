@@ -88,8 +88,7 @@ def relabel_volume(input_file, old_labels, new_labels, output_file=''):
     img.to_filename(output_file)
 
     if not os.path.exists(output_file):
-        s = "relabel_volume() did not create " + output_file + "."
-        raise(IOError(s))
+        raise IOError("relabel_volume() did not create " + output_file + ".")
 
     return output_file
 
@@ -194,8 +193,8 @@ def remove_volume_labels(input_file, labels_to_remove, output_file='',
     img.to_filename(output_file)
 
     if not os.path.exists(output_file):
-        s = "remove_volume_labels() did not create " + output_file + "."
-        raise(IOError(s))
+        raise IOError("remove_volume_labels() did not create " + output_file
+                      + ".")
 
     return output_file
 
@@ -297,8 +296,7 @@ def keep_volume_labels(input_file, labels_to_keep, output_file='',
     img.to_filename(output_file)
 
     if not os.path.exists(output_file):
-        s = "keep_volume_labels() did not create " + output_file + "."
-        raise(IOError(s))
+        raise IOError("keep_volume_labels() did not create " + output_file + ".")
 
     return output_file
 
@@ -377,7 +375,7 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
        (hemi and hemi not in ['lh','rh']) or \
        (new_labels and len(old_labels) != len(new_labels)) or \
        (erase_remaining and not old_labels):
-        raise(IOError("Please check inputs for relabel_surface()."))
+        raise IOError("Please check inputs for relabel_surface().")
 
     # Loop through unique labels in scalars:
     ulabels = np.unique(scalars)
@@ -420,8 +418,7 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
     write_vtk(output_file, points, indices, lines, faces,
               [new_scalars], ['Labels'], scalar_type='int')
     if not os.path.exists(output_file):
-        s = "relabel_surface() did not create " + output_file + "."
-        raise(IOError(s))
+        raise IOError("relabel_surface() did not create " + output_file + ".")
 
     return output_file
 
@@ -493,8 +490,8 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
     vol_source = nb.load(source)
     vol_target = nb.load(target)
     if vol_source.shape != vol_target.shape:
-        raise(IOError('{0} and {1} need to be the same shape.'.
-                      format(source, target)))
+        raise IOError('{0} and {1} need to be the same shape.'.
+                      format(source, target))
     xfm = vol_target.get_affine()
     data_source = vol_source.get_data().ravel()
     data_target = vol_target.get_data().ravel()

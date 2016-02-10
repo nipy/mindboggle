@@ -507,8 +507,8 @@ def fetch_ants_data(segmented_file, use_ants_transforms=True):
     # antsCorticalThickness.sh when the -k argument is used.
     for ants_file in files:
         if not os.path.exists(ants_file):
-            raise(IOError('antsCorticalThickness.sh output ' + ants_file +
-                          ' does not exist.'))
+            raise IOError('antsCorticalThickness.sh output ' + ants_file +
+                          ' does not exist.')
 
     return mask, segments, affine_subject2template, warp_subject2template, \
                            affine_template2subject, warp_template2subject

@@ -234,10 +234,11 @@ def plot_volumes(volume_files, command='fslview'):
     if isinstance(volume_files, str):
         volume_files = [volume_files]
     elif not isinstance(volume_files, list):
-        raise(IOError('plot_volumes() requires volume_files to be a list or string.'))
+        raise IOError('plot_volumes() requires volume_files to be a list '
+                      'or string.')
 
     if not isinstance(command, str):
-        raise(IOError('plot_volumes() requires command to be a string.'))
+        raise IOError('plot_volumes() requires command to be a string.')
     else:
         command = [command]
 

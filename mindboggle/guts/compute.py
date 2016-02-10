@@ -189,7 +189,7 @@ def pairwise_vector_distances(vectors, save_file=False, normalize=False):
         np.savetxt(outfile, vector_distances,
                    fmt=len(vectors) * '%.4f ', delimiter='\t', newline='\n')
         if not os.path.exists(outfile):
-            raise(IOError(outfile + " not found"))
+            raise IOError(outfile + " not found")
     else:
         outfile = ''
 
@@ -902,7 +902,7 @@ def count_per_label(labels, include_labels=[], exclude_labels=[]):
     elif isinstance(labels, ndarray):
         pass
     else:
-        raise(IOError("labels should be a numpy array."))
+        raise IOError("labels should be a numpy array.")
 
     # Unique list of labels:
     if include_labels:
@@ -982,7 +982,7 @@ def compute_overlaps(targets, list1, list2, output_file='', save_output=True,
         list2 = np.array(list2)
 
     if np.size(list1) != np.size(list2):
-        raise(IOError("Files are different sizes"))
+        raise IOError("Files are different sizes")
 
     # Initialize output:
     dice_overlaps = np.zeros(len(targets))

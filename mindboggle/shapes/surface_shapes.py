@@ -39,7 +39,7 @@ def area(command, surface_file):
     cli.run()
 
     if not os.path.exists(area_file):
-        raise(IOError(area_file + " not found"))
+        raise IOError(area_file + " not found")
 
     return area_file
 
@@ -71,7 +71,7 @@ def travel_depth(command, surface_file):
     cli.run()
 
     if not os.path.exists(depth_file):
-        raise(IOError(depth_file + " not found"))
+        raise IOError(depth_file + " not found")
 
     return depth_file
 
@@ -103,7 +103,7 @@ def geodesic_depth(command, surface_file):
     cli.run()
 
     if not os.path.exists(depth_file):
-        raise(IOError(depth_file + " not found"))
+        raise IOError(depth_file + " not found")
 
     return depth_file
 

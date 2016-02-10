@@ -906,7 +906,7 @@ def decimate(points, faces, reduction=0.75, smooth_steps=25,
         exporter.SetFileName(output_vtk)
         exporter.Write()
         if not os.path.exists(output_vtk):
-            raise(IOError(output_vtk + " not found"))
+            raise IOError(output_vtk + " not found")
 
     #-------------------------------------------------------------------------
     # Extract decimated points, faces, and scalars:
@@ -1098,7 +1098,7 @@ def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
         rewrite_scalars(input_vtk, rescaled_scalars_file,
                         rescaled_scalars, 'rescaled_scalars')
         if not os.path.exists(rescaled_scalars_file):
-            raise(IOError(rescaled_scalars_file + " not found"))
+            raise IOError(rescaled_scalars_file + " not found")
 
     else:
         rescaled_scalars_file = None
@@ -1197,7 +1197,7 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
         rewrite_scalars(input_vtk, rescaled_scalars_file,
                         rescaled_scalars, 'rescaled_scalars', labels)
         if not os.path.exists(rescaled_scalars_file):
-            raise(IOError(rescaled_scalars_file + " not found"))
+            raise IOError(rescaled_scalars_file + " not found")
 
     else:
         rescaled_scalars_file = None
