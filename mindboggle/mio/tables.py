@@ -399,10 +399,10 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
 
 def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
         affine_transform_files=[], inverse_booleans=[],
-        transform_format='itk',
-        area_file='', mean_curvature_file='', travel_depth_file='',
-        geodesic_depth_file='', freesurfer_thickness_file='',
-        freesurfer_curvature_file='', freesurfer_sulc_file=''):
+        transform_format='itk', area_file='', mean_curvature_file='',
+        travel_depth_file='', geodesic_depth_file='',
+        freesurfer_thickness_file='', freesurfer_curvature_file='',
+        freesurfer_sulc_file='', ants_command_path=''):
     """
     Make a table of shape values per vertex.
 
@@ -440,6 +440,8 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
         name of VTK file with FreeSurfer curvature (curv) scalar values
     freesurfer_sulc_file :  string
         name of VTK file with FreeSurfer convexity (sulc) scalar values
+    ants_command_path : string
+        path to antsApplyTransformsToPoints command
 
     Returns
     -------
@@ -454,7 +456,7 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     >>> urls, fetch_data = prep_tests()
     >>> label_file = fetch_data(urls['left_freesurfer_labels'])
     >>> sulci_file = fetch_data(urls['left_sulci'])
-    >>> fundi_file = '' #fetch_data(urls['left_fundi'])
+    >>> fundi_file = fetch_data(urls['left_fundi'])
     >>> mean_curvature_file = fetch_data(urls['left_mean_curvature'])
     >>> travel_depth_file = fetch_data(urls['left_travel_depth'])
     >>> geodesic_depth_file = fetch_data(urls['left_geodesic_depth'])
@@ -463,16 +465,18 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     >>> freesurfer_curvature_file = ''
     >>> freesurfer_sulc_file = ''
     >>> sulci, name = read_scalars(sulci_file)
-    >>> fundi = [] #fundi, name = read_scalars(fundi_file)
-    >>> affine_transform_files = [] #['t1weighted_brain.MNI152Affine.txt']
+    >>> fundi, name = read_scalars(fundi_file)
+    >>> affine_transform_files = [fetch_data(urls['affine_mni_transform'])]
     >>> inverse_booleans = [1]
     >>> transform_format = 'itk'
     >>> swap_xy = True
+    >>> ants_command_path = ''
     >>> output_table = write_vertex_measures(output_table, label_file, sulci,
     ...     fundi, affine_transform_files, inverse_booleans, transform_format,
     ...     area_file, mean_curvature_file, travel_depth_file,
     ...     geodesic_depth_file, freesurfer_thickness_file,
-    ...     freesurfer_curvature_file, freesurfer_sulc_file)
+    ...     freesurfer_curvature_file, freesurfer_sulc_file,
+    ...     ants_command_path)
 
     """
     import os
@@ -495,8 +499,7 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
         fundi = [int(x) for x in fundi]
 
     if not labels and not sulci and not fundi:
-        import sys
-        sys.exit('No feature data to tabulate in write_vertex_measures().')
+        raise IOError('No feature data to tabulate in write_vertex_measures().')
 
     # Feature names and corresponding feature lists:
     feature_names = ['label ID', 'sulcus ID', 'fundus ID']
@@ -535,11 +538,13 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
                 first_pass = False
 
                 # Append standard space x,y,z position to columns:
-                if affine_transform_files and transform_format:
+                if affine_transform_files and transform_format and \
+                   ants_command_path:
                     affine_points, \
                         foo1 = apply_affine_transforms(affine_transform_files,
                                     inverse_booleans, transform_format,
-                                    points, vtk_file_stem='')
+                                    points, vtk_file_stem='',
+                                    command_path=ants_command_path)
                     xyz_std_positions = affine_points
                     for ixyz, xyz in enumerate(['x','y','z']):
                         column_names.append('position in standard space:'

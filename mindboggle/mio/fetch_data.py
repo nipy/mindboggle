@@ -102,6 +102,7 @@ def test_urls():
     urls['right_freesurfer_pial'] = FS + 'surf/rh.pial'
     urls['left_freesurfer_thickness'] = FS + 'surf/lh.thickness'
     urls['right_freesurfer_thickness'] = FS + 'surf/rh.thickness'
+    urls['affine_mni_transform'] = FS + 'mri/t1weighted_brain.MNI152Affine.txt'
     #-------------------------------------------------------------------------
     # ants (antsCorticalThickness.sh) output:
     #-------------------------------------------------------------------------
@@ -114,6 +115,7 @@ def test_urls():
     #-------------------------------------------------------------------------
     # Mindboggle working directory (including converted FreeSurfer output):
     #-------------------------------------------------------------------------
+    urls['freesurfer_segmentation'] = FS + 'mri/wmparc.nii.gz'
     urls['T1_001'] = MBW + 'mgh_to_nifti/001.mgz.nii.gz'
     urls['left_pial'] = MBW + '_hemi_lh/Surface_to_vtk/lh.pial.vtk'
     urls['right_pial'] = MBW + '_hemi_rh/Surface_to_vtk/rh.pial.vtk'

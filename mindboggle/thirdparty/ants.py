@@ -16,9 +16,9 @@ Mindboggle functions call the following ANTs functions ::
         write_shape_stats(), write_vertex_measures()
 
 Authors:
-Arno Klein, 2011-2014  .  arno@mindboggle.info  .  www.binarybottle.com
+    - Arno Klein, 2012-2016  (arno@mindboggle.info)  http://binarybottle.com
 
-Copyright 2014,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 

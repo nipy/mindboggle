@@ -1335,7 +1335,8 @@ if not args.no_surfaces:
                                                  'geodesic_depth_file',
                                                  'freesurfer_thickness_file',
                                                  'freesurfer_curvature_file',
-                                                 'freesurfer_sulc_file'],
+                                                 'freesurfer_sulc_file',
+                                                 'ants_command_path'],
                                     output_names=['output_table']))
             mbFlow.add_nodes([VertexTable])
             VertexTable.inputs.output_table = ''
@@ -1384,6 +1385,7 @@ if not args.no_surfaces:
                 mbFlow.connect(WholeSurfShapeFlow,
                                'Sulc_to_vtk.output_vtk',
                                VertexTable, 'freesurfer_sulc_file')
+            VertexTable.inputs.ants_command_path = ants_command_path
             mbFlow.connect(VertexTable, 'output_table',
                            Sink, 'tables.@vertices')
 
