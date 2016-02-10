@@ -315,97 +315,105 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
     return output_file
 
 
-def fill_volume_with_surface_labels(hemi, left_mask, right_mask,
-                                    surface_files, mask_index=None,
-                                    output_file='', binarize=False):
-    """
-    Use ANTs to fill a volume mask with surface mesh labels.
-
-    Note ::
-
-        - This uses PropagateLabelsThroughMask in the ANTs ImageMath function.
-
-        - Partial volume information is lost when mapping surface to volume.
-
-    Parameters
-    ----------
-    hemi : string
-        either 'lh' or 'rh', indicating brain's left or right hemisphere
-    left_mask : string
-        nibabel-readable left brain image mask volume
-    right_mask : string
-        nibabel-readable left brain image mask volume
-    surface_files : string or list of strings
-        VTK file(s) containing surface mesh(es) with labels as scalars
-    mask_index : integer (optional)
-        mask with just voxels having this value
-    output_file : string
-        name of output file
-    binarize : Boolean
-        binarize mask?
-
-    Returns
-    -------
-    output_file : string
-        name of labeled output nibabel-readable image volume
-
-    Examples
-    --------
-    >>> import os
-    >>> from mindboggle.thirdparty.ants import fill_volume_with_surface_labels
-    >>> from mindboggle.mio.plots import plot_volumes
-    >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
-    >>> surface_files = [os.path.join(path, 'labels',
-    >>>     'lh.labels.DKT25.manual.vtk'), os.path.join(path, 'labels',
-    >>>     'rh.labels.DKT25.manual.vtk')]
-    >>> # For a quick test, simply mask with whole brain:
-    >>> hemi = 'rh'
-    >>> left_mask = os.path.join(path, 'mri', 't1weighted_brain.nii.gz')
-    >>> right_mask = os.path.join(path, 'mri', 't1weighted_brain.nii.gz')
-    >>> mask_index = None
-    >>> output_file = ''
-    >>> binarize = True
-    >>> output_file = fill_volume_with_surface_labels(hemi, left_mask, right_mask, surface_files, mask_index, output_file, binarize)
-    >>> # View
-    >>> plot_volumes(output_file)
-
-    """
-    import os
-
-    from mindboggle.mio.vtks import transform_to_volume
-    from mindboggle.guts.relabel import overwrite_volume_labels
-    from mindboggle.thirdparty.ants import PropagateLabelsThroughMask
-
-    if isinstance(surface_files, str):
-        surface_files = [surface_files]
-
-    if hemi == 'lh':
-        mask = left_mask
-    elif hemi == 'rh':
-        mask = right_mask
-
-    # Transform vtk coordinates to voxel index coordinates in a target
-    # volume by using the header transformation:
-    surface_in_volume = transform_to_volume(surface_files[0], mask)
-
-    # Do the same for additional vtk surfaces:
-    if len(surface_files) == 2:
-        surfaces_in_volume = os.path.join(os.getcwd(), 'surfaces.nii.gz')
-        surface_in_volume2 = transform_to_volume(surface_files[1], mask)
-
-        overwrite_volume_labels(surface_in_volume, surface_in_volume2,
-                                surfaces_in_volume, ignore_labels=[0])
-        surface_in_volume = surfaces_in_volume
-
-    # Use ANTs to fill a binary volume mask with initial labels:
-    output_file = PropagateLabelsThroughMask(mask, surface_in_volume,
-                                             mask_index, output_file,
-                                             binarize)
-    if not os.path.exists(output_file):
-        str1 = "PropagateLabelsThroughMask() did not create "
-        raise IOError(str1 + output_file + ".")
-
-    return output_file  # surface_in_volume
+# def fill_volume_with_surface_labels(hemi, left_mask, right_mask,
+#                                     surface_files, mask_index=None,
+#                                     output_file='', binarize=False):
+#     """
+#     Use ANTs to fill a volume mask with surface mesh labels.
+#
+#     Note ::
+#
+#         - This uses PropagateLabelsThroughMask in the ANTs ImageMath function.
+#
+#         - Partial volume information is lost when mapping surface to volume.
+#
+#         - Check to make sure transform_to_volume() is operational.
+#
+#     Parameters
+#     ----------
+#     hemi : string
+#         either 'lh' or 'rh', indicating brain's left or right hemisphere
+#     left_mask : string
+#         nibabel-readable left brain image mask volume
+#     right_mask : string
+#         nibabel-readable left brain image mask volume
+#     surface_files : string or list of strings
+#         VTK file(s) containing surface mesh(es) with labels as scalars
+#     mask_index : integer (optional)
+#         mask with just voxels having this value
+#     output_file : string
+#         name of output file
+#     binarize : Boolean
+#         binarize mask?
+#
+#     Returns
+#     -------
+#     output_file : string
+#         name of labeled output nibabel-readable image volume
+#
+#     Examples
+#     --------
+#     >>> from mindboggle.thirdparty.ants import fill_volume_with_surface_labels
+#     >>> from mindboggle.mio.fetch_data import prep_tests
+#     >>> urls, fetch_data = prep_tests()
+#     >>> labels_left = fetch_data(urls['left_freesurfer_labels'])
+#     >>> labels_right = fetch_data(urls['right_freesurfer_labels'])
+#     >>> surface_files = [labels_left, labels_left]
+#     >>> left_mask = fetch_data(urls['T1_001'])
+#     >>> right_mask = fetch_data(urls['T1_001'])
+#     >>> os.rename(left_mask, left_mask + '.nii.gz')
+#     >>> left_mask = left_mask + '.nii.gz'
+#     >>> os.rename(right_mask, right_mask + '.nii.gz')
+#     >>> right_mask = right_mask + '.nii.gz'
+#     >>> # For a quick test, simply mask with whole brain:
+#     >>> hemi = 'rh'
+#     >>> mask_index = None
+#     >>> output_file = ''
+#     >>> binarize = True
+#     >>> output_file = fill_volume_with_surface_labels(hemi, left_mask,
+#     ...     right_mask, surface_files, mask_index, output_file, binarize)
+#
+#     >>> # View
+#     >>> from mindboggle.mio.plots import plot_volumes
+#     >>> plot_volumes(output_file) # doctest: +SKIP
+#
+#     """
+#     import os
+#
+#     from mindboggle.mio.vtks import transform_to_volume
+#     from mindboggle.guts.relabel import overwrite_volume_labels
+#     from mindboggle.thirdparty.ants import PropagateLabelsThroughMask
+#
+#     if isinstance(surface_files, str):
+#         surface_files = [surface_files]
+#
+#     if hemi == 'lh':
+#         mask = left_mask
+#     elif hemi == 'rh':
+#         mask = right_mask
+#
+#     # Transform vtk coordinates to voxel index coordinates in a target
+#     # volume by using the header transformation:
+#     surface_in_volume = transform_to_volume(surface_files[0], mask)
+#
+#     # Do the same for additional vtk surfaces:
+#     if len(surface_files) == 2:
+#         surfaces_in_volume = os.path.join(os.getcwd(), 'surfaces.nii.gz')
+#         surface_in_volume2 = transform_to_volume(surface_files[1], mask)
+#
+#         overwrite_volume_labels(surface_in_volume, surface_in_volume2,
+#                                 surfaces_in_volume, ignore_labels=[0])
+#         surface_in_volume = surfaces_in_volume
+#
+#     # Use ANTs to fill a binary volume mask with initial labels:
+#     output_file = PropagateLabelsThroughMask(mask, surface_in_volume,
+#                                              mask_index, output_file,
+#                                              binarize)
+#     if not os.path.exists(output_file):
+#         raise IOError("PropagateLabelsThroughMask() did not create {0}.".
+#                       format(output_file))
+#
+#     return output_file  # surface_in_volume
 
 
 # def ANTS(source, target, iterations='30x99x11', output_stem=''):

@@ -17,8 +17,6 @@ def read_vertices(filename):
     """
     Load VERTICES segment from a VTK file (actually indices to vertices).
 
-    Not currently in use by Mindboggle.
-
     Parameters
     ----------
     filename : string
@@ -33,7 +31,9 @@ def read_vertices(filename):
 
     Notes ::
 
-        We assume that VERTICES segment is organized as one line,
+        -- Not currently in use by Mindboggle.
+
+        We assume that the VERTICES segment is organized as one line,
         the first column of which is the number of vertices.
         Vertices here are as vertices in VTK terminology.
         It may not be the vertices in your 3-D surface.
@@ -89,7 +89,7 @@ def read_lines(filename):
     >>> from mindboggle.mio.vtks import read_lines
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> fundus_file = fetch_data(urls['left_fundi']) # doctest: +SKIP
+    >>> fundus_file = fetch_data(urls['left_fundi'])
     >>> lines, scalars  = read_lines(fundus_file) # doctest: +SKIP
 
     """
@@ -1202,151 +1202,151 @@ def scalars_checker(scalars, scalar_names):
     return scalars, scalar_names
 
 
-def read_itk_transform_old(transform_file):
-    """
-    Read ITK transform file and output transform array.
-
-    ..ITK affine transform file format ::
-
-    #Insight Transform File V1.0
-    #Transform 0
-    Transform: MatrixOffsetTransformBase_double_3_3
-    Parameters: 0.90768 0.043529 0.0128917 -0.0454455 0.868937 0.406098 \
-    0.0179439 -0.430013 0.783074 -0.794889 -18.3346 -3.14767
-    FixedParameters: -0.60936 21.1593 10.6148
-
-    Parameters
-    ----------
-    transform_file : string
-        name of ITK affine transform file
-
-    Returns
-    -------
-    transform : numpy array
-        4x4 affine transform matrix
-    fixed_parameters : numpy array
-        FixedParameters vector
-
-    Examples
-    --------
-    >>> import os
-    >>> from mindboggle.mio.vtks import read_itk_transform
-    >>> transform_file = os.path.join('mri',
-    ...                               't1weighted_brain.MNI152Affine.txt') # doctest: +SKIP
-    >>> read_itk_transform(transform_file) # doctest: +SKIP
-    (array([[ 9.07680e-01, 4.35290e-02, 1.28917e-02, -7.94889e-01],
-    [ -4.54455e-02, 8.68937e-01, 4.06098e-01, -1.83346e+01],
-    [ 1.79439e-02, -4.30013e-01, 7.83074e-01, -3.14767e+00],
-    [ 0.00000e+00, 0.00000e+00, 0.00000e+00, 1.00000e+00]]),
-    [-0.60936, 21.1593, 10.6148])
-
-    """
-    import numpy as np
-
-    transform = np.eye(4)
-
-    # Read ITK transform file
-    fid = open(transform_file, 'r')
-    affine_lines = fid.readlines()
-
-    affine = affine_lines[3]
-    affine = affine.split()
-    affine = [np.float(x) for x in affine[1::]]
-    affine = np.reshape(affine, (4,3))
-    linear_transform = affine[0:3,:]
-    translation = affine[3,:]
-    transform[0:3,0:3] = linear_transform
-    transform[0:3,3] = translation
-
-    fixed_parameters = affine_lines[4]
-    fixed_parameters = fixed_parameters.split()
-    fixed_parameters = [np.float(x) for x in fixed_parameters[1::]]
-
-    return transform, fixed_parameters
-
-
-def read_itk_transform(transform_file):
-    """
-    Read ITK transform file and output transform array.
-
-    Daniel Haehn's implementation: https://gist.github.com/haehn/5614966
-
-    ..ITK affine transform file format ::
-
-        #Insight Transform File V1.0
-        #Transform 0
-        Transform: MatrixOffsetTransformBase_double_3_3
-        Parameters: 0.90768 0.043529 0.0128917 -0.0454455 0.868937 0.406098 \
-                    0.0179439 -0.430013 0.783074 -0.794889 -18.3346 -3.14767
-        FixedParameters: -0.60936 21.1593 10.6148
-
-    Parameters
-    ----------
-    transform_file : string
-        name of ITK affine transform file
-
-    Returns
-    -------
-    transform : numpy array
-        4x4 affine transform matrix
-
-    Examples
-    --------
-    >>> import os
-    >>> from mindboggle.mio.vtks import read_itk_transform
-    >>> transform_file = os.path.join('mri',
-    ...                               't1weighted_brain.MNI152Affine.txt') # doctest: +SKIP
-    >>> read_itk_transform(transform_file) # doctest: +SKIP
-    array([[  9.07680e-01,   4.35290e-02,   1.28917e-02,   -8.16765e-01],
-           [ -4.54455e-02,   8.68937e-01,   4.06098e-01,   -2.31926e+01],
-           [  1.79439e-02,  -4.30013e-01,   7.83074e-01,   3.52899e+00],
-           [  0 0 0 1]])
-    """
-    import numpy as np
-
-    # Read the transform:
-    transform = None
-    with open( transform_file, 'r' ) as f:
-      for line in f:
-
-        # Check for Parameters:
-        if line.startswith( 'Parameters:' ):
-          values = line.split( ': ' )[1].split( ' ' )
-
-          # Filter empty spaces and line breaks:
-          values = [float( e ) for e in values if ( e != '' and e != '\n' )]
-          # Create the upper left of the matrix:
-          transform_upper_left = np.reshape( values[0:9], ( 3, 3 ) )
-          # Grab the translation as well:
-          translation = values[9:]
-
-        # Check for FixedParameters:
-        if line.startswith( 'FixedParameters:' ):
-          values = line.split( ': ' )[1].split( ' ' )
-
-          # Filter empty spaces and line breaks:
-          values = [float( e ) for e in values if ( e != '' and e != '\n' )]
-          # Set up the center:
-          center = values
-
-    # Compute the offset:
-    offset = np.ones( 4 )
-    for i in range( 0, 3 ):
-      offset[i] = translation[i] + center[i];
-      for j in range( 0, 3 ):
-        offset[i] -= transform_upper_left[i][j] * center[i]
-
-    # add the [0, 0, 0] line:
-    transform = np.vstack( ( transform_upper_left, [0, 0, 0] ) )
-    # and the [offset, 1] column:
-    transform = np.hstack( ( transform, np.reshape( offset, ( 4, 1 ) ) ) )
-
-    return transform
+# def read_itk_transform_old(transform_file):
+#     """
+#     Read ITK transform file and output transform array.
+#
+#     ..ITK affine transform file format ::
+#
+#     #Insight Transform File V1.0
+#     #Transform 0
+#     Transform: MatrixOffsetTransformBase_double_3_3
+#     Parameters: 0.90768 0.043529 0.0128917 -0.0454455 0.868937 0.406098 \
+#     0.0179439 -0.430013 0.783074 -0.794889 -18.3346 -3.14767
+#     FixedParameters: -0.60936 21.1593 10.6148
+#
+#     Parameters
+#     ----------
+#     transform_file : string
+#         name of ITK affine transform file
+#
+#     Returns
+#     -------
+#     transform : numpy array
+#         4x4 affine transform matrix
+#     fixed_parameters : numpy array
+#         FixedParameters vector
+#
+#     Examples
+#     --------
+#     >>> import os
+#     >>> from mindboggle.mio.vtks import read_itk_transform_old
+#     >>> transform_file = os.path.join('mri',
+#     ...                               't1weighted_brain.MNI152Affine.txt') # doctest: +SKIP
+#     >>> read_itk_transform_old(transform_file) # doctest: +SKIP
+#     (array([[ 9.07680e-01, 4.35290e-02, 1.28917e-02, -7.94889e-01],
+#     [ -4.54455e-02, 8.68937e-01, 4.06098e-01, -1.83346e+01],
+#     [ 1.79439e-02, -4.30013e-01, 7.83074e-01, -3.14767e+00],
+#     [ 0.00000e+00, 0.00000e+00, 0.00000e+00, 1.00000e+00]]),
+#     [-0.60936, 21.1593, 10.6148])
+#
+#     """
+#     import numpy as np
+#
+#     transform = np.eye(4)
+#
+#     # Read ITK transform file
+#     fid = open(transform_file, 'r')
+#     affine_lines = fid.readlines()
+#
+#     affine = affine_lines[3]
+#     affine = affine.split()
+#     affine = [np.float(x) for x in affine[1::]]
+#     affine = np.reshape(affine, (4,3))
+#     linear_transform = affine[0:3,:]
+#     translation = affine[3,:]
+#     transform[0:3,0:3] = linear_transform
+#     transform[0:3,3] = translation
+#
+#     fixed_parameters = affine_lines[4]
+#     fixed_parameters = fixed_parameters.split()
+#     fixed_parameters = [np.float(x) for x in fixed_parameters[1::]]
+#
+#     return transform, fixed_parameters
+#
+#
+# def read_itk_transform(transform_file):
+#     """
+#     Read ITK transform file and output transform array.
+#
+#     Daniel Haehn's implementation: https://gist.github.com/haehn/5614966
+#
+#     ..ITK affine transform file format ::
+#
+#         #Insight Transform File V1.0
+#         #Transform 0
+#         Transform: MatrixOffsetTransformBase_double_3_3
+#         Parameters: 0.90768 0.043529 0.0128917 -0.0454455 0.868937 0.406098 \
+#                     0.0179439 -0.430013 0.783074 -0.794889 -18.3346 -3.14767
+#         FixedParameters: -0.60936 21.1593 10.6148
+#
+#     Parameters
+#     ----------
+#     transform_file : string
+#         name of ITK affine transform file
+#
+#     Returns
+#     -------
+#     transform : numpy array
+#         4x4 affine transform matrix
+#
+#     Examples
+#     --------
+#     >>> import os
+#     >>> from mindboggle.mio.vtks import read_itk_transform
+#     >>> transform_file = os.path.join('mri',
+#     ...                               't1weighted_brain.MNI152Affine.txt') # doctest: +SKIP
+#     >>> read_itk_transform(transform_file) # doctest: +SKIP
+#     array([[  9.07680e-01,   4.35290e-02,   1.28917e-02,   -8.16765e-01],
+#            [ -4.54455e-02,   8.68937e-01,   4.06098e-01,   -2.31926e+01],
+#            [  1.79439e-02,  -4.30013e-01,   7.83074e-01,   3.52899e+00],
+#            [  0 0 0 1]])
+#     """
+#     import numpy as np
+#
+#     # Read the transform:
+#     transform = None
+#     with open( transform_file, 'r' ) as f:
+#       for line in f:
+#
+#         # Check for Parameters:
+#         if line.startswith( 'Parameters:' ):
+#           values = line.split( ': ' )[1].split( ' ' )
+#
+#           # Filter empty spaces and line breaks:
+#           values = [float( e ) for e in values if ( e != '' and e != '\n' )]
+#           # Create the upper left of the matrix:
+#           transform_upper_left = np.reshape( values[0:9], ( 3, 3 ) )
+#           # Grab the translation as well:
+#           translation = values[9:]
+#
+#         # Check for FixedParameters:
+#         if line.startswith( 'FixedParameters:' ):
+#           values = line.split( ': ' )[1].split( ' ' )
+#
+#           # Filter empty spaces and line breaks:
+#           values = [float( e ) for e in values if ( e != '' and e != '\n' )]
+#           # Set up the center:
+#           center = values
+#
+#     # Compute the offset:
+#     offset = np.ones( 4 )
+#     for i in range( 0, 3 ):
+#       offset[i] = translation[i] + center[i];
+#       for j in range( 0, 3 ):
+#         offset[i] -= transform_upper_left[i][j] * center[i]
+#
+#     # add the [0, 0, 0] line:
+#     transform = np.vstack( ( transform_upper_left, [0, 0, 0] ) )
+#     # and the [offset, 1] column:
+#     transform = np.hstack( ( transform, np.reshape( offset, ( 4, 1 ) ) ) )
+#
+#     return transform
 
 
 def apply_affine_transforms(transform_files, inverse_booleans,
-                            transform_format='itk',
-                            vtk_or_points=[], vtk_file_stem='affine_'):
+                            transform_format='itk', vtk_or_points=[],
+                            vtk_file_stem='affine_', command_path=''):
     """
     Transform coordinates using an affine matrix.
 
@@ -1372,6 +1372,8 @@ def apply_affine_transforms(transform_files, inverse_booleans,
     vtk_file_stem : string
         save transformed coordinates in a vtk file with this file prepend
         (empty string if vtk_or_points is points)
+    command_path : string
+        path to antsApplyTransformsToPoints command
 
     Returns
     -------
@@ -1382,21 +1384,31 @@ def apply_affine_transforms(transform_files, inverse_booleans,
 
     Examples
     --------
+    >>> import os
     >>> from mindboggle.mio.vtks import apply_affine_transforms
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
     >>> vtk_or_points = fetch_data(urls['left_pial'])
-    >>> transform_files = ['Compose_affine_transform/affine.txt'] # doctest: +SKIP
+    >>> transform_files = [fetch_data(urls['ants_affine_subject2template'])]
     >>> inverse_booleans = [1]
     >>> transform_format = 'itk'
     >>> vtk_file_stem = 'affine_'
+    >>> command_path = '/software/install/ants/bin' # doctest: +SKIP
+    >>> os.environ["PATH"] += os.pathsep + command_path # doctest: +SKIP
     >>> affine_points, output_file = apply_affine_transforms(transform_files,
-    ...     inverse_booleans, transform_format, vtk_or_points, vtk_file_stem) # doctest: +SKIP
+    ...     inverse_booleans, transform_format, vtk_or_points, vtk_file_stem,
+    ...     command_path) # doctest: +SKIP
+    >>> affine_points[0] # doctest: +SKIP
+    array([-123.02734785, -228.19407339, -101.14380908])
+    >>> affine_points[1] # doctest: +SKIP
+    array([-123.46155694, -228.3981199 , -101.24258101])
+    >>> affine_points[2] # doctest: +SKIP
+    array([-124.2205819 , -228.39971429, -101.15211437])
 
     View resulting vtk file (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces
-    >>> plot_surfaces('affine_lh.pial.vtk', vtk_or_points) # doctest: +SKIP
+    >>> plot_surfaces(output_file, vtk_or_points) # doctest: +SKIP
 
     """
     import os
@@ -1437,6 +1449,7 @@ def apply_affine_transforms(transform_files, inverse_booleans,
     # coordinate system than the NIfTI coordinate system.
     if transform_format == 'itk' and len(points):
         points[:, :2] = points[:, :2] * np.array((-1, -1))
+        os.environ["PATH"] += os.pathsep + command_path
         affine_points = antsApplyTransformsToPoints(points,
                             transform_files, inverse_booleans)
         affine_points = np.array(affine_points)
@@ -1471,90 +1484,95 @@ def apply_affine_transforms(transform_files, inverse_booleans,
     return affine_points, output_file
 
 
-def transform_to_volume(vtk_file, volume_file, output_volume=''):
-    """
-    Transform vtk coordinates to voxel index coordinates in a target
-    volume by using the header transformation.
-
-    This function assumes that the nibabel-readable volume has LPI orientation.
-
-    Parameters
-    ----------
-    vtk_file : string
-        name of VTK file containing point coordinate data
-    volume_file : string
-        name of target nibabel-readable image volume file
-    output_volume : string
-        name of output nibabel-readable image volume file
-
-    Returns
-    -------
-    output_volume : string
-        name of nifti file containing transformed point data
-
-    Examples
-    --------
-    >>> import os
-    >>> from mindboggle.mio.vtks import transform_to_volume
-    >>> from mindboggle.mio.fetch_data import prep_tests
-    >>> urls, fetch_data = prep_tests()
-    >>> vtk_file = fetch_data(urls['left_pial'])
-    >>> volume_file = fetch_data(urls['freesurfer_segmentation'])
-    >>> os.rename(volume_file, volume_file + '.nii.gz')
-    >>> volume_file = volume_file + '.nii.gz'
-    >>> output_volume = ''
-    >>> output_volume = transform_to_volume(vtk_file, volume_file,
-    ...                                     output_volume) # doctest: +SKIP
-
-    View resulting vtk file (skip test):
-
-    >>> from mindboggle.mio.plots import plot_volumes
-    >>> plot_volumes([output_volume, volume_file]) # doctest: +SKIP
-
-    """
-    import os
-    import numpy as np
-    import nibabel as nb
-
-    from mindboggle.mio.vtks import read_vtk
-
-    # Read vtk file:
-    points, indices, lines, faces, scalars, scalar_names, npoints, \
-            input_vtk = read_vtk(vtk_file)
-
-    # Read target image volume header information:
-    img = nb.load(volume_file)
-    hdr = img.get_header()
-    dims = img.get_shape()
-    ndims = len(dims)
-    affine = img.get_affine()
-    inv_transform = np.linalg.inv(affine)
-
-    # Transform vtk coordinates:
-    xyz = np.array(xyz)
-    xyz = np.concatenate((xyz, np.ones((npoints,1))), axis=1)
-    voxels = np.transpose(np.dot(inv_transform, np.transpose(xyz)))[:,0:ndims]
-
-    voxels = np.reshape([int(np.round(x)) for lst in voxels for x in lst],
-                        (-1,ndims))
-    # Write vtk scalar values to voxels:
-    data = np.zeros(dims)
-    for ivoxel, ijk in enumerate(voxels):
-        data[ijk[0], ijk[1], ijk[2]] = scalars[ivoxel]
-
-    # Write output image volume:
-    if not output_volume:
-        output_volume = os.path.join(os.getcwd(),
-                                     os.path.basename(vtk_file) +
-                                     '_to_volume.nii.gz')
-
-    img = nb.Nifti1Image(data, affine, header=hdr)
-    img.to_filename(output_volume)
-
-    if not os.path.exists(output_volume):
-        raise IOError(output_volume + " not found")
-
-    return output_volume
+# def transform_to_volume(vtk_file, points, volume_file, output_volume=''):
+#     """
+#     Transform vtk coordinates to voxel index coordinates in a target
+#     volume by using the header transformation.
+#
+#     This function assumes that the nibabel-readable volume has LPI orientation.
+#
+#     Parameters
+#     ----------
+#     vtk_file : string
+#         name of VTK file containing point coordinate data
+#     points : list of lists of floats
+#         each element is a list of 3-D coordinates of a surface mesh vertex
+#     volume_file : string
+#         name of target nibabel-readable image volume file
+#     output_volume : string
+#         name of output nibabel-readable image volume file
+#
+#     Returns
+#     -------
+#     output_volume : string
+#         name of nifti file containing transformed point data
+#
+#     Examples
+#     --------
+#     >>> import os
+#     >>> from mindboggle.mio.vtks import transform_to_volume
+#     >>> from mindboggle.mio.vtks import read_points
+#     >>> from mindboggle.mio.fetch_data import prep_tests
+#     >>> urls, fetch_data = prep_tests()
+#     >>> vtk_file = fetch_data(urls['left_pial'])
+#     >>> volume_file = fetch_data(urls['T1_001'])
+#     >>> os.rename(volume_file, volume_file + '.nii.gz')
+#     >>> volume_file = volume_file + '.nii.gz'
+#     >>> points  = read_points(vtk_file)
+#     >>> output_volume = ''
+#     >>> output_volume = transform_to_volume(vtk_file, points, volume_file,
+#     ...                                     output_volume) # doctest: +SKIP
+#
+#     View resulting vtk file (skip test):
+#
+#     >>> from mindboggle.mio.plots import plot_volumes
+#     >>> plot_volumes([output_volume, volume_file]) # doctest: +SKIP
+#
+#     """
+#     import os
+#     import numpy as np
+#     import nibabel as nb
+#
+#     from mindboggle.mio.vtks import read_vtk
+#
+#     # Read vtk file:
+#     points, indices, lines, faces, scalars, scalar_names, npoints, \
+#             input_vtk = read_vtk(vtk_file)
+#
+#     # Read target image volume header information:
+#     img = nb.load(volume_file)
+#     hdr = img.get_header()
+#     dims = img.get_shape()
+#     ndims = len(dims)
+#     affine = img.get_affine()
+#     inv_transform = np.linalg.inv(affine)
+#
+#     # Transform vtk coordinates:
+#     points = np.array(points)
+#     points = np.concatenate((points, np.ones((npoints,1))), axis=1)
+#     voxels = np.transpose(np.dot(inv_transform, np.transpose(points)))[:,0:ndims]
+#
+#     voxels = np.reshape([int(np.round(x)) for lst in voxels for x in lst],
+#                         (-1,ndims))
+#     # Write vtk scalar values to voxels:
+#     data = np.zeros(dims)
+#     if scalars:
+#         for ivoxel, ijk in enumerate(voxels):
+#             data[ijk[0], ijk[1], ijk[2]] = scalars[ivoxel]
+#
+#     # Write output image volume:
+#     if not output_volume:
+#         output_volume = os.path.join(os.getcwd(),
+#                                      os.path.basename(vtk_file) +
+#                                      '_to_volume.nii.gz')
+#
+#     img = nb.Nifti1Image(data, affine, header=hdr)
+#     img.to_filename(output_volume)
+#
+#     if not os.path.exists(output_volume):
+#         raise IOError(output_volume + " not found")
+#
+#     return output_volume
 
 
 def freesurfer_surface_to_vtk(surface_file, orig_file='', output_vtk=''):
@@ -1595,7 +1613,7 @@ def freesurfer_surface_to_vtk(surface_file, orig_file='', output_vtk=''):
 
     View output vtk file (skip test):
 
-    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
+    >>> from mindboggle.mio.plots import plot_surfaces
     >>> plot_surfaces(output_vtk) # doctest: +SKIP
 
     """
@@ -1679,7 +1697,7 @@ def freesurfer_curvature_to_vtk(surface_file, vtk_file, output_vtk=''):
 
     View output vtk file (skip test):
 
-    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
+    >>> from mindboggle.mio.plots import plot_surfaces
     >>> plot_surfaces(output_vtk) # doctest: +SKIP
 
     """
@@ -1749,7 +1767,7 @@ def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk=''):
 
     View output vtk file (skip test):
 
-    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
+    >>> from mindboggle.mio.plots import plot_surfaces
     >>> plot_surfaces(output_vtk) # doctest: +SKIP
 
     """

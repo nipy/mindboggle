@@ -106,10 +106,15 @@ def test_urls():
     # ants (antsCorticalThickness.sh) output:
     #-------------------------------------------------------------------------
     urls['ants_segmentation'] = ANTS + 'antsBrainSegmentation.nii.gz'
+    urls['ants_mask'] = ANTS + 'antsBrainExtractionMask.nii.gz'
+    urls['ants_affine_subject2template'] = ANTS + 'antsSubjectToTemplate0GenericAffine.mat'
+    urls['ants_warp_subject2template'] = ANTS + 'antsSubjectToTemplate1Warp.nii.gz'
+    urls['ants_affine_template2subject'] = ANTS + 'antsTemplateToSubject1GenericAffine.mat'
+    urls['ants_warp_template2subject'] = ANTS + 'antsTemplateToSubject0Warp.nii.gz'
     #-------------------------------------------------------------------------
     # Mindboggle working directory (including converted FreeSurfer output):
     #-------------------------------------------------------------------------
-    urls['freesurfer_segmentation'] = MBW + 'mgh_to_nifti/001.mgz.nii.gz'
+    urls['T1_001'] = MBW + 'mgh_to_nifti/001.mgz.nii.gz'
     urls['left_pial'] = MBW + '_hemi_lh/Surface_to_vtk/lh.pial.vtk'
     urls['right_pial'] = MBW + '_hemi_rh/Surface_to_vtk/rh.pial.vtk'
     #-------------------------------------------------------------------------
@@ -117,11 +122,11 @@ def test_urls():
     #-------------------------------------------------------------------------
     urls['right_cortex_in_mni'] = Fleft + 'cortex_in_MNI152_space.vtk'
     urls['left_folds'] = Fleft + 'folds.vtk'
-    urls['left_fundus_per_sulcus'] = Fleft + 'fundus_per_sulcus.vtk'
+    urls['left_fundi'] = Fleft + 'fundus_per_sulcus.vtk'
     urls['left_sulci'] = Fleft + 'sulci.vtk'
     urls['right_cortex_in_mni'] = Fright + 'cortex_in_MNI152_space.vtk'
     urls['right_folds'] = Fright + 'folds.vtk'
-    urls['right_fundus_per_sulcus'] = Fright + 'fundus_per_sulcus.vtk'
+    urls['right_fundi'] = Fright + 'fundus_per_sulcus.vtk'
     urls['right_sulci'] = Fright + 'sulci.vtk'
     #-------------------------------------------------------------------------
     # Mindboggle labels:
