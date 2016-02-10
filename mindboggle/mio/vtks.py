@@ -903,7 +903,7 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     >>> output_scalar_name = 'scalars'
     >>> remove_background_faces = True
     >>> reindex = True
-    >>> verbose = True
+    >>> verbose = False
     >>> explode_scalars(input_indices_vtk, input_values_vtk, output_stem,
     ...     exclude_values, background_value, output_scalar_name,
     ...     remove_background_faces, reindex, verbose)
