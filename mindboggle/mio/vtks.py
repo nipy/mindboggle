@@ -40,10 +40,10 @@ def read_vertices(filename):
 
     Examples
     --------
-    >>> from mindboggle.mio.vtks import read_vertices # doctest: +SKIP
-    >>> from mindboggle.mio.fetch_data import prep_tests # doctest: +SKIP
-    >>> urls, fetch_data = prep_tests() # doctest: +SKIP
-    >>> depth_file = fetch_data(urls['left_travel_depth']) # doctest: +SKIP
+    >>> from mindboggle.mio.vtks import read_vertices
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> depth_file = fetch_data(urls['left_travel_depth'])
     >>> indices = read_vertices(depth_file) # doctest: +SKIP
 
     """
@@ -86,9 +86,9 @@ def read_lines(filename):
 
     Examples
     --------
-    >>> from mindboggle.mio.vtks import read_lines # doctest: +SKIP
-    >>> from mindboggle.mio.fetch_data import prep_tests # doctest: +SKIP
-    >>> urls, fetch_data = prep_tests() # doctest: +SKIP
+    >>> from mindboggle.mio.vtks import read_lines
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
     >>> fundus_file = fetch_data(urls['left_fundi']) # doctest: +SKIP
     >>> lines, scalars  = read_lines(fundus_file) # doctest: +SKIP
 
@@ -664,7 +664,7 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
 
     View resulting vtk file (skip test):
 
-    >>> from mindboggle.mio.plots import plot_surfaces # doctest: SKIP+
+    >>> from mindboggle.mio.plots import plot_surfaces
     >>> plot_surfaces(output_vtk) # doctest: SKIP+
 
     Write vtk file with depth values and view (skip plot in test):
@@ -775,7 +775,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
 
     View resulting vtk file (skip test):
 
-    >>> from mindboggle.mio.plots import plot_surfaces # doctest: SKIP+
+    >>> from mindboggle.mio.plots import plot_surfaces
     >>> plot_surfaces(output_vtk) # doctest: SKIP+
 
     """
@@ -905,7 +905,7 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     View Example 1 results (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces
-    >>> plot_surfaces(output_stem + '1.vtk')
+    >>> plot_surfaces(output_stem + '1.vtk') # doctest: SKIP+
 
     Example 2:  explode labels
 
@@ -923,7 +923,7 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     View Example 2 results (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces
-    >>> plot_surfaces(output_stem + '1.vtk')
+    >>> plot_surfaces(output_stem + '1.vtk') # doctest: SKIP+
 
     """
     import os
@@ -1005,7 +1005,7 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
 
 
 def explode_scalars_mindboggle(subject, subject_path='', output_path='',
-                               pieces='labels'):
+                               pieces='labels', verbose=False):
     """
     Given a subject name corresponding to Mindboggle shape surface outputs,
     take each shape surface VTK file, and create a separate VTK file for each
@@ -1020,29 +1020,34 @@ def explode_scalars_mindboggle(subject, subject_path='', output_path='',
     output_path : string
         output path/directory
     pieces : string
-        name of structures to explode {'labels', 'sulci'} #, 'fundus_per_sulcus', 'folds'}
+        name of structures to explode (e.g., 'labels', 'sulci')
+    verbose : Boolean
+        print statements?
 
     Examples
     --------
-    >>> # Explode depth surface file by label values
+    >>> # Explode surface shape files by label values:
     >>> import os
     >>> from mindboggle.mio.vtks import explode_scalars_mindboggle
-    >>> from mindboggle.mio.plots import plot_surfaces
     >>> subject = 'Twins-2-1'
     >>> subject_path = '/Users/arno/mindboggled'
-    >>> output_path = '/desk'
-    >>> pieces = 'fundus_per_sulcus'
-    >>> explode_scalars_mindboggle(subject, subject_path, output_path, pieces)
-    >>> #
-    >>> # View:
-    >>> example_vtk = os.path.join('/desk/left_exploded/travel_depth_1035.vtk')
-    >>> plot_surfaces(example_vtk)
+    >>> output_path = os.getcwd()
+    >>> pieces = 'labels'
+    >>> verbose = False
+    >>> explode_scalars_mindboggle(subject, subject_path, output_path, pieces,
+    ...                            verbose) # doctest: SKIP+
+
+    View example result (skip test):
+
+    >>> from mindboggle.mio.plots import plot_surfaces
+    >>> plot_surfaces('left_exploded/travel_depth_1035.vtk') # doctest: SKIP+
+
     """
     import os
     from mindboggle.mio.vtks import explode_scalars
 
     if not os.path.exists(output_path):
-        print("{0} does not exist".format(output_path))
+        raise IOError("{0} does not exist".format(output_path))
     else:
 
         for side in ['left', 'right']:
@@ -1050,7 +1055,9 @@ def explode_scalars_mindboggle(subject, subject_path='', output_path='',
             output_dir = os.path.join(output_path,
                                       side + '_exploded_' + pieces + '_vtks')
             if not os.path.exists(output_dir):
-                print("Create missing output directory: {0}".format(output_dir))
+                if verbose:
+                    print("Create missing output directory: {0}".
+                          format(output_dir))
                 os.mkdir(output_dir)
             if os.path.exists(output_dir):
 
@@ -1080,14 +1087,16 @@ def explode_scalars_mindboggle(subject, subject_path='', output_path='',
 
                     shape_vtk = os.path.join(shapes_path, shape_name + '.vtk')
 
-                    print("Explode {0} by {1} values from {2}").\
-                          format(shape_vtk, pieces, labels_vtk)
+                    if verbose:
+                        print("Explode {0} by {1} values from {2}").\
+                            format(shape_vtk, pieces, labels_vtk)
 
                     explode_scalars(labels_vtk, shape_vtk,
                                     os.path.join(output_dir,
                                                  shape_name + '_'))
             else:
-                print('Unable to make directory {0}'.format(output_dir))
+                raise IOError('Unable to make directory {0}'.format(output_dir))
+
 
 def scalars_checker(scalars, scalar_names):
     """
@@ -1109,27 +1118,27 @@ def scalars_checker(scalars, scalar_names):
     >>> import numpy as np
     >>> from mindboggle.mio.vtks import scalars_checker
     >>> scalars_checker([[1,2],[3,4]], ["list1", "list2"])
-      ([[1, 2], [3, 4]], ['list1', 'list2'])
+    ([[1, 2], [3, 4]], ['list1', 'list2'])
     >>> scalars_checker([[1,2],[3,4]], "")
-      ([[1, 2], [3, 4]], ['', ''])
+    ([[1, 2], [3, 4]], ['', ''])
     >>> scalars_checker([[1,2],[3,4]], ["list1", "list2", "list3"])
-      ([[1, 2], [3, 4]], ['list1', 'list2', 'list3'])
+    ([[1, 2], [3, 4]], ['list1', 'list2', 'list3'])
     >>> scalars_checker([[1,2],[3,4]], "list1")
-      ([[1, 2], [3, 4]], ['list1', 'list1'])
+    ([[1, 2], [3, 4]], ['list1', 'list1'])
     >>> scalars_checker([1,2,3,4], ["123"])
-      ([[1, 2, 3, 4]], ['123'])
+    ([[1, 2, 3, 4]], ['123'])
     >>> scalars_checker(1, ["123"])
-      Error: scalars is neither a list nor a numpy array.
+    Error: scalars is neither a list nor a numpy array.
     >>> scalars_checker(np.array([1,2,3]), ["123"])
-      ([[1, 2, 3]], ['123'])
+    ([[1, 2, 3]], ['123'])
     >>> scalars_checker(np.array([[1,2,3]]), ["123"])
-      ([[1, 2, 3]], ['123'])
+    ([[1, 2, 3]], ['123'])
     >>> scalars_checker(np.array([[1,2,3],[4,5,6]]), ["123"])
-      ([[1, 2, 3], [4, 5, 6]], ['123', '123'])
+    ([[1, 2, 3], [4, 5, 6]], ['123', '123'])
     >>> scalars_checker(np.array([[[1,2,3]]]), ["123"])
-      Error: Dimension of new_scalars is too high.
+    Error: Dimension of new_scalars is too high.
     >>> scalars_checker(np.array([np.array([0,7,9]),[1,2,3]]), ["123"])
-      ([[0, 7, 9], [1, 2, 3]], ['123', '123'])
+    ([[0, 7, 9], [1, 2, 3]], ['123', '123'])
 
     Notes
     -----
@@ -1137,7 +1146,6 @@ def scalars_checker(scalars, scalar_names):
     scalar_names, but only those that are likely to occur when using Mindboggle.
 
     """
-    import sys
     import numpy as np
 
     # If not a list, convert to a list.
@@ -1148,11 +1156,9 @@ def scalars_checker(scalars, scalar_names):
             elif len(scalars.shape) == 2: # 2-D numpy array
                 scalars = scalars.tolist()
             else:
-                print("Error: Dimension of new_scalars is too high.")
-                sys.exit()
+                raise IOError("Error: Dimension of new_scalars is too high.")
         else:
-            print("Error: scalars is neither a list nor a numpy array.")
-            sys.exit()
+            raise IOError("Error: scalars is neither a list nor a numpy array.")
 
     if scalars:
 
@@ -1173,11 +1179,10 @@ def scalars_checker(scalars, scalar_names):
                     scalars2.append(x.tolist())
             scalars = scalars2
         else:
-            print("Error: scalars is a 1-D list containing unacceptable elements.")
-            print("scalars type is: {0}".format(type(scalars)))
-            print("scalars length is: {0}".format(len(scalars)))
-            print("scalars[0] type is: {0}".format(type(scalars[0])))
-            sys.exit()
+            raise IOError("Error: scalars is a 1-D list containing unacceptable elements.")
+            #print("scalars type is: {0}".format(type(scalars)))
+            #print("scalars length is: {0}".format(len(scalars)))
+            #print("scalars[0] type is: {0}".format(type(scalars[0])))
 
         # If scalar_names is a string, create a list containing
         # as many of this string as there are scalar lists.
@@ -1189,11 +1194,9 @@ def scalars_checker(scalars, scalar_names):
             else:
                 pass
         else:
-            print("Error: scalar_names is neither a list nor a string")
-            sys.exit()
-
-    else:
-        print("Warning: scalars is empty")
+            raise IOError("Error: scalar_names is neither a list nor a string")
+    #else:
+        #print("Warning: scalars is empty")
 
     return scalars, scalar_names
 
@@ -1227,10 +1230,9 @@ def read_itk_transform_old(transform_file):
     --------
     >>> import os
     >>> from mindboggle.mio.vtks import read_itk_transform
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> transform_file = os.path.join(path, 'mri',
-    >>>                               't1weighted_brain.MNI152Affine.txt')
-    >>> read_itk_transform(transform_file)
+    >>> transform_file = os.path.join('mri',
+    ...                               't1weighted_brain.MNI152Affine.txt') # doctest: SKIP+
+    >>> read_itk_transform(transform_file) # doctest: SKIP+
     (array([[ 9.07680e-01, 4.35290e-02, 1.28917e-02, -7.94889e-01],
     [ -4.54455e-02, 8.68937e-01, 4.06098e-01, -1.83346e+01],
     [ 1.79439e-02, -4.30013e-01, 7.83074e-01, -3.14767e+00],
@@ -1291,14 +1293,13 @@ def read_itk_transform(transform_file):
     --------
     >>> import os
     >>> from mindboggle.mio.vtks import read_itk_transform
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> transform_file = os.path.join(path, 'mri',
-    >>>                               't1weighted_brain.MNI152Affine.txt')
-    >>> read_itk_transform(transform_file)
-        array([[  9.07680e-01,   4.35290e-02,   1.28917e-02,   -8.16765e-01],
-               [ -4.54455e-02,   8.68937e-01,   4.06098e-01,   -2.31926e+01],
-               [  1.79439e-02,  -4.30013e-01,   7.83074e-01,   3.52899e+00],
-               [  0 0 0 1]])
+    >>> transform_file = os.path.join('mri',
+    >>>                               't1weighted_brain.MNI152Affine.txt') # doctest: SKIP+
+    >>> read_itk_transform(transform_file) # doctest: SKIP+
+    array([[  9.07680e-01,   4.35290e-02,   1.28917e-02,   -8.16765e-01],
+           [ -4.54455e-02,   8.68937e-01,   4.06098e-01,   -2.31926e+01],
+           [  1.79439e-02,  -4.30013e-01,   7.83074e-01,   3.52899e+00],
+           [  0 0 0 1]])
     """
     import numpy as np
 
@@ -1381,15 +1382,20 @@ def apply_affine_transforms(transform_files, inverse_booleans,
     Examples
     --------
     >>> from mindboggle.mio.vtks import apply_affine_transforms
-    >>> from mindboggle.mio.plots import plot_surfaces
-    >>> transform_files = ['/Users/arno/mindboggle_working/OASIS-TRT-20-1/Mindboggle/Compose_affine_transform/affine.txt']
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> vtk_or_points = fetch_data(urls['left_pial'])
+    >>> transform_files = ['Compose_affine_transform/affine.txt'] # doctest: SKIP+
     >>> inverse_booleans = [1]
     >>> transform_format = 'itk'
-    >>> vtk_or_points = '/Users/arno/mindboggle_working/OASIS-TRT-20-1/Mindboggle/_hemi_lh/Surface_to_vtk/lh.pial.vtk'
     >>> vtk_file_stem = 'affine_'
-    >>> affine_points, output_file = apply_affine_transforms(transform_files, inverse_booleans, transform_format, vtk_or_points, vtk_file_stem)
-    >>> # View
-    >>> plot_surfaces('affine_lh.pial.vtk', vtk_or_points)
+    >>> affine_points, output_file = apply_affine_transforms(transform_files,
+    ...     inverse_booleans, transform_format, vtk_or_points, vtk_file_stem) # doctest: SKIP+
+
+    View resulting vtk file (skip test):
+
+    >>> from mindboggle.mio.plots import plot_surfaces
+    >>> plot_surfaces('affine_lh.pial.vtk', vtk_or_points) # doctest: SKIP+
 
     """
     import os
@@ -1451,7 +1457,7 @@ def apply_affine_transforms(transform_files, inverse_booleans,
             elif np.ndim(scalars) == 2:
                 scalar_type = type(scalars[0][0]).__name__
             else:
-                print("Undefined scalar type!")
+                raise IOError("Undefined scalar type!")
         else:
             scalars = []
             scalar_type = 'int'
@@ -1489,16 +1495,20 @@ def transform_to_volume(vtk_file, volume_file, output_volume=''):
     --------
     >>> import os
     >>> from mindboggle.mio.vtks import transform_to_volume
-    >>> from mindboggle.mio.plots import plot_volumes
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> volume_file = os.path.join(path, 'mri', 't1weighted_brain.nii.gz')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> vtk_file = fetch_data(urls['left_pial'])
+    >>> volume_file = fetch_data(urls['freesurfer_segmentation'])
+    >>> os.rename(volume_file, volume_file + '.nii.gz')
+    >>> volume_file = volume_file + '.nii.gz'
     >>> output_volume = ''
-    >>> #
-    >>> transform_to_volume(vtk_file, volume_file, output_volume)
-    >>> # View
-    >>> plot_volumes(['affine_lh.pial.mean_curvature.vtk.nii.gz', volume_file])
+    >>> output_volume = transform_to_volume(vtk_file, volume_file,
+    ...                                     output_volume) # doctest: SKIP+
 
+    View resulting vtk file (skip test):
+
+    >>> from mindboggle.mio.plots import plot_volumes
+    >>> plot_volumes([output_volume, volume_file]) # doctest: SKIP+
 
     """
     import os
@@ -1546,7 +1556,7 @@ def transform_to_volume(vtk_file, volume_file, output_volume=''):
     return output_volume
 
 
-def freesurfer_surface_to_vtk(surface_file, output_vtk=''):
+def freesurfer_surface_to_vtk(surface_file, orig_file='', output_vtk=''):
     """
     Convert FreeSurfer surface file to VTK format.
 
@@ -1558,6 +1568,8 @@ def freesurfer_surface_to_vtk(surface_file, output_vtk=''):
     ----------
     surface_file : string
         name of FreeSurfer surface file
+    orig_file : string
+        name of FreeSurfer mri/orig.mgz file
     output_vtk : string
         name of output VTK file; if blank, appends
         ".vtk" to surface_file and saves to the
@@ -1570,21 +1582,25 @@ def freesurfer_surface_to_vtk(surface_file, output_vtk=''):
 
     Examples
     --------
-    >>> import os
     >>> from mindboggle.mio.vtks import freesurfer_surface_to_vtk
-    >>> path = os.environ['SUBJECTS_DIR']
-    >>> surface_file = os.path.join(path, 'OASIS-TRT-20-1', 'surf', 'lh.pial')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> surface_file = fetch_data(urls['left_freesurfer_pial'])
+    >>> urls, fetch_data = prep_tests()
+    >>> orig_file = fetch_data(urls['freesurfer_orig_mgz'])
     >>> output_vtk = ''
-    >>> #
-    >>> freesurfer_surface_to_vtk(surface_file, output_vtk)
-    >>> #
-    >>> # View:
-    >>> from mindboggle.mio.plots import plot_surfaces
-    >>> plot_surfaces('lh.pial.vtk')
+    >>> output_vtk = freesurfer_surface_to_vtk(surface_file, orig_file,
+    ...                                        output_vtk)
+
+    View output vtk file (skip test):
+
+    >>> from mindboggle.mio.plots import plot_surfaces # doctest: SKIP+
+    >>> plot_surfaces(output_vtk) # doctest: SKIP+
 
     """
     import os
     import nibabel as nb
+    from mindboggle.mio.fetch_data import prep_tests
 
     from mindboggle.mio.vtks import write_header, write_points, write_faces
 
@@ -1595,8 +1611,10 @@ def freesurfer_surface_to_vtk(surface_file, output_vtk=''):
     # Transform surface coordinates into normal scanner RAS.
     # See example 3 in "Transforms within a subject's anatomical space":
     # https://surfer.nmr.mgh.harvard.edu/fswiki/CoordinateSystems
-    orig_file = os.path.join(os.path.dirname(surface_file),
-                             "..", "mri", "orig.mgz")
+
+    if not orig_file:
+        orig_file = os.path.join(os.path.dirname(surface_file),
+                                 "..", "mri", "orig.mgz")
 
     if os.path.exists(orig_file):
         import numpy as np
@@ -1649,17 +1667,19 @@ def freesurfer_curvature_to_vtk(surface_file, vtk_file, output_vtk=''):
 
     Examples
     --------
-    >>> import os
     >>> from mindboggle.mio.vtks import freesurfer_curvature_to_vtk
-    >>> surface_file = 'lh.thickness'
-    >>> vtk_file = 'lh.pial.vtk'
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> surface_file = fetch_data(urls['left_freesurfer_thickness'])
+    >>> vtk_file = fetch_data(urls['left_pial'])
     >>> output_vtk = ''
-    >>> #
-    >>> freesurfer_curvature_to_vtk(surface_file, vtk_file, output_vtk)
-    >>> #
-    >>> # View:
-    >>> from mindboggle.mio.plots import plot_surfaces
-    >>> plot_surfaces('lh.thickness.vtk')
+    >>> output_vtk = freesurfer_curvature_to_vtk(surface_file, vtk_file,
+    ...                                          output_vtk)
+
+    View output vtk file (skip test):
+
+    >>> from mindboggle.mio.plots import plot_surfaces # doctest: SKIP+
+    >>> plot_surfaces(output_vtk) # doctest: SKIP+
 
     """
     import os
@@ -1701,7 +1721,7 @@ def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk=''):
         name of VTK surface file
     output_vtk : string
         name of output VTK file, where each vertex is assigned
-        the corresponding shape value
+        the corresponding annot value
 
     Returns
     -------
@@ -1713,18 +1733,23 @@ def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk=''):
 
     Examples
     --------
-    >>> import os
+    >>> import numpy as np
     >>> from mindboggle.mio.vtks import freesurfer_annot_to_vtk
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> annot_file = os.path.join(path, 'freesurfer', 'lh.aparc.annot')
-    >>> vtk_file = os.path.join(path, 'freesurfer', 'lh.pial.vtk')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> annot_file = fetch_data(urls['left_freesurfer_aparc_annot'])
+    >>> vtk_file = fetch_data(urls['left_pial'])
     >>> output_vtk = ''
-    >>> #
-    >>> labels, output_vtk = freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk)
-    >>> #
-    >>> # View:
-    >>> from mindboggle.mio.plots import plot_surfaces
-    >>> plot_surfaces(output_vtk)
+    >>> labels, output_vtk = freesurfer_annot_to_vtk(annot_file,
+    ...                                              vtk_file, output_vtk)
+    >>> nlabels = [len(np.where(labels == x)[0]) for x in np.unique(labels)]
+    >>> nlabels[0:10]
+    [8305, 1414, 1171, 4096, 2213, 633, 5002, 6524, 4852, 1823]
+
+    View output vtk file (skip test):
+
+    >>> from mindboggle.mio.plots import plot_surfaces # doctest: SKIP+
+    >>> plot_surfaces(output_vtk) # doctest: SKIP+
 
     """
     import os

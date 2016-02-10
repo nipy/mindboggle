@@ -72,6 +72,7 @@ def test_urls():
 
     """
     url = 'http://media.mindboggle.info/data/cache/'
+    FS = url + 'freesurfer/'
     ANTS = url + 'ants/'
     MBW = url + 'mindboggle_working/Mindboggle/'
     F = url + 'mindboggled/features/'
@@ -91,6 +92,17 @@ def test_urls():
 
     urls = {}
     #-------------------------------------------------------------------------
+    # FreeSurfer output:
+    #-------------------------------------------------------------------------
+    urls['left_freesurfer_aparc_annot'] = FS + 'label/lh.aparc.annot'
+    urls['right_freesurfer_aparc_annot'] = FS + 'label/rh.aparc.annot'
+    urls['freesurfer_orig_mgz'] = FS + 'mri/orig.mgz'
+    urls['freesurfer_001_mgz'] = FS + 'mri/orig/001.mgz'
+    urls['left_freesurfer_pial'] = FS + 'surf/lh.pial'
+    urls['right_freesurfer_pial'] = FS + 'surf/rh.pial'
+    urls['left_freesurfer_thickness'] = FS + 'surf/lh.thickness'
+    urls['right_freesurfer_thickness'] = FS + 'surf/rh.thickness'
+    #-------------------------------------------------------------------------
     # ants (antsCorticalThickness.sh) output:
     #-------------------------------------------------------------------------
     urls['ants_segmentation'] = ANTS + 'antsBrainSegmentation.nii.gz'
@@ -98,6 +110,8 @@ def test_urls():
     # Mindboggle working directory (including converted FreeSurfer output):
     #-------------------------------------------------------------------------
     urls['freesurfer_segmentation'] = MBW + 'mgh_to_nifti/001.mgz.nii.gz'
+    urls['left_pial'] = MBW + '_hemi_lh/Surface_to_vtk/lh.pial.vtk'
+    urls['right_pial'] = MBW + '_hemi_rh/Surface_to_vtk/rh.pial.vtk'
     #-------------------------------------------------------------------------
     # Mindboggle features:
     #-------------------------------------------------------------------------
