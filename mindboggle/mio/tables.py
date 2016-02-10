@@ -678,8 +678,8 @@ def write_average_face_values_per_label(input_indices_vtk,
 
     View vtk file (skip test):
 
-    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
-    >>> example_vtk = os.path.join(os.getcwd(), output_stem + '0.vtk') # doctest: +SKIP
+    >>> from mindboggle.mio.plots import plot_surfaces
+    >>> example_vtk = os.path.join(os.getcwd(), output_stem + '0.vtk')
     >>> plot_surfaces(example_vtk) # doctest: +SKIP
 
     """
@@ -879,28 +879,28 @@ def select_column_from_mindboggle_tables(subjects, hemi, index, tables_dir,
     Examples
     --------
     >>> import os
-    >>> from mindboggle.mio.tables import select_column_from_mindboggle_tables # doctest: +SKIP
+    >>> from mindboggle.mio.tables import select_column_from_mindboggle_tables
     >>> path = os.environ['MINDBOGGLE_DATA'] # doctest: +SKIP
     >>> subject1 = os.path.basename(path) # doctest: +SKIP
     >>> subject2 = os.path.basename(path) # doctest: +SKIP
     >>> subjects = [subject1, subject2] # doctest: +SKIP
-    >>> hemi = 'left' # doctest: +SKIP
-    >>> index = 2 # doctest: +SKIP
+    >>> hemi = 'left'
+    >>> index = 2
     >>> tables_dir = os.path.dirname(path) # doctest: +SKIP
-    >>> table_name = "label_shapes.csv" # doctest: +SKIP
-    >>> label_name = 'Label name' # doctest: +SKIP
-    >>> is_surface_table = True # doctest: +SKIP
-    >>> write_table = True # doctest: +SKIP
-    >>> output_table = '' # doctest: +SKIP
+    >>> table_name = "label_shapes.csv"
+    >>> label_name = 'Label name'
+    >>> is_surface_table = True
+    >>> write_table = True
+    >>> output_table = ''
     >>> tables, cols, output = select_column_from_mindboggle_tables(subjects,
     ...     hemi, index, tables_dir, table_name, is_surface_table,
     ...     write_table, output_table) # doctest: +SKIP
     >>> cols[0][0] # doctest: +SKIP
-    878.03969839999979 # doctest: +SKIP
+    878.03969839999979
     >>> cols[0][1] # doctest: +SKIP
-    3085.6236725000008 # doctest: +SKIP
+    3085.6236725000008
     >>> cols[0][2] # doctest: +SKIP
-    1761.2330760000002 # doctest: +SKIP
+    1761.2330760000002
 
     """
     import os
@@ -948,11 +948,11 @@ def explode_mindboggle_tables(subject_path='', output_path='',
     Examples
     --------
     >>> import os
-    >>> from mindboggle.mio.tables import explode_mindboggle_tables # doctest: +SKIP
+    >>> from mindboggle.mio.tables import explode_mindboggle_tables
     >>> subject_path = os.environ['MINDBOGGLE_DATA'] # doctest: +SKIP
-    >>> output_path = '.' # doctest: +SKIP
-    >>> break_column = 'label ID' # doctest: +SKIP
-    >>> verbose = False # doctest: +SKIP
+    >>> output_path = '.'
+    >>> break_column = 'label ID'
+    >>> verbose = False
     >>> explode_mindboggle_tables(subject_path, output_path, break_column,
     ...                           verbose) # doctest: +SKIP
     """

@@ -665,7 +665,7 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     View resulting vtk file (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces
-    >>> plot_surfaces(output_vtk) # doctest: SKIP+
+    >>> plot_surfaces(output_vtk) # doctest: +SKIP
 
     Write vtk file with depth values and view (skip plot in test):
 
@@ -677,7 +677,7 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     >>> output_vtk = 'write_vtk.vtk'
     >>> scalar_type = 'float'
     >>> write_vtk(output_vtk, points, indices, lines, faces, scalars, scalar_names, scalar_type)
-    >>> plot_surfaces(output_vtk) # doctest: SKIP+
+    >>> plot_surfaces(output_vtk) # doctest: +SKIP
 
     """
     import os
@@ -776,7 +776,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     View resulting vtk file (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces
-    >>> plot_surfaces(output_vtk) # doctest: SKIP+
+    >>> plot_surfaces(output_vtk) # doctest: +SKIP
 
     """
     import os
@@ -905,7 +905,7 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     View Example 1 results (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces
-    >>> plot_surfaces(output_stem + '1.vtk') # doctest: SKIP+
+    >>> plot_surfaces(output_stem + '1.vtk') # doctest: +SKIP
 
     Example 2:  explode labels
 
@@ -923,7 +923,7 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     View Example 2 results (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces
-    >>> plot_surfaces(output_stem + '1.vtk') # doctest: SKIP+
+    >>> plot_surfaces(output_stem + '1.vtk') # doctest: +SKIP
 
     """
     import os
@@ -1035,12 +1035,12 @@ def explode_scalars_mindboggle(subject, subject_path='', output_path='',
     >>> pieces = 'labels'
     >>> verbose = False
     >>> explode_scalars_mindboggle(subject, subject_path, output_path, pieces,
-    ...                            verbose) # doctest: SKIP+
+    ...                            verbose) # doctest: +SKIP
 
     View example result (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces
-    >>> plot_surfaces('left_exploded/travel_depth_1035.vtk') # doctest: SKIP+
+    >>> plot_surfaces('left_exploded/travel_depth_1035.vtk') # doctest: +SKIP
 
     """
     import os
@@ -1231,8 +1231,8 @@ def read_itk_transform_old(transform_file):
     >>> import os
     >>> from mindboggle.mio.vtks import read_itk_transform
     >>> transform_file = os.path.join('mri',
-    ...                               't1weighted_brain.MNI152Affine.txt') # doctest: SKIP+
-    >>> read_itk_transform(transform_file) # doctest: SKIP+
+    ...                               't1weighted_brain.MNI152Affine.txt') # doctest: +SKIP
+    >>> read_itk_transform(transform_file) # doctest: +SKIP
     (array([[ 9.07680e-01, 4.35290e-02, 1.28917e-02, -7.94889e-01],
     [ -4.54455e-02, 8.68937e-01, 4.06098e-01, -1.83346e+01],
     [ 1.79439e-02, -4.30013e-01, 7.83074e-01, -3.14767e+00],
@@ -1294,8 +1294,8 @@ def read_itk_transform(transform_file):
     >>> import os
     >>> from mindboggle.mio.vtks import read_itk_transform
     >>> transform_file = os.path.join('mri',
-    >>>                               't1weighted_brain.MNI152Affine.txt') # doctest: SKIP+
-    >>> read_itk_transform(transform_file) # doctest: SKIP+
+    >>>                               't1weighted_brain.MNI152Affine.txt') # doctest: +SKIP
+    >>> read_itk_transform(transform_file) # doctest: +SKIP
     array([[  9.07680e-01,   4.35290e-02,   1.28917e-02,   -8.16765e-01],
            [ -4.54455e-02,   8.68937e-01,   4.06098e-01,   -2.31926e+01],
            [  1.79439e-02,  -4.30013e-01,   7.83074e-01,   3.52899e+00],
@@ -1385,17 +1385,17 @@ def apply_affine_transforms(transform_files, inverse_booleans,
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
     >>> vtk_or_points = fetch_data(urls['left_pial'])
-    >>> transform_files = ['Compose_affine_transform/affine.txt'] # doctest: SKIP+
+    >>> transform_files = ['Compose_affine_transform/affine.txt'] # doctest: +SKIP
     >>> inverse_booleans = [1]
     >>> transform_format = 'itk'
     >>> vtk_file_stem = 'affine_'
     >>> affine_points, output_file = apply_affine_transforms(transform_files,
-    ...     inverse_booleans, transform_format, vtk_or_points, vtk_file_stem) # doctest: SKIP+
+    ...     inverse_booleans, transform_format, vtk_or_points, vtk_file_stem) # doctest: +SKIP
 
     View resulting vtk file (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces
-    >>> plot_surfaces('affine_lh.pial.vtk', vtk_or_points) # doctest: SKIP+
+    >>> plot_surfaces('affine_lh.pial.vtk', vtk_or_points) # doctest: +SKIP
 
     """
     import os
@@ -1503,12 +1503,12 @@ def transform_to_volume(vtk_file, volume_file, output_volume=''):
     >>> volume_file = volume_file + '.nii.gz'
     >>> output_volume = ''
     >>> output_volume = transform_to_volume(vtk_file, volume_file,
-    ...                                     output_volume) # doctest: SKIP+
+    ...                                     output_volume) # doctest: +SKIP
 
     View resulting vtk file (skip test):
 
     >>> from mindboggle.mio.plots import plot_volumes
-    >>> plot_volumes([output_volume, volume_file]) # doctest: SKIP+
+    >>> plot_volumes([output_volume, volume_file]) # doctest: +SKIP
 
     """
     import os
@@ -1594,8 +1594,8 @@ def freesurfer_surface_to_vtk(surface_file, orig_file='', output_vtk=''):
 
     View output vtk file (skip test):
 
-    >>> from mindboggle.mio.plots import plot_surfaces # doctest: SKIP+
-    >>> plot_surfaces(output_vtk) # doctest: SKIP+
+    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
+    >>> plot_surfaces(output_vtk) # doctest: +SKIP
 
     """
     import os
@@ -1678,8 +1678,8 @@ def freesurfer_curvature_to_vtk(surface_file, vtk_file, output_vtk=''):
 
     View output vtk file (skip test):
 
-    >>> from mindboggle.mio.plots import plot_surfaces # doctest: SKIP+
-    >>> plot_surfaces(output_vtk) # doctest: SKIP+
+    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
+    >>> plot_surfaces(output_vtk) # doctest: +SKIP
 
     """
     import os
@@ -1748,8 +1748,8 @@ def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk=''):
 
     View output vtk file (skip test):
 
-    >>> from mindboggle.mio.plots import plot_surfaces # doctest: SKIP+
-    >>> plot_surfaces(output_vtk) # doctest: SKIP+
+    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
+    >>> plot_surfaces(output_vtk) # doctest: +SKIP
 
     """
     import os
