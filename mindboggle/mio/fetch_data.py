@@ -72,6 +72,7 @@ def test_urls():
 
     """
     url = 'http://media.mindboggle.info/data/cache/'
+    ATLAS = url + 'atlases/'
     FS = url + 'freesurfer/'
     ANTS = url + 'ants/'
     MBW = url + 'mindboggle_working/Mindboggle/'
@@ -91,6 +92,28 @@ def test_urls():
     Tright = T + right
 
     urls = {}
+    #-------------------------------------------------------------------------
+    # Atlases and templates:
+    #-------------------------------------------------------------------------
+    urls['OASIS-30_Atropos_template'] = \
+        ATLAS + 'OASIS-30_Atropos_template.nii.gz'
+    urls['OASIS-30_Atropos_template_in_MNI152'] = \
+        ATLAS + 'OASIS-30_Atropos_template_in_MNI152.nii.gz'
+    urls['OASIS-30_Atropos_template_to_MNI152_affine'] = \
+        ATLAS + 'OASIS-30_Atropos_template_to_MNI152_affine.txt'
+    urls['OASIS-TRT-20_jointfusion_in_OASIS-30'] = \
+        ATLAS + 'OASIS-TRT-20_jointfusion_in_OASIS-30_v2.nii.gz'
+    urls['OASIS-TRT-20_jointfusion_in_MNI152'] = \
+        ATLAS + 'OASIS-TRT-20_jointfusion_in_MNI152_v2.nii.gz'
+    urls['OASIS-TRT-20_jointfusion_probabilities_in_OASIS-30'] = ATLAS + \
+        'OASIS-TRT-20_jointfusion_probabilities_in_OASIS-30_v2.nii.gz'
+    urls['OASIS-TRT-20_jointfusion_probabilities_in_MNI152'] = ATLAS + \
+        'OASIS-TRT-20_jointfusion_DKT31_CMA_label_probabilities_in_MNI152_v2.nii.gz'
+    urls['MNI152_T1_brain'] = ATLAS + 'MNI152_T1_1mm_brain.nii.gz'
+    urls['left_DKTatlas40'] = ATLAS + 'lh.DKTatlas40.gcs'
+    urls['right_DKTatlas40'] = ATLAS + 'rh.DKTatlas40.gcs'
+    urls['depth_curv_border_nonborder_parameters'] = \
+        ATLAS + 'depth_curv_border_nonborder_parameters.pkl'
     #-------------------------------------------------------------------------
     # FreeSurfer output:
     #-------------------------------------------------------------------------

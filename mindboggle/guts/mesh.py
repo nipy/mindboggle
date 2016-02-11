@@ -1106,8 +1106,9 @@ def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
     return rescaled_scalars, rescaled_scalars_file
 
 
-def rescale_by_label(input_vtk, labels_or_file, save_file=False,
-                     output_filestring='rescaled_scalars'):
+def rescale_by_label(input_vtk, labels_or_file, set_max_to_1=False,
+                     save_file=False, output_filestring='rescaled_scalars',
+                     verbose=False):
     """
     Rescale scalars for each label (such as depth values within each fold).
 
@@ -1120,10 +1121,14 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
         name of VTK file with a scalar value for each vertex
     labels_or_file : list or string
         label number for each vertex or name of VTK file with index scalars
+    set_max_to_1 : Boolean
+        set max to one (instead of to max value per label)?
     save_file : Boolean
         save output VTK file?
     output_filestring : string (if save_file)
         name of output file
+    verbose : Boolean
+        print statements?
 
     Returns
     -------
@@ -1145,12 +1150,12 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
     >>> labels_vtk = fetch_data(urls['left_folds'])
     >>> save_file = True
     >>> output_filestring = 'rescaled_scalars'
-    >>> rescaled, rescaled_label_file = rescale_by_label(input_vtk,
-    ...     labels_vtk, save_file, output_filestring)
+    >>> rescaled_scalars, rescaled_label_file = rescale_by_label(input_vtk,
+    ...     labels_vtk, save_file, output_filestring, verbose)
     >>> scalars1, name = read_scalars(input_vtk)
-    >>> (max(scalars1), max(rescaled))
+    >>> (max(scalars1), max(rescaled_scalars))
     (34.9556, 1.0)
-    >>> (np.mean(scalars1), np.mean(rescaled))
+    >>> (np.mean(scalars1), np.mean(rescaled_scalars))
     (7.4382172059361906, -0.049475798634033216)
 
     View rescaled scalar values on surface (skip test):
@@ -1165,7 +1170,8 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
 
     # Load scalars and vertex neighbor lists:
     scalars, name = read_scalars(input_vtk, True, True)
-    #print("  Rescaling scalar values within each label...")
+    if verbose:
+        print("  Rescaling scalar values within each label...")
 
     # Load label numbers:
     if isinstance(labels_or_file, str):
@@ -1177,8 +1183,9 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
 
     # Loop through labels:
     for label in unique_labels:
-        #print("  Rescaling values within label {0} of {1} labels...".format(
-        #    int(label), len(unique_labels)))
+        if verbose:
+            print("  Rescaling values within label {0} of {1} labels...".
+                format(int(label), len(unique_labels)))
         indices = [i for i,x in enumerate(labels) if x == label]
         if indices:
 

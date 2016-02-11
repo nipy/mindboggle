@@ -13,7 +13,7 @@ Mindboggle functions call the following ANTs functions ::
         PropagateLabelsThroughMask()
 
     antsApplyTransformsToPoints:
-        write_shape_stats(), write_vertex_measures()
+        write_shape_stats(), write_vertex_measures() in mindboggle
 
 Authors:
     - Arno Klein, 2012-2016  (arno@mindboggle.info)  http://binarybottle.com
@@ -23,7 +23,8 @@ Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 
-def antsApplyTransformsToPoints(points, transform_files, inverse_booleans=[0]):
+def antsApplyTransformsToPoints(points, transform_files,
+                                inverse_booleans=[0], ants_path=''):
     """
     Run ANTs antsApplyTransformsToPoints function to transform points.
     (Creates pre- and post-transformed .csv points files for ANTs.)
@@ -36,6 +37,8 @@ def antsApplyTransformsToPoints(points, transform_files, inverse_booleans=[0]):
         transform file names
     inverse_booleans : list
         for each transform, one to apply inverse of transform (otherwise zero)
+    ants_path : string
+        path to bin/ directory with antsApplyTransformsToPoints command
 
     Returns
     -------
@@ -44,14 +47,23 @@ def antsApplyTransformsToPoints(points, transform_files, inverse_booleans=[0]):
 
     Examples
     --------
+    >>> import os
     >>> from mindboggle.thirdparty.ants import antsApplyTransformsToPoints
-    >>> from mindboggle.mio.vtks import read_vtk
-    >>> transform_files = ['/Users/arno/Data/antsCorticalThickness/Twins-2-1/antsTemplateToSubject1GenericAffine.mat','/Users/arno/Data/antsCorticalThickness/Twins-2-1/antsTemplateToSubject0Warp.nii.gz','/Users/arno/Data/antsCorticalThickness/Twins-2-1/antsSubjectToTemplate0GenericAffine.mat','/Users/arno/Data/antsCorticalThickness/Twins-2-1/antsSubjectToTemplate1Warp.nii.gz']
-    >>> transform_files = [transform_files[0],transform_files[1],'/Users/arno/Data/mindboggle_cache/f36e3d5d99f7c4a9bb70e2494ed7340b/OASIS-30_Atropos_template_to_MNI152_affine.txt']
-    >>> vtk_file = '/Users/arno/mindboggle_working/Twins-2-1/Mindboggle/_hemi_lh/Surface_to_vtk/lh.pial.vtk'
-    >>> points, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(vtk_file)
+    >>> from mindboggle.mio.vtks import read_points
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> xfm1 = fetch_data(urls['ants_affine_template2subject'])
+    >>> xfm2 = fetch_data(urls['ants_warp_template2subject'])
+    >>> xfm3 = fetch_data(urls['OASIS-30_Atropos_template_to_MNI152_affine'])
+    >>> os.rename(xfm2, xfm2 + '.nii.gz')
+    >>> xfm2 += '.nii.gz'
+    >>> transform_files = [xfm1, xfm2, xfm3]
+    >>> vtk_file = fetch_data(urls['left_pial'])
+    >>> points  = read_points(vtk_file)
     >>> inverse_booleans = [0,0,1]
-    >>> transformed_points = antsApplyTransformsToPoints(points, transform_files, inverse_booleans)
+    >>> ants_path = '/software/install/ants/bin'
+    >>> transformed_points = antsApplyTransformsToPoints(points,
+    ...     transform_files, inverse_booleans, ants_path)
 
     """
     import os
@@ -78,12 +90,16 @@ def antsApplyTransformsToPoints(points, transform_files, inverse_booleans=[0]):
     for ixfm, transform_file in enumerate(transform_files):
         transform_string += " --t [{0},{1}]".\
             format(transform_file, str(inverse_booleans[ixfm]))
-    cmd = ['antsApplyTransformsToPoints', '-d', '3', '-i', points_file,
+    if ants_path:
+        ants_command = os.path.join(ants_path, 'antsApplyTransformsToPoints')
+    else:
+        ants_command = 'antsApplyTransformsToPoints'
+    cmd = [ants_command, '-d', '3', '-i', points_file,
            '-o', transformed_points_file, transform_string]
     execute(cmd, 'os')
     if not os.path.exists(transformed_points_file):
-        str1 = "antsApplyTransformsToPoints did not create "
-        raise IOError(str1 + transformed_points_file + ".")
+        raise IOError("antsApplyTransformsToPoints did not create {0}.".
+                      format(transformed_points_file))
 
     #-------------------------------------------------------------------------
     # Return transformed points:
@@ -97,11 +113,10 @@ def antsApplyTransformsToPoints(points, transform_files, inverse_booleans=[0]):
             point_xyz1 = [float(x) for x in line.split(',')]
             transformed_points.append(point_xyz1[0:3])
 
-
     return transformed_points
 
 
-def ImageMath(volume1, volume2, operator='m', output_file=''):
+def ImageMath(volume1, volume2, operator='m', output_file='', ants_path=''):
     """
     Use the ImageMath function in ANTs to perform operation on two volumes::
 
@@ -131,6 +146,8 @@ def ImageMath(volume1, volume2, operator='m', output_file=''):
         ImageMath string corresponding to mathematical operator
     output_file : string
         nibabel-readable image volume
+    ants_path : string
+        path to bin/ directory with ImageMath command
 
     Returns
     -------
@@ -147,7 +164,9 @@ def ImageMath(volume1, volume2, operator='m', output_file=''):
     >>> volume2 = os.path.join(path, 'mri', 'mask.nii.gz')
     >>> operator = 'm'
     >>> output_file = ''
-    >>> output_file = ImageMath(volume1, volume2, operator, output_file)
+    >>> ants_path = '/software/install/ants/bin'
+    >>> output_file = ImageMath(volume1, volume2, operator, output_file,
+    ...                         ants_path)
     >>> # View
     >>> plot_volumes(output_file)
 
@@ -159,8 +178,11 @@ def ImageMath(volume1, volume2, operator='m', output_file=''):
         output_file = os.path.join(os.getcwd(),
                                    os.path.basename(volume1) + '_' +
                                    os.path.basename(volume2))
-
-    cmd = ['ImageMath', '3', output_file, operator, volume1, volume2]
+    if ants_path:
+        ants_command = os.path.join(ants_path, 'ImageMath')
+    else:
+        ants_command = 'ImageMath'
+    cmd = [ants_command, '3', output_file, operator, volume1, volume2]
     execute(cmd, 'os')
     if not os.path.exists(output_file):
         raise IOError("ImageMath did not create " + output_file + ".")
@@ -168,7 +190,8 @@ def ImageMath(volume1, volume2, operator='m', output_file=''):
     return output_file
 
 
-def ThresholdImage(volume, output_file='', threshlo=1, threshhi=10000):
+def ThresholdImage(volume, output_file='', threshlo=1, threshhi=10000,
+                   ants_path=''):
     """
     Use the ThresholdImage function in ANTs to threshold image volume::
 
@@ -185,6 +208,8 @@ def ThresholdImage(volume, output_file='', threshlo=1, threshhi=10000):
         lower threshold
     threshhi : integer
         upper threshold
+    ants_path : string
+        path to bin/ directory with ThresholdImage command
 
     Returns
     -------
@@ -201,7 +226,9 @@ def ThresholdImage(volume, output_file='', threshlo=1, threshhi=10000):
     >>> output_file = ''
     >>> threshlo = 500
     >>> threshhi = 10000
-    >>> output_file = ThresholdImage(volume, output_file, threshlo, threshhi)
+    >>> ants_path = '/software/install/ants/bin'
+    >>> output_file = ThresholdImage(volume, output_file, threshlo, threshhi,
+    ...                              ants_path)
     >>> # View
     >>> plot_volumes(output_file)
 
@@ -212,9 +239,11 @@ def ThresholdImage(volume, output_file='', threshlo=1, threshhi=10000):
     if not output_file:
         output_file = os.path.join(os.getcwd(),
                                    'threshold_' + os.path.basename(volume))
-
-    cmd = 'ThresholdImage 3 {0} {1} {2} {3}'.format(volume, output_file,
-                                                    threshlo, threshhi)
+    if ants_path:
+        ants_command = os.path.join(ants_path, 'ThresholdImage')
+    else:
+        ants_command = 'ThresholdImage'
+    cmd = [ants_command, '3', volume, output_file, threshlo, threshhi]
     execute(cmd, 'os')
     if not os.path.exists(output_file):
         raise IOError("ThresholdImage did not create " + output_file + ".")
@@ -222,8 +251,8 @@ def ThresholdImage(volume, output_file='', threshlo=1, threshhi=10000):
     return output_file
 
 
-def PropagateLabelsThroughMask(mask, labels, mask_index=None,
-                               output_file='', binarize=True, stopvalue=''):
+def PropagateLabelsThroughMask(mask, labels, mask_index=None, output_file='',
+                               binarize=True, stopvalue='', ants_path=''):
     """
     Use ANTs to fill a binary volume mask with initial labels.
 
@@ -251,6 +280,8 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
         binarize mask?
     stopvalue : integer
         stopping value
+    ants_path : string
+        path to bin/ directory with PropagateLabelsThroughMask command
 
     Returns
     -------
@@ -269,7 +300,9 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
     >>> output_file = ''
     >>> binarize = True
     >>> stopvalue = None
-    >>> output_file = PropagateLabelsThroughMask(mask, labels, mask_index, output_file, binarize, stopvalue)
+    >>> ants_path = '/software/install/ants/bin'
+    >>> output_file = PropagateLabelsThroughMask(mask, labels, mask_index,
+    ...     output_file, binarize, stopvalue, ants_path)
     >>> # View
     >>> plot_volumes(output_file)
 
@@ -290,22 +323,35 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
     if binarize:
         temp_file = os.path.join(os.getcwd(),
                                  'PropagateLabelsThroughMask.nii.gz')
-        cmd = ['ThresholdImage', '3', mask, temp_file, '0 1 0 1']
+        if ants_path:
+            ants_command = os.path.join(ants_path, 'ThresholdImage')
+        else:
+            ants_command = 'ThresholdImage'
+        cmd = [ants_command, '3', mask, temp_file, '0 1 0 1']
         execute(cmd, 'os')
         mask = temp_file
 
     # Mask with just voxels having mask_index value:
     if mask_index:
         mask2 = os.path.join(os.getcwd(), 'temp.nii.gz')
-        cmd = 'ThresholdImage 3 {0} {1} {2} {3} 1 0'.format(mask, mask2,
-               mask_index, mask_index)
+
+        if ants_path:
+            ants_command = os.path.join(ants_path, 'ThresholdImage')
+        else:
+            ants_command = 'ThresholdImage'
+        cmd = [ants_command, '3', mask, mask2, mask_index, mask_index]
         execute(cmd)
     else:
         mask2 = mask
 
     # Propagate labels:
-    cmd = ['ImageMath', '3', output_file, 'PropagateLabelsThroughMask',
-            mask2, labels]
+
+    if ants_path:
+        ants_command = os.path.join(ants_path, 'ImageMath')
+    else:
+        ants_command = 'ImageMath'
+    cmd = [ants_command, '3', output_file, 'PropagateLabelsThroughMask',
+           mask2, labels]
     if stopvalue:
         cmd.extend(stopvalue)
     execute(cmd, 'os')
@@ -317,7 +363,8 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
 
 # def fill_volume_with_surface_labels(hemi, left_mask, right_mask,
 #                                     surface_files, mask_index=None,
-#                                     output_file='', binarize=False):
+#                                     output_file='', binarize=False,
+#                                     ants_path=''):
 #     """
 #     Use ANTs to fill a volume mask with surface mesh labels.
 #
@@ -345,6 +392,8 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
 #         name of output file
 #     binarize : Boolean
 #         binarize mask?
+#     ants_path : string
+#         path to bin/ directory with PropagateLabelsThroughMask command
 #
 #     Returns
 #     -------
@@ -370,8 +419,10 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
 #     >>> mask_index = None
 #     >>> output_file = ''
 #     >>> binarize = True
+#     >>> ants_path = '/software/install/ants/bin'
 #     >>> output_file = fill_volume_with_surface_labels(hemi, left_mask,
-#     ...     right_mask, surface_files, mask_index, output_file, binarize)
+#     ...     right_mask, surface_files, mask_index, output_file, binarize,
+#     ...     ants_path)
 #
 #     >>> # View
 #     >>> from mindboggle.mio.plots import plot_volumes
@@ -408,7 +459,7 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
 #     # Use ANTs to fill a binary volume mask with initial labels:
 #     output_file = PropagateLabelsThroughMask(mask, surface_in_volume,
 #                                              mask_index, output_file,
-#                                              binarize)
+#                                              binarize, ants_path)
 #     if not os.path.exists(output_file):
 #         raise IOError("PropagateLabelsThroughMask() did not create {0}.".
 #                       format(output_file))
@@ -416,7 +467,7 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
 #     return output_file  # surface_in_volume
 
 
-# def ANTS(source, target, iterations='30x99x11', output_stem=''):
+# def ANTS(source, target, iterations='30x99x11', output_stem='', ants_path=''):
 #     """
 #     Use ANTs to register a source image volume to a target image volume.
 #
@@ -432,6 +483,8 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
 #         number of iterations ("0" for affine, "30x99x11" default)
 #     output_stem : string
 #         file name stem for output transform matrix
+#     ants_path : string
+#         path to bin/ directory with ANTS command
 #
 #     Returns
 #     -------
@@ -453,8 +506,8 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
 #     >>> target = os.path.join(path, 'atlases', 'MNI152_T1_1mm_brain.nii.gz')
 #     >>> iterations = "0"
 #     >>> output_stem = ""
-#     >>> #
-#     >>> ANTS(source, target, iterations, output_stem)
+#     >>> ants_path = '/software/install/ants/bin'
+#     >>> ANTS(source, target, iterations, output_stem, ants_path)
 #
 #     """
 #     import os
@@ -465,7 +518,12 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
 #         tgt = os.path.basename(target).split('.')[0]
 #         output_stem = os.path.join(os.getcwd(), src+'_to_'+tgt)
 #
-#     cmd = ['ANTS', '3', '-m CC[' + target + ',' + source + ',1,2]',
+#     if ants_path:
+#         ants_command = os.path.join(ants_path, 'ANTS')
+#     else:
+#         ants_command = 'ANTS'
+#
+#     cmd = [ants_command, '3', '-m CC[' + target + ',' + source + ',1,2]',
 #             '-r Gauss[2,0]', '-t SyN[0.5] -i', iterations,
 #             '-o', output_stem, '--use-Histogram-Matching',
 #             '--number-of-affine-iterations 10000x10000x10000x10000x10000']
@@ -489,7 +547,7 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
 # def WarpImageMultiTransform(source, target, output='',
 #                             interp='--use-NN', xfm_stem='',
 #                             affine_transform='', nonlinear_transform='',
-#                             inverse=False, affine_only=False):
+#                             inverse=False, affine_only=False, ants_path=''):
 #     """
 #     Use ANTs to transform a source image volume to a target image volume.
 #
@@ -515,6 +573,8 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
 #         apply inverse transform?
 #     affine_only : Boolean
 #         apply only affine transform?
+#     ants_path : string
+#         path to bin/ directory with WarpImageMultiTransform command
 #
 #     Returns
 #     -------
@@ -542,19 +602,24 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
 #     if not os.path.exists(nonlinear_transform):
 #         affine_only = True
 #
+#     if ants_path:
+#         ants_command = os.path.join(ants_path, 'WarpImageMultiTransform')
+#     else:
+#         ants_command = 'WarpImageMultiTransform'
+#
 #     if affine_only:
 #         if inverse:
-#             cmd = ['WarpImageMultiTransform', '3', source, output, '-R',
+#             cmd = [ants_command, '3', source, output, '-R',
 #                    target, interp, '-i', affine_transform]
 #         else:
-#             cmd = ['WarpImageMultiTransform', '3', source, output, '-R',
+#             cmd = [ants_command, '3', source, output, '-R',
 #                    target, interp, affine_transform]
 #     else:
 #         if inverse:
-#             cmd = ['WarpImageMultiTransform', '3', source, output, '-R',
+#             cmd = [ants_command, '3', source, output, '-R',
 #                    target, interp, '-i', affine_transform, nonlinear_transform]
 #         else:
-#             cmd = ['WarpImageMultiTransform', '3', source, output, '-R',
+#             cmd = [ants_command, '3', source, output, '-R',
 #                    target, interp, nonlinear_transform, affine_transform]
 #     execute(cmd, 'os')
 #
@@ -565,7 +630,7 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
 #
 #
 # def ComposeMultiTransform(transform_files, inverse_Booleans,
-#                           output_transform_file='', ext='.txt'):
+#                           output_transform_file='', ext='.txt', ants_path=''):
 #     """
 #     Run ANTs ComposeMultiTransform function to create a single transform.
 #
@@ -579,6 +644,8 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
 #         transform file name
 #     ext : string
 #         '.txt' to save transform file as text, '.mat' for data file
+#     ants_path : string
+#         path to bin/ directory with ComposeMultiTransform command
 #
 #     Returns
 #     -------
@@ -587,13 +654,19 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
 #
 #     Examples
 #     --------
+#     >>> import os
 #     >>> from mindboggle.thirdparty.ants import ComposeMultiTransform
-#     >>> transform_files = ['affine1.mat', 'affine2.mat']
-#     >>> transform_files = ['/data/Brains/Mindboggle101/antsCorticalThickness/OASIS-TRT-20_volumes/OASIS-TRT-20-1/antsTemplateToSubject0GenericAffine.mat','/data/Brains/Mindboggle101/antsCorticalThickness/OASIS-TRT-20_volumes/OASIS-TRT-20-1/antsTemplateToSubject0GenericAffine.mat']
+#     >>> from mindboggle.mio.fetch_data import prep_tests
+#     >>> urls, fetch_data = prep_tests()
+#     >>> xfm1 = fetch_data(urls['ants_affine_template2subject'])
+#     >>> xfm2 = fetch_data(urls['ants_affine_subject2template'])
+#     >>> transform_files = [xfm1, xfm2]
 #     >>> inverse_Booleans = [False, False]
 #     >>> output_transform_file = ''
 #     >>> ext = '.txt'
-#     >>> ComposeMultiTransform(transform_files, inverse_Booleans, output_transform_file, ext)
+#     >>> ants_path = '/software/install/ants/bin'
+#     >>> ComposeMultiTransform(transform_files, inverse_Booleans,
+#     ...                       output_transform_file, ext, ants_path)
 #
 #     """
 #     import os
@@ -609,8 +682,11 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
 #             xfms.append('-i')
 #         xfms.append(xfm)
 #
-#     cmd = ['ComposeMultiTransform 3', output_transform_file, ' '.join(xfms)]
-#     print(cmd)
+#     if ants_path:
+#         ants_command = os.path.join(ants_path, 'ComposeMultiTransform')
+#     else:
+#         ants_command = 'ComposeMultiTransform'
+#     cmd = [ants_command, '3', output_transform_file, ' '.join(xfms)]
 #     execute(cmd, 'os')
 #     #if not os.path.exists(output_transform_file):
 #     #    raise IOError(output_transform_file + " not found")
