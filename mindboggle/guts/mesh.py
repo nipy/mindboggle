@@ -1147,11 +1147,13 @@ def rescale_by_label(input_vtk, labels_or_file, set_max_to_1=False,
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
     >>> input_vtk = fetch_data(urls['left_travel_depth'])
-    >>> labels_vtk = fetch_data(urls['left_folds'])
+    >>> labels_or_file = fetch_data(urls['left_folds'])
     >>> save_file = True
     >>> output_filestring = 'rescaled_scalars'
+    >>> verbose = True #False
+    >>> set_max_to_1 = False
     >>> rescaled_scalars, rescaled_label_file = rescale_by_label(input_vtk,
-    ...     labels_vtk, save_file, output_filestring, verbose)
+    ...     labels_or_file, set_max_to_1, save_file, output_filestring, verbose)
     >>> scalars1, name = read_scalars(input_vtk)
     >>> (max(scalars1), max(rescaled_scalars))
     (34.9556, 1.0)
@@ -1179,7 +1181,6 @@ def rescale_by_label(input_vtk, labels_or_file, set_max_to_1=False,
     elif isinstance(labels_or_file, list):
         labels = labels_or_file
     unique_labels = np.unique(labels)
-    unique_labels = [x for x in unique_labels if x >= 0]
 
     # Loop through labels:
     for label in unique_labels:
@@ -1191,6 +1192,7 @@ def rescale_by_label(input_vtk, labels_or_file, set_max_to_1=False,
 
             # Rescale by the maximum label scalar value:
             scalars[indices] = scalars[indices] / np.max(scalars[indices])
+            #print(max(scalars), max(scalars[indices]))
 
     rescaled_scalars = scalars.tolist()
 
