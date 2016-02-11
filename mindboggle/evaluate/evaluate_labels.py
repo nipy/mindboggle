@@ -172,17 +172,13 @@ def evaluate_surface_overlaps_cpp(command, labels_file1, labels_file2,
     >>> # Compare surface label overlaps in trivial case: brain with itself:
     >>> import os
     >>> from mindboggle.evaluate.evaluate_labels import evaluate_surface_overlaps_cpp
-    >>> from mindboggle.mindboggle import hashes_url
-    >>> from mindboggle.mio.fetch_data import fetch_check_data
+    >>> from mindboggle.mio.fetch_data import fetch_data
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> label_file1 = fetch_data(urls['left_freesurfer_labels'])
-    >>> label_file2 = fetch_data(urls['left_ants_labels'])
-    >>> hashes, url, cache_env, cache = hashes_url()
-    >>> ccode_path = os.environ['MINDBOGGLE_TOOLS']
-    >>> command = os.path.join(ccode_path, 'surface_overlap', 'SurfaceOverlapMain')
-    >>> file1 = fetch_check_data(label_file1, url, hashes, cache_env, cache)
-    >>> file2 = fetch_check_data(label_file2, url, hashes, cache_env, cache)
+    >>> file1 = fetch_data(urls['left_freesurfer_labels'])
+    >>> file2 = fetch_data(urls['left_freesurfer_labels'])
+    >>> ccode_path = os.environ['MINDBOGGLE_TOOLS'] # doctest: +SKIP
+    >>> command = os.path.join(ccode_path, 'surface_overlap', 'SurfaceOverlapMain') # doctest: +SKIP
     >>> output_file = ''
     >>> evaluate_surface_overlaps_cpp(command, file1, file2, output_file) # doctest: +SKIP
 
