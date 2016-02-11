@@ -46,17 +46,24 @@ def evaluate_volume_overlaps(labels, file1, file2,
 
     Examples
     --------
+    >>> # Compare FreeSurfer and ants labels for the same brain:
     >>> import os
     >>> from mindboggle.evaluate.evaluate_labels import evaluate_volume_overlaps
     >>> from mindboggle.mio.labels import DKTprotocol
-    >>> path = '/homedir/mindboggled'
-    >>> file1 = os.path.join(path, 'Twins-2-1', 'labels', 'freesurfer_wmparc_filled_labels.nii.gz')
-    >>> file2 = os.path.join(path, 'Twins-2-1', 'labels', 'freesurfer_wmparc_filled_labels.nii.gz')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> file1 = fetch_data(urls['freesurfer_labels'])
+    >>> file2 = fetch_data(urls['ants_labels'])
+    >>> os.rename(file1, file1 + '.nii.gz')
+    >>> file1 += '.nii.gz'
+    >>> os.rename(file2, file2 + '.nii.gz')
+    >>> file2 += '.nii.gz'
     >>> dkt = DKTprotocol()
     >>> labels = dkt.cerebrum_cortex_DKT31_numbers
     >>> output_file = ''
     >>> save_output = True
-    >>> evaluate_volume_overlaps(labels, file1, file2, output_file=output_file, save_output=save_output)
+    >>> evaluate_volume_overlaps(labels, file1, file2,
+    ...     output_file=output_file, save_output=save_output) # doctest: +SKIP
 
     """
     import nibabel as nb
@@ -104,18 +111,21 @@ def evaluate_surface_overlaps(labels, index, table1, table2,
 
     Examples
     --------
+    >>> # Compare volume label overlaps in trivial case: brain with itself:
     >>> import os
     >>> from mindboggle.evaluate.evaluate_labels import evaluate_surface_overlaps
     >>> from mindboggle.mio.labels import DKTprotocol
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> table1 = fetch_data(urls['left_vertices_table'])
+    >>> table2 = fetch_data(urls['left_vertices_table'])
     >>> dkt = DKTprotocol()
     >>> labels = dkt.cerebrum_cortex_DKT31_numbers
     >>> index = 1
-    >>> path = '/homedir/mindboggled'
-    >>> table1 = os.path.join(path, 'Twins-2-1', 'tables', 'left_cortical_surface', 'vertices.csv')
-    >>> table2 = os.path.join(path, 'Twins-2-1', 'tables', 'left_cortical_surface', 'vertices.csv')
     >>> output_file = ''
     >>> save_output = True
-    >>> evaluate_surface_overlaps(labels, index, table1, table2, output_file=output_file, save_output=save_output)
+    >>> evaluate_surface_overlaps(labels, index, table1, table2,
+    ...     output_file=output_file, save_output=save_output) # doctest: +SKIP
 
     """
     import pandas as pd
@@ -159,19 +169,22 @@ def evaluate_surface_overlaps_cpp(command, labels_file1, labels_file2,
 
     Examples
     --------
+    >>> # Compare surface label overlaps in trivial case: brain with itself:
     >>> import os
     >>> from mindboggle.evaluate.evaluate_labels import evaluate_surface_overlaps_cpp
     >>> from mindboggle.mindboggle import hashes_url
     >>> from mindboggle.mio.fetch_data import fetch_check_data
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> label_file1 = fetch_data(urls['left_freesurfer_labels'])
+    >>> label_file2 = fetch_data(urls['left_ants_labels'])
     >>> hashes, url, cache_env, cache = hashes_url()
     >>> ccode_path = os.environ['MINDBOGGLE_TOOLS']
     >>> command = os.path.join(ccode_path, 'surface_overlap', 'SurfaceOverlapMain')
-    >>> label_file1 = 'lh.labels.DKT25.manual.vtk'
-    >>> label_file2 = 'lh.labels.DKT31.manual.vtk'
     >>> file1 = fetch_check_data(label_file1, url, hashes, cache_env, cache)
     >>> file2 = fetch_check_data(label_file2, url, hashes, cache_env, cache)
     >>> output_file = ''
-    >>> evaluate_surface_overlaps_cpp(command, file1, file2, output_file)
+    >>> evaluate_surface_overlaps_cpp(command, file1, file2, output_file) # doctest: +SKIP
 
     """
     import os
