@@ -61,9 +61,15 @@ def antsApplyTransformsToPoints(points, transform_files,
     >>> vtk_file = fetch_data(urls['left_pial'])
     >>> points  = read_points(vtk_file)
     >>> inverse_booleans = [0,0,1]
-    >>> ants_path = '/software/install/ants/bin'
+    >>> ants_path = '' #'/software/install/ants/bin'
     >>> transformed_points = antsApplyTransformsToPoints(points,
-    ...     transform_files, inverse_booleans, ants_path)
+    ...     transform_files, inverse_booleans, ants_path) # doctest: +SKIP
+    >>> transformed_points[0] # doctest: +SKIP
+    [-11.2318863235069, -46.7822254243521, -39.8886897340698]
+    >>> transformed_points[1] # doctest: +SKIP
+    [-11.7138385902798, -46.8707474028959, -40.1332832840819]
+    >>> transformed_points[2] # doctest: +SKIP
+    [-12.5623734916398, -46.991260587088, -40.0456405664543]
 
     """
     import os
@@ -156,19 +162,27 @@ def ImageMath(volume1, volume2, operator='m', output_file='', ants_path=''):
 
     Examples
     --------
+    >>> # Mask head with brain mask:
     >>> import os
     >>> from mindboggle.thirdparty.ants import ImageMath
-    >>> from mindboggle.mio.plots import plot_volumes
-    >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
-    >>> volume1 = os.path.join(path, 'mri', 't1weighted.nii.gz')
-    >>> volume2 = os.path.join(path, 'mri', 'mask.nii.gz')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> volume1 = fetch_data(urls['T1_001'])
+    >>> volume2 = fetch_data(urls['ants_mask'])
+    >>> os.rename(volume1, volume1 + '.nii.gz')
+    >>> volume1 += '.nii.gz'
+    >>> os.rename(volume2, volume2 + '.nii.gz')
+    >>> volume2 += '.nii.gz'
     >>> operator = 'm'
     >>> output_file = ''
-    >>> ants_path = '/software/install/ants/bin'
+    >>> ants_path = '' #'/software/install/ants/bin'
     >>> output_file = ImageMath(volume1, volume2, operator, output_file,
-    ...                         ants_path)
-    >>> # View
-    >>> plot_volumes(output_file)
+    ...                         ants_path) # doctest: +SKIP
+
+    View result (skip test):
+
+    >>> from mindboggle.mio.plots import plot_volumes
+    >>> plot_volumes(output_file) # doctest: +SKIP
 
     """
     import os
@@ -220,17 +234,22 @@ def ThresholdImage(volume, output_file='', threshlo=1, threshhi=10000,
     --------
     >>> import os
     >>> from mindboggle.thirdparty.ants import ThresholdImage
-    >>> from mindboggle.mio.plots import plot_volumes
-    >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
-    >>> volume = os.path.join(path, 'mri', 't1weighted.nii.gz')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> volume = fetch_data(urls['T1_001'])
+    >>> os.rename(volume, volume + '.nii.gz')
+    >>> volume += '.nii.gz'
     >>> output_file = ''
     >>> threshlo = 500
     >>> threshhi = 10000
     >>> ants_path = '/software/install/ants/bin'
     >>> output_file = ThresholdImage(volume, output_file, threshlo, threshhi,
-    ...                              ants_path)
-    >>> # View
-    >>> plot_volumes(output_file)
+    ...                              ants_path) # doctest: +SKIP
+
+    View result (skip test):
+
+    >>> from mindboggle.mio.plots import plot_volumes
+    >>> plot_volumes(output_file) # doctest: +SKIP
 
     """
     import os
@@ -243,7 +262,8 @@ def ThresholdImage(volume, output_file='', threshlo=1, threshhi=10000,
         ants_command = os.path.join(ants_path, 'ThresholdImage')
     else:
         ants_command = 'ThresholdImage'
-    cmd = [ants_command, '3', volume, output_file, threshlo, threshhi]
+    cmd = [ants_command, '3', volume, output_file,
+           str(threshlo), str(threshhi)]
     execute(cmd, 'os')
     if not os.path.exists(output_file):
         raise IOError("ThresholdImage did not create " + output_file + ".")
@@ -290,21 +310,29 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None, output_file='',
 
     Examples
     --------
+    >>> # Propagate FreeSurfer labels through brain mask:
     >>> import os
     >>> from mindboggle.thirdparty.ants import PropagateLabelsThroughMask
-    >>> from mindboggle.mio.plots import plot_volumes
-    >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
-    >>> labels = os.path.join(path, 'labels', 'labels.DKT25.manual.nii.gz')
-    >>> mask = os.path.join(path, 'mri', 't1weighted_brain.nii.gz')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> labels = fetch_data(urls['freesurfer_labels'])
+    >>> os.rename(labels, labels + '.nii.gz')
+    >>> labels += '.nii.gz'
+    >>> mask = fetch_data(urls['ants_mask'])
+    >>> os.rename(mask, mask + '.nii.gz')
+    >>> mask += '.nii.gz'
     >>> mask_index = None
     >>> output_file = ''
     >>> binarize = True
     >>> stopvalue = None
     >>> ants_path = '/software/install/ants/bin'
     >>> output_file = PropagateLabelsThroughMask(mask, labels, mask_index,
-    ...     output_file, binarize, stopvalue, ants_path)
-    >>> # View
-    >>> plot_volumes(output_file)
+    ...     output_file, binarize, stopvalue, ants_path) # doctest: +SKIP
+
+    View result (skip test):
+
+    >>> from mindboggle.mio.plots import plot_volumes
+    >>> plot_volumes(output_file) # doctest: +SKIP
 
     """
     import os
@@ -339,7 +367,7 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None, output_file='',
             ants_command = os.path.join(ants_path, 'ThresholdImage')
         else:
             ants_command = 'ThresholdImage'
-        cmd = [ants_command, '3', mask, mask2, mask_index, mask_index]
+        cmd = [ants_command, '3', mask, mask2, mask_index, str(mask_index)]
         execute(cmd)
     else:
         mask2 = mask

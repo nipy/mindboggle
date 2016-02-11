@@ -1106,8 +1106,8 @@ def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
     return rescaled_scalars, rescaled_scalars_file
 
 
-def rescale_by_label(input_vtk, labels_or_file, set_max_to_1=False,
-                     save_file=False, output_filestring='rescaled_scalars',
+def rescale_by_label(input_vtk, labels_or_file, save_file=False,
+                     output_filestring='rescaled_scalars',
                      verbose=False):
     """
     Rescale scalars for each label (such as depth values within each fold).
@@ -1121,8 +1121,6 @@ def rescale_by_label(input_vtk, labels_or_file, set_max_to_1=False,
         name of VTK file with a scalar value for each vertex
     labels_or_file : list or string
         label number for each vertex or name of VTK file with index scalars
-    set_max_to_1 : Boolean
-        set max to one (instead of to max value per label)?
     save_file : Boolean
         save output VTK file?
     output_filestring : string (if save_file)
@@ -1151,9 +1149,8 @@ def rescale_by_label(input_vtk, labels_or_file, set_max_to_1=False,
     >>> save_file = True
     >>> output_filestring = 'rescaled_scalars'
     >>> verbose = True #False
-    >>> set_max_to_1 = False
     >>> rescaled_scalars, rescaled_label_file = rescale_by_label(input_vtk,
-    ...     labels_or_file, set_max_to_1, save_file, output_filestring, verbose)
+    ...     labels_or_file, save_file, output_filestring, verbose)
     >>> scalars1, name = read_scalars(input_vtk)
     >>> (max(scalars1), max(rescaled_scalars))
     (34.9556, 1.0)
