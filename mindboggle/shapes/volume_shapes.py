@@ -4,9 +4,9 @@ Compute shape measures from volume images.
 
 
 Authors:
-    - Arno Klein, 2013-2015  (arno@mindboggle.info)  http://binarybottle.com
+    - Arno Klein, 2013-2016  (arno@mindboggle.info)  http://binarybottle.com
 
-Copyright 2015,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -49,15 +49,24 @@ def volume_per_brain_region(input_file, include_labels=[], exclude_labels=[],
     >>> import os
     >>> from mindboggle.mio.labels import DKTprotocol
     >>> from mindboggle.shapes.volume_shapes import volume_per_brain_region
-    >>> input_file = os.path.join(os.environ['HOME'], 'mindboggled', 'Twins-2-1old', 'labels', 'ants_filled_labels.nii.gz')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> input_file = fetch_data(urls['freesurfer_labels'])
+    >>> os.rename(input_file, input_file + '.nii.gz')
+    >>> input_file += '.nii.gz'
     >>> dkt = DKTprotocol()
     >>> include_labels = dkt.label_numbers
     >>> exclude_labels = []
     >>> label_names = dkt.label_names
     >>> save_table = True
     >>> output_table = 'volumes.csv'
-    >>> unique_labels, volumes, output_table = volume_per_brain_region(input_file, include_labels, exclude_labels, label_names, save_table, output_table)
-    >>> print(volumes)
+    >>> unique_labels, volumes, table = volume_per_brain_region(input_file,
+    ...     include_labels, exclude_labels, label_names, save_table,
+    ...     output_table)
+    >>> volumes[0:3]
+    [971.99797224998474, 2413.9949640035629, 2192.9954250454903]
+    >>> volumes[3:6]
+    [8328.9826243519783, 2940.99386459589, 1997.9958318471909]
 
     """
     import os
@@ -106,7 +115,7 @@ def volume_per_brain_region(input_file, include_labels=[], exclude_labels=[],
 def thickinthehead(segmented_file, labeled_file, cortex_value=2,
                    noncortex_value=3, labels=[], names=[], resize=True,
                    propagate=True, output_dir='', save_table=False,
-                   output_table=''):
+                   output_table='', ants_path=''):
     """
     Compute a simple thickness measure for each labeled cortex region volume.
 
@@ -191,6 +200,8 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
         save output table file with label volumes and thickness values?
     output_table : string
         name of output table file with label volumes and thickness values
+    ants_path : string
+        path to ants bin/ directory
 
     Returns
     -------
@@ -201,9 +212,17 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
 
     Examples
     --------
+    >>> # Example simply using ants segmentation and labels:
+    >>> import os
     >>> from mindboggle.shapes.volume_shapes import thickinthehead
-    >>> segmented_file = '/Users/arno/Data/antsCorticalThickness/OASIS-TRT-20-1/antsBrainSegmentation.nii.gz'
-    >>> labeled_file = '/appsdir/freesurfer/subjects/OASIS-TRT-20-1/mri/labels.DKT31.manual.nii.gz'
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> segmented_file = fetch_data(urls['ants_segmentation'])
+    >>> os.rename(segmented_file, segmented_file + '.nii.gz')
+    >>> segmented_file += '.nii.gz'
+    >>> labeled_file = fetch_data(urls['ants_labels'])
+    >>> os.rename(labeled_file, labeled_file + '.nii.gz')
+    >>> labeled_file += '.nii.gz'
     >>> cortex_value = 2
     >>> noncortex_value = 3
     >>> #labels = [2]
@@ -220,7 +239,17 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     >>> output_dir = ''
     >>> save_table = True
     >>> output_table = ''
-    >>> label_volume_thickness, output_table = thickinthehead(segmented_file, labeled_file, cortex_value, noncortex_value, labels, names, resize, propagate, output_dir, save_table, output_table)
+    >>> ants_path = '/software/install/ants/bin'
+    >>> label_volume_thickness, output_table = thickinthehead(segmented_file,
+    ...     labeled_file, cortex_value, noncortex_value, labels, names,
+    ...     resize, propagate, output_dir, save_table, output_table,
+    ...     ants_path) # doctest: +SKIP
+    >>> label_volume_thickness[0][0:5] # doctest: +SKIP
+    [1002.0, 1003.0, 1005.0, 1006.0, 1007.0]
+    >>> label_volume_thickness[1][0:3] # doctest: +SKIP
+    [3136.993829667568, 7206.985824167728, 3257.9935916662216]
+    >>> label_volume_thickness[2][0:3] # doctest: +SKIP
+    [3.8638953040800614, 3.6963713296576484, 2.5633359559402047]
 
     """
     import os
@@ -260,25 +289,37 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
         output_table = ''
 
     #-------------------------------------------------------------------------
+    # ants command paths:
+    #-------------------------------------------------------------------------
+    if ants_path:
+        ants_thresh = os.path.join(ants_path, 'ThresholdImage')
+        ants_math = os.path.join(ants_path, 'ImageMath')
+        ants_resample = os.path.join(ants_path, 'ResampleImageBySpacing')
+    else:
+        ants_thresh = 'ThresholdImage'
+        ants_math = 'ImageMath'
+        ants_resample = 'ResampleImageBySpacing'
+
+    #-------------------------------------------------------------------------
     # Extract noncortex and cortex:
     #-------------------------------------------------------------------------
-    cmd = ['ThresholdImage 3', segmented_file,
-           noncortex, str(noncortex_value), str(noncortex_value), '1 0']
-    execute(cmd)
-    cmd = ['ThresholdImage 3', segmented_file,
-           cortex, str(cortex_value), str(cortex_value), '1 0']
-    execute(cmd)
+    cmd = [ants_thresh, '3', segmented_file, noncortex,
+           str(noncortex_value), str(noncortex_value), '1 0']
+    execute(cmd, 'os')
+    cmd = [ants_thresh, '3', segmented_file, cortex,
+           str(cortex_value), str(cortex_value), '1 0']
+    execute(cmd, 'os')
 
     #-------------------------------------------------------------------------
     # Either mask labels with cortex or fill cortex with labels:
     #-------------------------------------------------------------------------
     if propagate:
-        cmd = ['ImageMath', '3', cortex, 'PropagateLabelsThroughMask',
+        cmd = [ants_math, '3', cortex, 'PropagateLabelsThroughMask',
                cortex, labeled_file]
-        execute(cmd)
+        execute(cmd, 'os')
     else:
-        cmd = ['ImageMath 3', cortex, 'm', cortex, labeled_file]
-        execute(cmd)
+        cmd = [ants_math, '3', cortex, 'm', cortex, labeled_file]
+        execute(cmd, 'os')
 
     #-------------------------------------------------------------------------
     # Load data and dimensions:
@@ -304,35 +345,35 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     #-------------------------------------------------------------------------
     if resize:
         dims = ' '.join([str(1/rescale), str(1/rescale), str(1/rescale)])
-        cmd = ['ResampleImageBySpacing 3', cortex, cortex, dims, '0 0 1']
-        execute(cmd)
-        cmd = ['ResampleImageBySpacing 3', noncortex, noncortex, dims, '0 0 1']
-        execute(cmd)
+        cmd = [ants_resample, '3', cortex, cortex, dims, '0 0 1']
+        execute(cmd, 'os')
+        cmd = [ants_resample, '3', noncortex, noncortex, dims, '0 0 1']
+        execute(cmd, 'os')
 
     #-------------------------------------------------------------------------
     # Extract outer and inner boundary voxels of the cortex,
     # by eroding 1 (resampled) voxel for cortex voxels (2) bordering
     # the outside of the brain (0) and bordering noncortex (3):
     #-------------------------------------------------------------------------
-    cmd = ['ImageMath 3', inner_edge, 'MD', noncortex, '1']
-    execute(cmd)
-    cmd = ['ImageMath 3', inner_edge, 'm', cortex, inner_edge]
-    execute(cmd)
+    cmd = [ants_math, '3', inner_edge, 'MD', noncortex, '1']
+    execute(cmd, 'os')
+    cmd = [ants_math, '3', inner_edge, 'm', cortex, inner_edge]
+    execute(cmd, 'os')
     if use_outer_edge:
-        cmd = ['ThresholdImage 3', cortex, outer_edge, '1 10000 1 0']
-        execute(cmd)
-        cmd = ['ImageMath 3', outer_edge, 'ME', outer_edge, '1']
-        execute(cmd)
-        cmd = ['ThresholdImage 3', outer_edge, outer_edge, '1 1 0 1']
-        execute(cmd)
-        cmd = ['ImageMath 3', outer_edge, 'm', cortex, outer_edge]
-        execute(cmd)
-        cmd = ['ThresholdImage 3', inner_edge, temp, '1 10000 1 0']
-        execute(cmd)
-        cmd = ['ThresholdImage 3', temp, temp, '1 1 0 1']
-        execute(cmd)
-        cmd = ['ImageMath 3', outer_edge, 'm', temp, outer_edge]
-        execute(cmd)
+        cmd = [ants_thresh, '3', cortex, outer_edge, '1 10000 1 0']
+        execute(cmd, 'os')
+        cmd = [ants_math, '3', outer_edge, 'ME', outer_edge, '1']
+        execute(cmd, 'os')
+        cmd = [ants_thresh, '3', outer_edge, outer_edge, '1 1 0 1']
+        execute(cmd, 'os')
+        cmd = [ants_math, '3', outer_edge, 'm', cortex, outer_edge]
+        execute(cmd, 'os')
+        cmd = [ants_thresh, '3', inner_edge, temp, '1 10000 1 0']
+        execute(cmd, 'os')
+        cmd = [ants_thresh, '3', temp, temp, '1 1 0 1']
+        execute(cmd, 'os')
+        cmd = [ants_math, '3', outer_edge, 'm', temp, outer_edge]
+        execute(cmd, 'os')
 
     #-------------------------------------------------------------------------
     # Load data:

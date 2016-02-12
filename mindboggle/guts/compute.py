@@ -899,7 +899,7 @@ def count_per_label(labels, include_labels=[], exclude_labels=[]):
     # Make sure labels is a numpy array:
     if isinstance(labels, list):
         labels = np.array(labels)
-    elif isinstance(labels, ndarray):
+    elif isinstance(labels, np.ndarray):
         pass
     else:
         raise IOError("labels should be a numpy array.")

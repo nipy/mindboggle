@@ -53,109 +53,57 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     >>> faces = [[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]]
     >>> order = 3
     >>> scale_input = True
-    >>> zernike_moments(points, faces, order, scale_input)
-    [0.0918881492369654,
-     0.09357431096617608,
-     0.04309029164656885,
-     0.06466432586854755,
-     0.03820155248327533,
-     0.04138011726544602]
-    >>> # Example 2: simple cube (with inner diagonal plane):
-    >>> # (decimation doesn't have any effect)
-    >>> import os
-    >>> from mindboggle.mio.vtks import read_vtk
-    >>> from mindboggle.shapes.zernike.zernike import zernike_moments
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'cube.vtk')
-    >>> points, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(vtk_file)
-    >>> order = 3
-    >>> scale_input = True
-    >>> zernike_moments(points, faces, order, scale_input)
-    [0.0,
-     1.5444366221695725e-21,
-     0.0,
-     2.081366518964347e-21,
-     5.735003646768394e-05,
-     2.433866250546253e-21]
+    >>> descriptors = zernike_moments(points, faces, order, scale_input)
+    >>> descriptors[0:3]
+    [0.09188814923696538, 0.0935743109661761, 0.04309029164656885]
+    >>> descriptors[3::]
+    [0.06466432586854744, 0.038201552483275336, 0.04138011726544599]
 
-    Arthur Mikhno's result:
-    0
-    0
-    0.2831
-    10.6997
-    2.1352
-    11.8542
-    >>> # Example 2.5: Parallelepiped.vtk:
-    >>> import os
-    >>> from mindboggle.mio.vtks import read_vtk
-    >>> from mindboggle.shapes.zernike.zernike import zernike_moments
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'Parallelepiped.vtk')
-    >>> points, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(vtk_file)
-    >>> order = 3
-    >>> scale_input = True
-    >>> zernike_moments(points, faces, order, scale_input)
-    [0.2652000150907399,
-     0.27006648207389017,
-     6.902814314591948e-09,
-     7.901431343883835e-09,
-     0.12685697496878662,
-     5.560135951999606e-09]
-    Arthur Mikhno's result:
-    0.0251
-    0.0310
-    0.0255
-    0.0451
-    0.0189
-    0.0133
-    >>> # Example 3: Twins-2-1 left postcentral pial surface -- NO decimation:
-    >>> # (zernike_moments took 142 seconds for order = 3 with no decimation)
-    >>> import os
+    Example 2: Twins-2-1 left postcentral pial surface -- NO decimation:
+               (zernike_moments took 142 seconds for order = 3 with no decimation)
+
     >>> from mindboggle.mio.vtks import read_vtk
     >>> from mindboggle.guts.mesh import remove_faces
-    >>> from mindboggle.shapes.zernike.zernike import zernike_moments
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> label_file = os.path.join(path, 'labels', 'lh.labels.DKT31.manual.vtk')
-    >>> points, indices, lines, faces, labels, scalar_names, npoints, input_vtk = read_vtk(label_file)
-    >>> I22 = [i for i,x in enumerate(labels) if x==22] # postcentral
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> label_file = fetch_data(urls['left_freesurfer_labels'])
+    >>> points, f1,f2, faces, labels, f3,f4,f5 = read_vtk(label_file)
+    >>> I22 = [i for i,x in enumerate(labels) if x==1022] # postcentral
     >>> faces = remove_faces(faces, I22)
     >>> order = 3
     >>> scale_input = True
-    >>> zernike_moments(points, faces, order, scale_input)
-     [0.005558794553842859,
-     0.009838755429501177,
-     0.003512500896236744,
-     0.00899042745665395,
-     0.001672289910738449,
-     0.000919469614081582]
-    >>> # Example 5: left postcentral + pars triangularis pial surfaces:
-    >>> import os
+    >>> descriptors = zernike_moments(points, faces, order, scale_input)
+    >>> descriptors[0:3]
+    [0.004711827848749371, 0.008403464728770595, 0.002949863906214929]
+    >>> descriptors[3::]
+    [0.00761901433745197, 0.0013988214438139612, 0.0007585905175321774]
+
+    Example 3: left postcentral + pars triangularis pial surfaces:
+
     >>> from mindboggle.mio.vtks import read_vtk, write_vtk
-    >>> from mindboggle.guts.mesh import remove_faces
-    >>> from mindboggle.shapes.zernike.zernike import zernike_moments
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> label_file = os.path.join(path, 'labels', 'lh.labels.DKT31.manual.vtk')
-    >>> points, indices, lines, faces, labels, scalar_names, npoints, input_vtk = read_vtk(label_file)
-    >>> I20 = [i for i,x in enumerate(labels) if x==20] # pars triangularis
-    >>> I22 = [i for i,x in enumerate(labels) if x==22] # postcentral
+    >>> points, f1,f2, faces, labels, f3,f4,f5 = read_vtk(label_file)
+    >>> I20 = [i for i,x in enumerate(labels) if x==1020] # pars triangularis
+    >>> I22 = [i for i,x in enumerate(labels) if x==1022] # postcentral
     >>> I22.extend(I20)
     >>> faces = remove_faces(faces, I22)
     >>> order = 3
     >>> scale_input = True
-    >>> zernike_moments(points, faces, order, scale_input)
-    [0.006591540793309832,
-     0.010749937070447451,
-     0.0034900573103799214,
-     0.008972460360983864,
-     0.0018220183025464518,
-     0.0016893113500293917]
-    >>> # View both segments:
+    >>> descriptors = zernike_moments(points, faces, order, scale_input)
+    >>> descriptors[0:3]
+    [0.005856566170781968, 0.009733720244506859, 0.00322396202941664]
+    >>> descriptors[3::]
+    [0.008176214784234206, 0.0012967955656291014, 0.0013083730638976398]
+
+    View both segments (skip test):
+
+    >>> import numpy as np
     >>> from mindboggle.mio.plots import plot_surfaces
-    >>> scalars = -1*np.ones(np.shape(labels))
+    >>> scalars = -1 * np.ones(np.shape(labels))
     >>> scalars[I22] = 1
     >>> vtk_file = 'test_two_labels.vtk'
-    >>> write_vtk(vtk_file, points, [],[], faces, scalars, scalar_names='scalars', scalar_type='int')
-    >>> plot_surfaces(vtk_file)
+    >>> # Note: mismatch in the following command:
+    >>> write_vtk(vtk_file, points, [],[], faces, scalars, 'scalars', 'int')
+    >>> plot_surfaces(vtk_file) # doctest: +SKIP
 
     """
     import numpy as np

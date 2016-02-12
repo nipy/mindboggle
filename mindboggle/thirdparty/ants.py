@@ -207,7 +207,7 @@ def ImageMath(volume1, volume2, operator='m', output_file='', ants_path=''):
 def ThresholdImage(volume, output_file='', threshlo=1, threshhi=10000,
                    ants_path=''):
     """
-    Use the ThresholdImage function in ANTs to threshold image volume::
+    Use the ThresholdImage function in ANTs to threshold image volume.
 
     Usage: ThresholdImage ImageDimension ImageIn.ext outImage.ext
            threshlo threshhi <insideValue> <outsideValue>
@@ -385,6 +385,88 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None, output_file='',
     execute(cmd, 'os')
     if not os.path.exists(output_file):
         raise IOError("ImageMath did not create " + output_file + ".")
+
+    return output_file
+
+
+def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
+                           outzspc=1, dosmooth=0, addvox=0, nninterp=1,
+                           ants_path=''):
+    """
+    Use the ResampleImageBySpacing function in ANTs to resample image volume.
+
+    Usage: ResampleImageBySpacing ImageDimension ImageIn.ext outImage.ex
+           outxspc outyspc <outzspc> <dosmooth?> <addvox> <nninterp?>
+
+    Parameters
+    ----------
+    volume : string
+        nibabel-readable image volume
+    output_file : string
+        nibabel-readable image volume
+    outxspc : integer
+        output x-spacing
+    outyspc : integer
+        output y-spacing
+    outzspc : integer
+        output z-spacing
+    dosmooth : Boolean
+        smooth?
+    addvox : integer
+        pad each dimension by addvox
+    nninterp : Boolean
+        nearest-neighbor interpolation?
+    ants_path : string
+        path to bin/ directory with ThresholdImage command
+
+    Returns
+    -------
+    output_file : string
+        name of output nibabel-readable image volume
+
+    Examples
+    --------
+    >>> # Resample image so that 1mm voxels are 0.5mm voxels:
+    >>> import os
+    >>> from mindboggle.thirdparty.ants import ResampleImageBySpacing
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> volume = fetch_data(urls['T1_001'])
+    >>> os.rename(volume, volume + '.nii.gz')
+    >>> volume += '.nii.gz'
+    >>> output_file = ''
+    >>> outxspc = 1/2.0
+    >>> outyspc = 1/2.0
+    >>> outzspc = 1/2.0
+    >>> dosmooth = 0
+    >>> addvox = 0
+    >>> nninterp = 1
+    >>> ants_path = '' #'/software/install/ants/bin'
+    >>> output_file = ResampleImageBySpacing(volume, output_file, outxspc,
+    ...     outxspc, outzspc, dosmooth, addvox, nninterp, ants_path) # doctest: +SKIP
+
+    View result (skip test):
+
+    >>> from mindboggle.mio.plots import plot_volumes
+    >>> plot_volumes(output_file) # doctest: +SKIP
+
+    """
+    import os
+    from mindboggle.guts.utilities import execute
+
+    if not output_file:
+        output_file = os.path.join(os.getcwd(),
+                                   'resampled_' + os.path.basename(volume))
+    if ants_path:
+        ants_command = os.path.join(ants_path, 'ResampleImageBySpacing')
+    else:
+        ants_command = 'ResampleImageBySpacing'
+    cmd = [ants_command, '3', volume, output_file,
+           str(outxspc), str(outyspc), str(outzspc)]
+    execute(cmd, 'os')
+    if not os.path.exists(output_file):
+        raise IOError("ResampleImageBySpacing did not create {0).".
+                      format(output_file))
 
     return output_file
 
@@ -570,8 +652,8 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None, output_file='',
 #
 #     return affine_transform, nonlinear_transform,\
 #            nonlinear_inverse_transform, output_stem
-#
-#
+
+
 # def WarpImageMultiTransform(source, target, output='',
 #                             interp='--use-NN', xfm_stem='',
 #                             affine_transform='', nonlinear_transform='',
@@ -655,8 +737,8 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None, output_file='',
 #         raise IOError("WarpImageMultiTransform did not create " + output + ".")
 #
 #     return output
-#
-#
+
+
 # def ComposeMultiTransform(transform_files, inverse_Booleans,
 #                           output_transform_file='', ext='.txt', ants_path=''):
 #     """

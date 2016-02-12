@@ -36,9 +36,9 @@ Authors:
     - Martin Reuter, 2009-2016, http://reuter.mit.edu/ (original MATLAB code)
     - Eliezer Stavsky, 2012  (eli.stavsky@gmail.com)
     - Forrest Sheng Bao, 2012-2013  (forrest.bao@gmail.com)  http://fsbao.net
-    - Arno Klein, 2012-2013  (arno@mindboggle.info)  http://binarybottle.com
+    - Arno Klein, 2012-2016  (arno@mindboggle.info)  http://binarybottle.com
 
-Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -75,27 +75,25 @@ def computeAB(points, faces):
     >>> points = np.array(points)
     >>> faces = [[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]]
     >>> faces = np.array(faces)
-    >>> #
     >>> A, B = computeAB(points, faces)
-    >>> #
-    >>> print(A.toarray())
-        [[ 1.5  -1.   -0.5   0.    0.    0.    0.    0.  ]
-         [-1.    2.    0.    0.   -0.5   0.    0.    -0.5  ]
-         [-0.5   0.    2.   -0.5  -1.    0.    0.    0.  ]
-         [ 0.    0.   -0.5   2.56066017 -0.35355339 -1.20710678 -0.5   0.  ]
-         [ 0.   -0.5  -1.   -0.35355339  1.85355339  0.    0.    0.  ]
-         [ 0.    0.    0.   -1.20710678  0.    1.20710678    0.    0.  ]
-         [ 0.    0.    0.   -0.5   0.    0.    0.5    0.  ]
-         [ 0.   -0.5   0.    0.    0.    0.    0.    0.5]]
-    >>> print(B.toarray())
-        [[ 0.25  0.08333333  0.04166667  0.    0.08333333  0.    0.    0.04166667]
-         [ 0.08333333  0.16666667  0.    0.    0.04166667  0.    0.    0.04166667]
-         [ 0.04166667  0.    0.16666667  0.04166667  0.08333333  0.    0.    0.  ]
-         [ 0.    0.    0.04166667  0.2845178   0.10059223  0.10059223    0.04166667  0.  ]
-         [ 0.08333333  0.04166667  0.08333333  0.10059223  0.36785113  0.05892557  0.  0.  ]
-         [ 0.    0.    0.    0.10059223  0.05892557  0.20118446    0.04166667  0.  ]
-         [ 0.    0.    0.    0.04166667  0.    0.04166667    0.08333333  0.  ]
-         [ 0.04166667  0.04166667  0.    0.    0.    0.    0.     0.08333333]]
+    >>> A.toarray()
+    [[ 1.5  -1.   -0.5   0.    0.    0.    0.    0.  ]
+     [-1.    2.    0.    0.   -0.5   0.    0.    -0.5  ]
+     [-0.5   0.    2.   -0.5  -1.    0.    0.    0.  ]
+     [ 0.    0.   -0.5   2.56066017 -0.35355339 -1.20710678 -0.5   0.  ]
+     [ 0.   -0.5  -1.   -0.35355339  1.85355339  0.    0.    0.  ]
+     [ 0.    0.    0.   -1.20710678  0.    1.20710678    0.    0.  ]
+     [ 0.    0.    0.   -0.5   0.    0.    0.5    0.  ]
+     [ 0.   -0.5   0.    0.    0.    0.    0.    0.5]]
+    >>> B.toarray()
+    [[ 0.25  0.08333333  0.04166667  0.    0.08333333  0.    0.    0.04166667]
+     [ 0.08333333  0.16666667  0.    0.    0.04166667  0.    0.    0.04166667]
+     [ 0.04166667  0.    0.16666667  0.04166667  0.08333333  0.    0.    0.  ]
+     [ 0.    0.    0.04166667  0.2845178   0.10059223  0.10059223    0.04166667  0.  ]
+     [ 0.08333333  0.04166667  0.08333333  0.10059223  0.36785113  0.05892557  0.  0.  ]
+     [ 0.    0.    0.    0.10059223  0.05892557  0.20118446    0.04166667  0.  ]
+     [ 0.    0.    0.    0.04166667  0.    0.04166667    0.08333333  0.  ]
+     [ 0.04166667  0.04166667  0.    0.    0.    0.    0.     0.08333333]]
 
     """
     import numpy as np
@@ -195,7 +193,7 @@ def area_normalize(points, faces, spectrum):
     Normalize a spectrum using areas as suggested in Reuter et al. (2006)
 
     Parameters
-    ------------
+    ----------
     points : list of lists of 3 floats
         x,y,z coordinates for each vertex of the structure
     faces : list of lists of 3 integers
@@ -204,9 +202,25 @@ def area_normalize(points, faces, spectrum):
         LB spectrum of a given shape defined by _points_ and _faces_
 
     Returns
-    -----------
+    -------
     new_spectrum : list of floats
         LB spectrum normalized by area
+
+    Examples
+    --------
+    >>> from mindboggle.shapes.laplace_beltrami import area_normalize
+    >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian
+    >>> # Define a cube:
+    >>> points = [[0,0,0], [0,1,0], [1,1,0], [1,0,0],
+    >>>           [0,0,1], [0,1,1], [1,1,1], [1,0,1]]
+    >>> faces = [[0,1,2], [2,3,0], [4,5,6], [6,7,4], [0,4,7], [7,3,0],
+    >>>          [0,4,5], [5,1,0], [1,5,6], [6,2,1], [3,7,6], [6,2,3]]
+    >>> spectrum = fem_laplacian(points, faces, spectrum_size=3, normalization=None)
+    [1.196959198423997e-16, 4.583592135001263, 4.800000000000001]
+    >>> new_spectrum = area_normalize(points, faces, spectrum)
+    >>> new_spectrum
+    [7.1817551905439804e-16, 27.501552810007574, 28.800000000000001]
+
     """
     from mindboggle.guts.mesh import area_of_faces
 
@@ -245,7 +259,7 @@ def wesd(EVAL1, EVAL2, Vol1, Vol2, show_error=False, N=3):
     """
 
     d = 2.0 # " a surface is a 2d manifold. It doesn't matter that it is usually embedded in 3d Euclidean space. -Martin"
-    Ball = 4.0/3*np.pi # For Three Dimensions
+    Ball = 4.0 / 3 * np.pi  # For three dimensions
     p = 2.0
 
     Vol = np.amax((Vol1, Vol2))
@@ -354,54 +368,39 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None):
     >>>           [0,0,1], [0,1,1], [1,1,1], [1,0,1]]
     >>> faces = [[0,1,2], [2,3,0], [4,5,6], [6,7,4], [0,4,7], [7,3,0],
     >>>          [0,4,5], [5,1,0], [1,5,6], [6,2,1], [3,7,6], [6,2,3]]
-    >>> fem_laplacian(points, faces, spectrum_size=3, normalization=None)
-    [7.401486830834377e-17, 4.58359213500127, 4.799999999999998]
-    >>> fem_laplacian(points, faces, spectrum_size=3, normalization="area")
-    [1.2335811384723967e-17, 0.76393202250021175, 0.79999999999999949]
+    >>> spectrum = fem_laplacian(points, faces, spectrum_size=3, normalization=None)
+    >>> spectrum[1::]
+    [4.583592135001263, 4.800000000000001]
+    >>> spectrum = fem_laplacian(points, faces, spectrum_size=3, normalization="area")
+    >>> spectrum[1::]
+    [27.501552810007595, 28.799999999999894]
     >>> # Spectrum for entire left hemisphere of Twins-2-1:
-    >>> import os
-    >>> from mindboggle.mio.vtks import read_faces_points
-    >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'labels',
-    >>>                         'lh.labels.DKT25.manual.vtk')
-    >>> faces, points, npoints = read_faces_points(vtk_file)
-    >>> fem_laplacian(points, faces, spectrum_size=6, normalization=None)
-    [4.829758648026222e-18,
-     0.0001284173002467197,
-     0.000271518157227274,
-     0.00032051508471594065,
-     0.0004701628070486444,
-     0.0005768904023010318]
-    >>> # Spectrum for Twins-2-1 left postcentral pial surface (22):
-    >>> import os
     >>> from mindboggle.mio.vtks import read_vtk
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> label_file = fetch_data(urls['left_freesurfer_labels'])
+    >>> points, f1,f2, faces, labels, f3,f4,f5 = read_vtk(label_file)
+    >>> spectrum = fem_laplacian(points, faces, spectrum_size=6, normalization=None)
+    >>> spectrum[1:4]
+    [0.0001284172713238458, 0.00027151808985605326, 0.0003205150049186579]
+    >>> spectrum[4::]
+    [0.0004701626982191818, 0.0005768902810581681]
+    >>> # Spectrum for Twins-2-1 left postcentral pial surface (22):
     >>> from mindboggle.guts.mesh import remove_faces, reindex_faces_points
-    >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> label_file = os.path.join(path, 'labels', 'lh.labels.DKT31.manual.vtk')
-    >>> points, indices, lines, faces, labels, scalar_names, npoints, input_vtk = read_vtk(label_file)
-    >>> I22 = [i for i,x in enumerate(labels) if x==22] # postcentral
+    >>> I22 = [i for i,x in enumerate(labels) if x==1022] # postcentral
     >>> faces = remove_faces(faces, I22)
     >>> faces, points, o1 = reindex_faces_points(faces, points)
-    >>> #from mindboggle.mio.vtks import read_faces_points
-    >>> #label_file = os.path.join(path, 'labels', 'label22.vtk')
-    >>> #faces, points, npoints = read_faces_points(label_file)
-    >>> fem_laplacian(points, faces, spectrum_size=6, normalization=None)
-    [6.3469513010430304e-18,
-     0.0005178862383467462,
-     0.0017434911095630795,
-     0.0036675617674876856,
-     0.005429017880363785,
-     0.006309346984678933]
+    >>> spectrum = fem_laplacian(points, faces, spectrum_size=6, normalization=None)
+    >>> spectrum[1:4]
+    [0.0005681861491167398, 0.0018946636972075655, 0.004315031564962787]
+    >>> spectrum[4::]
+    [0.00690975838423818, 0.0077526156631366906]
     >>> # Area-normalized spectrum for a single label (postcentral):
-    >>> fem_laplacian(points, faces, spectrum_size=6, normalization="area")
-    [1.1410192787181146e-21,
-     9.3102680973672063e-08,
-     3.1343504525679647e-07,
-     6.5933366810380741e-07,
-     9.7599836081654446e-07,
-     1.1342589857996233e-06]
+    >>> spectrum = fem_laplacian(points, faces, spectrum_size=6, normalization="area")
+    >>> spectrum[1:4]
+    [2.6925865044095869, 8.9786523473446529, 20.448572665809486]
+    >>> spectrum[4::]
+    [32.744765431281088, 36.738995381858906]
 
     """
     from scipy.sparse.linalg import eigsh, lobpcg
@@ -495,45 +494,45 @@ def spectrum_of_largest(points, faces, spectrum_size=10, exclude_labels=[-1],
     Examples
     --------
     >>> # Spectrum for left postcentral + pars triangularis pial surfaces:
-    >>> import os
     >>> import numpy as np
     >>> from mindboggle.mio.vtks import read_scalars, read_vtk, write_vtk
     >>> from mindboggle.guts.mesh import remove_faces, reindex_faces_points
     >>> from mindboggle.shapes.laplace_beltrami import spectrum_of_largest
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> label_file = os.path.join(path, 'labels', 'lh.labels.DKT31.manual.vtk')
-    >>> area_file = os.path.join(path, 'shapes', 'lh.pial.area.vtk')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> label_file = fetch_data(urls['left_freesurfer_labels'])
+    >>> area_file = fetch_data(urls['left_area'])
     >>> spectrum_size = 6
     >>> exclude_labels = [-1]
     >>> normalization = None
-    >>> points, indices, lines, faces, labels, scalar_names, npoints, input_vtk = read_vtk(label_file, return_first=True, return_array=True)
-    >>> I20 = [i for i,x in enumerate(labels) if x==20] # pars triangularis
-    >>> I22 = [i for i,x in enumerate(labels) if x==22] # postcentral
+    >>> points, indices, lines, faces, labels, f1, npoints, f2 = read_vtk(label_file,
+    ...     return_first=True, return_array=True)
+    >>> I20 = [i for i,x in enumerate(labels) if x==1020] # pars triangularis
+    >>> I22 = [i for i,x in enumerate(labels) if x==1022] # postcentral
     >>> I22.extend(I20)
     >>> faces = remove_faces(faces, I22)
     >>> faces, points, o1 = reindex_faces_points(faces, points)
     >>> areas, u1 = read_scalars(area_file, True, True)
-    >>> #
-    >>> spectrum_of_largest(points, faces, spectrum_size, exclude_labels,
-    >>>                     normalization, areas)
-    [6.3469513010430304e-18,
-     0.0005178862383467463,
-     0.0017434911095630772,
-     0.003667561767487686,
-     0.005429017880363784,
-     0.006309346984678924]
-    >>> # View both segments:
+    >>> spectrum = spectrum_of_largest(points, faces, spectrum_size,
+    ...     exclude_labels, normalization, areas)
+    >>> spectrum[0:3]
+    [-2.7755575615628914e-17, 0.0005681861491167502, 0.0018946636972075534]
+    >>> spectrum[3::]
+    [0.004315031564962778, 0.006909758384238145, 0.007752615663136722]
+
+    View both segments (skip test):
+
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> scalars = np.zeros(np.shape(labels))
     >>> scalars[I22] = 1
     >>> vtk_file = 'test_two_labels.vtk'
     >>> write_vtk(vtk_file, points, indices, lines, faces,
     >>>           scalars, scalar_names='scalars', scalar_type='int')
-    >>> plot_surfaces(vtk_file)
+    >>> plot_surfaces(vtk_file) # doctest: +SKIP
 
     """
-    from scipy.sparse.linalg import eigsh, lobpcg
     import numpy as np
+    #from scipy.sparse.linalg import eigsh, lobpcg
 
     from mindboggle.guts.segment import select_largest
     from mindboggle.shapes.laplace_beltrami import fem_laplacian
@@ -545,9 +544,9 @@ def spectrum_of_largest(points, faces, spectrum_size=10, exclude_labels=[-1],
     min_points_faces = spectrum_size
     npoints = len(points) 
     if npoints < min_points_faces or len(faces) < min_points_faces:
-        print("The input size {0} ({1} faces) should be much larger "
-              "than spectrum_size ({2})".
-              format(npoints, len(faces), spectrum_size))
+        raise IOError("The input size {0} ({1} faces) should be much larger "
+                      "than spectrum_size ({2})".
+                      format(npoints, len(faces), spectrum_size))
         return None
     else:
 
@@ -559,7 +558,8 @@ def spectrum_of_largest(points, faces, spectrum_size=10, exclude_labels=[-1],
 
         # Alert if the number of indices is small:
         if len(points) < min_points_faces:
-            print("The input size {0} is too small.".format(len(points)))
+            raise IOError("The input size {0} is too small.".
+                          format(len(points)))
             return None
         elif faces:
 
@@ -600,36 +600,16 @@ def spectrum_from_file(vtk_file, spectrum_size=10, exclude_labels=[-1],
     Examples
     --------
     >>> # Spectrum for entire left hemisphere of Twins-2-1:
-    >>> import os
     >>> from mindboggle.shapes.laplace_beltrami import spectrum_from_file
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> spectrum_from_file(vtk_file, spectrum_size=6)
-    [4.829758648026223e-18,
-     0.00012841730024671977,
-     0.0002715181572272744,
-     0.00032051508471594173,
-     0.000470162807048644,
-     0.0005768904023010327]
-    >>> # Spectrum for Twins-2-1 left postcentral pial surface (22)
-    >>> # (after running explode_scalars() with reindex=True):
-    >>> import os
-    >>> from mindboggle.shapes.laplace_beltrami import spectrum_from_file
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'labels', 'label22.vtk')
-    >>> spectrum_from_file(vtk_file, spectrum_size=6)
-    [6.3469513010430304e-18,
-     0.0005178862383467463,
-     0.0017434911095630772,
-     0.003667561767487686,
-     0.005429017880363784,
-     0.006309346984678924]
-    >>> # Loop thru all MB 101 brains
-    >>> from mindboggle.shapes.laplace_beltrami import spectrum_from_file
-    >>> for hemidir in os.listdir(header):
-    >>>     print hemidir
-    >>>     sulci_file = os.path.join(header, hemidir, "sulci.vtk")
-    >>>     spectrum = spectrum_from_file(sulci_file)
+    >>> from mindboggle.shapes.laplace_beltrami import spectrum_per_label
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> vtk_file = fetch_data(urls['left_freesurfer_labels'])
+    >>> spectrum = spectrum_from_file(vtk_file, spectrum_size=6)
+    >>> spectrum[0:3]
+    [3.2959746043559335e-17, 0.00012841727132382671, 0.0002715180898560394]
+    >>> spectrum[3::]
+    [0.000320515004918644, 0.0004701626982191436, 0.0005768902810580883]
 
     """
     from mindboggle.mio.vtks import read_vtk, read_scalars
@@ -683,23 +663,20 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
     --------
     >>> # Uncomment "if label==22:" below to run example:
     >>> # Spectrum for Twins-2-1 left postcentral (22) pial surface:
-    >>> import os
     >>> from mindboggle.shapes.laplace_beltrami import spectrum_per_label
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'labels', 'lh.labels.DKT31.manual.vtk')
-    >>> area_file = os.path.join(path, 'shapes', 'lh.pial.area.vtk')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> vtk_file = fetch_data(urls['left_freesurfer_labels'])
+    >>> area_file = fetch_data(urls['left_area'])
     >>> spectrum_size = 6
     >>> exclude_labels = [0]  #[-1]
     >>> largest_segment = True
-    >>> spectrum_per_label(vtk_file, spectrum_size, exclude_labels, None,
-    >>>                    area_file, largest_segment)
-    ([[6.3469513010430304e-18,
-       0.0005178862383467463,
-       0.0017434911095630772,
-       0.003667561767487686,
-       0.005429017880363784,
-       0.006309346984678924]],
-     [22])
+    >>> spectrum_lists, label_list = spectrum_per_label(vtk_file,
+    ...     spectrum_size, exclude_labels, None, area_file, largest_segment)
+    >>> spectrum_lists[0][0:3]
+    [2.7755575615628914e-17, 0.0005388516368876693, 0.0024358654463571914]
+    >>> label_list[0:10]
+    [1029, 1005, 1011, 1021, 1008, 1025, 999, 1013, 1007, 1022]
 
     """
     from mindboggle.mio.vtks import read_vtk, read_scalars
@@ -753,6 +730,14 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
     return spectrum_lists, label_list
 
 
+#=============================================================================
+# Doctests
+#=============================================================================
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
+
+
 #if __name__ == "__main__":
 
     # import numpy as np
@@ -767,11 +752,3 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
     #
     # print("Linear FEM Laplace-Beltrami spectrum\n\t{0}\n".format(
     #     fem_laplacian(points, faces, spectrum_size=5)))
-
-
-#=============================================================================
-# Doctests
-#=============================================================================
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod()
