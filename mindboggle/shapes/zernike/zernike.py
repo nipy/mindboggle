@@ -201,42 +201,24 @@ def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
 
     Examples
     --------
-    >>> # Uncomment "if label==22:" below to run example:
-    >>> # Twins-2-1 left postcentral (22) pial surface:
-    >>> import os
+    >>> # Zernike moments per label of a FreeSurfer-labeled left cortex.
+    >>> # Uncomment "if label==22:" below to run example
+    >>> # for left postcentral (22) pial surface:
     >>> from mindboggle.shapes.zernike.zernike import zernike_moments_per_label
-    >>> path = os.path.join(os.environ['HOME'], 'mindboggled', 'OASIS-TRT-20-1')
-    >>> vtk_file = os.path.join(path, 'labels', 'left_surface', 'relabeled_classifier.vtk')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> vtk_file = fetch_data(urls['left_freesurfer_labels'])
     >>> order = 3
-    >>> exclude_labels = [-1, 0]
+    >>> exclude_labels = [-1]
     >>> scale_input = True
-    >>> zernike_moments_per_label(vtk_file, order, exclude_labels, scale_input)
-    ([[0.00528486237819844,
-       0.009571754617699853,
-       0.0033489494903015944,
-       0.00875603468268444,
-       0.0015879536633349918,
-       0.0008080165707033097]],
-     [22])
-
-
-    ([[0.0018758013185778298,
-       0.001757973693050823,
-       0.002352403177686726,
-       0.0032281044369938286,
-       0.002215900343702539,
-       0.0019646380916703856]],
-     [14.0])
-    Arthur Mikhno's result:
-    1.0e+07 *
-    0.0000
-    0.0179
-    0.0008
-    4.2547
-    0.0534
-    4.4043
-
-
+    >>> descriptors_lists, label_list = zernike_moments_per_label(vtk_file,
+    ...     order, exclude_labels, scale_input)
+    >>> descriptors_lists[0][0:3]
+    [0.005865743894455339, 0.011431042887308061, 0.003095835848778167]
+    >>> descriptors_lists[0][3::]
+    [0.008805622073816041, 0.0010741387956486128, 0.00041125892918862704]
+    >>> label_list[0:10]
+    [999, 1001, 1002, 1003, 1005, 1006, 1007, 1008, 1009, 1010]
 
     """
     import numpy as np
@@ -266,7 +248,7 @@ def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
         # Determine the indices per label:
         #---------------------------------------------------------------------
         Ilabel = [i for i,x in enumerate(labels) if x == label]
-        print('  {0} vertices for label {1}'.format(len(Ilabel), label))
+        # print('  {0} vertices for label {1}'.format(len(Ilabel), label))
         if len(Ilabel) > min_points_faces:
 
             #-----------------------------------------------------------------

@@ -1,4 +1,4 @@
-from . import zernike_moments
+from . import zernike
 from .test.multiproc import MultiprocPipeline
 from mindboggle.mio.vtks import read_vtk
 import numpy as np
@@ -25,12 +25,12 @@ def example1():
     print "Example 1: Simple cube"
     points = np.array([[0,0,0], [1,0,0], [0,0,1], [0,1,1], [1,0,1], [0,1,0], [1,1,1], [1,1,0]])
     faces = np.array([[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]])
-    result = zernike_moments(points, faces, order=3, scale_input=True)
+    result = zernike(points, faces, order=3, scale_input=True)
     assert np.allclose(result, np.array([0.0918881492369654, 0.09357431096617608, 0.04309029164656885,
                                          0.06466432586854755, 0.03820155248327533, 0.04138011726544602]))
     
 def main():
-    zernike_fn = zernike_moments
+    zernike_fn = zernike
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--debug', nargs='?', default=None, const='debug', choices=['debug', 'info', 'warning', 'error', 'critical']) 
