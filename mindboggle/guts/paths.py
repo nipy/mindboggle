@@ -70,8 +70,8 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     >>> points, f1,f2,f3, curvs, f4,f5,f6 = read_vtk(curv_file, True,True)
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> values = curvs * depths
-    >>> values[0:5]
-    array([-0.11778179, -0.35642071, -0.8075908 , -0.25654132, -0.04410351])
+    >>> print(np.array_str(values[0:5], precision=5, suppress_small=True))
+    [-0.11778 -0.35642 -0.80759 -0.25654 -0.0441 ]
     >>> neighbor_lists = find_neighbors_from_file(curv_file)
     >>> background_value = -1
     >>> # Single fold:
@@ -314,8 +314,8 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists,
     >>> points, f1,f2,f3, curvs, f4,f5,f6 = read_vtk(curv_file, True,True)
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> values = curvs * depths
-    >>> values[0:5]
-    array([-0.11778179, -0.35642071, -0.8075908 , -0.25654132, -0.04410351])
+    >>> print(np.array_str(values[0:5], precision=5, suppress_small=True))
+    [-0.11778 -0.35642 -0.80759 -0.25654 -0.0441 ]
     >>> neighbor_lists = find_neighbors_from_file(curv_file)
     >>> background_value = -1
     >>> # Single fold:
@@ -645,8 +645,8 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
     >>> curvs, name = read_scalars(curv_file, True, True)
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> values = curvs * depths
-    >>> values[0:5]
-    array([-0.11778179, -0.35642071, -0.8075908 , -0.25654132, -0.04410351])
+    >>> print(np.array_str(values[0:5], precision=5, suppress_small=True))
+    [-0.11778 -0.35642 -0.80759 -0.25654 -0.0441 ]
     >>> skeletons, name = read_scalars(fundus_file, True, True)
     >>> bounds, name = read_scalars(folds_file, True, True)
     >>> background_value = -1
@@ -1062,8 +1062,8 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     >>> points, f1,f2,f3, curvs, f4,f5,f6 = read_vtk(curv_file, True,True)
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> values = curvs * depths
-    >>> values[0:5]
-    array([-0.11778179, -0.35642071, -0.8075908 , -0.25654132, -0.04410351])
+    >>> print(np.array_str(values[0:5], precision=5, suppress_small=True))
+    [-0.11778 -0.35642 -0.80759 -0.25654 -0.0441 ]
     >>> neighbor_lists = find_neighbors_from_file(curv_file)
     >>> background_value = -1
     >>> # Single fold:
@@ -1282,8 +1282,8 @@ def find_max_values(points, values, min_separation=10, thr=0.5):
     >>> points, f1,f2,f3, curvs, f4,f5,f6 = read_vtk(curv_file, True,True)
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> values = curvs * depths
-    >>> values[0:5]
-    array([-0.11778179, -0.35642071, -0.8075908 , -0.25654132, -0.04410351])
+    >>> print(np.array_str(values[0:5], precision=5, suppress_small=True))
+    [-0.11778 -0.35642 -0.80759 -0.25654 -0.0441 ]
     >>> min_separation = 10
     >>> values0 = [x for x in values if x > 0]
     >>> thr = np.median(values0) + 2 * median_abs_dev(values0)

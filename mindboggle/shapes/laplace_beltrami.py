@@ -63,37 +63,38 @@ def computeAB(points, faces):
 
     Returns
     -------
-    A : numpy matrix
-    B : numpy matrix
+    A : csr_matrix
+    B : csr_matrix
 
     Examples
     --------
     >>> # Define a cube, then compute A and B on a selection of faces.
     >>> import numpy as np
     >>> from mindboggle.shapes.laplace_beltrami import computeAB
-    >>> points = [[0,0,0], [1,0,0], [0,0,1], [0,1,1], [1,0,1], [0,1,0], [1,1,1], [1,1,0]]
+    >>> points = [[0,0,0], [1,0,0], [0,0,1], [0,1,1],
+    ...           [1,0,1], [0,1,0], [1,1,1], [1,1,0]]
     >>> points = np.array(points)
     >>> faces = [[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]]
     >>> faces = np.array(faces)
     >>> A, B = computeAB(points, faces)
-    >>> A.toarray()
-    [[ 1.5  -1.   -0.5   0.    0.    0.    0.    0.  ]
-     [-1.    2.    0.    0.   -0.5   0.    0.    -0.5  ]
-     [-0.5   0.    2.   -0.5  -1.    0.    0.    0.  ]
-     [ 0.    0.   -0.5   2.56066017 -0.35355339 -1.20710678 -0.5   0.  ]
-     [ 0.   -0.5  -1.   -0.35355339  1.85355339  0.    0.    0.  ]
-     [ 0.    0.    0.   -1.20710678  0.    1.20710678    0.    0.  ]
-     [ 0.    0.    0.   -0.5   0.    0.    0.5    0.  ]
-     [ 0.   -0.5   0.    0.    0.    0.    0.    0.5]]
-    >>> B.toarray()
-    [[ 0.25  0.08333333  0.04166667  0.    0.08333333  0.    0.    0.04166667]
-     [ 0.08333333  0.16666667  0.    0.    0.04166667  0.    0.    0.04166667]
-     [ 0.04166667  0.    0.16666667  0.04166667  0.08333333  0.    0.    0.  ]
-     [ 0.    0.    0.04166667  0.2845178   0.10059223  0.10059223    0.04166667  0.  ]
-     [ 0.08333333  0.04166667  0.08333333  0.10059223  0.36785113  0.05892557  0.  0.  ]
-     [ 0.    0.    0.    0.10059223  0.05892557  0.20118446    0.04166667  0.  ]
-     [ 0.    0.    0.    0.04166667  0.    0.04166667    0.08333333  0.  ]
-     [ 0.04166667  0.04166667  0.    0.    0.    0.    0.     0.08333333]]
+    >>> print(np.array_str(A.toarray(), precision=5, suppress_small=True))
+    [[ 1.5     -1.      -0.5      0.       0.       0.       0.       0.     ]
+     [-1.       2.       0.       0.      -0.5      0.       0.      -0.5    ]
+     [-0.5      0.       2.      -0.5     -1.       0.       0.       0.     ]
+     [ 0.       0.      -0.5      2.56066 -0.35355 -1.20711 -0.5      0.     ]
+     [ 0.      -0.5     -1.      -0.35355  1.85355  0.       0.       0.     ]
+     [ 0.       0.       0.      -1.20711  0.       1.20711  0.       0.     ]
+     [ 0.       0.       0.      -0.5      0.       0.       0.5      0.     ]
+     [ 0.      -0.5      0.       0.       0.       0.       0.       0.5    ]]
+    >>> print(np.array_str(B.toarray(), precision=5, suppress_small=True))
+    [[ 0.25     0.08333  0.04167  0.       0.08333  0.       0.       0.04167]
+     [ 0.08333  0.16667  0.       0.       0.04167  0.       0.       0.04167]
+     [ 0.04167  0.       0.16667  0.04167  0.08333  0.       0.       0.     ]
+     [ 0.       0.       0.04167  0.28452  0.10059  0.10059  0.04167  0.     ]
+     [ 0.08333  0.04167  0.08333  0.10059  0.36785  0.05893  0.       0.     ]
+     [ 0.       0.       0.       0.10059  0.05893  0.20118  0.04167  0.     ]
+     [ 0.       0.       0.       0.04167  0.       0.04167  0.08333  0.     ]
+     [ 0.04167  0.04167  0.       0.       0.       0.       0.       0.08333]]
 
     """
     import numpy as np
@@ -208,18 +209,23 @@ def area_normalize(points, faces, spectrum):
 
     Examples
     --------
+    >>> import numpy as np
     >>> from mindboggle.shapes.laplace_beltrami import area_normalize
     >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian
     >>> # Define a cube:
     >>> points = [[0,0,0], [0,1,0], [1,1,0], [1,0,0],
-    >>>           [0,0,1], [0,1,1], [1,1,1], [1,0,1]]
+    ...           [0,0,1], [0,1,1], [1,1,1], [1,0,1]]
     >>> faces = [[0,1,2], [2,3,0], [4,5,6], [6,7,4], [0,4,7], [7,3,0],
-    >>>          [0,4,5], [5,1,0], [1,5,6], [6,2,1], [3,7,6], [6,2,3]]
-    >>> spectrum = fem_laplacian(points, faces, spectrum_size=3, normalization=None)
-    [1.196959198423997e-16, 4.583592135001263, 4.800000000000001]
+    ...          [0,4,5], [5,1,0], [1,5,6], [6,2,1], [3,7,6], [6,2,3]]
+    >>> spectrum = fem_laplacian(points, faces, spectrum_size=3,
+    ...                          normalization=None)
+    >>> print(np.array_str(np.array(spectrum[1::]),
+    ...       precision=5, suppress_small=True))
+    [ 4.58359  4.8    ]
     >>> new_spectrum = area_normalize(points, faces, spectrum)
-    >>> new_spectrum
-    [7.1817551905439804e-16, 27.501552810007574, 28.800000000000001]
+    >>> print(np.array_str(np.array(new_spectrum[1::]),
+    ...       precision=5, suppress_small=True))
+    [ 27.50155  28.8    ]
 
     """
     from mindboggle.guts.mesh import area_of_faces
@@ -251,43 +257,48 @@ def wesd(EVAL1, EVAL2, Vol1, Vol2, show_error=False, N=3):
     Vol2: float
         Volume (area for 2D) of the 2nd shape
     show_error: boolean
-        Whether display the error of WESD using Eqs.(9) and (10) in Konukoglu et al. (2012).
+        display the error of WESD using Eqs.(9) and (10) in Konukoglu (2012)?
         default: false
     N : integer
         The length of spetrum used (N>=3, default: 3)
 
     """
 
-    d = 2.0 # " a surface is a 2d manifold. It doesn't matter that it is usually embedded in 3d Euclidean space. -Martin"
+    # Martin Reuter: "a surface is a 2d manifold.
+    # It doesn't matter that it is usually embedded in 3d Euclidean space."
+    d = 2.0
     Ball = 4.0 / 3 * np.pi  # For three dimensions
     p = 2.0
 
     Vol = np.amax((Vol1, Vol2))
     mu = np.amax(EVAL1[1], EVAL2[1])
 
-    C = ((d+2)/(d*4*np.pi**2)*(Ball*Vol)**(2/d) - 1/mu)**p + ((d+2)/(d*4*np.pi**2)*(Ball*Vol/2)**(2/d) - 1/mu*(d/(d+4)))**p
+    C = ((d+2)/(d*4*np.pi**2)*(Ball*Vol)**(2/d) - 1/mu)**p + \
+        ((d+2)/(d*4*np.pi**2)*(Ball*Vol/2)**(2/d) - 1/mu*(d/(d+4)))**p
 
     K = ((d+2)/(d*4*np.pi**2)*(Ball*Vol)**(2/d) - (1/mu)*(d/(d+2.64)))**p
 
-    W = (C + K*(zeta(2*p/d,1) - 1 - .5**(2*p/d)))**(1/p) # the right-hand side of Eq.(8) or the equation right after Eq.(4)
+    # the right-hand side of Eq.(8) or the equation right after Eq.(4):
+    W = (C + K*(zeta(2*p/d,1) - 1 - .5**(2*p/d)))**(1/p)
 
     holder = 0
     for i in xrange(1, np.amin((len(EVAL1), len(EVAL2) )) ):
         holder += (np.abs(EVAL1[i] - EVAL2[i])/(EVAL1[i]*EVAL2[i]))**p
     WESD = holder ** (1/p)
 
-    nWESD = WESD/W
+    #nWESD = WESD/W
 
     if show_error:
         WN = (C + K * (sum([n**(-1*2*p/d) for n in range(3,N+1)])))**(1/p)
         # the second term on the right-hand side of Eq.(9)
-        print("Truncation error of WESD is: {0}".format(W - WN))
-        print("Truncation error of nWESD is: {1}".format(1 -  WN/W))
+        #print("Truncation error of WESD is: {0}".format(W - WN))
+        #print("Truncation error of nWESD is: {1}".format(1 -  WN/W))
 
     return WESD
 
 
-def fem_laplacian(points, faces, spectrum_size=10, normalization=None):
+def fem_laplacian(points, faces, spectrum_size=10, normalization=None,
+                  verbose=False):
     """
     Compute linear finite-element method Laplace-Beltrami spectrum
     after Martin Reuter's MATLAB code.
@@ -354,6 +365,8 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None):
     normalization : string
         the method used to normalize eigenvalues ('area' or None)
         if "area", use area of the 2D structure as in Reuter et al. 2006
+    verbose : Boolean
+        print statements?
 
     Returns
     -------
@@ -362,45 +375,50 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None):
 
     Examples
     --------
+    >>> import numpy as np
     >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian
     >>> # Define a cube:
     >>> points = [[0,0,0], [0,1,0], [1,1,0], [1,0,0],
-    >>>           [0,0,1], [0,1,1], [1,1,1], [1,0,1]]
+    ...           [0,0,1], [0,1,1], [1,1,1], [1,0,1]]
     >>> faces = [[0,1,2], [2,3,0], [4,5,6], [6,7,4], [0,4,7], [7,3,0],
-    >>>          [0,4,5], [5,1,0], [1,5,6], [6,2,1], [3,7,6], [6,2,3]]
-    >>> spectrum = fem_laplacian(points, faces, spectrum_size=3, normalization=None)
-    >>> spectrum[1::]
-    [4.583592135001263, 4.800000000000001]
-    >>> spectrum = fem_laplacian(points, faces, spectrum_size=3, normalization="area")
-    >>> spectrum[1::]
-    [27.501552810007595, 28.799999999999894]
+    ...          [0,4,5], [5,1,0], [1,5,6], [6,2,1], [3,7,6], [6,2,3]]
+    >>> spectrum = fem_laplacian(points, faces, spectrum_size=3,
+    ...                          normalization=None, verbose=False)
+    >>> print(np.array_str(np.array(spectrum[1::]),
+    ...                    precision=5, suppress_small=True))
+    [ 4.58359  4.8    ]
+    >>> spectrum = fem_laplacian(points, faces, spectrum_size=3
+    ...                          normalization="area", verbose=False)
+    >>> print(np.array_str(np.array(spectrum[1::]),
+    ...                    precision=5, suppress_small=True))
+    [ 27.50155  28.8    ]
     >>> # Spectrum for entire left hemisphere of Twins-2-1:
     >>> from mindboggle.mio.vtks import read_vtk
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
     >>> label_file = fetch_data(urls['left_freesurfer_labels'])
     >>> points, f1,f2, faces, labels, f3,f4,f5 = read_vtk(label_file)
-    >>> spectrum = fem_laplacian(points, faces, spectrum_size=6, normalization=None)
-    >>> spectrum[1:4]
-    [0.0001284172713238458, 0.00027151808985605326, 0.0003205150049186579]
-    >>> spectrum[4::]
-    [0.0004701626982191818, 0.0005768902810581681]
+    >>> spectrum = fem_laplacian(points, faces, spectrum_size=6
+    ...                          normalization=None, verbose=False)
+    >>> print(np.array_str(np.array(spectrum[1::]),
+    ...                    precision=5, suppress_small=True))
+    [ 0.00013  0.00027  0.00032  0.00047  0.00058]
     >>> # Spectrum for Twins-2-1 left postcentral pial surface (22):
     >>> from mindboggle.guts.mesh import remove_faces, reindex_faces_points
     >>> I22 = [i for i,x in enumerate(labels) if x==1022] # postcentral
     >>> faces = remove_faces(faces, I22)
     >>> faces, points, o1 = reindex_faces_points(faces, points)
-    >>> spectrum = fem_laplacian(points, faces, spectrum_size=6, normalization=None)
-    >>> spectrum[1:4]
-    [0.0005681861491167398, 0.0018946636972075655, 0.004315031564962787]
-    >>> spectrum[4::]
-    [0.00690975838423818, 0.0077526156631366906]
+    >>> spectrum = fem_laplacian(points, faces, spectrum_size=6
+    ...                          normalization=None, verbose=False)
+    >>> print(np.array_str(np.array(spectrum[1::]),
+    ...                    precision=5, suppress_small=True))
+    [ 0.00057  0.00189  0.00432  0.00691  0.00775]
     >>> # Area-normalized spectrum for a single label (postcentral):
-    >>> spectrum = fem_laplacian(points, faces, spectrum_size=6, normalization="area")
-    >>> spectrum[1:4]
-    [2.6925865044095869, 8.9786523473446529, 20.448572665809486]
-    >>> spectrum[4::]
-    [32.744765431281088, 36.738995381858906]
+    >>> spectrum = fem_laplacian(points, faces, spectrum_size=6
+    ...                          normalization="area", verbose=False)
+    >>> print(np.array_str(np.array(spectrum[1::]),
+    ...                    precision=5, suppress_small=True))
+    [  2.69259   8.97865  20.44857  32.74477  36.739  ]
 
     """
     from scipy.sparse.linalg import eigsh, lobpcg
@@ -413,8 +431,9 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None):
     #-----------------------------------------------------------------
     A, B = computeAB(points, faces)
     if A.shape[0] <= spectrum_size:
-        print("The 3D shape has too few vertices ({0} <= {1}). Skip.".
-              format(A.shape[0], spectrum_size))
+        if verbose:
+            print("The 3D shape has too few vertices ({0} <= {1}). Skip.".
+                  format(A.shape[0], spectrum_size))
         return None
 
     #-----------------------------------------------------------------
@@ -433,9 +452,10 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None):
     #-----------------------------------------------------------------
     except RuntimeError:     
            
-        print("eigsh() failed. Now try lobpcg.")
-        print("Warning: lobpcg can produce different results from "
-              "Reuter (2006) shapeDNA-tria software.")
+        if verbose:
+            print("eigsh() failed. Now try lobpcg.")
+            print("Warning: lobpcg can produce different results from "
+                  "Reuter (2006) shapeDNA-tria software.")
         # Initial eigenvector values:
         init_eigenvecs = np.random.random((A.shape[0], spectrum_size))
 
@@ -455,9 +475,11 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None):
     #-----------------------------------------------------------------
     if normalization == "area":
         spectrum = area_normalize(points, faces, spectrum)
-        print("Compute area-normalized linear FEM Laplace-Beltrami spectrum")
+        if verbose:
+            print("Compute area-normalized linear FEM Laplace-Beltrami spectrum")
     else:
-        print("Compute linear FEM Laplace-Beltrami spectrum")
+        if verbose:
+            print("Compute linear FEM Laplace-Beltrami spectrum")
 
     return spectrum
 
@@ -515,10 +537,9 @@ def spectrum_of_largest(points, faces, spectrum_size=10, exclude_labels=[-1],
     >>> areas, u1 = read_scalars(area_file, True, True)
     >>> spectrum = spectrum_of_largest(points, faces, spectrum_size,
     ...     exclude_labels, normalization, areas)
-    >>> spectrum[0:3]
-    [-2.7755575615628914e-17, 0.0005681861491167502, 0.0018946636972075534]
-    >>> spectrum[3::]
-    [0.004315031564962778, 0.006909758384238145, 0.007752615663136722]
+    >>> print(np.array_str(np.array(spectrum[1::]),
+    ...                    precision=5, suppress_small=True))
+    [ 0.00057  0.00189  0.00432  0.00691  0.00775]
 
     View both segments (skip test):
 
@@ -527,7 +548,7 @@ def spectrum_of_largest(points, faces, spectrum_size=10, exclude_labels=[-1],
     >>> scalars[I22] = 1
     >>> vtk_file = 'test_two_labels.vtk'
     >>> write_vtk(vtk_file, points, indices, lines, faces,
-    >>>           scalars, scalar_names='scalars', scalar_type='int')
+    ...           scalars, scalar_names='scalars', scalar_type='int')
     >>> plot_surfaces(vtk_file) # doctest: +SKIP
 
     """
@@ -567,7 +588,7 @@ def spectrum_of_largest(points, faces, spectrum_size=10, exclude_labels=[-1],
             # Compute spectrum:
             #-----------------------------------------------------------------
             spectrum = fem_laplacian(points, faces, spectrum_size,
-                                     normalization)
+                                     normalization, verbose=False)
             return spectrum
         else:
             return None
@@ -600,16 +621,16 @@ def spectrum_from_file(vtk_file, spectrum_size=10, exclude_labels=[-1],
     Examples
     --------
     >>> # Spectrum for entire left hemisphere of Twins-2-1:
+    >>> import numpy as np
     >>> from mindboggle.shapes.laplace_beltrami import spectrum_from_file
     >>> from mindboggle.shapes.laplace_beltrami import spectrum_per_label
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
     >>> vtk_file = fetch_data(urls['left_freesurfer_labels'])
     >>> spectrum = spectrum_from_file(vtk_file, spectrum_size=6)
-    >>> spectrum[0:3]
-    [3.2959746043559335e-17, 0.00012841727132382671, 0.0002715180898560394]
-    >>> spectrum[3::]
-    [0.000320515004918644, 0.0004701626982191436, 0.0005768902810580883]
+    >>> print(np.array_str(np.array(spectrum[1::]),
+    ...                    precision=5, suppress_small=True))
+    [ 0.00013  0.00027  0.00032  0.00047  0.00058]
 
     """
     from mindboggle.mio.vtks import read_vtk, read_scalars
@@ -663,6 +684,7 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
     --------
     >>> # Uncomment "if label==22:" below to run example:
     >>> # Spectrum for Twins-2-1 left postcentral (22) pial surface:
+    >>> import numpy as np
     >>> from mindboggle.shapes.laplace_beltrami import spectrum_per_label
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
@@ -673,8 +695,9 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
     >>> largest_segment = True
     >>> spectrum_lists, label_list = spectrum_per_label(vtk_file,
     ...     spectrum_size, exclude_labels, None, area_file, largest_segment)
-    >>> spectrum_lists[0][0:3]
-    [2.7755575615628914e-17, 0.0005388516368876693, 0.0024358654463571914]
+    >>> print(np.array_str(np.array(spectrum_lists[0][1::]),
+    ...                    precision=5, suppress_small=True))
+    [ 0.00054  0.00244  0.00291  0.00456  0.00575]
     >>> label_list[0:10]
     [1029, 1005, 1011, 1021, 1008, 1025, 999, 1013, 1007, 1022]
 
@@ -720,8 +743,8 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
                                            exclude_labels_inner,
                                            normalization, areas)
         else:
-            spectrum = fem_laplacian(pick_points, pick_faces,
-                                     spectrum_size, normalization)
+            spectrum = fem_laplacian(pick_points, pick_faces, spectrum_size,
+                                     normalization, verbose=False)
 
         # Append to a list of lists of spectra:
         spectrum_lists.append(spectrum)

@@ -48,6 +48,7 @@ def antsApplyTransformsToPoints(points, transform_files,
     Examples
     --------
     >>> import os
+    >>> import numpy as np
     >>> from mindboggle.thirdparty.ants import antsApplyTransformsToPoints
     >>> from mindboggle.mio.vtks import read_points
     >>> from mindboggle.mio.fetch_data import prep_tests
@@ -61,15 +62,16 @@ def antsApplyTransformsToPoints(points, transform_files,
     >>> vtk_file = fetch_data(urls['left_pial'])
     >>> points  = read_points(vtk_file)
     >>> inverse_booleans = [0,0,1]
-    >>> ants_path = '' #'/software/install/ants/bin'
+    >>> ants_path = '/software/install/ants/bin' # doctest: +SKIP
     >>> transformed_points = antsApplyTransformsToPoints(points,
     ...     transform_files, inverse_booleans, ants_path) # doctest: +SKIP
-    >>> transformed_points[0] # doctest: +SKIP
-    [-11.2318863235069, -46.7822254243521, -39.8886897340698]
-    >>> transformed_points[1] # doctest: +SKIP
-    [-11.7138385902798, -46.8707474028959, -40.1332832840819]
-    >>> transformed_points[2] # doctest: +SKIP
-    [-12.5623734916398, -46.991260587088, -40.0456405664543]
+    >>> print(np.array_str(np.array(transformed_points[0:5]),
+    ...       precision=5, suppress_small=True)) # doctest: +SKIP
+    [[-11.23189 -46.78223 -39.88869]
+     [-11.71384 -46.87075 -40.13328]
+     [-12.56237 -46.99126 -40.04564]
+     [ -9.66693 -46.0446  -41.36334]
+     [-10.67998 -46.45458 -40.7572 ]]
 
     """
     import os
@@ -102,7 +104,11 @@ def antsApplyTransformsToPoints(points, transform_files,
         ants_command = 'antsApplyTransformsToPoints'
     cmd = [ants_command, '-d', '3', '-i', points_file,
            '-o', transformed_points_file, transform_string]
-    execute(cmd, 'os')
+    try:
+        execute(cmd, 'os')
+    except:
+        raise Exception("Cannot find the {0} command.".format(ants_command))
+
     if not os.path.exists(transformed_points_file):
         raise IOError("antsApplyTransformsToPoints did not create {0}.".
                       format(transformed_points_file))

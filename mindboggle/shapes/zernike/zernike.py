@@ -48,16 +48,17 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     Examples
     --------
     >>> # Example 1: simple cube (decimation results in a Segmentation Fault):
+    >>> import numpy as np
     >>> from mindboggle.shapes.zernike.zernike import zernike_moments
-    >>> points = [[0,0,0], [1,0,0], [0,0,1], [0,1,1], [1,0,1], [0,1,0], [1,1,1], [1,1,0]]
+    >>> points = [[0,0,0], [1,0,0], [0,0,1], [0,1,1],
+    ...           [1,0,1], [0,1,0], [1,1,1], [1,1,0]]
     >>> faces = [[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]]
     >>> order = 3
     >>> scale_input = True
     >>> descriptors = zernike_moments(points, faces, order, scale_input)
-    >>> descriptors[0:3]
-    [0.09188814923696538, 0.0935743109661761, 0.04309029164656885]
-    >>> descriptors[3::]
-    [0.06466432586854744, 0.038201552483275336, 0.04138011726544599]
+    >>> print(np.array_str(np.array(descriptors),
+    ...       precision=5, suppress_small=True))
+    [ 0.09189  0.09357  0.04309  0.06466  0.0382   0.04138]
 
     Example 2: Twins-2-1 left postcentral pial surface -- NO decimation:
                (zernike_moments took 142 seconds for order = 3 with no decimation)
@@ -73,10 +74,9 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     >>> order = 3
     >>> scale_input = True
     >>> descriptors = zernike_moments(points, faces, order, scale_input)
-    >>> descriptors[0:3]
-    [0.004711827848749371, 0.008403464728770595, 0.002949863906214929]
-    >>> descriptors[3::]
-    [0.00761901433745197, 0.0013988214438139612, 0.0007585905175321774]
+    >>> print(np.array_str(np.array(descriptors),
+    ...       precision=5, suppress_small=True))
+    [ 0.00471  0.0084   0.00295  0.00762  0.0014   0.00076]
 
     Example 3: left postcentral + pars triangularis pial surfaces:
 
@@ -89,14 +89,12 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     >>> order = 3
     >>> scale_input = True
     >>> descriptors = zernike_moments(points, faces, order, scale_input)
-    >>> descriptors[0:3]
-    [0.005856566170781968, 0.009733720244506859, 0.00322396202941664]
-    >>> descriptors[3::]
-    [0.008176214784234206, 0.0012967955656291014, 0.0013083730638976398]
+    >>> print(np.array_str(np.array(descriptors),
+    ...       precision=5, suppress_small=True))
+    [ 0.00586  0.00973  0.00322  0.00818  0.0013   0.00131]
 
     View both segments (skip test):
 
-    >>> import numpy as np
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> scalars = -1 * np.ones(np.shape(labels))
     >>> scalars[I22] = 1
@@ -204,6 +202,7 @@ def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
     >>> # Zernike moments per label of a FreeSurfer-labeled left cortex.
     >>> # Uncomment "if label==22:" below to run example
     >>> # for left postcentral (22) pial surface:
+    >>> import numpy as np
     >>> from mindboggle.shapes.zernike.zernike import zernike_moments_per_label
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
@@ -213,12 +212,23 @@ def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
     >>> scale_input = True
     >>> descriptors_lists, label_list = zernike_moments_per_label(vtk_file,
     ...     order, exclude_labels, scale_input)
-    >>> descriptors_lists[0][0:3]
-    [0.005865743894455339, 0.011431042887308061, 0.003095835848778167]
-    >>> descriptors_lists[0][3::]
-    [0.008805622073816041, 0.0010741387956486128, 0.00041125892918862704]
     >>> label_list[0:10]
     [999, 1001, 1002, 1003, 1005, 1006, 1007, 1008, 1009, 1010]
+    >>> print(np.array_str(np.array(descriptors_lists[0]),
+    ...                    precision=5, suppress_small=True))
+    [ 0.00587  0.01143  0.0031   0.00881  0.00107  0.00041]
+    >>> print(np.array_str(np.array(descriptors_lists[1]),
+    ...                    precision=5, suppress_small=True))
+    [ 0.00004  0.00009  0.00003  0.00009  0.00002  0.00001]
+    >>> print(np.array_str(np.array(descriptors_lists[2]),
+    ...                    precision=5, suppress_small=True))
+    [ 0.00144  0.00232  0.00128  0.00304  0.00084  0.00051]
+    >>> print(np.array_str(np.array(descriptors_lists[3]),
+    ...                    precision=5, suppress_small=True))
+    [ 0.00393  0.006    0.00371  0.00852  0.00251  0.00153]
+    >>> print(np.array_str(np.array(descriptors_lists[4]),
+    ...                    precision=5, suppress_small=True))
+    [ 0.00043  0.0003   0.00095  0.00051  0.00115  0.00116]
 
     """
     import numpy as np

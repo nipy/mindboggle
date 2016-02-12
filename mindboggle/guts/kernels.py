@@ -32,8 +32,9 @@ def rbf_kernel(x1, x2, sigma):
     >>> x1 = np.array([0.1,0.2,0.4,0])
     >>> x2 = np.array([0.1,0.3,0.5,0])
     >>> sigma = 0.5
-    >>> rbf_kernel(x1, x2, sigma)
-    0.96078943915232318
+    >>> rbf = rbf_kernel(x1, x2, sigma)
+    >>> print('{0:0.5f}'.format(rbf))
+    0.96079
 
     """
     import numpy as np
@@ -113,8 +114,9 @@ def inverse_distance(x1, x2, epsilon):
     >>> x1 = np.array([0.1,0.2,0.4,0])
     >>> x2 = np.array([0.1,0.3,0.5,0])
     >>> epsilon = 0.05
-    >>> inverse_distance(x1, x2, epsilon)
-    5.2240774992748289
+    >>> d = inverse_distance(x1, x2, epsilon)
+    >>> print('{0:0.5f}'.format(d))
+    5.22408
 
     """
     import numpy as np

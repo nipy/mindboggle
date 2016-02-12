@@ -650,10 +650,21 @@ def reindex_faces_points(faces, points=[]):
     >>> faces, points, npoints = read_faces_points('fold.vtk')
     >>> new_faces, new_points, original_indices = reindex_faces_points(faces,
     ...     points)
+    >>> new_faces[0:5]
+    [[0, 5, 4], [34, 33, 1], [1, 2, 3], [4, 3, 2], [1, 3, 41]]
+    >>> print(np.array_str(np.array(new_points[0]),
+    ...       precision=5, suppress_small=True))
+    [-11.0823  -74.348    -8.88434]
+    >>> print(np.array_str(np.array(new_points[1]),
+    ...       precision=5, suppress_small=True))
+    [ -9.37212 -73.0571   -8.68719]
+    >>> print(np.array_str(np.array(new_points[2]),
+    ...       precision=5, suppress_small=True))
+    [-10.1493 -73.262   -8.7986]
 
     View reindexed fold on surface (skip test):
 
-    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
+    >>> from mindboggle.mio.plots import plot_surfaces
     >>> plot_surfaces('fold.vtk') # doctest: +SKIP
 
     """
@@ -804,7 +815,7 @@ def decimate(points, faces, reduction=0.75, smooth_steps=25,
 
     View decimated surface (skip test):
 
-    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
+    >>> from mindboggle.mio.plots import plot_surfaces
     >>> plot_surfaces('decimated.vtk') # doctest: +SKIP
 
     """
@@ -974,7 +985,7 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100,
 
     View decimated surface (skip test):
 
-    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
+    >>> from mindboggle.mio.plots import plot_surfaces
     >>> plot_surfaces('decimated.vtk') # doctest: +SKIP
 
     """
@@ -1048,10 +1059,10 @@ def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
     ...     indices, nedges, p, set_max_to_1, save_file, output_filestring,
     ...     background_value)
     >>> scalars1, name = read_scalars(input_vtk)
-    >>> (max(scalars1), max(rescaled))
-    (34.9556, 1.0)
-    >>> (np.mean(scalars1), np.mean(rescaled))
-    (7.4382172059361906, 0.44950180785631405)
+    >>> print('{0:0.5f}, {1:0.5f}'.format(max(scalars1), max(rescaled)))
+    34.95560, 1.00000
+    >>> print('{0:0.5f}, {1:0.5f}'.format(np.mean(scalars1), np.mean(rescaled)))
+    7.43822, 0.44950
 
     View rescaled scalar values on surface (skip test):
 
@@ -1149,13 +1160,13 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
     >>> save_file = True
     >>> output_filestring = 'rescaled_scalars'
     >>> verbose = True #False
-    >>> rescaled_scalars, rescaled_label_file = rescale_by_label(input_vtk,
+    >>> rescaled, rescaled_label_file = rescale_by_label(input_vtk,
     ...     labels_or_file, save_file, output_filestring, verbose)
     >>> scalars1, name = read_scalars(input_vtk)
-    >>> (max(scalars1), max(rescaled_scalars))
-    (34.9556, 1.0)
-    >>> (np.mean(scalars1), np.mean(rescaled_scalars))
-    (7.4382172059361906, -0.049475798634033216)
+    >>> print('{0:0.5f}, {1:0.5f}'.format(max(scalars1), max(rescaled)))
+    34.95560, 1.00000
+    >>> print('{0:0.5f}, {1:0.5f}'.format(np.mean(scalars1), np.mean(rescaled)))
+    7.43822, 0.28389
 
     View rescaled scalar values on surface (skip test):
 
@@ -1229,6 +1240,7 @@ def area_of_faces(points, faces):
 
     Examples
     --------
+    >>> import numpy as np
     >>> from mindboggle.guts.mesh import area_of_faces
     >>> from mindboggle.mio.vtks import read_vtk
     >>> from mindboggle.mio.fetch_data import prep_tests
@@ -1236,8 +1248,8 @@ def area_of_faces(points, faces):
     >>> input_vtk = fetch_data(urls['left_area'])
     >>> points, f1, f2, faces, f3, f4, f5, f6 = read_vtk(input_vtk)
     >>> area = area_of_faces(points, faces)
-    >>> area[0:5]
-    array([ 0.21703181,  0.27138698,  0.29033419,  0.17170339,  0.36010545])
+    >>> print(np.array_str(area[0:5], precision=5, suppress_small=True))
+    [ 0.21703  0.27139  0.29033  0.1717   0.36011]
 
     """
     import numpy as np

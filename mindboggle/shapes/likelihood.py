@@ -201,65 +201,68 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
 
     Examples
     --------
-    >>> import os
     >>> import numpy as np
     >>> import cPickle as pickle
     >>> from mindboggle.shapes.likelihood import estimate_distribution
     >>> from mindboggle.mio.fetch_data import prep_tests
-    >>> do_test = True
     >>> # Train on a single surface mesh (using FreeSurfer vs. manual labels):
-    >>> if do_test:
-    >>>     urls, fetch_data = prep_tests()
-    >>>     depth_file = fetch_data(urls['left_travel_depth'])
-    >>>     curv_file = fetch_data(urls['left_mean_curvature'])
-    >>>     folds_file = fetch_data(urls['left_folds'])
-    >>>     labels_file = fetch_data(urls['left_freesurfer_labels'])
-    >>>     depth_files = [depth_file]
-    >>>     curv_files = [curv_file]
-    >>>     fold_files = [folds_file]
-    >>>     label_files = [labels_file]
-    >>> # Train on many Mindboggle-101 surface meshes:
-    >>> else:
-    >>>     mindboggle_path = '../../Mindboggle101_mindboggle_results'
-    >>>     label_path = os.environ['SUBJECTS_DIR']
-    >>>     x_path = os.path.join(os.environ['MINDBOGGLE'], 'x')
-    >>>     atlas_list_file = os.path.join(x_path, 'mindboggle101_atlases.txt')
-    >>>     depth_files = []
-    >>>     curv_files = []
-    >>>     fold_files = []
-    >>>     label_files = []
-    >>>     for atlas in atlas_list:
-    >>>      if 'OASIS' in atlas or 'NKI' in atlas or 'MMRR-21' in atlas:
-    >>>       print(atlas)
-    >>>       for h in ['lh','rh']:
-    >>>         depth_file = os.path.join(mindboggle_path, 'shapes',
-    >>>             '_hemi_'+h+'_subject_'+atlas, h+'.pial.travel_depth.vtk')
-    >>>         curv_file = os.path.join(mindboggle_path, 'shapes',
-    >>>             '_hemi_'+h+'_subject_'+atlas, h+'.pial.mean_curvature.vtk')
-    >>>         folds_file = os.path.join(mindboggle_path, 'features',
-    >>>             '_hemi_'+h+'_subject_'+atlas, 'folds.vtk')
-    >>>         labels_file = os.path.join(label_path, atlas, 'label',
-    >>>             h+'.labels.DKT25.manual.vtk')
-    >>>         depth_files.append(depth_file)
-    >>>         curv_files.append(curv_file)
-    >>>         fold_files.append(folds_file)
-    >>>         label_files.append(labels_file)
+    >>> urls, fetch_data = prep_tests()
+    >>> depth_file = fetch_data(urls['left_travel_depth'])
+    >>> curv_file = fetch_data(urls['left_mean_curvature'])
+    >>> folds_file = fetch_data(urls['left_folds'])
+    >>> labels_file = fetch_data(urls['left_freesurfer_labels'])
+    >>> depth_files = [depth_file]
+    >>> curv_files = [curv_file]
+    >>> fold_files = [folds_file]
+    >>> label_files = [labels_file]
+    >>> #
+    >>> # # Train on many Mindboggle-101 surface meshes:
+    >>> # import os
+    >>> # mindboggle_path = '../../Mindboggle101_mindboggle_results'
+    >>> # label_path = os.environ['SUBJECTS_DIR']
+    >>> # x_path = os.path.join(os.environ['MINDBOGGLE'], 'x')
+    >>> # atlas_list_file = os.path.join(x_path, 'mindboggle101_atlases.txt')
+    >>> # depth_files = []
+    >>> # curv_files = []
+    >>> # fold_files = []
+    >>> # label_files = []
+    >>> # for atlas in atlas_list:
+    >>> #  if 'OASIS' in atlas or 'NKI' in atlas or 'MMRR-21' in atlas:
+    >>> #   print(atlas)
+    >>> #   for h in ['lh','rh']:
+    >>> #     depth_file = os.path.join(mindboggle_path, 'shapes',
+    >>> #         '_hemi_'+h+'_subject_'+atlas, h+'.pial.travel_depth.vtk')
+    >>> #     curv_file = os.path.join(mindboggle_path, 'shapes',
+    >>> #         '_hemi_'+h+'_subject_'+atlas, h+'.pial.mean_curvature.vtk')
+    >>> #     folds_file = os.path.join(mindboggle_path, 'features',
+    >>> #         '_hemi_'+h+'_subject_'+atlas, 'folds.vtk')
+    >>> #     labels_file = os.path.join(label_path, atlas, 'label',
+    >>> #         h+'.labels.DKT25.manual.vtk')
+    >>> #     depth_files.append(depth_file)
+    >>> #     curv_files.append(curv_file)
+    >>> #     fold_files.append(folds_file)
+    >>> #     label_files.append(labels_file)
+    >>> #
     >>> scalar_range1 = np.linspace(0, 1, 51, endpoint=True) # (0 to 1 by 0.02)
     >>> scalar_range2 = np.linspace(-1, 1, 101, endpoint=True) # (-1 to 1 by 0.02)
     >>> depth_border, depth_nonborder = estimate_distribution(depth_files,
-    >>>     scalar_range1, fold_files, label_files)
+    ...     scalar_range1, fold_files, label_files)
     >>> curv_border, curv_nonborder = estimate_distribution(curv_files,
-    >>>     scalar_range2, fold_files, label_files)
-    >>> depth_border['means']
-    array([  6.29197663,  13.52503211,  18.67128154])
-    >>> depth_nonborder['means']
-    array([  4.42467685,   9.86916358,  16.1607273 ])
-    >>> curv_border['means']
-    array([ 3.33657313, -0.33543528, -2.04763135])
-    >>> curv_nonborder['means']
-    array([ 1.75209521, -1.04979245, -3.33141655])
+    ...     scalar_range2, fold_files, label_files)
+    >>> print(np.array_str(np.array(depth_border['means']),
+    ...       precision=5, suppress_small=True))
+    [  6.29198  13.52503  18.67128]
+    >>> print(np.array_str(np.array(depth_nonborder['means']),
+    ...       precision=5, suppress_small=True))
+    [  4.42468   9.86916  16.16073]
+    >>> print(np.array_str(np.array(curv_border['means']),
+    ...       precision=5, suppress_small=True))
+    [ 3.33657 -0.33544 -2.04763]
+    >>> print(np.array_str(np.array(curv_nonborder['means']),
+    ...       precision=5, suppress_small=True))
+    [ 1.7521  -1.04979 -3.33142]
     >>> pickle.dump([depth_border, curv_border, depth_nonborder, curv_nonborder],
-    >>>     open("depth_curv_border_nonborder_parameters.pkl", "wb"))
+    ...     open("depth_curv_border_nonborder_parameters.pkl", "wb"))
 
     """
     from mindboggle.shapes.likelihood import concatenate_sulcus_scalars, \
@@ -333,9 +336,11 @@ def concatenate_sulcus_scalars(scalar_files, fold_files, label_files):
     >>> label_files = [labels_file, labels_file]
     >>> border, nonborder = concatenate_sulcus_scalars(scalar_files,
     ...     fold_files, label_files)
-    >>> border[0:5]
+    >>> print(np.array_str(np.array(border[0:5]),
+    ...       precision=5, suppress_small=True))
     [3.48282, 2.57155, 4.27596, 4.56547, 3.84879]
-    >>> nonborder[0:5]
+    >>> print(np.array_str(np.array(nonborder[0:5]),
+    ...       precision=5, suppress_small=True))
     [2.01242, 2.87204, 2.89389, 3.55363, 2.81681]
 
     """
@@ -426,12 +431,12 @@ def fit_normals_to_histogram(data, x, verbose=False):
     >>> x = np.linspace(0, 1, 51, endpoint=True)
     >>> verbose = False
     >>> means, sigmas, weights = fit_normals_to_histogram(scalars, x, verbose)
-    >>> means
-    array([ 13.36762992,   3.87516777,   0.10806342])
-    >>> sigmas
-    array([ 5.80263696,  2.56613117,  0.10030525])
-    >>> weights
-    array([ 0.44152845,  0.39172726,  0.16674428])
+    >>> print(np.array_str(means, precision=5, suppress_small=True))
+    [ 13.36763   3.87517   0.10806]
+    >>> print(np.array_str(sigmas, precision=5, suppress_small=True))
+    [ 5.80264  2.56613  0.10031]
+    >>> print(np.array_str(weights, precision=5, suppress_small=True))
+    [ 0.44153  0.39173  0.16674]
 
     """
     import numpy as np

@@ -53,7 +53,7 @@ def relabel_volume(input_file, old_labels, new_labels, output_file=''):
 
     View nifti file (skip test):
 
-    >>> from mindboggle.mio.plots import plot_volumes # doctest: +SKIP
+    >>> from mindboggle.mio.plots import plot_volumes
     >>> plot_volumes(output_file) # doctest: +SKIP
 
     """
@@ -136,7 +136,7 @@ def remove_volume_labels(input_file, labels_to_remove, output_file='',
 
     View nifti file (skip test):
 
-    >>> from mindboggle.mio.plots import plot_volumes # doctest: +SKIP
+    >>> from mindboggle.mio.plots import plot_volumes
     >>> plot_volumes(output_file) # doctest: +SKIP
 
     """
@@ -239,7 +239,7 @@ def keep_volume_labels(input_file, labels_to_keep, output_file='',
 
     View nifti file (skip test):
 
-    >>> from mindboggle.mio.plots import plot_volumes # doctest: +SKIP
+    >>> from mindboggle.mio.plots import plot_volumes
     >>> plot_volumes(output_file) # doctest: +SKIP
 
     """
@@ -357,7 +357,7 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
 
     View relabeled surface file (skip test):
 
-    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
+    >>> from mindboggle.mio.plots import plot_surfaces
     >>> plot_surfaces(output_file) # doctest: +SKIP
 
     """
@@ -475,7 +475,7 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
 
     View nifti file (skip test):
 
-    >>> from mindboggle.mio.plots import plot_volumes # doctest: +SKIP
+    >>> from mindboggle.mio.plots import plot_volumes
     >>> plot_volumes(output_file) # doctest: +SKIP
 
     """

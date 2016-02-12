@@ -99,8 +99,9 @@ def vector_distance(vector1, vector2, normalize=False):
     >>> from mindboggle.guts.compute import vector_distance
     >>> vector1 = np.array([1.,2.,3.])
     >>> vector2 = np.array([0,1,5])
-    >>> vector_distance(vector1, vector2)
-    0.81649658092772592
+    >>> distance = vector_distance(vector1, vector2)
+    >>> print('{0:0.5f}'.format(distance))
+    0.81650
 
     """
     import numpy as np
@@ -152,11 +153,12 @@ def pairwise_vector_distances(vectors, save_file=False, normalize=False):
     >>> normalize = False
     >>> vector_distances, outfile = pairwise_vector_distances(vectors,
     ...     save_file, normalize)
-    >>> vector_distances
-    array([[ 0.        ,  0.81649658,  0.89752747,  0.74535599],
-           [ 0.        ,  0.        ,  0.16666667,  1.52752523],
-           [ 0.        ,  0.        ,  0.        ,  1.60727513],
-           [ 0.        ,  0.        ,  0.        ,  0.        ]])
+    >>> print(np.array_str(np.array(vector_distances),
+    ...       precision=5, suppress_small=True))
+    [[ 0.       0.8165   0.89753  0.74536]
+     [ 0.       0.       0.16667  1.52753]
+     [ 0.       0.       0.       1.60728]
+     [ 0.       0.       0.       0.     ]]
 
     """
     import os
@@ -491,6 +493,7 @@ def means_per_label(values, labels, include_labels=[], exclude_labels=[], areas=
 
     Examples
     --------
+    >>> import numpy as np
     >>> from mindboggle.mio.vtks import read_scalars, read_vtk
     >>> from mindboggle.guts.compute import means_per_label
     >>> from mindboggle.mio.fetch_data import prep_tests
@@ -506,18 +509,22 @@ def means_per_label(values, labels, include_labels=[], exclude_labels=[], areas=
     >>> # Compute mean curvature per label normalized by area:
     >>> means, sdevs, label_list, label_areas = means_per_label(values, labels,
     ...     include_labels, exclude_labels, areas)
-    >>> means[0:3]
-    [-1.1793044671582817, -1.2140542483504968, -2.493175052379216]
-    >>> sdevs[0:3]
-    [2.4382673224633384, 2.3385730827461524, 2.0185030879621064]
+    >>> print(np.array_str(np.array(means[0:5]),
+    ...       precision=5, suppress_small=True))
+    [-1.1793  -1.21405 -2.49318 -3.58116 -3.34987]
+    >>> print(np.array_str(np.array(sdevs[0:5]),
+    ...       precision=5, suppress_small=True))
+    [ 2.43827  2.33857  2.0185   3.25964  2.8274 ]
     >>> # Compute mean curvature per label:
     >>> areas = []
     >>> means, sdevs, label_list, label_areas = means_per_label(values, labels,
     ...     include_labels, exclude_labels, areas)
-    >>> means[0:3]
-    [-0.99076805512931965, -0.30049554123055167, -1.5934202292058071]
-    >>> sdevs[0:3]
-    [2.3486044266667516, 2.4022970537134016, 2.3252993828800501]
+    >>> print(np.array_str(np.array(means[0:5]),
+    ...       precision=5, suppress_small=True))
+    [-0.99077 -0.3005  -1.59342 -2.03939 -2.31815]
+    >>> print(np.array_str(np.array(sdevs[0:5]),
+    ...       precision=5, suppress_small=True))
+    [ 2.3486   2.4023   2.3253   3.31023  2.91793]
 
     >>> # FIX: compute mean coordinates per label:
     >>> #points, indices, lines, faces, labels, scalar_names, npoints, input_vtk = read_vtk(values_file)
@@ -613,6 +620,7 @@ def sum_per_label(values, labels, include_labels=[], exclude_labels=[]):
 
     Examples
     --------
+    >>> import numpy as np
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.guts.compute import sum_per_label
     >>> from mindboggle.mio.fetch_data import prep_tests
@@ -626,8 +634,9 @@ def sum_per_label(values, labels, include_labels=[], exclude_labels=[]):
     >>> # Compute sum area per label:
     >>> sums, label_list = sum_per_label(values, labels, include_labels,
     ...                                  exclude_labels)
-    >>> sums[0:3]
-    [-8228.3286978489996, -424.90069530000005, -1865.8950884000001]
+    >>> print(np.array_str(np.array(sums[0:5]),
+    ...       precision=5, suppress_small=True))
+    [-8228.3287   -424.9007  -1865.89509 -8353.337   -5130.06658]
 
     """
     import numpy as np
@@ -712,6 +721,7 @@ def stats_per_label(values, labels, include_labels=[], exclude_labels=[],
 
     Examples
     --------
+    >>> import numpy as np
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.guts.compute import stats_per_label
     >>> from mindboggle.mio.fetch_data import prep_tests
@@ -728,14 +738,18 @@ def stats_per_label(values, labels, include_labels=[], exclude_labels=[],
     >>> precision = 1
     >>> medians, mads, means, sdevs, skews, kurts, lower_quarts, upper_quarts, label_list = stats_per_label(values,
     ...     labels, include_labels, exclude_labels, weights, precision)
-    >>> medians[0:3]
-    [-1.13602, -1.2296100000000001, -2.4966499999999998]
-    >>> mads[0:3]
-    [1.170255, 1.5045030000000001, 1.28234]
-    >>> means[0:3]
-    [-1.1793044671582793, -1.2140542483504964, -2.4931750523792142]
-    >>> kurts[0:3]
-    [2.3411784448846227, -0.39690083155055289, -0.55786762009358526]
+    >>> print(np.array_str(np.array(medians[0:5]),
+    ...       precision=5, suppress_small=True))
+    [-1.13602 -1.22961 -2.49665 -3.80782 -3.37309]
+    >>> print(np.array_str(np.array(mads[0:5]),
+    ...       precision=5, suppress_small=True))
+    [ 1.17026  1.5045   1.28234  2.11515  1.69333]
+    >>> print(np.array_str(np.array(means[0:5]),
+    ...       precision=5, suppress_small=True))
+    [-1.1793  -1.21405 -2.49318 -3.58116 -3.34987]
+    >>> print(np.array_str(np.array(kurts[0:5]),
+    ...       precision=5, suppress_small=True))
+    [ 2.34118 -0.3969  -0.55787 -0.73993  0.3807 ]
 
     """
     import numpy as np
@@ -955,6 +969,7 @@ def compute_overlaps(targets, list1, list2, output_file='', save_output=True,
 
     Examples
     --------
+    >>> import numpy as np
     >>> from mindboggle.guts.compute import compute_overlaps
     >>> from mindboggle.mio.labels import DKTprotocol
     >>> list1 = [1021, 1021, 1021, 1021, 1021, 1010, 1010, 1010, 1010, 1010]
@@ -966,10 +981,10 @@ def compute_overlaps(targets, list1, list2, output_file='', save_output=True,
     >>> verbose = False
     >>> dice_overlaps, jacc_overlaps, output_file = compute_overlaps(targets,
     ...     list1, list2, output_file, save_output, verbose)
-    >>> dice_overlaps[18]
-    0.80000000000000004
-    >>> jacc_overlaps[18]
-    0.66666666666666663
+    >>> print('{0:.5f}'.format(dice_overlaps[18]))
+    0.80000
+    >>> print('{0:.5f}'.format(jacc_overlaps[18]))
+    0.66667
 
     """
     import os
@@ -1059,8 +1074,8 @@ def compute_image_histogram(infile, nbins=100, threshold=0.0):
     >>> threshold = 0.5
     >>> histogram_values = compute_image_histogram(labels_file, nbins,
     ...                                            threshold)
-    >>> histogram_values[0:3]
-    array([102865, 119610,      0])
+    >>> histogram_values[0:5]
+    array([102865, 119610,      0,      0,      0])
 
     """
     import numpy as np

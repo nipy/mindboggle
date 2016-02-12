@@ -1462,17 +1462,15 @@ def extract_borders_2nd_surface(labels_file, values_file='',
     >>> background_value = -1
     >>> border_file, values, I = extract_borders_2nd_surface(label_file,
     ...     values_file, background_value)
-    >>> np.unique(values)[0:10]
-    array([ -1.00000000e+00,   0.00000000e+00,   1.23652000e-04,
-             2.25430000e-04,   3.22723000e-04,   4.36337000e-04,
-             4.67208000e-04,   5.08364000e-04,   5.44036000e-04,
-             5.48183000e-04])
+    >>> print(np.array_str(np.unique(values)[0:8],
+    ...       precision=5, suppress_small=True))
+    [-1.       0.       0.00012  0.00023  0.00032  0.00044  0.00047  0.00051]
     >>> I[0:10]
     [115, 116, 120, 121, 125, 126, 130, 131, 281, 286]
 
     Write depth values on label borders to vtk file and view (skip test):
 
-    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
+    >>> from mindboggle.mio.plots import plot_surfaces
     >>> plot_surfaces(border_file) # doctest: +SKIP
 
     """

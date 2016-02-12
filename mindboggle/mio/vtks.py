@@ -134,17 +134,19 @@ def read_points(filename):
 
     Examples
     --------
+    >>> import numpy as np
     >>> from mindboggle.mio.vtks import read_points
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
     >>> depth_file = fetch_data(urls['left_travel_depth'])
     >>> points  = read_points(depth_file)
-    >>> points[0]
-    [-13.792400360107422, -76.09729766845703, -2.575939893722534]
-    >>> points[1]
-    [-14.22249984741211, -76.23619842529297, -2.734250068664551]
-    >>> points[2]
-    [-14.961700439453125, -76.24970245361328, -2.629240036010742]
+    >>> print(np.array_str(np.array(points[0:5]),
+    ...       precision=5, suppress_small=True))
+    [[-13.7924  -76.0973   -2.57594]
+     [-14.2225  -76.2362   -2.73425]
+     [-14.9617  -76.2497   -2.62924]
+     [-12.4807  -76.1401   -3.98634]
+     [-13.3426  -76.1914   -3.3657 ]]
 
     """
     import vtk
@@ -182,6 +184,7 @@ def read_faces_points(filename):
 
     Examples
     --------
+    >>> import numpy as np
     >>> from mindboggle.mio.vtks import read_faces_points
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
@@ -191,12 +194,13 @@ def read_faces_points(filename):
     145069
     >>> faces[0:5]
     [[0, 1, 4], [5, 4, 1], [0, 48, 49], [0, 49, 1], [0, 4, 48]]
-    >>> points[0]
-    [-13.792400360107422, -76.09729766845703, -2.575939893722534]
-    >>> points[1]
-    [-14.22249984741211, -76.23619842529297, -2.734250068664551]
-    >>> points[2]
-    [-14.961700439453125, -76.24970245361328, -2.629240036010742]
+    >>> print(np.array_str(np.array(points[0:5]),
+    ...       precision=5, suppress_small=True))
+    [[-13.7924  -76.0973   -2.57594]
+     [-14.2225  -76.2362   -2.73425]
+     [-14.9617  -76.2497   -2.62924]
+     [-12.4807  -76.1401   -3.98634]
+     [-13.3426  -76.1914   -3.3657 ]]
 
     """
     import vtk
@@ -243,6 +247,7 @@ def read_scalars(filename, return_first=True, return_array=False):
 
     Examples
     --------
+    >>> import numpy as np
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
@@ -250,8 +255,9 @@ def read_scalars(filename, return_first=True, return_array=False):
     >>> depths, name = read_scalars(depth_file)
     >>> name
     'scalars'
-    >>> depths[0:5]
-    [0.0202597, 0.0600915, 0.128586, 0.0456398, 0.00774247]
+    >>> print(np.array_str(np.array(depths[0:5]),
+    ...       precision=5, suppress_small=True))
+    [ 0.02026  0.06009  0.12859  0.04564  0.00774]
 
     """
     #import os
@@ -344,23 +350,26 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
 
     Examples
     --------
+    >>> import numpy as np
     >>> from mindboggle.mio.vtks import read_vtk
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
     >>> depth_file = fetch_data(urls['left_travel_depth'])
     >>> points, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(depth_file)
-    >>> points[0]
-    [-13.792400360107422, -76.09729766845703, -2.575939893722534]
-    >>> points[1]
-    [-14.22249984741211, -76.23619842529297, -2.734250068664551]
-    >>> points[2]
-    [-14.961700439453125, -76.24970245361328, -2.629240036010742]
-    >>> faces[0:5]
-    [[0, 1, 4], [5, 4, 1], [0, 48, 49], [0, 49, 1], [0, 4, 48]]
     >>> npoints
     145069
-    >>> scalars[0:5]
-    [0.0202597, 0.0600915, 0.128586, 0.0456398, 0.00774247]
+    >>> print(np.array_str(np.array(points[0:5]),
+    ...       precision=5, suppress_small=True))
+    [[-13.7924  -76.0973   -2.57594]
+     [-14.2225  -76.2362   -2.73425]
+     [-14.9617  -76.2497   -2.62924]
+     [-12.4807  -76.1401   -3.98634]
+     [-13.3426  -76.1914   -3.3657 ]]
+    >>> print(np.array_str(np.array(scalars[0:5]),
+    ...       precision=5, suppress_small=True))
+    [ 0.02026  0.06009  0.12859  0.04564  0.00774]
+    >>> faces[0:5]
+    [[0, 1, 4], [5, 4, 1], [0, 48, 49], [0, 49, 1], [0, 4, 48]]
 
     """
     #import os
@@ -1385,6 +1394,7 @@ def apply_affine_transforms(transform_files, inverse_booleans,
     Examples
     --------
     >>> import os
+    >>> import numpy as np
     >>> from mindboggle.mio.vtks import apply_affine_transforms
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
@@ -1398,12 +1408,13 @@ def apply_affine_transforms(transform_files, inverse_booleans,
     >>> affine_points, output_file = apply_affine_transforms(transform_files,
     ...     inverse_booleans, transform_format, vtk_or_points, vtk_file_stem,
     ...     command_path) # doctest: +SKIP
-    >>> affine_points[0] # doctest: +SKIP
-    array([-123.02734785, -228.19407339, -101.14380908])
-    >>> affine_points[1] # doctest: +SKIP
-    array([-123.46155694, -228.3981199 , -101.24258101])
-    >>> affine_points[2] # doctest: +SKIP
-    array([-124.2205819 , -228.39971429, -101.15211437])
+    >>> print(np.array_str(np.array(affine_points[0:5]),
+    ...       precision=5, suppress_small=True))
+    [[-123.02735 -228.19407 -101.14381]
+     [-123.46156 -228.39812 -101.24258]
+     [-124.22058 -228.39971 -101.15211]
+     [-121.66154 -228.72653 -102.39572]
+     [-122.55212 -228.56696 -101.82275]]
 
     View resulting vtk file (skip test):
 
