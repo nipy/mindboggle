@@ -3,9 +3,9 @@
 Functions to extract sulci from folds.
 
 Authors:
-    - Arno Klein, 2012-2013  (arno@mindboggle.info)  http://binarybottle.com
+    - Arno Klein, 2012-2016  (arno@mindboggle.info)  http://binarybottle.com
 
-Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -52,21 +52,30 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
 
     Examples
     --------
-    >>> import os
-    >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars
     >>> from mindboggle.features.sulci import extract_sulci
-    >>> from mindboggle.mio.plots import plot_surfaces
-    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
     >>> # Load labels, folds, neighbor lists, and sulcus names and label pairs
-    >>> labels_file = os.path.join(path, 'labels', 'relabeled_lh.DKTatlas40.gcs.vtk')
-    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
+    >>> labels_file = fetch_data(urls['left_freesurfer_labels'])
+    >>> folds_file = fetch_data(urls['left_folds'])
     >>> folds_or_file, name = read_scalars(folds_file)
     >>> hemi = 'lh'
     >>> min_boundary = 10
     >>> sulcus_names = []
-    >>> #
-    >>> sulci, n_sulci, sulci_file = extract_sulci(labels_file, folds_or_file, hemi, min_boundary, sulcus_names)
-    >>> # View:
+    >>> sulci, n_sulci, sulci_file = extract_sulci(labels_file, folds_or_file,
+    ...     hemi, min_boundary, sulcus_names)
+    >>> n_sulci
+    23
+    >>> lens = [len([x for x in sulci if x == y]) for y in range(n_sulci)]
+    >>> lens[0:10]
+    [0, 6568, 3366, 6689, 5358, 4049, 6379, 3551, 2632, 4225]
+    >>> lens[10::]
+    [754, 3724, 2197, 5823, 1808, 5122, 513, 2153, 1445, 418, 0, 3556, 1221]
+
+    View result (skip test):
+
+    >>> from mindboggle.mio.plots import plot_surfaces
     >>> plot_surfaces('sulci.vtk')
 
     """

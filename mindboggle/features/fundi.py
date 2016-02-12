@@ -3,9 +3,9 @@
 Extract fundus curves from surface mesh patches (folds).
 
 Authors:
-Arno Klein, 2013  .  arno@mindboggle.info  .  www.binarybottle.com
+Arno Klein, 2013-2016  .  arno@mindboggle.info  .  www.binarybottle.com
 
-Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -56,14 +56,13 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     --------
     >>> # Extract fundus from one or more folds:
     >>> single_fold = True
-    >>> import os
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.features.fundi import extract_fundi
-    >>> from mindboggle.mio.plots import plot_surfaces
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> curv_file = os.path.join(path, 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> depth_file = os.path.join(path, 'shapes', 'travel_depth_rescaled.vtk')
-    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> curv_file = fetch_data(urls['left_mean_curvature'])
+    >>> depth_file = fetch_data(urls['left_travel_depth'])
+    >>> folds_file = fetch_data(urls['left_folds'])
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> if single_fold:
     >>>     fold_number = 2 #11
@@ -74,9 +73,17 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     >>> save_file = True
     >>> o1, o2, fundus_per_fold_file = extract_fundi(folds, curv_file,
     ...     depth_file, min_separation, erode_ratio, erode_min_size, save_file)
-    >>>
-    >>> # View:
-    >>> #plot_surfaces(fundi_file)
+    >>> if single_fold:
+    ...     lens = [len([x for x in o1 if x == 2])]
+    ... else:
+    ...     lens = [len([x for x in o1 if x == y]) for y in range(o2)]
+    >>> lens[0:10]
+    [115]
+
+    View result (skip test):
+
+    >>> from mindboggle.mio.plots import plot_surfaces
+    >>> plot_surfaces(fundus_per_fold_file) # doctest: +SKIP
 
     """
 
@@ -215,15 +222,16 @@ def segment_fundi(fundus_per_fold, sulci=[], vtk_file='', save_file=False):
     --------
     >>> # Extract fundus from one or more sulci:
     >>> single_fold = True
-    >>> import os
+    >>> from mindboggle.features.fundi import segment_fundi
+    >>> from mindboggle.features.fundi import extract_fundi
     >>> from mindboggle.mio.vtks import read_scalars
-    >>> from mindboggle.features.fundi import extract_fundi, segment_fundi
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'features', 'sulci.vtk')
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> curv_file = fetch_data(urls['left_mean_curvature'])
+    >>> depth_file = fetch_data(urls['left_travel_depth'])
+    >>> folds_file = fetch_data(urls['left_folds'])
+    >>> vtk_file = fetch_data(urls['left_sulci'])
     >>> sulci, name = read_scalars(vtk_file, True, True)
-    >>> curv_file = os.path.join(path, 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> depth_file = os.path.join(path, 'shapes', 'travel_depth_rescaled.vtk')
-    >>> folds_file = os.path.join(path, 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> if single_fold:
     >>>     fold_number = 2 #11
@@ -237,10 +245,17 @@ def segment_fundi(fundus_per_fold, sulci=[], vtk_file='', save_file=False):
     ...     erode_min_size, save_file)
     >>> o1, o2, fundus_per_sulcus_file = segment_fundi(fundus_per_fold,
     ...     sulci, vtk_file, save_file)
-    >>>
-    >>> # View:
-    >>> #from mindboggle.mio.plots import plot_surfaces
-    >>> #plot_surfaces(fundus_per_sulcus_file)
+    >>> if single_fold:
+    ...     lens = [len([x for x in o1 if x == 2])]
+    ... else:
+    ...     lens = [len([x for x in o1 if x == y]) for y in range(o2)]
+    >>> lens[0:10]
+
+
+    View result (skip test):
+
+    >>> from mindboggle.mio.plots import plot_surfaces
+    >>> plot_surfaces(fundus_per_sulcus_file) # doctest: +SKIP
 
     """
 

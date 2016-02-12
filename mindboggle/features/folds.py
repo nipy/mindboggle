@@ -3,9 +3,9 @@
 Functions to extract folds.
 
 Authors:
-    - Arno Klein, 2012-2013  (arno@mindboggle.info)  http://binarybottle.com
+    - Arno Klein, 2012-2016  (arno@mindboggle.info)  http://binarybottle.com
 
-Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -73,11 +73,11 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
 
     Examples
     --------
-    >>> import os
-    >>> from mindboggle.guts.mesh import find_neighbors_from_file
     >>> from mindboggle.features.folds import extract_folds
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'shapes', 'left_cortical_surface', 'travel_depth.vtk')
+    >>> from mindboggle.guts.mesh import find_neighbors_from_file
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> depth_file = fetch_data(urls['left_travel_depth'])
     >>> neighbor_lists = find_neighbors_from_file(depth_file)
     >>> min_vertices = 10000
     >>> min_fold_size = 50
@@ -87,13 +87,15 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
     >>> verbose = False
     >>> folds, n_folds, thr, bins, bin_edges, folds_file = extract_folds(depth_file,
     ...     min_vertices, min_fold_size, do_fill_holes, min_hole_depth,
-    ...     save_file, verbose)  # doctest: +ELLIPSIS
+    ...     save_file, verbose)
     >>> n_folds
     26
-    >>> [len([x for x in folds if x == y]) for y in range(n_folds)]  # doctest: +ELLIPSIS
-    [790, 84008, 2856, 1209, 6623, 211, ..., 101, 158, 140, 235, 71, 73]
-    >>>
-    >>> # View folds:
+    >>> lens = [len([x for x in folds if x == y]) for y in range(n_folds)]
+    >>> lens[0:10]
+    [790, 84008, 2856, 1209, 6623, 211, 1165, 356, 336, 60]
+
+    View folds (skip test):
+
     >>> def vis():
     ...     import numpy as np
     ...     import pylab
