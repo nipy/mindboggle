@@ -387,7 +387,7 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None,
     >>> print(np.array_str(np.array(spectrum[1::]),
     ...                    precision=5, suppress_small=True))
     [ 4.58359  4.8    ]
-    >>> spectrum = fem_laplacian(points, faces, spectrum_size=3
+    >>> spectrum = fem_laplacian(points, faces, spectrum_size=3,
     ...                          normalization="area", verbose=False)
     >>> print(np.array_str(np.array(spectrum[1::]),
     ...                    precision=5, suppress_small=True))
@@ -398,7 +398,7 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None,
     >>> urls, fetch_data = prep_tests()
     >>> label_file = fetch_data(urls['left_freesurfer_labels'])
     >>> points, f1,f2, faces, labels, f3,f4,f5 = read_vtk(label_file)
-    >>> spectrum = fem_laplacian(points, faces, spectrum_size=6
+    >>> spectrum = fem_laplacian(points, faces, spectrum_size=6,
     ...                          normalization=None, verbose=False)
     >>> print(np.array_str(np.array(spectrum[1::]),
     ...                    precision=5, suppress_small=True))
@@ -408,13 +408,13 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None,
     >>> I22 = [i for i,x in enumerate(labels) if x==1022] # postcentral
     >>> faces = remove_faces(faces, I22)
     >>> faces, points, o1 = reindex_faces_points(faces, points)
-    >>> spectrum = fem_laplacian(points, faces, spectrum_size=6
+    >>> spectrum = fem_laplacian(points, faces, spectrum_size=6,
     ...                          normalization=None, verbose=False)
     >>> print(np.array_str(np.array(spectrum[1::]),
     ...                    precision=5, suppress_small=True))
     [ 0.00057  0.00189  0.00432  0.00691  0.00775]
     >>> # Area-normalized spectrum for a single label (postcentral):
-    >>> spectrum = fem_laplacian(points, faces, spectrum_size=6
+    >>> spectrum = fem_laplacian(points, faces, spectrum_size=6,
     ...                          normalization="area", verbose=False)
     >>> print(np.array_str(np.array(spectrum[1::]),
     ...                    precision=5, suppress_small=True))
@@ -729,7 +729,7 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
 
         # Determine the indices per label:
         Ilabel = [i for i,x in enumerate(labels) if x == label]
-        print('{0} vertices for label {1}'.format(len(Ilabel), label))
+        #print('{0} vertices for label {1}'.format(len(Ilabel), label))
 
         # Remove background faces:
         pick_faces = remove_faces(faces, Ilabel)

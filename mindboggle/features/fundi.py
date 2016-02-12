@@ -11,7 +11,8 @@ Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 
 def extract_fundi(folds, curv_file, depth_file, min_separation=10,
-                  erode_ratio=0.1, erode_min_size=1, save_file=False):
+                  erode_ratio=0.1, erode_min_size=1, save_file=False,
+                  verbose=False):
     """
     Extract fundi from folds.
 
@@ -41,6 +42,8 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
         in connect_points_erosion()
     save_file : Boolean
         save output VTK file?
+    verbose : Boolean
+        print statements?
 
     Returns
     -------
@@ -65,14 +68,16 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     >>> folds_file = fetch_data(urls['left_folds'])
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> if single_fold:
-    >>>     fold_number = 2 #11
-    >>>     folds[folds != fold_number] = -1
+    ...     fold_number = 2 #11
+    ...     folds[folds != fold_number] = -1
     >>> min_separation = 10
     >>> erode_ratio = 0.10
     >>> erode_min_size = 10
     >>> save_file = True
+    >>> verbose = False
     >>> o1, o2, fundus_per_fold_file = extract_fundi(folds, curv_file,
-    ...     depth_file, min_separation, erode_ratio, erode_min_size, save_file)
+    ...     depth_file, min_separation, erode_ratio, erode_min_size,
+    ...     save_file, verbose)
     >>> if single_fold:
     ...     lens = [len([x for x in o1 if x == 2])]
     ... else:
@@ -119,16 +124,18 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     skeletons = []
     unique_fold_IDs = [x for x in np.unique(folds) if x != -1]
 
-    if len(unique_fold_IDs) == 1:
-        print("Extract a fundus from 1 fold...")
-    else:
-        print("Extract a fundus from each of {0} folds...".
-              format(len(unique_fold_IDs)))
+    if verbose:
+        if len(unique_fold_IDs) == 1:
+            print("Extract a fundus from 1 fold...")
+        else:
+            print("Extract a fundus from each of {0} folds...".
+                  format(len(unique_fold_IDs)))
 
     for fold_ID in unique_fold_IDs:
         indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
         if indices_fold:
-            print('  Fold {0}:'.format(int(fold_ID)))
+            if verbose:
+                print('  Fold {0}:'.format(int(fold_ID)))
 
             #-----------------------------------------------------------------
             # Find outer anchor points on the boundary of the surface region,
@@ -171,8 +178,9 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
         sdum = 'fold fundus'
     else:
         sdum = 'fold fundi'
-    print('  ...Extracted {0} {1}; {2} total ({3:.2f} seconds)'.
-          format(n_fundi_in_folds, sdum, n_fundi_in_folds, time() - t1))
+    if verbose:
+        print('  ...Extracted {0} {1}; {2} total ({3:.2f} seconds)'.
+              format(n_fundi_in_folds, sdum, n_fundi_in_folds, time() - t1))
 
     #-------------------------------------------------------------------------
     # Return fundi, number of fundi, and file name:
@@ -192,7 +200,8 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     return fundus_per_fold,  n_fundi_in_folds, fundus_per_fold_file
 
 
-def segment_fundi(fundus_per_fold, sulci=[], vtk_file='', save_file=False):
+def segment_fundi(fundus_per_fold, sulci=[], vtk_file='', save_file=False,
+                  verbose=False):
     """
     Segment fundi by sulcus definitions.
 
@@ -207,6 +216,8 @@ def segment_fundi(fundus_per_fold, sulci=[], vtk_file='', save_file=False):
         VTK file with sulcus number for each vertex
     save_file : Boolean
         save output VTK file?
+    verbose : Boolean
+        print statements?
 
     Returns
     -------
@@ -234,17 +245,18 @@ def segment_fundi(fundus_per_fold, sulci=[], vtk_file='', save_file=False):
     >>> sulci, name = read_scalars(vtk_file, True, True)
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> if single_fold:
-    >>>     fold_number = 2 #11
-    >>>     folds[folds != fold_number] = -1
+    ...     fold_number = 2 #11
+    ...     folds[folds != fold_number] = -1
     >>> min_separation = 10
     >>> erode_ratio = 0.10
     >>> erode_min_size = 10
     >>> save_file = True
+    >>> verbose = False
     >>> fundus_per_fold, o1, o2 = extract_fundi(folds,
     ...     curv_file, depth_file, min_separation, erode_ratio,
-    ...     erode_min_size, save_file)
+    ...     erode_min_size, save_file, verbose)
     >>> o1, o2, fundus_per_sulcus_file = segment_fundi(fundus_per_fold,
-    ...     sulci, vtk_file, save_file)
+    ...     sulci, vtk_file, save_file, verbose)
     >>> if single_fold:
     ...     lens = [len([x for x in o1 if x == 2])]
     ... else:
@@ -284,7 +296,8 @@ def segment_fundi(fundus_per_fold, sulci=[], vtk_file='', save_file=False):
         sdum = 'sulcus fundus'
     else:
         sdum = 'sulcus fundi'
-    print('  Segmented {0} {1}'.format(n_fundi, sdum))
+    if verbose:
+        print('  Segmented {0} {1}'.format(n_fundi, sdum))
 
     #-------------------------------------------------------------------------
     # Return fundi, number of fundi, and file name:

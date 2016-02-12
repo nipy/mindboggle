@@ -11,7 +11,7 @@ Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 
 def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
-                  sulcus_names=[]):
+                  sulcus_names=[], verbose=False):
     """
     Identify sulci from folds in a brain surface according to a labeling
     protocol that includes a list of label pairs defining each sulcus.
@@ -40,6 +40,8 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
         minimum number of vertices for a sulcus label boundary segment
     sulcus_names : list of strings
         names of sulci
+    verbose : Boolean
+        print statements?
 
     Returns
     -------
@@ -63,8 +65,9 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     >>> hemi = 'lh'
     >>> min_boundary = 10
     >>> sulcus_names = []
+    >>> verbose = False
     >>> sulci, n_sulci, sulci_file = extract_sulci(labels_file, folds_or_file,
-    ...     hemi, min_boundary, sulcus_names)
+    ...     hemi, min_boundary, sulcus_names, verbose)
     >>> n_sulci
     23
     >>> lens = [len([x for x in sulci if x == y]) for y in range(n_sulci)]
@@ -102,7 +105,7 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     elif hemi == 'rh':
         pair_lists = dkt.right_sulcus_label_pair_lists
     else:
-        print("Warning: hemisphere not properly specified ('lh' or 'rh').")
+        raise IOError("Warning: hemisphere not properly specified ('lh' or 'rh').")
 
     # Load points, faces, and neighbors:
     points, indices, lines, faces, labels, scalar_names, npoints, \
@@ -120,7 +123,8 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     #-------------------------------------------------------------------------
     fold_numbers = [int(x) for x in np.unique(folds) if x != -1]
     n_folds = len(fold_numbers)
-    print("Extract sulci from {0} folds...".format(n_folds))
+    if verbose:
+        print("Extract sulci from {0} folds...".format(n_folds))
     t0 = time()
     for n_fold in fold_numbers:
         fold = [i for i,x in enumerate(folds) if x == n_fold]
@@ -134,7 +138,7 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
         #---------------------------------------------------------------------
         # NO MATCH -- fold has fewer than two labels
         #---------------------------------------------------------------------
-        if len(unique_fold_labels) < 2:
+        if verbose and len(unique_fold_labels) < 2:
             # Ignore: sulci already initialized with -1 values:
             if not unique_fold_labels:
                 print("  Fold {0} ({1} vertices): "
@@ -156,14 +160,14 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
             fold_pairs_in_protocol = [x for x in unique_fold_pairs
                                       if x in dkt.unique_sulcus_label_pairs]
 
-            if unique_fold_labels:
+            if verbose and unique_fold_labels:
                 print("  Fold {0} labels: {1} ({2} vertices)".format(n_fold,
                       ', '.join([str(x) for x in unique_fold_labels]),
                       len_fold))
             #-----------------------------------------------------------------
             # NO MATCH -- fold has no sulcus label pair
             #-----------------------------------------------------------------
-            if not fold_pairs_in_protocol:
+            if verbose and not fold_pairs_in_protocol:
                 print("  Fold {0}: NO MATCH -- fold has no sulcus label pair".
                       format(n_fold, len_fold))
 
@@ -171,8 +175,9 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
             # Possible matches
             #-----------------------------------------------------------------
             else:
-                print("  Fold {0} label pairs in protocol: {1}".format(n_fold,
-                      ', '.join([str(x) for x in fold_pairs_in_protocol])))
+                if verbose:
+                    print("  Fold {0} label pairs in protocol: {1}".format(n_fold,
+                          ', '.join([str(x) for x in fold_pairs_in_protocol])))
 
                 # Labels in the protocol (includes repeats across label pairs):
                 labels_in_pairs = [x for lst in fold_pairs_in_protocol
@@ -235,17 +240,19 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
                                 sulci[sulci2 != -1] = ID
 
                                 # Print statement:
-                                if n_unique == 1:
-                                    ps1 = '1 label'
-                                else:
-                                    ps1 = 'Both labels'
-                                if len(sulcus_names):
-                                    ps2 = sulcus_names[ID]
-                                else:
-                                    ps2 = ''
-                                print("    {0} unique to one fold pair: "
-                                      "{1} {2}".
-                                      format(ps1, ps2, unique_labels_in_pair))
+                                if verbose:
+                                    if n_unique == 1:
+                                        ps1 = '1 label'
+                                    else:
+                                        ps1 = 'Both labels'
+                                    if len(sulcus_names):
+                                        ps2 = sulcus_names[ID]
+                                    else:
+                                        ps2 = ''
+                                    print("    {0} unique to one fold pair: "
+                                          "{1} {2}".
+                                          format(ps1, ps2,
+                                                 unique_labels_in_pair))
 
                 #-------------------------------------------------------------
                 # Vertex labels shared by multiple label pairs
@@ -257,8 +264,9 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
                     # For each label shared by different label pairs:
                     for label in nonunique_labels:
                         # Print statement:
-                        print("    Propagate sulcus borders with label {0}".
-                              format(int(label)))
+                        if verbose:
+                            print("    Propagate sulcus borders with label {0}".
+                                  format(int(label)))
 
                         # Construct seeds from label boundary vertices:
                         seeds = -1 * np.ones(len(points))
@@ -288,7 +296,7 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
                                                       if x == seed2]
                                             if len(iseed2) >= min_boundary:
                                                 indices_pair2.extend(iseed2)
-                                            else:
+                                            elif verbose:
                                                 if len(iseed2) == 1:
                                                     print("    Remove "
                                                           "assignment "
@@ -330,37 +338,36 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
                                                tol=0.001, sigma=5)
                             sulci[sulci2 != -1] = sulci2[sulci2 != -1]
 
-    #-------------------------------------------------------------------------
-    # Print out assigned sulci
-    #-------------------------------------------------------------------------
     sulcus_numbers = [int(x) for x in np.unique(sulci) if x != -1]
                       # if not np.isnan(x)]
     n_sulci = len(sulcus_numbers)
-    print("Extracted {0} sulci from {1} folds ({2:.1f}s):".
-          format(n_sulci, n_folds, time()-t0))
-    if sulcus_names:
-        for sulcus_number in sulcus_numbers:
-            print("  {0}: {1}".format(sulcus_number,
-                                      sulcus_names[sulcus_number]))
-    elif sulcus_numbers:
-        print("  " + ", ".join([str(x) for x in sulcus_numbers]))
 
     #-------------------------------------------------------------------------
-    # Print out unresolved sulci
+    # Print statements
     #-------------------------------------------------------------------------
-    unresolved = [i for i in range(len(pair_lists))
-                  if i not in sulcus_numbers]
-    if len(unresolved) == 1:
-        print("The following sulcus is unaccounted for:")
-    else:
-        print("The following {0} sulci are unaccounted for:".
-              format(len(unresolved)))
-    if sulcus_names:
-        for sulcus_number in unresolved:
-            print("  {0}: {1}".format(sulcus_number,
-                                      sulcus_names[sulcus_number]))
-    else:
-        print("  " + ", ".join([str(x) for x in unresolved]))
+    if verbose:
+        print("Extracted {0} sulci from {1} folds ({2:.1f}s):".
+                  format(n_sulci, n_folds, time()-t0))
+        if sulcus_names:
+            for sulcus_number in sulcus_numbers:
+                print("  {0}: {1}".format(sulcus_number,
+                                          sulcus_names[sulcus_number]))
+        elif sulcus_numbers:
+            print("  " + ", ".join([str(x) for x in sulcus_numbers]))
+
+        unresolved = [i for i in range(len(pair_lists))
+                      if i not in sulcus_numbers]
+        if len(unresolved) == 1:
+            print("The following sulcus is unaccounted for:")
+        else:
+            print("The following {0} sulci are unaccounted for:".
+                  format(len(unresolved)))
+        if sulcus_names:
+            for sulcus_number in unresolved:
+                print("  {0}: {1}".format(sulcus_number,
+                                          sulcus_names[sulcus_number]))
+        else:
+            print("  " + ", ".join([str(x) for x in unresolved]))
 
     #-------------------------------------------------------------------------
     # Return sulci, number of sulci, and file name

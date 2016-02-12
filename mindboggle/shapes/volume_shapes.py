@@ -249,13 +249,13 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     ...     resize, propagate, output_dir, save_table, output_table,
     ...     ants_path) # doctest: +SKIP
     >>> print(np.array_str(np.array(label_volume_thickness[0][0:10]),
-    ...       precision=5, suppress_small=True))
+    ...       precision=5, suppress_small=True)) # doctest: +SKIP
     [ 1002.  1003.  1005.  1006.  1007.  1008.  1009.  1010.  1011.  1012.]
     >>> print(np.array_str(np.array(label_volume_thickness[1][0:5]),
-    ...       precision=5, suppress_small=True))
+    ...       precision=5, suppress_small=True)) # doctest: +SKIP
     [  3136.99383   7206.98582   3257.99359   1950.99616  12458.97549]
     >>> print(np.array_str(np.array(label_volume_thickness[2][0:5]),
-    ...       precision=5, suppress_small=True))
+    ...       precision=5, suppress_small=True)) # doctest: +SKIP
     [ 3.8639   3.69637  2.56334  4.09336  4.52592]
 
     """

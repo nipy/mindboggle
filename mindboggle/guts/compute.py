@@ -147,6 +147,7 @@ def pairwise_vector_distances(vectors, save_file=False, normalize=False):
 
     Examples
     --------
+    >>> import numpy as np
     >>> from mindboggle.guts.compute import pairwise_vector_distances
     >>> vectors = [[1,2,3],[0,3,5],[0,3.5,5],[1,1,1]]
     >>> save_file = False

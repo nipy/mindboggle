@@ -42,7 +42,7 @@ install:
 
   # Coverage packages:
   - "pip install python-coveralls coverage nose-cov"
-  - "pip install profilehooks"
+#  - "pip install profilehooks"
 
   # Install:
   - python setup.py install

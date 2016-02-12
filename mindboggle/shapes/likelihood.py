@@ -93,6 +93,7 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
 
     View result (skip test):
 
+    >>> from mindboggle.mio.plots import plot_surfaces
     >>> plot_surfaces('likelihoods.vtk', folds_file)
     >>> plot_surfaces('likelihoods.vtk', folds_file) # doctest: +SKIP
 

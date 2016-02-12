@@ -25,8 +25,7 @@ parser = argparse.ArgumentParser(description="""
 parser.add_argument("IN_DIR",
                     help=('directory containing mindboggle output'))
 # "optional arguments":
-parser.add_argument("--out",
-                    help=("output directory"),
+parser.add_argument("--out", help="output directory",
                     default='mindboggled_tables', metavar='STR')
 args = parser.parse_args()
 in_dir = args.IN_DIR

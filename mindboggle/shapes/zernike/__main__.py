@@ -5,7 +5,7 @@ import numpy as np
 
 import argparse
 import logging
-import profilehooks
+#import profilehooks
 
 def example1():
     #    >>> # Example 1: simple cube (decimation results in a Segmentation Fault):
@@ -44,14 +44,14 @@ def main():
     if ns.debug is not None:
         logging.basicConfig(level=getattr(logging, ns.debug.upper()))
 
-    if ns.profile is not None:
-        filename = ns.profile
-        if ns.profile == 'stdout':
-            filename = None
-        zernike_fn = profilehooks.profile(zernike_fn, immediate=False, filename=filename)
+#    if ns.profile is not None:
+#        filename = ns.profile
+#        if ns.profile == 'stdout':
+#            filename = None
+#        zernike_fn = profilehooks.profile(zernike_fn, immediate=False, filename=filename)
 
-    if ns.timecall:
-        zernike_fn = profilehooks.timecall(zernike_fn)
+#    if ns.timecall:
+#        zernike_fn = profilehooks.timecall(zernike_fn)
 
     if ns.vtk_file is not None:
         points, indices, lines, faces, depths, scalar_names, npoints, \

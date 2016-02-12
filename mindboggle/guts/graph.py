@@ -218,7 +218,6 @@ def graph_laplacian(W, type_of_laplacian='norm1', verbose=False):
     >>> Laplacian = graph_laplacian(W, type_of_laplacian, verbose)
     >>> print(np.array_str(np.array(Laplacian),
     ...       precision=5, suppress_small=True))
-    >>> Laplacian
     [[ 0.66667  0.      -0.29814]
      [ 0.       1.      -0.44721]
      [-0.59628 -0.74536  0.6    ]]

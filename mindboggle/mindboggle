@@ -970,7 +970,8 @@ if not args.no_surfaces:
                                                        'folds_or_file',
                                                        'hemi',
                                                        'min_boundary',
-                                                       'sulcus_names'],
+                                                       'sulcus_names',
+                                                       'verbose'],
                                           output_names=['sulci',
                                                         'n_sulci',
                                                         'sulci_file']))
@@ -985,6 +986,7 @@ if not args.no_surfaces:
             if save_all:
                 mbFlow.connect(SurfFeatureFlow, 'Sulci.sulci_file',
                                Sink, 'features.@sulci')
+            SulciNode.inputs.verbose = True
 
         # ====================================================================
         # Fundi
@@ -1001,7 +1003,8 @@ if not args.no_surfaces:
                                                'min_separation',
                                                'erode_ratio',
                                                'erode_min_size',
-                                               'save_file'],
+                                               'save_file',
+                                               'verbose'],
                                   output_names=['fundus_per_fold',
                                                 'n_fundi_in_folds',
                                                 'fundus_per_fold_file']))
@@ -1015,6 +1018,7 @@ if not args.no_surfaces:
             FoldFundi.inputs.erode_ratio = 0.10
             FoldFundi.inputs.erode_min_size = 10
             FoldFundi.inputs.save_file = False
+            FoldFundi.inputs.verbose = True
             #if save_all:
             #    mbFlow.connect(SurfFeatureFlow,
             #                   'Fundus_per_fold.fundus_per_fold_file',
@@ -1089,7 +1093,8 @@ if not args.no_surfaces:
                                     input_names=['fundus_per_fold',
                                                  'sulci',
                                                  'vtk_file',
-                                                 'save_file'],
+                                                 'save_file',
+                                                 'verbose'],
                                     output_names=['fundus_per_sulcus',
                                                   'n_fundi',
                                                   'fundus_per_sulcus_file']))
@@ -1104,6 +1109,7 @@ if not args.no_surfaces:
                            'Curvature.mean_curvature_file',
                            SurfFeatureFlow, 'Fundus_per_sulcus.vtk_file')
             SulcusFundi.inputs.save_file = True
+            SulcusFundi.inputs.verbose = True
             if save_all:
                 mbFlow.connect(SurfFeatureFlow,
                                'Fundus_per_sulcus.fundus_per_sulcus_file',

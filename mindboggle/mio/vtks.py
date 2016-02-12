@@ -1409,7 +1409,7 @@ def apply_affine_transforms(transform_files, inverse_booleans,
     ...     inverse_booleans, transform_format, vtk_or_points, vtk_file_stem,
     ...     command_path) # doctest: +SKIP
     >>> print(np.array_str(np.array(affine_points[0:5]),
-    ...       precision=5, suppress_small=True))
+    ...       precision=5, suppress_small=True)) # doctest: +SKIP
     [[-123.02735 -228.19407 -101.14381]
      [-123.46156 -228.39812 -101.24258]
      [-124.22058 -228.39971 -101.15211]
