@@ -243,12 +243,14 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
     >>> #     fold_files.append(folds_file)
     >>> #     label_files.append(labels_file)
     >>> #
-    >>> scalar_range1 = np.linspace(0, 1, 51, endpoint=True) # (0 to 1 by 0.02)
-    >>> scalar_range2 = np.linspace(-1, 1, 101, endpoint=True) # (-1 to 1 by 0.02)
-    >>> depth_border, depth_nonborder = estimate_distribution(depth_files,
-    ...     scalar_range1, fold_files, label_files)
-    >>> curv_border, curv_nonborder = estimate_distribution(curv_files,
-    ...     scalar_range2, fold_files, label_files)
+    >>> scalar_files = depth_files
+    >>> scalar_range = np.linspace(0, 1, 51, endpoint=True) # (0 to 1 by 0.02)
+    >>> depth_border, depth_nonborder = estimate_distribution(scalar_files,
+    ...     scalar_range, fold_files, label_files)
+    >>> scalar_files = curv_files
+    >>> scalar_range = np.linspace(-1, 1, 101, endpoint=True) # (-1 to 1 by 0.02)
+    >>> curv_border, curv_nonborder = estimate_distribution(scalar_files,
+    ...     scalar_range, fold_files, label_files)
     >>> print(np.array_str(np.array(depth_border['means']),
     ...       precision=5, suppress_small=True))
     [  6.29198  13.52503  18.67128]
@@ -269,8 +271,7 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
         fit_normals_to_histogram
 
     if not scalar_files or not fold_files or not label_files:
-        import sys
-        sys.exit("Input file lists cannot be empty.")
+        raise IOError("Input file lists cannot be empty.")
 
     # Concatenate scalars across multiple training files:
     border_scalars, nonborder_scalars = concatenate_sulcus_scalars(scalar_files,
@@ -363,7 +364,7 @@ def concatenate_sulcus_scalars(scalar_files, fold_files, label_files):
 
     # Loop through files with the scalar values:
     for ifile, scalar_file in enumerate(scalar_files):
-        print(scalar_file)
+        #print(scalar_file)
 
         # Load scalars, folds, and labels:
         folds_file = fold_files[ifile]
