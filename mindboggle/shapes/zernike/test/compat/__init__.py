@@ -3,7 +3,7 @@ import numpy.linalg
 import scipy
 import scipy.misc
 import time
-import profilehooks
+#import profilehooks
 
 from .Dabc_orig_m import Dabc_orig
 from .D_CV_orig_m import D_CV_orig
@@ -97,6 +97,6 @@ class CompatPipeline(object) :
     def size(self,arr,dim=None) :
         if dim is None : return arr.shape
         else : return arr.shape[dim]
-    @profilehooks.profile(filename='demo.prfl')
+#    @profilehooks.profile(filename='demo.prfl')
     def demo(self,V,F,ZMvtk) : return zk_demo(self,V,F,ZMvtk)
 

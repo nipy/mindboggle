@@ -94,7 +94,6 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
     View result (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces
-    >>> plot_surfaces('likelihoods.vtk', folds_file)
     >>> plot_surfaces('likelihoods.vtk', folds_file) # doctest: +SKIP
 
     """
@@ -326,6 +325,7 @@ def concatenate_sulcus_scalars(scalar_files, fold_files, label_files):
     Examples
     --------
     >>> # Concatenate (duplicate) depth scalars:
+    >>> import numpy as np
     >>> from mindboggle.shapes.likelihood import concatenate_sulcus_scalars
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()

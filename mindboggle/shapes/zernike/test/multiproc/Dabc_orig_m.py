@@ -5,6 +5,7 @@ import sys
 import time
 import itertools
 
+
 def itertools_product(cfg,C,N) :
     D = cfg.zeros(N+1,N+1,N+1)
     for a,b,c in cfg.rng_prod((0,N),repeat=3 ) :
@@ -13,6 +14,7 @@ def itertools_product(cfg,C,N) :
             temp += C[1,i2,j2,k2]*C[2,a-i2,b-j2,c-k2] #!
         D[a,b,c] = temp #!
     return D
+
 
 #@profilehooks.timecall(immediate=True)
 def orig(cfg,C,N) :                                                                #function D=Dabc_orig(C,N)
@@ -40,10 +42,12 @@ def orig(cfg,C,N) :                                                             
                                                                                         #end
     return D
 
+
 def generate_indices(N) :
     a,b,c,i2,j2,k2 = numpy.mgrid[0:N+1,0:N+1,0:N+1,0:N+1,0:N+1,0:N+1]
     mask = (i2 <= a) & ( j2 <= b ) & ( k2 <= c )
     return a,b,c,i2,j2,k2,mask
+
 
 def simple(cfg,C,N) :
     a,b,c,i2,j2,k2,mask = generate_indices(N)
@@ -52,7 +56,10 @@ def simple(cfg,C,N) :
     D[~mask] = 0.0
     return numpy.sum(D,axis=(3,4,5))
 
+
 def nd_reversed(C) : return C[::-1,::-1,::-1]
+
+
 def iter_rev_sum(cfg,C,N) :
     C1, C2 = C[1,:,:,:], C[2,:,:,:]
     D = numpy.zeros_like(C1)
@@ -62,19 +69,19 @@ def iter_rev_sum(cfg,C,N) :
         D[a,b,c] = numpy.sum(c1*c2)
     return D
 
-'''
-@profilehooks.profile(filename='Dabc_orig.prfl')
-def test_profile() :
-    from . import MultiprocPipeline as Pipeline
-    N = 20
-    C = numpy.random.rand(N+1,N+1,N+1,N+1)
-    pl = Pipeline()
-    #vec = vectorized(pl,C,N)
-    #foo = itertools_product(pl,C,N)
-    sv = sumversion(pl,C,N)
-    o = orig(pl,C,N)
-    print numpy.max(numpy.abs(sv-o))
-    #assert numpy.all(vec == o)
-    #assert numpy.all(foo == o)
-    assert numpy.all(sv == o)
-'''
+
+# @profilehooks.profile(filename='Dabc_orig.prfl')
+# def test_profile() :
+#     from . import MultiprocPipeline as Pipeline
+#     N = 20
+#     C = numpy.random.rand(N+1,N+1,N+1,N+1)
+#     pl = Pipeline()
+#     #vec = vectorized(pl,C,N)
+#     #foo = itertools_product(pl,C,N)
+#     sv = sumversion(pl,C,N)
+#     o = orig(pl,C,N)
+#     print numpy.max(numpy.abs(sv-o))
+#     #assert numpy.all(vec == o)
+#     #assert numpy.all(foo == o)
+#     assert numpy.all(sv == o)
+

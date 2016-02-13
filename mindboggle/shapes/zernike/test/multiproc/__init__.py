@@ -95,6 +95,7 @@ class MultiprocPipeline(object) :
     #@profilehooks.profile(filename='demo.prfl')
     def demo(self,V,F,ZMvtk) : return zk_demo(self,V,F,ZMvtk)
 
+
 def unpickle_method(func_name, obj, cls):
     for cls in cls.mro():
         try : func = cls.__dict__[func_name]
@@ -102,10 +103,12 @@ def unpickle_method(func_name, obj, cls):
         else : break
     return func.__get__(obj, cls)
 
+
 def pickle_method(method):
     func_name = method.im_func.__name__
     obj = method.im_self
     cls = method.im_class
     return unpickle_method, (func_name, obj, cls)
+
 
 copy_reg.pickle(types.MethodType, pickle_method, unpickle_method)

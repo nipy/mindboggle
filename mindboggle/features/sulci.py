@@ -72,7 +72,7 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     23
     >>> lens = [len([x for x in sulci if x == y]) for y in range(n_sulci)]
     >>> lens[0:10]
-    [0, 6568, 3366, 6689, 5358, 4049, 6379, 3551, 2632, 4225]
+    [0, 6573, 3366, 6689, 5358, 4049, 6379, 3551, 2632, 4225]
     >>> lens[10::]
     [754, 3724, 2197, 5823, 1808, 5122, 513, 2153, 1445, 418, 0, 3556, 1221]
 
