@@ -340,10 +340,10 @@ def concatenate_sulcus_scalars(scalar_files, fold_files, label_files):
     ...     fold_files, label_files)
     >>> print(np.array_str(np.array(border[0:5]),
     ...       precision=5, suppress_small=True))
-    [3.48282, 2.57155, 4.27596, 4.56547, 3.84879]
+    [ 3.48282  2.57155  4.27596  4.56547  3.84879]
     >>> print(np.array_str(np.array(nonborder[0:5]),
     ...       precision=5, suppress_small=True))
-    [2.01242, 2.87204, 2.89389, 3.55363, 2.81681]
+    [ 2.01242  2.87204  2.89389  3.55363  2.81681]
 
     """
     import numpy as np
