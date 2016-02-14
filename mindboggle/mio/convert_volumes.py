@@ -50,9 +50,9 @@ def convert2nii(input_file, reference_file, output_file='', interp='continuous')
     >>> input_file = fetch_data(urls['freesurfer_labels'])
     >>> reference_file = fetch_data(urls['freesurfer_segmentation'])
     >>> os.rename(input_file, input_file + '.nii.gz')
-    >>> input_file = input_file + '.nii.gz'
+    >>> input_file += '.nii.gz'
     >>> os.rename(reference_file, reference_file + '.nii.gz')
-    >>> reference_file = reference_file + '.nii.gz'
+    >>> reference_file += '.nii.gz'
     >>> output_file = ''
     >>> interp = 'nearest'
     >>> output_file = convert2nii(input_file, reference_file, output_file,
@@ -60,7 +60,7 @@ def convert2nii(input_file, reference_file, output_file='', interp='continuous')
 
     View nifti file (skip test):
 
-    >>> from mindboggle.mio.plots import plot_volumes # doctest: +SKIP
+    >>> from mindboggle.mio.plots import plot_volumes
     >>> plot_volumes(output_file) # doctest: +SKIP
 
     """
@@ -142,16 +142,16 @@ def xyz2nii(input_xyz_file, output_nii_file='', origin=[], pad=10):
 
     Examples
     --------
-    >>> from mindboggle.mio.convert_volumes import xyz2nii # doctest: +SKIP
+    >>> from mindboggle.mio.convert_volumes import xyz2nii
     >>> input_xyz_file = 'face.xyz.txt' # doctest: +SKIP
-    >>> origin = [] # doctest: +SKIP
-    >>> pad = 10 # doctest: +SKIP
-    >>> output_nii_file = '' # doctest: +SKIP
+    >>> origin = []
+    >>> pad = 10
+    >>> output_nii_file = ''
     >>> xyz2nii(input_xyz_file) # doctest: +SKIP
 
     View nifti file (skip test):
 
-    >>> from mindboggle.mio.plots import plot_volumes # doctest: +SKIP
+    >>> from mindboggle.mio.plots import plot_volumes
     >>> plot_volumes('xyz.nii.gz') # doctest: +SKIP
 
     """
