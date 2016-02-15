@@ -79,7 +79,7 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     View result (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces
-    >>> plot_surfaces('sulci.vtk')
+    >>> plot_surfaces('sulci.vtk') # doctest: +SKIP
 
     """
     import os
