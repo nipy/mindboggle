@@ -7,15 +7,12 @@ dependencies:
 #    - sudo rm -rf /var/cache/apt/archives && sudo ln -s ~/.apt-cache /var/cache/apt/archives
 #    - bash <(wget -q -O- http://neuro.debian.net/_files/neurodebian-travis.sh)
   override:
-    # Install apt packages
     - wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
     - bash miniconda.sh -b -p $HOME/miniconda
-#    - export PATH="$HOME/miniconda/bin:$PATH"
     - echo "export PATH="$HOME/miniconda/bin:$PATH"" >> $HOME/.profile
-    #- hash -r
+    - source $HOME/.profile
     - conda config --set always_yes yes --set changeps1 no
     - conda update -q conda
-    #- conda info -a
     - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION atlas numpy scipy networkx matplotlib nose pandas vtk
 
     # Set up python environment
