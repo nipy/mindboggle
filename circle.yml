@@ -1,54 +1,58 @@
-## Customize the test machine
-machine:
-
-  python:
-    #version: pypy-2.2.1
-
-  # Add some environment variables
-  environment:
-    #PYTHONPATH=~/vtk-precise64/lib/python2.7/site-packages:~/vtk-precise64/lib LD_LIBRARY_PATH=~/vtk-precise64/lib:~/local/lib:~/local/lib/R/lib
-
-## Customize dependencies
 dependencies:
-  cache_directories:
-    #- redis-2.4.18   # relative to the build directory
-
+#  cache_directories:
+#    - "~/.apt-cache"
+#    - "~/examples/data"
   pre:
-    #- sudo apt-get update
-    #- sudo apt-get install -y g++ git make xorg
-
-    #- if [[ ! -e redis-2.4.18/src/redis-server ]]; then wget http://redis.googlecode.com/files/redis-2.4.18.tar.gz && tar xzf redis-2.4.18.tar.gz && cd redis-2.4.18 && make; fi
-
+    # Let CircleCI cache the apt archive
+#    - sudo rm -rf /var/cache/apt/archives && sudo ln -s ~/.apt-cache /var/cache/apt/archives
+#    - bash <(wget -q -O- http://neuro.debian.net/_files/neurodebian-travis.sh)
+  override:
+    # Install apt packages
     - wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
     - bash miniconda.sh -b -p $HOME/miniconda
-    - export PATH="$HOME/miniconda/bin:$PATH"
+#    - export PATH="$HOME/miniconda/bin:$PATH"
+    - echo "export PATH="$HOME/miniconda/bin:$PATH"" >> $HOME/.profile
     #- hash -r
     - conda config --set always_yes yes --set changeps1 no
     - conda update -q conda
     #- conda info -a
     - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION atlas numpy scipy networkx matplotlib nose pandas vtk
-    #- source activate test-environment
-    - "pip install nibabel"
+
+    # Set up python environment
+    - pip install --upgrade pip
+    - pip install -e .
+    - pip install nibabel
 
     # Coverage packages:
-    - "pip install python-coveralls coverage nose-cov"
-    - "pip install profilehooks"
+    - pip install python-coveralls coverage nose-cov
 
-    # Install:
+    # Install Mindboggle:
     - python setup.py install
 
+#machine:
+#  environment:
+#    FSLOUTPUTTYPE: NIFTI_GZ
+#test:
+#  override:
+#    - mkdir -p ${CIRCLE_TEST_REPORTS}/nose
+#    - source $HOME/.profile; nosetests --with-doctest --xunit-file="${CIRCLE_TEST_REPORTS}/nose/${CIRCLE_PROJECT_REPONAME}.xml" -c ./.noserc --logging-level=DEBUG --verbosity=3:
+#        environment:
+#          SPMMCRCMD: "$HOME/spm12/run_spm12.sh $HOME/mcr/v85/ script"
+#          FORCE_SPMMCR: 1
+#          FSL_COURSE_DATA: "$HOME/examples/fsl_course_data"
+#        timeout: 2600
+#    - set -o pipefail && cd doc && make html 2>&1 | tee ~/log.txt
+#    - cat ~/log.txt && if grep -q "ERROR" ~/log.txt; then false; else true; fi
+#    - source $HOME/.profile; python ~/nipype/tools/run_examples.py test_spm Linear workflow3d workflow4d:
+#        pwd: ../examples
+#        environment:
+#          SPMMCRCMD: "$HOME/spm12/run_spm12.sh $HOME/mcr/v85/ script"
+#          FORCE_SPMMCR: 1
+#        timeout: 1600
 #
-### Test script:
-#script:
-###  - python -c "import vtk"
-#  - nosetests --with-coverage --with-doctest mindboggle/evaluate/
-##  - nosetests --with-coverage --with-doctest mindboggle/features/
-#  - nosetests --with-coverage --with-doctest mindboggle/guts/
-#  - nosetests --with-coverage --with-doctest mindboggle/mio/
-#  - nosetests --with-coverage --with-doctest mindboggle/shapes/
-#  - nosetests --with-coverage --with-doctest mindboggle/thirdparty/
-##  - nosetests --with-coverage --with-doctest mindboggle/thirdparty/ants.py
-#
-### Calculate coverage:
-##after_success:
-##  - coveralls --config_file .coveragerc
+#general:
+#  artifacts:
+#    - "doc/_build/html"
+#    - "~/log.txt"
+#    - "nosetests.xml"
+#    - "coverage.xml"

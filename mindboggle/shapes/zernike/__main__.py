@@ -1,5 +1,5 @@
 from . import zernike
-from .test.multiproc import MultiprocPipeline
+#from .test.multiproc import MultiprocPipeline
 from mindboggle.mio.vtks import read_vtk
 import numpy as np
 
