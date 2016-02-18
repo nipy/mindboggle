@@ -138,7 +138,8 @@ def test_urls():
     #-------------------------------------------------------------------------
     # Mindboggle working directory (including converted FreeSurfer output):
     #-------------------------------------------------------------------------
-    urls['freesurfer_segmentation'] = FS + 'mri/wmparc.nii.gz'
+    fseg = 'Volume_labels/FreeSurfer_cerebrum_labels_to_segments/wmparc.mgz.nii.gz'
+    urls['freesurfer_segmentation'] = MBW + fseg
     urls['T1_001'] = MBW + 'mgh_to_nifti/001.mgz.nii.gz'
     urls['left_pial'] = MBW + '_hemi_lh/Surface_to_vtk/lh.pial.vtk'
     urls['right_pial'] = MBW + '_hemi_rh/Surface_to_vtk/rh.pial.vtk'
