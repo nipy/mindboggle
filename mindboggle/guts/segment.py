@@ -1699,6 +1699,8 @@ def split_brain(image_file, label_file, left_labels, right_labels):
     data = vol.get_data().ravel()
     dataL = volL.get_data().ravel()
     dataR = volR.get_data().ravel()
+    dataL[np.where(dataL != 0)[0]] = 1
+    dataR[np.where(dataR != 0)[0]] = 1
     xfm = vol.get_affine()
     #-------------------------------------------------------------------------
     # Split brain image by masking with left or right labels:
