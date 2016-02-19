@@ -749,19 +749,14 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
         input VTK file name
     output_vtk : string
         output VTK file name
-    new_scalars : list of lists of floats (or single list or array of floats)
-        each list (lookup table) contains new values to assign to the vertices
+    new_scalars : list of lists (or single list or numpy array) of N floats
+        each list contains new values to assign to the vertices
     new_scalar_names : string or list of strings
-        each element is the new name for a lookup table
-    filter_scalars : list or numpy array (optional)
+        each element is the new name for the corresponding scalars
+    filter_scalars : list or numpy array of N elements (optional)
         scalar values used to filter faces (foreground values retained)
     background_value : integer
         background value
-
-    Returns
-    -------
-    output_vtk : string
-        output VTK file name
 
     Examples
     --------
@@ -779,7 +774,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     >>> new_scalar_names = ['curvs', 'sulci']
     >>> filter_scalars = sulci
     >>> background_value = -1
-    >>> output_vtk = rewrite_scalars(input_vtk, output_vtk, new_scalars,
+    >>> rewrite_scalars(input_vtk, output_vtk, new_scalars,
     ...     new_scalar_names, filter_scalars, background_value)
 
     View resulting vtk file (skip test):
@@ -821,7 +816,8 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     # Write VTK file
     Fp = open(output_vtk,'w')
     write_header(Fp)
-    write_points(Fp, points)
+    if points:
+        write_points(Fp, points)
     if indices:
         write_vertices(Fp, indices)
     if faces:
@@ -863,8 +859,6 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
 
     if not os.path.exists(output_vtk):
         raise IOError(output_vtk + " not found")
-
-    return output_vtk
 
 
 def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',

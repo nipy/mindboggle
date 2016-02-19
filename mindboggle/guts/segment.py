@@ -1371,7 +1371,7 @@ def extract_borders(indices, labels, neighbor_lists,
     Write borders on surfaces to vtk file and view (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
-    >>> from mindboggle.mio.vtks import read_vtk, rewrite_scalars
+    >>> from mindboggle.mio.vtks import rewrite_scalars
     >>> IDs = -1 * np.ones(npoints) # doctest: +SKIP
     >>> IDs[indices_borders] = 1 # doctest: +SKIP
     >>> rewrite_scalars(label_file, 'extract_borders.vtk',

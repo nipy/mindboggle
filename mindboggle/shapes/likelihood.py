@@ -77,7 +77,7 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
 
     Examples
     --------
-    >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars
+    >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.shapes.likelihood import compute_likelihood
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
@@ -103,7 +103,6 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
     import cPickle as pickle
 
     from mindboggle.mio.vtks import read_scalars, rewrite_scalars
-
 
     # Initialize variables:
     tiny = 0.000000001

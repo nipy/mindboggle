@@ -646,7 +646,7 @@ def reindex_faces_points(faces, points=[]):
     >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_number]
     >>> T = -1 * np.ones(len(folds))
     >>> T[indices_fold] = 1
-    >>> output_vtk = rewrite_scalars(folds_file, 'fold.vtk', T, 'fold', [],-1)
+    >>> rewrite_scalars(folds_file, 'fold.vtk', T, 'fold', [],-1)
     >>> faces, points, npoints = read_faces_points('fold.vtk')
     >>> new_faces, new_points, original_indices = reindex_faces_points(faces,
     ...     points)
@@ -1043,7 +1043,7 @@ def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
     --------
     >>> import numpy as np
     >>> from mindboggle.guts.mesh import rescale_by_neighborhood
-    >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars
+    >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
@@ -1151,7 +1151,7 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
     >>> # Rescale depths by neighborhood within each label:
     >>> import numpy as np
     >>> from mindboggle.guts.mesh import rescale_by_label
-    >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars
+    >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()

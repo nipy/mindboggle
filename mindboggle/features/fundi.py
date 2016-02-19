@@ -232,6 +232,7 @@ def segment_fundi(fundus_per_fold, sulci=[], vtk_file='', save_file=False,
     Examples
     --------
     >>> # Extract fundus from one or more sulci:
+    >>> import numpy as np
     >>> single_fold = True
     >>> from mindboggle.features.fundi import segment_fundi
     >>> from mindboggle.features.fundi import extract_fundi
@@ -257,11 +258,13 @@ def segment_fundi(fundus_per_fold, sulci=[], vtk_file='', save_file=False,
     ...     erode_min_size, save_file, verbose)
     >>> o1, o2, fundus_per_sulcus_file = segment_fundi(fundus_per_fold,
     ...     sulci, vtk_file, save_file, verbose)
+    >>> segment_numbers = [x for x in np.unique(o1) if x != -1]
+    >>> lens = []
     >>> if single_fold:
-    ...     lens = [len([x for x in o1 if x == 2])]
-    ... else:
-    ...     lens = [len([x for x in o1 if x == y]) for y in range(o2)]
-    >>> lens[0:10]
+    ...     for segment_number in segment_numbers:
+    ...         lens.append(len([x for x in o1 if x == segment_number]))
+    >>> lens
+    [14, 13, 88]
 
 
     View result (skip test):
@@ -308,9 +311,9 @@ def segment_fundi(fundus_per_fold, sulci=[], vtk_file='', save_file=False,
         if save_file and os.path.exists(vtk_file):
             fundus_per_sulcus_file = os.path.join(os.getcwd(),
                                                   'fundus_per_sulcus.vtk')
+            # Do not filter faces/points by scalars when saving file:
             rewrite_scalars(vtk_file, fundus_per_sulcus_file,
-                            fundus_per_sulcus, 'fundus_per_sulcus',
-                            fundus_per_sulcus)
+                            fundus_per_sulcus, 'fundus_per_sulcus')
             if not os.path.exists(fundus_per_sulcus_file):
                 raise IOError(fundus_per_sulcus_file + " not found")
 

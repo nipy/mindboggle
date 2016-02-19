@@ -55,7 +55,7 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     Examples
     --------
     >>> from mindboggle.features.sulci import extract_sulci
-    >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars
+    >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
     >>> # Load labels, folds, neighbor lists, and sulcus names and label pairs
