@@ -300,13 +300,13 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None, output_file='',
         nibabel-readable image volume with integer labels
     mask_index : integer (optional)
         mask with just voxels having this value
-    output_file : string
+    output_file : string (optional)
         nibabel-readable labeled image volume
-    binarize : Boolean
+    binarize : Boolean (optional)
         binarize mask?
-    stopvalue : integer
+    stopvalue : integer (optional)
         stopping value
-    ants_path : string
+    ants_path : string (optional)
         path to bin/ directory with PropagateLabelsThroughMask command
 
     Returns
@@ -373,8 +373,9 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None, output_file='',
             ants_command = os.path.join(ants_path, 'ThresholdImage')
         else:
             ants_command = 'ThresholdImage'
-        cmd = [ants_command, '3', mask, mask2, mask_index, str(mask_index)]
-        execute(cmd)
+        cmd = [ants_command, '3', mask, mask2,
+               str(mask_index), str(mask_index)]
+        execute(cmd, 'os')
     else:
         mask2 = mask
 
@@ -387,7 +388,7 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None, output_file='',
     cmd = [ants_command, '3', output_file, 'PropagateLabelsThroughMask',
            mask2, labels]
     if stopvalue:
-        cmd.extend(stopvalue)
+        cmd.extend(str(stopvalue))
     execute(cmd, 'os')
     if not os.path.exists(output_file):
         raise IOError("ImageMath did not create " + output_file + ".")
