@@ -84,9 +84,8 @@ def volume_per_brain_region(input_file, include_labels=[], exclude_labels=[],
     volume_per_voxel = np.product(hdr.get_zooms())
     labels = img.get_data().ravel()
 
-    unique_labels, counts = count_per_label(labels,
-        include_labels, exclude_labels)
-
+    unique_labels, counts = count_per_label(labels, include_labels,
+                                            exclude_labels)
     volumes = [volume_per_voxel * x for x in counts]
 
     # Output table:

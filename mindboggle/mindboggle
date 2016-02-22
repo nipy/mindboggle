@@ -2090,7 +2090,7 @@ if do_label and not args.no_volumes:
         FSlabelVolumes.inputs.label_names = dkt.label_names
         FSlabelVolumes.inputs.save_table = True
         FSlabelVolumes.inputs.output_table = \
-            'volume_for_each_freesurfer_label.csv'
+            'volume_per_freesurfer_label.csv'
         mbFlow.connect(VolLabelFlow,
                'Combine_FreeSurfer_cortex_noncortex_labels.output_file',
                VolShapeFlow, 'FreeSurfer_filled_label_volumes.input_file')
@@ -2106,7 +2106,7 @@ if do_label and not args.no_volumes:
             VolShapeFlow.add_nodes([antsLabelVolumes])
             antsLabelVolumes.inputs.exclude_labels = [-1,0]
             antsLabelVolumes.inputs.output_table = \
-                'volume_for_each_ants_label.csv'
+                'volume_per_ants_label.csv'
             if overwrite_cerebrum_with_cerebellum:
                 mbFlow.connect(VolLabelFlow,
                        'FreeSurfer_cerebellum_ANTs_cerebrum.output_file',
@@ -2129,7 +2129,7 @@ if do_label and not args.no_volumes:
                 antsLabelVolumes2.inputs.include_labels = dkt.label_numbers
                 antsLabelVolumes2.inputs.exclude_labels = [-1,0]
                 antsLabelVolumes2.inputs.output_table = \
-                    'volume_for_each_added_label.csv'
+                    'volume_per_added_label.csv'
                 mbFlow.connect(VolLabelFlow,
                                'Transform_added_atlases.output_image',
                                VolShapeFlow,

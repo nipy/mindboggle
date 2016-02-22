@@ -883,9 +883,9 @@ def count_per_label(labels, include_labels=[], exclude_labels=[]):
     >>> unique_labels, counts = count_per_label(labels, include_labels,
     ...                                         exclude_labels)
     >>> unique_labels
-    [10, 11, 12]
+    [9, 10, 11, 12]
     >>> counts
-    [3, 4, 5]
+    [0, 3, 4, 5]
 
     Skip the following when testing on https://travis-ci.org/nipy/mindboggle
     because the travis.yml file doesn't install nibabel (requires sudo):
@@ -933,10 +933,9 @@ def count_per_label(labels, include_labels=[], exclude_labels=[]):
 
         # Find which voxels contain the label in each volume:
         indices = np.where(labels == label)[0]
-        if len(indices):
-            count = len(indices)
-            unique_labels.append(label)
-            counts.append(count)
+        count = len(indices)
+        unique_labels.append(label)
+        counts.append(count)
 
     return unique_labels, counts
 
