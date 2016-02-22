@@ -103,11 +103,12 @@ def volume_per_brain_region(input_file, include_labels=[], exclude_labels=[],
 
         # Loop through labels:
         for ilabel, label in enumerate(unique_labels):
-            if len(label_names) == len(unique_labels):
-                fid.write('{0}, {1}, {2:2.3f}\n'.format(
-                          label_names[ilabel], label, volumes[ilabel]))
-            else:
-                fid.write('{0}, {1:2.3f}\n'.format(label, volumes[ilabel]))
+            if volumes[ilabel]:
+                if len(label_names) == len(unique_labels):
+                    fid.write('{0}, {1}, {2:2.3f}\n'.format(
+                              label_names[ilabel], label, volumes[ilabel]))
+                else:
+                    fid.write('{0}, {1:2.3f}\n'.format(label, volumes[ilabel]))
     else:
         output_table = ''
 
