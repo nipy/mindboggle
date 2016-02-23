@@ -406,7 +406,7 @@ fs_filled_fs_rename = 'freesurfer_' + volume_labels + \
 fs_filled_rename = 'freesurfer_' + volume_labels + \
                    '_labels_in_hybrid_graywhite.nii.gz'
 ants_filled_ants_rename = 'ants_labels_in_ants_graywhite.nii.gz'
-ants_filled_rename = 'ants_filled_labels_in_hybrid_graywhite.nii.gz'
+ants_filled_rename = 'ants_labels_in_hybrid_graywhite.nii.gz'
 
 Sink.inputs.substitutions = [ ('lh.', ''), ('rh.', ''),
     ('_hemi_lh', 'left_cortical_surface'),
