@@ -562,7 +562,7 @@ def find_complete_faces(indices, faces):
     return indices_complete
 
 
-def remove_faces(faces, indices):
+def keep_faces(faces, indices):
     """
     Remove surface mesh faces whose three vertices are not all in "indices".
 
@@ -580,10 +580,10 @@ def remove_faces(faces, indices):
 
     Examples
     --------
-    >>> from mindboggle.guts.mesh import remove_faces
+    >>> from mindboggle.guts.mesh import keep_faces
     >>> faces = [[1,2,3], [2,3,7], [4,7,8], [3,2,5]]
     >>> indices = [0,1,2,3,4,5]
-    >>> remove_faces(faces, indices)
+    >>> keep_faces(faces, indices)
     [[1, 2, 3], [3, 2, 5]]
 
     """

@@ -63,7 +63,7 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='', hemi='',
     import sys
     import numpy as np
     from mindboggle.mio.vtks import read_vtk, read_scalars, write_vtk
-    from mindboggle.guts.mesh import find_neighbors, remove_faces
+    from mindboggle.guts.mesh import find_neighbors, keep_faces
     from mindboggle.guts.segment import extract_borders
     from mindboggle.guts.compute import source_to_target_distances
     from mindboggle.mio.labels import DKTprotocol
@@ -80,7 +80,7 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='', hemi='',
         # List of indices to sulcus vertices:
         sulcus_indices = [i for i,x in enumerate(sulci) if x != -1]
         segmentIDs = sulci
-        sulcus_faces = remove_faces(faces, sulcus_indices)
+        sulcus_faces = keep_faces(faces, sulcus_indices)
     else:
         sulcus_indices = range(len(labels))
         segmentIDs = []

@@ -786,7 +786,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     import os
     import numpy as np
 
-    from mindboggle.guts.mesh import remove_faces, reindex_faces_points
+    from mindboggle.guts.mesh import keep_faces, reindex_faces_points
     from mindboggle.mio.vtks import write_header, write_points, \
         write_vertices, write_faces, write_scalars, read_vtk, scalars_checker
 
@@ -810,7 +810,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
         #indices_remove = [i for i,x in enumerate(filter_scalars)
         #                  if x == background_value]
         # Remove surface faces whose three vertices are not all in indices
-        faces = remove_faces(faces, indices_keep)
+        faces = keep_faces(faces, indices_keep)
         faces, points, original_indices = reindex_faces_points(faces, points)
 
     # Write VTK file
@@ -933,7 +933,7 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     import os
     import numpy as np
     from mindboggle.mio.vtks import read_scalars, read_vtk, write_vtk
-    from mindboggle.guts.mesh import reindex_faces_points, remove_faces
+    from mindboggle.guts.mesh import reindex_faces_points, keep_faces
 
     if not input_values_vtk:
         input_values_vtk = input_indices_vtk
@@ -968,7 +968,7 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
         # Remove background (keep only faces with the scalar):
         if remove_background_faces:
             scalar_indices = [i for i,x in enumerate(scalars) if x == scalar]
-            scalar_faces = remove_faces(faces, scalar_indices)
+            scalar_faces = keep_faces(faces, scalar_indices)
         else:
             scalar_faces = faces
 

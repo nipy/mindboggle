@@ -64,13 +64,13 @@ def zernike_moments(points, faces, order=10, scale_input=True,
                (zernike_moments took 142 seconds for order = 3 with no decimation)
 
     >>> from mindboggle.mio.vtks import read_vtk
-    >>> from mindboggle.guts.mesh import remove_faces
+    >>> from mindboggle.guts.mesh import keep_faces
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
     >>> label_file = fetch_data(urls['left_freesurfer_labels'])
     >>> points, f1,f2, faces, labels, f3,f4,f5 = read_vtk(label_file)
     >>> I22 = [i for i,x in enumerate(labels) if x==1022] # postcentral
-    >>> faces = remove_faces(faces, I22)
+    >>> faces = keep_faces(faces, I22)
     >>> order = 3
     >>> scale_input = True
     >>> descriptors = zernike_moments(points, faces, order, scale_input)
@@ -85,7 +85,7 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     >>> I20 = [i for i,x in enumerate(labels) if x==1020] # pars triangularis
     >>> I22 = [i for i,x in enumerate(labels) if x==1022] # postcentral
     >>> I22.extend(I20)
-    >>> faces = remove_faces(faces, I22)
+    >>> faces = keep_faces(faces, I22)
     >>> order = 3
     >>> scale_input = True
     >>> descriptors = zernike_moments(points, faces, order, scale_input)
@@ -233,7 +233,7 @@ def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
     """
     import numpy as np
     from mindboggle.mio.vtks import read_vtk
-    from mindboggle.guts.mesh import remove_faces
+    from mindboggle.guts.mesh import keep_faces
     from mindboggle.shapes.zernike.zernike import zernike_moments
 
     min_points_faces = 4
@@ -264,7 +264,7 @@ def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
             #-----------------------------------------------------------------
             # Remove background faces:
             #-----------------------------------------------------------------
-            pick_faces = remove_faces(faces, Ilabel)
+            pick_faces = keep_faces(faces, Ilabel)
             if len(pick_faces) > min_points_faces:
 
                 #-------------------------------------------------------------

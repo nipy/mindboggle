@@ -136,7 +136,7 @@ def plot_mask_surface(vtk_file, mask_file='', nonmask_value=-1,
     import os
     import numpy as np
 
-    from mindboggle.guts.mesh import remove_faces, reindex_faces_points
+    from mindboggle.guts.mesh import keep_faces, reindex_faces_points
     from mindboggle.guts.utilities import execute
     from mindboggle.mio.plots import plot_surfaces
     from mindboggle.mio.vtks import read_scalars, rewrite_scalars, \
@@ -164,7 +164,7 @@ def plot_mask_surface(vtk_file, mask_file='', nonmask_value=-1,
             # Find mask indices, remove nonmask faces, and reindex:
             #-----------------------------------------------------------------
             Imask = [i for i,x in enumerate(mask) if x != nonmask_value]
-            mask_faces = remove_faces(faces, Imask)
+            mask_faces = keep_faces(faces, Imask)
             mask_faces, points, \
             original_indices = reindex_faces_points(mask_faces, points)
             #-----------------------------------------------------------------

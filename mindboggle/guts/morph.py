@@ -228,7 +228,7 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[],
     --------
     >>> import numpy as np
     >>> from mindboggle.guts.morph import fill_holes
-    >>> from mindboggle.guts.mesh import find_neighbors, remove_faces
+    >>> from mindboggle.guts.mesh import find_neighbors, keep_faces
     >>> from mindboggle.mio.vtks import read_scalars, read_vtk
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
@@ -299,7 +299,7 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[],
     >>> from mindboggle.mio.vtks import write_vtk # doctest: +SKIP
     >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
     >>> write_vtk('holes.vtk', points, indices, lines,
-    ...           remove_faces(faces, indices),
+    ...           keep_faces(faces, indices),
     ...           [holes.tolist()], ['holes'], 'int') # doctest: +SKIP
     >>> plot_surfaces('holes.vtk') # doctest: +SKIP
 
@@ -316,7 +316,7 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[],
     View filled hole (one of two holes filled) (skip test):
 
     >>> write_vtk('fill_holes.vtk', points, indices2, lines,
-    ...     remove_faces(faces, indices2), regions.tolist(),
+    ...     keep_faces(faces, indices2), regions.tolist(),
     ...     'regions', 'int') # doctest: +SKIP
     >>> plot_surfaces('fill_holes.vtk') # doctest: +SKIP
 
@@ -520,7 +520,7 @@ def close_surface_pair(faces, points1, points2, scalars, background_value=-1):
     import sys
     import numpy as np
 
-    from mindboggle.guts.mesh import find_neighbors, remove_faces
+    from mindboggle.guts.mesh import find_neighbors, keep_faces
     from mindboggle.guts.segment import extract_borders
 
     if isinstance(scalars, list):
@@ -544,7 +544,7 @@ def close_surface_pair(faces, points1, points2, scalars, background_value=-1):
     indices = range(N)
     indices2 = range(N, 2 * N)
     reindex = dict([(index, indices2[i]) for i, index in enumerate(indices)])
-    faces = remove_faces(faces, I)
+    faces = keep_faces(faces, I)
     faces2 = [[reindex[i] for i in face] for face in faces]
     closed_faces = faces + faces2
 

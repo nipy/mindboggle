@@ -106,7 +106,7 @@ def propagate(points, faces, region, seeds, labels,
 
     """
     import numpy as np
-    from mindboggle.guts.mesh import remove_faces
+    from mindboggle.guts.mesh import keep_faces
     import mindboggle.guts.kernels as kernels
     import mindboggle.guts.rebound as rebound
 
@@ -136,7 +136,7 @@ def propagate(points, faces, region, seeds, labels,
                           'vertices'.format(len(indices_region), n_sets))
 
             # Remove faces whose 3 vertices are not among specified indices:
-            refaces = remove_faces(faces, indices_region)
+            refaces = keep_faces(faces, indices_region)
 
             # Set up rebound Bounds class instance:
             B = rebound.Bounds()
@@ -1164,7 +1164,7 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
     >>> # Two surface patches:
     >>> import numpy as np
     >>> from mindboggle.mio.vtks import read_scalars, read_vtk
-    >>> from mindboggle.guts.mesh import remove_faces
+    >>> from mindboggle.guts.mesh import keep_faces
     >>> from mindboggle.guts.segment import select_largest
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
@@ -1176,7 +1176,7 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
     >>> I28 = [i for i,x in enumerate(labels) if x==1028] # superior frontal
     >>> I20 = [i for i,x in enumerate(labels) if x==1020] # pars triangularis
     >>> I28.extend(I20)
-    >>> faces = remove_faces(faces, I28)
+    >>> faces = keep_faces(faces, I28)
     >>> areas, u1 = read_scalars(area_file, True, True)
     >>> reindex = True
     >>> verbose = False
@@ -1214,7 +1214,7 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
     """
     import numpy as np
 
-    from mindboggle.guts.mesh import find_neighbors, remove_faces, \
+    from mindboggle.guts.mesh import find_neighbors, keep_faces, \
         reindex_faces_points
     from mindboggle.guts.segment import segment
 
@@ -1287,7 +1287,7 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
             #-----------------------------------------------------------------
             # Renumber faces for the selected indices:
             #-----------------------------------------------------------------
-            faces = remove_faces(faces, select_indices)
+            faces = keep_faces(faces, select_indices)
             if faces:
                 #-------------------------------------------------------------
                 # Reindex indices in faces:

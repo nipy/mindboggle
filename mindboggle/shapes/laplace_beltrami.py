@@ -404,9 +404,9 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None,
     ...                    precision=5, suppress_small=True))
     [ 0.00013  0.00027  0.00032  0.00047  0.00058]
     >>> # Spectrum for Twins-2-1 left postcentral pial surface (22):
-    >>> from mindboggle.guts.mesh import remove_faces, reindex_faces_points
+    >>> from mindboggle.guts.mesh import keep_faces, reindex_faces_points
     >>> I22 = [i for i,x in enumerate(labels) if x==1022] # postcentral
-    >>> faces = remove_faces(faces, I22)
+    >>> faces = keep_faces(faces, I22)
     >>> faces, points, o1 = reindex_faces_points(faces, points)
     >>> spectrum = fem_laplacian(points, faces, spectrum_size=6,
     ...                          normalization=None, verbose=False)
@@ -518,7 +518,7 @@ def spectrum_of_largest(points, faces, spectrum_size=10, exclude_labels=[-1],
     >>> # Spectrum for left postcentral + pars triangularis pial surfaces:
     >>> import numpy as np
     >>> from mindboggle.mio.vtks import read_scalars, read_vtk, write_vtk
-    >>> from mindboggle.guts.mesh import remove_faces, reindex_faces_points
+    >>> from mindboggle.guts.mesh import keep_faces, reindex_faces_points
     >>> from mindboggle.shapes.laplace_beltrami import spectrum_of_largest
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
@@ -532,7 +532,7 @@ def spectrum_of_largest(points, faces, spectrum_size=10, exclude_labels=[-1],
     >>> I20 = [i for i,x in enumerate(labels) if x==1020] # pars triangularis
     >>> I22 = [i for i,x in enumerate(labels) if x==1022] # postcentral
     >>> I22.extend(I20)
-    >>> faces = remove_faces(faces, I22)
+    >>> faces = keep_faces(faces, I22)
     >>> faces, points, o1 = reindex_faces_points(faces, points)
     >>> areas, u1 = read_scalars(area_file, True, True)
     >>> spectrum = spectrum_of_largest(points, faces, spectrum_size,
@@ -703,7 +703,7 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
 
     """
     from mindboggle.mio.vtks import read_vtk, read_scalars
-    from mindboggle.guts.mesh import remove_faces, reindex_faces_points
+    from mindboggle.guts.mesh import keep_faces, reindex_faces_points
     from mindboggle.shapes.laplace_beltrami import fem_laplacian,\
         spectrum_of_largest
 
@@ -732,7 +732,7 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
         #print('{0} vertices for label {1}'.format(len(Ilabel), label))
 
         # Remove background faces:
-        pick_faces = remove_faces(faces, Ilabel)
+        pick_faces = keep_faces(faces, Ilabel)
         pick_faces, pick_points, o1 = reindex_faces_points(pick_faces, points)
 
         # Compute Laplace-Beltrami spectrum for the label:

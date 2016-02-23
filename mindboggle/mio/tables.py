@@ -693,7 +693,7 @@ def write_average_face_values_per_label(input_indices_vtk,
     import pandas as pd
 
     from mindboggle.mio.vtks import read_scalars, read_vtk, write_vtk
-    from mindboggle.guts.mesh import remove_faces
+    from mindboggle.guts.mesh import keep_faces
 
     # Load VTK file:
     points, indices, lines, faces, scalars, scalar_names, npoints, \
@@ -716,7 +716,7 @@ def write_average_face_values_per_label(input_indices_vtk,
     for scalar in unique_scalars:
 
         keep_indices = [x for sublst in faces for x in sublst]
-        new_faces = remove_faces(faces, keep_indices)
+        new_faces = keep_faces(faces, keep_indices)
 
         # Create array and indices for scalar value:
         select_scalars = np.copy(scalars)
