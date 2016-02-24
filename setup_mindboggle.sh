@@ -4,7 +4,7 @@
 # (http://mindboggle.info).  Running it requires a good Internet connection.
 # We highly recommend installing Mindboggle as a virtual machine
 # (http://mindboggle.info/users/INSTALL.html).
-# Tested on Ubuntu 14.04 and MacOSX 10.11 x86_64 machines.
+# Tested on an Ubuntu 14.04 machine.
 #
 # Usage:
 #     bash setup_mindboggle.sh
@@ -32,15 +32,15 @@
 #     - Daniel Clark, 2014
 #     - Arno Klein, 2014-2016  (arno@mindboggle.info)  http://binarybottle.com
 #
-# Copyright 2015,  Mindboggle team, Apache v2.0 License
+# Copyright 2016,  Mindboggle team, Apache v2.0 License
 #=============================================================================
 
 #-----------------------------------------------------------------------------
 # Assign download and installation path arguments:
 #-----------------------------------------------------------------------------
-DL_PREFIX=$1
-INSTALL_PREFIX=$2
-MB_ENV=$3
+DOWNLOAD=$1
+INSTALL=$2
+ENV=$3
 OS=$4
 ANTS=$5
 SUDO=$6
@@ -48,28 +48,28 @@ SUDO=$6
 #-----------------------------------------------------------------------------
 # Create folders and file if they don't exist:
 #-----------------------------------------------------------------------------
-if [ -z "$DL_PREFIX" ]; then
-    DL_PREFIX="${HOME}/downloads"
+if [ -z "$DOWNLOAD" ]; then
+    DOWNLOAD="${HOME}/downloads"
 fi
-if [ ! -d $DL_PREFIX ]; then
-    mkdir -p $DL_PREFIX;
-fi
-
-if [ -z "$INSTALL_PREFIX" ]; then
-    INSTALL_PREFIX="${HOME}/install"
-fi
-if [ ! -d $INSTALL_PREFIX ]; then
-    mkdir -p $INSTALL_PREFIX;
+if [ ! -d $DOWNLOAD ]; then
+    mkdir -p $DOWNLOAD;
 fi
 
-if [ -z "$MB_ENV" ]; then
-    MB_ENV="${HOME}/.bash_profile"
+if [ -z "$INSTALL" ]; then
+    INSTALL="${HOME}/install"
 fi
-if [ ! -e "$MB_ENV" ] ; then
-    touch "$MB_ENV"
+if [ ! -d $INSTALL ]; then
+    mkdir -p $INSTALL;
 fi
-if [ ! -w "$MB_ENV" ] ; then
-    echo cannot write to $MB_ENV
+
+if [ -z "$ENV" ]; then
+    ENV="${HOME}/.bash_profile"
+fi
+if [ ! -e "$ENV" ] ; then
+    touch "$ENV"
+fi
+if [ ! -w "$ENV" ] ; then
+    echo cannot write to $ENV
     exit 1
 fi
 if [ -z "$OS" ]; then
@@ -100,8 +100,8 @@ fi
 #-----------------------------------------------------------------------------
 CONDA_URL="http://repo.continuum.io/miniconda"
 CONDA_FILE="Miniconda-latest-${OS}-x86_64.sh"
-CONDA_DL="${DL_PREFIX}/${CONDA_FILE}"
-CONDA_PATH="${INSTALL_PREFIX}/miniconda2"
+CONDA_DL="${DOWNLOAD}/${CONDA_FILE}"
+CONDA_PATH="${INSTALL}/miniconda2"
 if [ $OS = "Linux" ]; then
     wget -O $CONDA_DL ${CONDA_URL}/$CONDA_FILE
 else
@@ -113,7 +113,7 @@ bash $CONDA_DL -b -p $CONDA_PATH
 #-----------------------------------------------------------------------------
 # Set up PATH:
 #-----------------------------------------------------------------------------
-export PATH=${INSTALL_PREFIX}/bin:$PATH
+export PATH=${INSTALL}/bin:$PATH
 export PATH=${CONDA_PATH}/bin:$PATH
 
 #-----------------------------------------------------------------------------
@@ -156,15 +156,15 @@ pip install nibabel nipype
 #-----------------------------------------------------------------------------
 # Mindboggle:
 #-----------------------------------------------------------------------------
-MB_DL=${DL_PREFIX}/mindboggle
+MB_DL=${DOWNLOAD}/mindboggle
 git clone https://github.com/nipy/mindboggle.git $MB_DL
-mv $MB_DL $INSTALL_PREFIX
-cd ${INSTALL_PREFIX}/mindboggle
-python setup.py install --prefix=$INSTALL_PREFIX
-cd ${INSTALL_PREFIX}/mindboggle/surface_cpp_tools/bin
+mv $MB_DL $INSTALL
+cd ${INSTALL}/mindboggle
+python setup.py install --prefix=$INSTALL
+cd ${INSTALL}/mindboggle/surface_cpp_tools/bin
 cmake ../  # -DVTK_DIR:STRING=$VTK_DIR
 make
-cd $INSTALL_PREFIX
+cd $INSTALL
 
 #-----------------------------------------------------------------------------
 # ANTs (http://brianavants.wordpress.com/2012/04/13/
@@ -174,19 +174,19 @@ cd $INSTALL_PREFIX
 # whole-brain labeling, to improve and extend Mindboggle results.
 #-----------------------------------------------------------------------------
 if [ $ANTS -eq 1 ]; then
-    ANTS_DL=${DL_PREFIX}/ants
+    ANTS_DL=${DOWNLOAD}/ants
     git clone https://github.com/stnava/ANTs.git $ANTS_DL
     cd $ANTS_DL
     git checkout tags/v2.1.0rc2
-    mkdir ${INSTALL_PREFIX}/ants
-    cd ${INSTALL_PREFIX}/ants
+    mkdir ${INSTALL}/ants
+    cd ${INSTALL}/ants
     cmake $ANTS_DL  # -DVTK_DIR:STRING=$VTK_DIR
     make
-    cp -r ${ANTS_DL}/Scripts/* ${INSTALL_PREFIX}/ants/bin
+    cp -r ${ANTS_DL}/Scripts/* ${INSTALL}/ants/bin
     # Remove non-essential directories:
-    mv ${INSTALL_PREFIX}/ants/bin ${INSTALL_PREFIX}/ants_bin
-    rm -rf ${INSTALL_PREFIX}/ants/*
-    mv ${INSTALL_PREFIX}/ants_bin ${INSTALL_PREFIX}/ants/bin
+    mv ${INSTALL}/ants/bin ${INSTALL}/ants_bin
+    rm -rf ${INSTALL}/ants/*
+    mv ${INSTALL}/ants_bin ${INSTALL}/ants/bin
 fi
 
 #-----------------------------------------------------------------------------
@@ -194,29 +194,29 @@ fi
 #-----------------------------------------------------------------------------
 
 # -- Local install --
-echo "# Local install prefix" >> $MB_ENV
-echo "export PATH=${INSTALL_PREFIX}/bin:\$PATH" >> $MB_ENV
+echo "# Local install prefix" >> $ENV
+echo "export PATH=${INSTALL}/bin:\$PATH" >> $ENV
 
 # -- Mindboggle --
-echo "# Mindboggle" >> $MB_ENV
-echo "export surface_cpp_tools=${INSTALL_PREFIX}/mindboggle/surface_cpp_tools/bin" >> $MB_ENV
-echo "export PATH=\$surface_cpp_tools:\$PATH" >> $MB_ENV
-echo "export PYTHONPATH=\$PYTHONPATH:\${INSTALL_PREFIX}/mindboggle" >> $MB_ENV
+echo "# Mindboggle" >> $ENV
+echo "export surface_cpp_tools=${INSTALL}/mindboggle/surface_cpp_tools/bin" >> $ENV
+echo "export PATH=\$surface_cpp_tools:\$PATH" >> $ENV
+echo "export PYTHONPATH=\$PYTHONPATH:\${INSTALL}/mindboggle" >> $ENV
 
 # -- ANTs --
 if [ $ANTS -eq 1 ]; then
-    echo "# ANTs" >> $MB_ENV
-    echo "export ANTSPATH=${INSTALL_PREFIX}/ants/bin" >> $MB_ENV
-    echo "export PATH=\$ANTSPATH:\$PATH" >> $MB_ENV
+    echo "# ANTs" >> $ENV
+    echo "export ANTSPATH=${INSTALL}/ants/bin" >> $ENV
+    echo "export PATH=\$ANTSPATH:\$PATH" >> $ENV
 fi
 
-source $MB_ENV
+source $ENV
 
 #-----------------------------------------------------------------------------
 # Finally, remove non-essential directories:
 #-----------------------------------------------------------------------------
 rm_extras=0
 if [ $rm_extras -eq 1 ]; then
-    rm -r ${DL_PREFIX}/*
+    rm -r ${DOWNLOAD}/*
 fi
 
