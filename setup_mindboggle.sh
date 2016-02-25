@@ -48,21 +48,21 @@ OS=Linux
 # Create folders and file if they don't exist:
 #-----------------------------------------------------------------------------
 if [ -z "$DOWNLOAD" ]; then
-    DOWNLOAD="${HOME}/downloads"
+    DOWNLOAD="$HOME/downloads"
 fi
 if [ ! -d $DOWNLOAD ]; then
     mkdir -p $DOWNLOAD;
 fi
 
 if [ -z "$INSTALL" ]; then
-    INSTALL="${HOME}/install"
+    INSTALL="$HOME/install"
 fi
 if [ ! -d $INSTALL ]; then
     mkdir -p $INSTALL;
 fi
 
 if [ -z "$ENV" ]; then
-    ENV="${HOME}/.bash_profile"
+    ENV="$HOME/.bash_profile"
 fi
 if [ ! -e "$ENV" ] ; then
     touch "$ENV"
@@ -98,20 +98,20 @@ fi
 # Install Anaconda's miniconda Python distribution:
 #-----------------------------------------------------------------------------
 CONDA_URL="http://repo.continuum.io/miniconda"
-CONDA_FILE="Miniconda-latest-${OS}-x86_64.sh"
-CONDA_DL="${DOWNLOAD}/${CONDA_FILE}"
+CONDA_FILE="Miniconda-latest-$OS-x86_64.sh"
+CONDA_DL="$DOWNLOAD/$CONDA_FILE"
 CONDA_PATH="$INSTALL/miniconda2"
 if [ $OS = "Linux" ]; then
-    wget -O $CONDA_DL ${CONDA_URL}/$CONDA_FILE
+    wget -O $CONDA_DL $CONDA_URL/$CONDA_FILE
 else
-    curl -o $CONDA_DL ${CONDA_URL}/$CONDA_FILE
+    curl -o $CONDA_DL $CONDA_URL/$CONDA_FILE
 fi
 bash $CONDA_DL -b -p $CONDA_PATH
 
 # Set environment variables:
 echo "# Conda" >> $ENV
 #echo "export PATH=\$INSTALL/bin:\$PATH" >> $ENV
-echo "export PATH=\$CONDA_PATH/bin:\$PATH" >> $ENV
+echo "export PATH=$CONDA_PATH/bin:\$PATH" >> $ENV
 source $ENV
 
 #-----------------------------------------------------------------------------
@@ -170,8 +170,8 @@ cd $INSTALL
 
 # Set environment variables:
 echo "# Mindboggle" >> $ENV
-echo "export PATH=\$MINDBOGGLE:\$PATH" >> $ENV
-echo "export PATH=\$MB_CPP_BIN:\$PATH" >> $ENV
+echo "export PATH=$MINDBOGGLE:\$PATH" >> $ENV
+echo "export PATH=$MB_CPP_BIN:\$PATH" >> $ENV
 #echo "export PYTHONPATH=\$PYTHONPATH:\$INSTALL/mindboggle" >> $ENV
 source $ENV
 
@@ -183,15 +183,15 @@ source $ENV
 # registration for whole-brain labeling, to improve Mindboggle results.
 #-----------------------------------------------------------------------------
 if [ $ANTS -eq 1 ]; then
-    ANTS_DL=${DOWNLOAD}/ants
+    ANTS_DL=$DOWNLOAD/ants
     git clone https://github.com/stnava/ANTs.git $ANTS_DL
-    cd $ANTS_DL
-    git checkout tags/v2.1.0rc2
+    #cd $ANTS_DL
+    #git checkout tags/v2.1.0rc2
     mkdir $INSTALL/ants
     cd $INSTALL/ants
     cmake $ANTS_DL  # -DVTK_DIR:STRING=$VTK_DIR
     make
-    cp -r ${ANTS_DL}/Scripts/* $INSTALL/ants/bin
+    cp -r $ANTS_DL/Scripts/* $INSTALL/ants/bin
     # Remove non-essential directories:
     mv $INSTALL/ants/bin $INSTALL/ants_bin
     rm -rf $INSTALL/ants/*
@@ -199,8 +199,8 @@ if [ $ANTS -eq 1 ]; then
 
     # Set environment variables:
     echo "# ANTs" >> $ENV
-    echo "export ANTSPATH=\$INSTALL/ants/bin" >> $ENV
-    echo "export PATH=\$ANTSPATH:\$PATH" >> $ENV
+    echo "export ANTSPATH=$INSTALL/ants/bin" >> $ENV
+    echo "export PATH=$ANTSPATH:\$PATH" >> $ENV
     source $ENV
 fi
 
@@ -209,6 +209,6 @@ fi
 #-----------------------------------------------------------------------------
 rm_extras=0
 if [ $rm_extras -eq 1 ]; then
-    rm -r ${DOWNLOAD}/*
+    rm -r $DOWNLOAD/*
 fi
 
