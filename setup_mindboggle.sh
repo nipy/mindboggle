@@ -14,18 +14,18 @@
 # registration for whole-brain labeling.
 #
 # Usage:
-#     bash setup_mindboggle.sh
+#     source ./setup_mindboggle.sh
 #
 #     Or with arguments:
-#     bash setup_mindboggle.sh
+#     source ./setup_mindboggle.sh
 #               <absolute path to download directory (create if empty)>
 #               <absolute path to install directory (create if empty)>
 #               <absolute path to environment file (or create .bash_profile)>
 #               <install ants? set to 1 (default is 0)>
 #
 #     Example:
-#     bash setup_mindboggle.sh /home/vagrant/downloads /home/vagrant/install \
-#                              /home/vagrant/.bash_profile 0
+#     source ./setup_mindboggle.sh /home/vagrant/downloads \
+#            /home/vagrant/install /home/vagrant/.bash_profile 0
 #
 # Authors:
 #     - Daniel Clark, 2014
@@ -95,7 +95,7 @@ if [ $OS = "Linux" ]; then
 fi
 
 #-----------------------------------------------------------------------------
-# Install Anaconda's miniconda Python distribution:
+# Install Anaconda's latest miniconda Python distribution:
 #-----------------------------------------------------------------------------
 CONDA_URL="http://repo.continuum.io/miniconda"
 CONDA_FILE="Miniconda-latest-$OS-x86_64.sh"
@@ -149,30 +149,29 @@ fi
 conda install --yes cmake pip
 
 #-----------------------------------------------------------------------------
-# Use conda and pip to install Python packages:
+# Use conda and pip to install the latest Python packages:
 #-----------------------------------------------------------------------------
 conda install --yes numpy scipy matplotlib pandas networkx vtk ipython
 pip install nibabel nipype
 
 #-----------------------------------------------------------------------------
-# Install Mindboggle:
+# Install the latest Mindboggle:
 #-----------------------------------------------------------------------------
-MB_CPP_BIN=$INSTALL/mindboggle/surface_cpp_tools/bin
+surface_cpp_tools=$INSTALL/mindboggle/surface_cpp_tools/bin
 git clone https://github.com/nipy/mindboggle.git $INSTALL/mindboggle
 cd $INSTALL/mindboggle
-python setup.py install #--prefix=$INSTALL
-cd $MB_CPP_BIN
+python setup.py install  #--prefix=$INSTALL
+cd $surface_cpp_tools
 cmake ../  # -DVTK_DIR:STRING=$VTK_DIR
 make
 
 # Set environment variables:
 echo "# Mindboggle" >> $ENV
-echo "export PATH=$MB_CPP_BIN:\$PATH" >> $ENV
+echo "export PATH=$surface_cpp_tools:\$PATH" >> $ENV
 source $ENV
 
 #-----------------------------------------------------------------------------
-# Install ANTs (http://brianavants.wordpress.com/2012/04/13/
-#               updated-ants-compile-instructions-april-12-2012/)
+# Install ANTs v2.1.0rc3
 # The antsCorticalThickness.h pipeline optionally provides gray/white matter
 # segmentation, affine registration to standard space, and nonlinear volume
 # registration for whole-brain labeling, to improve Mindboggle results.
@@ -180,8 +179,8 @@ source $ENV
 if [ $ANTS -eq 1 ]; then
     ANTS_DL=$DOWNLOAD/ants
     git clone https://github.com/stnava/ANTs.git $ANTS_DL
-    #cd $ANTS_DL
-    #git checkout tags/v2.1.0rc2
+    cd $ANTS_DL
+    git checkout tags/v2.1.0rc3
     mkdir $INSTALL/ants
     cd $INSTALL/ants
     cmake $ANTS_DL  # -DVTK_DIR:STRING=$VTK_DIR
