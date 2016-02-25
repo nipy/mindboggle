@@ -69,7 +69,7 @@ if [ ! -w "$ENV" ] ; then
     exit 1
 fi
 if [ -z "$ANTS" ]; then
-    ANTS="yes"
+    ANTS="no"
 fi
 #if [ -z "$SUDO" ]; then
 #    SUDO=1
@@ -175,6 +175,7 @@ source $ENV
 #-----------------------------------------------------------------------------
 if [ $ANTS = "yes" ]; then
     ANTS_DL=$DOWNLOAD/ants
+    ANTSPATH=$INSTALL/ants/bin
     git clone https://github.com/stnava/ANTs.git $ANTS_DL
     cd $ANTS_DL
     git checkout tags/v2.1.0rc3
@@ -182,15 +183,15 @@ if [ $ANTS = "yes" ]; then
     cd $INSTALL/ants
     cmake $ANTS_DL  # -DVTK_DIR:STRING=$VTK_DIR
     make
-    cp -r $ANTS_DL/Scripts/* $INSTALL/ants/bin
+    cp -r $ANTS_DL/Scripts/* $ANTSPATH
     # Remove non-essential directories:
-    mv $INSTALL/ants/bin $INSTALL/ants_bin
+    mv $ANTSPATH $INSTALL/ants_bin
     rm -rf $INSTALL/ants/*
-    mv $INSTALL/ants_bin $INSTALL/ants/bin
+    mv $INSTALL/ants_bin $ANTSPATH
 
     # Set environment variables:
     echo "# ANTs" >> $ENV
-    echo "export ANTSPATH=$INSTALL/ants/bin" >> $ENV
+    echo "export ANTSPATH=$ANTSPATH" >> $ENV
     echo "export PATH=$ANTSPATH:\$PATH" >> $ENV
     source $ENV
 fi
