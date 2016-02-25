@@ -1,10 +1,11 @@
 #!/bin/bash
 #=============================================================================
 # This script provides directions for installing Mindboggle and dependencies
-# (http://mindboggle.info).  Running it requires a good Internet connection.
+# (http://mindboggle.info) on a Linux machine.
+# Running it requires a good Internet connection.
 # We highly recommend installing Mindboggle as a virtual machine
 # (http://mindboggle.info/users/INSTALL.html).
-# Tested on an Ubuntu 14.04 machine.
+# This script has been tested on an Ubuntu 14.04 machine.
 #
 # This script assumes that if it is not installing ANTs, then the global
 # environment file already includes the path to the ANTs bin directory.
@@ -19,15 +20,13 @@
 #     bash setup_mindboggle.sh <path to download directory (create if empty)>
 #                              <path to install directory (create if empty)>
 #                              <environment file (else create .bash_profile)>
-#                              <optional: operating system (default: Linux)>
-#                              <optional: set to 1 to install ants>
-#                              <optional: set to 0 to not use sudo>
+#                              <install ants? set to 1 (default: 0)>
 #
 #     For example:
 #     bash setup_mindboggle.sh /home/vagrant/downloads \
 #                              /home/vagrant/install \
 #                              /home/vagrant/.bash_profile \
-#                              Linux 0 1
+#                              0
 #
 # Authors:
 #     - Daniel Clark, 2014
@@ -42,9 +41,9 @@
 DOWNLOAD=$1
 INSTALL=$2
 ENV=$3
-OS=$4
 ANTS=$5
-SUDO=$6
+SUDO=1
+OS=Linux
 
 #-----------------------------------------------------------------------------
 # Create folders and file if they don't exist:
@@ -73,15 +72,15 @@ if [ ! -w "$ENV" ] ; then
     echo cannot write to $ENV
     exit 1
 fi
-if [ -z "$OS" ]; then
-    OS="Linux"
-fi
 if [ -z "$ANTS" ]; then
     ANTS=0
 fi
-if [ -z "$SUDO" ]; then
-    SUDO=1
-fi
+#if [ -z "$SUDO" ]; then
+#    SUDO=1
+#fi
+#if [ -z "$OS" ]; then
+#    OS="Linux"
+#fi
 
 #-----------------------------------------------------------------------------
 # Install system-wide dependencies in linux:
@@ -97,7 +96,7 @@ if [ $OS = "Linux" ]; then
 fi
 
 #-----------------------------------------------------------------------------
-# Anaconda's miniconda Python distribution for local installs:
+# Install Anaconda's miniconda Python distribution:
 #-----------------------------------------------------------------------------
 CONDA_URL="http://repo.continuum.io/miniconda"
 CONDA_FILE="Miniconda-latest-${OS}-x86_64.sh"
@@ -108,14 +107,12 @@ if [ $OS = "Linux" ]; then
 else
     curl -o $CONDA_DL ${CONDA_URL}/$CONDA_FILE
 fi
-
 bash $CONDA_DL -b -p $CONDA_PATH
 
-#-----------------------------------------------------------------------------
-# Set up PATH:
-#-----------------------------------------------------------------------------
-export PATH=${INSTALL}/bin:$PATH
-export PATH=${CONDA_PATH}/bin:$PATH
+# Set environment variables:
+echo "# Local install prefix" >> $ENV
+echo "export PATH=${INSTALL}/bin:\$PATH" >> $ENV
+echo "export PATH=${CONDA_PATH}/bin:\$PATH" >> $ENV
 
 #-----------------------------------------------------------------------------
 # Fix paths to linux libraries using symbolic links:
@@ -154,7 +151,7 @@ conda install --yes cmake pip
 #-----------------------------------------------------------------------------
 # Use conda and pip to install Python packages:
 #-----------------------------------------------------------------------------
-conda install --yes numpy scipy matplotlib pandas nose networkx traits vtk ipython
+conda install --yes numpy scipy matplotlib pandas networkx vtk ipython
 pip install nibabel nipype
 
 #-----------------------------------------------------------------------------
@@ -169,6 +166,12 @@ cd ${INSTALL}/mindboggle/surface_cpp_tools/bin
 cmake ../  # -DVTK_DIR:STRING=$VTK_DIR
 make
 cd $INSTALL
+
+# Set environment variables:
+echo "# Mindboggle" >> $ENV
+echo "export surface_cpp_tools=${INSTALL}/mindboggle/surface_cpp_tools/bin" >> $ENV
+echo "export PATH=\$surface_cpp_tools:\$PATH" >> $ENV
+echo "export PYTHONPATH=\$PYTHONPATH:\${INSTALL}/mindboggle" >> $ENV
 
 #-----------------------------------------------------------------------------
 # Install ANTs (http://brianavants.wordpress.com/2012/04/13/
@@ -191,23 +194,8 @@ if [ $ANTS -eq 1 ]; then
     mv ${INSTALL}/ants/bin ${INSTALL}/ants_bin
     rm -rf ${INSTALL}/ants/*
     mv ${INSTALL}/ants_bin ${INSTALL}/ants/bin
-fi
 
-#-----------------------------------------------------------------------------
-# Set environment variables:
-#-----------------------------------------------------------------------------
-# -- Local install --
-echo "# Local install prefix" >> $ENV
-echo "export PATH=${INSTALL}/bin:\$PATH" >> $ENV
-
-# -- Mindboggle --
-echo "# Mindboggle" >> $ENV
-echo "export surface_cpp_tools=${INSTALL}/mindboggle/surface_cpp_tools/bin" >> $ENV
-echo "export PATH=\$surface_cpp_tools:\$PATH" >> $ENV
-echo "export PYTHONPATH=\$PYTHONPATH:\${INSTALL}/mindboggle" >> $ENV
-
-# -- ANTs --
-if [ $ANTS -eq 1 ]; then
+    # Set environment variables:
     echo "# ANTs" >> $ENV
     echo "export ANTSPATH=${INSTALL}/ants/bin" >> $ENV
     echo "export PATH=\$ANTSPATH:\$PATH" >> $ENV
@@ -216,7 +204,7 @@ fi
 source $ENV
 
 #-----------------------------------------------------------------------------
-# Finally, remove non-essential directories:
+# Remove non-essential directories:
 #-----------------------------------------------------------------------------
 rm_extras=0
 if [ $rm_extras -eq 1 ]; then

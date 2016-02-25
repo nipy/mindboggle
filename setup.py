@@ -36,16 +36,16 @@ exec(open(ver_file).read())
 # Do dependency checking
 #package_check('numpy', NUMPY_MIN_VERSION)
 
-extra_setuptools_args = {}
-if 'setuptools' in sys.modules:
-    extra_setuptools_args = dict(
-        tests_require=['nose'],
-        test_suite='nose.collector',
-        zip_safe=False,
-        extras_require = dict(
-            doc='Sphinx>=0.3',
-            test='nose>=0.10.1')
-    )
+# extra_setuptools_args = {}
+# if 'setuptools' in sys.modules:
+#     extra_setuptools_args = dict(
+#         tests_require=['nose'],
+#         test_suite='nose.collector',
+#         zip_safe=False,
+#         extras_require = dict(
+#             doc='Sphinx>=0.3',
+#             test='nose>=0.10.1')
+#     )
 
 def main(**extra_args):
     setup(name=NAME,
