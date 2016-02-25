@@ -1,11 +1,8 @@
 #!/bin/bash
 #=============================================================================
 # This script provides directions for installing Mindboggle and dependencies
-# (http://mindboggle.info) on a Linux machine.
+# (http://mindboggle.info) on a Linux machine (tested on Ubuntu 14.04).
 # Running it requires a good Internet connection.
-# We highly recommend installing Mindboggle as a virtual machine
-# (http://mindboggle.info/users/INSTALL.html).
-# This script has been tested on an Ubuntu 14.04 machine.
 #
 # This script assumes that if it is not installing ANTs, then the global
 # environment file already includes the path to the ANTs bin directory.
@@ -21,11 +18,11 @@
 #               <absolute path to download directory (create if empty)>
 #               <absolute path to install directory (create if empty)>
 #               <absolute path to environment file (or create .bash_profile)>
-#               <install ants? set to 1 (default is 0)>
+#               <install ants: yes or no? (default is yes)>
 #
 #     Example:
 #     source ./setup_mindboggle.sh /home/vagrant/downloads \
-#            /home/vagrant/install /home/vagrant/.bash_profile 0
+#            /home/vagrant/install /home/vagrant/.bash_profile yes
 #
 # Authors:
 #     - Daniel Clark, 2014
@@ -72,7 +69,7 @@ if [ ! -w "$ENV" ] ; then
     exit 1
 fi
 if [ -z "$ANTS" ]; then
-    ANTS=0
+    ANTS="yes"
 fi
 #if [ -z "$SUDO" ]; then
 #    SUDO=1
@@ -176,7 +173,7 @@ source $ENV
 # segmentation, affine registration to standard space, and nonlinear volume
 # registration for whole-brain labeling, to improve Mindboggle results.
 #-----------------------------------------------------------------------------
-if [ $ANTS -eq 1 ]; then
+if [ $ANTS -eq "yes" ]; then
     ANTS_DL=$DOWNLOAD/ants
     git clone https://github.com/stnava/ANTs.git $ANTS_DL
     cd $ANTS_DL
