@@ -6,27 +6,28 @@
 # (http://mindboggle.info/users/INSTALL.html).
 # Tested on an Ubuntu 14.04 machine.
 #
+# This script assumes that if it is not installing ANTs, then the global
+# environment file already includes the path to the ANTs bin directory.
+# ANTs is used to perform affine registration to standard (MNI152) space,
+# refine gray/white matter segmentation, and perform nonlinear volume
+# registration for whole-brain labeling.
+#
 # Usage:
 #     bash setup_mindboggle.sh
 #
 #     Or with arguments:
-#     bash setup_mindboggle.sh <download_dir> <install_dir> <env>
-#                              <os> <ants> <sudo>
+#     bash setup_mindboggle.sh <path to download directory (create if empty)>
+#                              <path to install directory (create if empty)>
+#                              <environment file (else create .bash_profile)>
+#                              <optional: operating system (default: Linux)>
+#                              <optional: set to 1 to install ants>
+#                              <optional: set to 0 to not use sudo>
 #
 #     For example:
 #     bash setup_mindboggle.sh /home/vagrant/downloads \
 #                              /home/vagrant/install \
 #                              /home/vagrant/.bash_profile \
-#                              Linux  0  1
-# Note:
-#     All arguments are optional:
-#     <download_dir>, <install_dir>, and <env> will be created if required.
-#     <env> is a global environment sourcing script
-#           to set environment variables, such as .bash_profile.
-#     <os> is the operating system, either "Linux" or "MacOSX".
-#     <ants> is set to 1 or 0, to install/enable ANTS or not.
-#     <sudo> is set to 1 or 0, to install system-wide dependencies on Linux
-#            using sudo or not.
+#                              Linux 0 1
 #
 # Authors:
 #     - Daniel Clark, 2014
@@ -83,7 +84,7 @@ if [ -z "$SUDO" ]; then
 fi
 
 #-----------------------------------------------------------------------------
-# System-wide dependencies:
+# Install system-wide dependencies in linux:
 #-----------------------------------------------------------------------------
 if [ $OS = "Linux" ]; then
     if [ $SUDO -eq 1 ]; then
@@ -117,10 +118,8 @@ export PATH=${INSTALL}/bin:$PATH
 export PATH=${CONDA_PATH}/bin:$PATH
 
 #-----------------------------------------------------------------------------
-# Additional resources for installing packages:
+# Fix paths to linux libraries using symbolic links:
 #-----------------------------------------------------------------------------
-conda install --yes cmake pip
-
 # To avoid the following errors:
 # "No rule to make target `/usr/lib/x86_64-linux-gnu/libGLU.so'"
 # ...
@@ -148,13 +147,18 @@ if [ $OS = "Linux" ]; then
 fi
 
 #-----------------------------------------------------------------------------
-# Python packages:
+# Use conda to install additional resources for installing packages:
+#-----------------------------------------------------------------------------
+conda install --yes cmake pip
+
+#-----------------------------------------------------------------------------
+# Use conda and pip to install Python packages:
 #-----------------------------------------------------------------------------
 conda install --yes numpy scipy matplotlib pandas nose networkx traits vtk ipython
 pip install nibabel nipype
 
 #-----------------------------------------------------------------------------
-# Mindboggle:
+# Install Mindboggle:
 #-----------------------------------------------------------------------------
 MB_DL=${DOWNLOAD}/mindboggle
 git clone https://github.com/nipy/mindboggle.git $MB_DL
@@ -167,11 +171,11 @@ make
 cd $INSTALL
 
 #-----------------------------------------------------------------------------
-# ANTs (http://brianavants.wordpress.com/2012/04/13/
-#              updated-ants-compile-instructions-april-12-2012/)
-# antsCorticalThickness.h pipeline optionally provides tissue segmentation,
-# affine registration to standard space, and nonlinear registration for
-# whole-brain labeling, to improve and extend Mindboggle results.
+# Install ANTs (http://brianavants.wordpress.com/2012/04/13/
+#               updated-ants-compile-instructions-april-12-2012/)
+# The antsCorticalThickness.h pipeline optionally provides gray/white matter
+# segmentation, affine registration to standard space, and nonlinear volume
+# registration for whole-brain labeling, to improve Mindboggle results.
 #-----------------------------------------------------------------------------
 if [ $ANTS -eq 1 ]; then
     ANTS_DL=${DOWNLOAD}/ants
@@ -192,7 +196,6 @@ fi
 #-----------------------------------------------------------------------------
 # Set environment variables:
 #-----------------------------------------------------------------------------
-
 # -- Local install --
 echo "# Local install prefix" >> $ENV
 echo "export PATH=${INSTALL}/bin:\$PATH" >> $ENV
