@@ -77,6 +77,7 @@ def main(**extra_args):
          )
 
 if __name__ == "__main__":
-    main(**extra_setuptools_args)
+    main()
+    #main(**extra_setuptools_args)
 
 
