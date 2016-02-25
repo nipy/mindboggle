@@ -17,16 +17,15 @@
 #     bash setup_mindboggle.sh
 #
 #     Or with arguments:
-#     bash setup_mindboggle.sh <path to download directory (create if empty)>
-#                              <path to install directory (create if empty)>
-#                              <environment file (else create .bash_profile)>
-#                              <install ants? set to 1 (default: 0)>
+#     bash setup_mindboggle.sh
+#               <absolute path to download directory (create if empty)>
+#               <absolute path to install directory (create if empty)>
+#               <absolute path to environment file (or create .bash_profile)>
+#               <install ants? set to 1 (default is 0)>
 #
-#     For example:
-#     bash setup_mindboggle.sh /home/vagrant/downloads \
-#                              /home/vagrant/install \
-#                              /home/vagrant/.bash_profile \
-#                              0
+#     Example:
+#     bash setup_mindboggle.sh /home/vagrant/downloads /home/vagrant/install \
+#                              /home/vagrant/.bash_profile 0
 #
 # Authors:
 #     - Daniel Clark, 2014
@@ -41,7 +40,7 @@
 DOWNLOAD=$1
 INSTALL=$2
 ENV=$3
-ANTS=$5
+ANTS=$4
 SUDO=1
 OS=Linux
 
@@ -101,7 +100,7 @@ fi
 CONDA_URL="http://repo.continuum.io/miniconda"
 CONDA_FILE="Miniconda-latest-${OS}-x86_64.sh"
 CONDA_DL="${DOWNLOAD}/${CONDA_FILE}"
-CONDA_PATH="${INSTALL}/miniconda2"
+CONDA_PATH="$INSTALL/miniconda2"
 if [ $OS = "Linux" ]; then
     wget -O $CONDA_DL ${CONDA_URL}/$CONDA_FILE
 else
@@ -110,9 +109,10 @@ fi
 bash $CONDA_DL -b -p $CONDA_PATH
 
 # Set environment variables:
-echo "# Local install prefix" >> $ENV
-echo "export PATH=${INSTALL}/bin:\$PATH" >> $ENV
-echo "export PATH=${CONDA_PATH}/bin:\$PATH" >> $ENV
+echo "# Conda" >> $ENV
+#echo "export PATH=\$INSTALL/bin:\$PATH" >> $ENV
+echo "export PATH=\$CONDA_PATH/bin:\$PATH" >> $ENV
+source $ENV
 
 #-----------------------------------------------------------------------------
 # Fix paths to linux libraries using symbolic links:
@@ -157,21 +157,23 @@ pip install nibabel nipype
 #-----------------------------------------------------------------------------
 # Install Mindboggle:
 #-----------------------------------------------------------------------------
-MB_DL=${DOWNLOAD}/mindboggle
-git clone https://github.com/nipy/mindboggle.git $MB_DL
-mv $MB_DL $INSTALL
-cd ${INSTALL}/mindboggle
+export MB_INSTALL=$INSTALL/mindboggle
+export MB_CPP_BIN=$INSTALL/mindboggle/surface_cpp_tools/bin
+export MINDBOGGLE=$INSTALL/mindboggle/mindboggle
+git clone https://github.com/nipy/mindboggle.git $MB_INSTALL
+cd $MB_INSTALL
 python setup.py install --prefix=$INSTALL
-cd ${INSTALL}/mindboggle/surface_cpp_tools/bin
+cd $MB_CPP_BIN
 cmake ../  # -DVTK_DIR:STRING=$VTK_DIR
 make
 cd $INSTALL
 
 # Set environment variables:
 echo "# Mindboggle" >> $ENV
-echo "export surface_cpp_tools=${INSTALL}/mindboggle/surface_cpp_tools/bin" >> $ENV
-echo "export PATH=\$surface_cpp_tools:\$PATH" >> $ENV
-echo "export PYTHONPATH=\$PYTHONPATH:\${INSTALL}/mindboggle" >> $ENV
+echo "export PATH=\$MINDBOGGLE:\$PATH" >> $ENV
+echo "export PATH=\$MB_CPP_BIN:\$PATH" >> $ENV
+#echo "export PYTHONPATH=\$PYTHONPATH:\$INSTALL/mindboggle" >> $ENV
+source $ENV
 
 #-----------------------------------------------------------------------------
 # Install ANTs (http://brianavants.wordpress.com/2012/04/13/
@@ -185,23 +187,22 @@ if [ $ANTS -eq 1 ]; then
     git clone https://github.com/stnava/ANTs.git $ANTS_DL
     cd $ANTS_DL
     git checkout tags/v2.1.0rc2
-    mkdir ${INSTALL}/ants
-    cd ${INSTALL}/ants
+    mkdir $INSTALL/ants
+    cd $INSTALL/ants
     cmake $ANTS_DL  # -DVTK_DIR:STRING=$VTK_DIR
     make
-    cp -r ${ANTS_DL}/Scripts/* ${INSTALL}/ants/bin
+    cp -r ${ANTS_DL}/Scripts/* $INSTALL/ants/bin
     # Remove non-essential directories:
-    mv ${INSTALL}/ants/bin ${INSTALL}/ants_bin
-    rm -rf ${INSTALL}/ants/*
-    mv ${INSTALL}/ants_bin ${INSTALL}/ants/bin
+    mv $INSTALL/ants/bin $INSTALL/ants_bin
+    rm -rf $INSTALL/ants/*
+    mv $INSTALL/ants_bin $INSTALL/ants/bin
 
     # Set environment variables:
     echo "# ANTs" >> $ENV
-    echo "export ANTSPATH=${INSTALL}/ants/bin" >> $ENV
+    echo "export ANTSPATH=\$INSTALL/ants/bin" >> $ENV
     echo "export PATH=\$ANTSPATH:\$PATH" >> $ENV
+    source $ENV
 fi
-
-source $ENV
 
 #-----------------------------------------------------------------------------
 # Remove non-essential directories:
