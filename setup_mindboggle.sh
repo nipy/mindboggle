@@ -115,7 +115,7 @@ echo "export PATH=$CONDA_PATH/bin:\$PATH" >> $ENV
 source $ENV
 
 #-----------------------------------------------------------------------------
-# Fix paths to linux libraries using symbolic links:
+# Fix paths to Linux libraries using symbolic links:
 #-----------------------------------------------------------------------------
 # To avoid the following errors:
 # "No rule to make target `/usr/lib/x86_64-linux-gnu/libGLU.so'"
@@ -201,7 +201,7 @@ fi
 #-----------------------------------------------------------------------------
 # Remove non-essential directories:
 #-----------------------------------------------------------------------------
-rm_extras=0
+rm_extras=1
 if [ $rm_extras -eq 1 ]; then
     rm -r $DOWNLOAD/*
 fi
