@@ -173,7 +173,7 @@ source $ENV
 # segmentation, affine registration to standard space, and nonlinear volume
 # registration for whole-brain labeling, to improve Mindboggle results.
 #-----------------------------------------------------------------------------
-if [ $ANTS -eq "yes" ]; then
+if [ $ANTS = "yes" ]; then
     ANTS_DL=$DOWNLOAD/ants
     git clone https://github.com/stnava/ANTs.git $ANTS_DL
     cd $ANTS_DL
