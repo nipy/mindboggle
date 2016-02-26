@@ -154,7 +154,7 @@ Vagrant.configure("2") do |config|
         {3}
         {4}
 
-        # Configure %CPU, memory, #CPUs
+        # Configure %CPU, memory (MB RAM), #CPUs
         conf.vm.provider :virtualbox do |vb|
             vb.customize ["modifyvm", :id, "--cpuexecutioncap", "{5}"]
             vb.customize ["modifyvm", :id, "--memory", "{6}"]

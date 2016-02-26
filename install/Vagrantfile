@@ -22,9 +22,20 @@
 #=============================================================================
 
 Vagrant.configure("2") do |conf|
-  conf.vm.box = "hashicorp/precise64"
-  conf.vm.provision "shell", path: "https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle.sh"
-  conf.ssh.username = "vagrant"
-  conf.ssh.password = "vagrant"
+
+    conf.vm.box = "hashicorp/precise64"
+    conf.vm.provision "shell", path: "https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle.sh"
+
+    # Configure %CPU, memory (MB RAM), #CPUs
+    conf.vm.provider :virtualbox do |vb|
+        vb.customize ["modifyvm", :id, "--cpuexecutioncap", "90"]
+        vb.customize ["modifyvm", :id, "--memory", "4096"]
+        vb.customize ["modifyvm", :id, "--cpus", "1"]
+        vb.customize ["modifyvm", :id, "--ioapic", "on"]
+    end
+
+    conf.ssh.username = "vagrant"
+    conf.ssh.password = "vagrant"
+
 end
 
