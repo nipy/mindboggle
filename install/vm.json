@@ -1,6 +1,6 @@
 {
   "name": "mindboggle",
-  "description": "This box contains Mindboggle and dependencies installed on Ubuntu 14.04 LTS 64-bit.",
+  "description": "This box contains Mindboggle and dependencies installed on Ubuntu 12.04 LTS 64-bit.",
   "versions": [{
     "version": "1.0",
     "providers": [{
