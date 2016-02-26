@@ -168,6 +168,8 @@ git clone https://github.com/nipy/mindboggle.git $INSTALL/mindboggle
 cd $INSTALL/mindboggle
 python setup.py install  #--prefix=$INSTALL
 cd $vtk_cpp_tools
+mkdir bin
+cd bin
 cmake ../  # -DVTK_DIR:STRING=$VTK_DIR
 make
 

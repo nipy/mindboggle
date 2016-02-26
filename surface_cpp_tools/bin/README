@@ -1,5 +1,0 @@
-# Example steps to compile C++ code within this directory:
-
-cmake ../ -DVTK_DIR:STRING=/home/arno/Software/miniconda/pkgs/vtk-6.3.0-py27_0
-
-make
