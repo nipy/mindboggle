@@ -8,7 +8,8 @@
 # file .bash_profile already includes the path to the ANTs bin directory.
 # ANTs is used to perform affine registration to standard (MNI152) space,
 # refine gray/white matter segmentation, and perform nonlinear volume
-# registration for whole-brain labeling.
+# registration for whole-brain labeling. Installing and running ANTs
+# requires considerable (> 1 GB) RAM.
 #
 # Usage:
 #     source ./install_mindboggle.sh

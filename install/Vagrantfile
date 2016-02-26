@@ -4,7 +4,8 @@
 # in a VirtualBox environment (virtual machine) using Vagrant software.
 # It calls a bash setup script in the same folder: setup_mindboggle.sh.
 # Vagrant (vagrantup.com) and VirtualBox (virtualbox.org) should be installed,
-# and there needs to be a good Internet connection.
+# and there needs to be a good Internet connection. Installing ANTs requires
+# considerable (> 1 GB) RAM.
 #
 # See build_box.sh to build a reusable box from the running VirtualBox.
 #
