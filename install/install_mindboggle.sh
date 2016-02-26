@@ -11,10 +11,10 @@
 # registration for whole-brain labeling.
 #
 # Usage:
-#     source ./setup_mindboggle.sh
+#     source ./install_mindboggle.sh
 #
 #     Or with arguments:
-#     source ./setup_mindboggle.sh
+#     source ./install_mindboggle.sh
 #               <absolute path to download directory (create if empty)>
 #               <absolute path to install directory (create if empty)>
 #               <absolute path to environment file (or create .bash_profile)>
@@ -22,7 +22,7 @@
 #               <install ants: yes or no? (default is yes)>
 #
 #     Example:
-#     source ./setup_mindboggle.sh /home/vagrant/downloads \
+#     source ./install_mindboggle.sh /home/vagrant/downloads \
 #            /home/vagrant/install /home/vagrant/.bash_profile yes
 #
 # Authors:
@@ -167,9 +167,8 @@ vtk_cpp_tools=$INSTALL/mindboggle/vtk_cpp_tools/bin
 git clone https://github.com/nipy/mindboggle.git $INSTALL/mindboggle
 cd $INSTALL/mindboggle
 python setup.py install  #--prefix=$INSTALL
+mkdir $vtk_cpp_tools
 cd $vtk_cpp_tools
-mkdir bin
-cd bin
 cmake ../  # -DVTK_DIR:STRING=$VTK_DIR
 make
 

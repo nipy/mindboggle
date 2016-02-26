@@ -23,7 +23,7 @@
 
 Vagrant.configure("2") do |config|
   config.vm.box = "hashicorp/precise64"
-  config.vm.provision "shell", path: "https://raw.githubusercontent.com/nipy/mindboggle/master/setup/setup_mindboggle.sh"
+  config.vm.provision "shell", path: "https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle.sh"
   config.ssh.username = "vagrant"
   config.ssh.password = "vagrant"
 end
