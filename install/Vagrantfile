@@ -21,10 +21,10 @@
 # Copyright 2016,  Mindboggle team, Apache v2.0 License
 #=============================================================================
 
-Vagrant.configure("2") do |config|
-  config.vm.box = "hashicorp/precise64"
-  config.vm.provision "shell", path: "https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle.sh"
-  config.ssh.username = "vagrant"
-  config.ssh.password = "vagrant"
+Vagrant.configure("2") do |conf|
+  conf.vm.box = "hashicorp/precise64"
+  conf.vm.provision "shell", path: "https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle.sh"
+  conf.ssh.username = "vagrant"
+  conf.ssh.password = "vagrant"
 end
 

@@ -1,0 +1,177 @@
+#!/usr/bin/python
+"""
+Mindboggle virtual machine configuration script (http://mindboggle.info).
+
+This program downloads and configures the Mindboggle virtual machine.
+It should be placed in its own directory and will generate a Vagrantfile.
+Vagrant (vagrantup.com) and VirtualBox (virtualbox.org) must be installed,
+and there needs to be a good Internet connection.
+
+CONFIGURE MINDBOGGLE (ONE-TIME INSTALLATION)
+--------------------------------------------
+One-time installation for a given configuration (generates a Vagrantfile):
+Here we configure access to FreeSurfer and ANTs data and an output directory
+via local mounted directories, and set the number of processors, the memory,
+and the percent cpu.  All arguments are optional, since the script assumes
+a default --out of $HOME/mindboggled and --freesurfer of $SUBJECTS_DIR
+and no --ants data::
+
+    python configure_mindboggle_vm \
+                --out /Users/arno/mindboggled \
+                --freesurfer /Applications/freesurfer/subjects \
+                --ants /data/antsCorticalThickness/subjects \
+                --proc 6 --mem 4096 --cpu 75
+
+RUN MINDBOGGLE
+--------------
+    vagrant up
+    vagrant ssh
+
+HELP
+----
+For help, type the following in a terminal window::
+
+    python configure_mindboggle_vm --help
+
+Miscellaneous Vagrant commands::
+
+    VBoxManage list runningvms  # running virtual machines
+    vagrant status  # status of virtual machines
+
+
+Authors:
+     - Arno Klein, 2014-2016  (arno@mindboggle.info)  http://binarybottle.com
+
+Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+
+"""
+import os
+import argparse
+
+#=============================================================================
+# Command-line arguments
+#=============================================================================
+parser = argparse.ArgumentParser(description="""
+This program downloads and configures the Mindboggle virtual machine,
+with mounted directories to access FreeSurfer recon-all subject data
+(--freesurfer), ANTs antsCorticalThickness.sh subject data (--ants),
+or additional atlases (--atlases) and an output directory (--out).
+All arguments are optional, since the script assumes a default --out of
+$HOME/mindboggled and --freesurfer of $SUBJECTS_DIR and no --ants data.
+This script should be placed in its own directory and will generate a
+Vagrantfile. You must have Vagrant (vagrantup.com) and VirtualBox
+(virtualbox.org) installed, as well as a good Internet connection.
+
+Ex: python setup_mindboggle_vm
+    --out /Users/arno/mindboggled
+    --freesurfer /Applications/freesurfer/subjects
+    --ants /data/antsCorticalThickness/subjects
+    --proc 6 --mem 4096 --cpu 75 """,
+    formatter_class = lambda prog:
+    argparse.HelpFormatter(prog, max_help_position=40))
+
+parser.add_argument("--out",
+                    help="Output directory (default: $HOME/mindboggled)",
+                    metavar='STR')
+parser.add_argument("--freesurfer",
+                    help=("FreeSurfer subjects directory (default: "
+                          "$SUBJECTS_DIR)"),
+                    metavar='STR')
+parser.add_argument("--ants",
+                    help=("Optional directory containing "
+                          "antsCorticalThickness.sh "
+                          "output in individual subject directories"),
+                    metavar='STR')
+parser.add_argument("--atlases",
+                    help="Optional directory containing additional atlases",
+                    metavar='STR')
+parser.add_argument("--cpu",
+                    help='Maximum CPU (percent): "--cpu 50" (default)',
+                    type=int, default=50, metavar='INT')
+parser.add_argument("--mem",
+                    help='Maximum memory (MB): "--mem 4096" (default)',
+                    type=int, default=4096, metavar='INT')
+parser.add_argument("--proc",
+                    help='Number of processors: "--proc 1" (default)',
+                    type=int, default=1, metavar='INT')
+args = parser.parse_args()
+
+#=============================================================================
+# Configure mount directories
+#=============================================================================
+mindboggle_version = "1.0"
+home = os.environ['HOME']
+
+if args.out:
+    out_string = '"{0}", "/home/vagrant/mindboggled"'.format(args.out)
+else:
+    out_string = '"{0}/mindboggled", "/home/vagrant/mindboggled"'.format(home)
+if args.freesurfer:
+    freesurfer_string = '"{0}", "/home/vagrant/freesurfer/subjects"'.\
+        format(args.freesurfer)
+else:
+    freesurfer_string = '"{0}", "/home/vagrant/freesurfer/subjects"'.\
+        format(os.environ['SUBJECTS_DIR'])
+if args.ants:
+    ants_string = 'conf.vm.synced_folder "{0}", ' \
+                  '"/home/vagrant/ants_subjects"'.format(args.ants)
+else:
+    ants_string = ''
+if args.atlases:
+    atlases_string = 'conf.vm.synced_folder "{0}", ' \
+                     '"{1}/atlases"'.format(args.atlases, home)
+else:
+    atlases_string = ''
+
+#=============================================================================
+# Create Vagrantfile
+#=============================================================================
+f = open('Vagrantfile', 'w')
+
+vagrant_file = """# Vagrantfile (http://www.vagrantup.com)
+
+#=============================================================================
+# Configure Vagrantfile
+#=============================================================================
+Vagrant.configure("2") do |config|
+
+    #-------------------------------------------------------------------------
+    # Configure the Mindboggle Vagrant box and mount local directories
+    #-------------------------------------------------------------------------
+    config.vm.define :config do |conf|
+
+        # Build from the mindboggle.box Vagrant virtual box
+        # (VirtualBox caches it so you only download once):
+        conf.vm.box = "mindboggle"
+        conf.vm.box_url = "http://media.mindboggle.info/vm/mindboggle.{0}.box"
+        conf.vm.hostname = "mindboggler"
+
+        # Share additional folders to the guest VM,
+        # with paths on the guest to mount the folder.
+        # Ex: conf.vm.synced_folder "../data", "/vagrant_data"
+        conf.vm.synced_folder {1}
+        conf.vm.synced_folder {2}
+        {3}
+        {4}
+
+        # Configure %CPU, memory, #CPUs
+        conf.vm.provider :virtualbox do |vb|
+            vb.customize ["modifyvm", :id, "--cpuexecutioncap", "{5}"]
+            vb.customize ["modifyvm", :id, "--memory", "{6}"]
+            vb.customize ["modifyvm", :id, "--cpus", "{7}"]
+            vb.customize ["modifyvm", :id, "--ioapic", "on"]
+        end
+
+        conf.ssh.username = "vagrant"
+        conf.ssh.password = "vagrant"
+
+    end
+end
+""".format(mindboggle_version, out_string, freesurfer_string,
+           ants_string, atlases_string, args.cpu, args.mem, args.proc)
+
+#=============================================================================
+# Write Vagrantfile with substitutions
+#=============================================================================
+f.write(vagrant_file)
+f.close()
