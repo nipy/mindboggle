@@ -4,8 +4,8 @@
 # (http://mindboggle.info) on a Linux machine (tested on Ubuntu 14.04).
 # Running it requires a good Internet connection.
 #
-# This script assumes that if it is not installing ANTs, then the global
-# environment file already includes the path to the ANTs bin directory.
+# This script assumes that if it isn't installing ANTs, the global environment
+# file .bash_profile already includes the path to the ANTs bin directory.
 # ANTs is used to perform affine registration to standard (MNI152) space,
 # refine gray/white matter segmentation, and perform nonlinear volume
 # registration for whole-brain labeling.
@@ -18,6 +18,7 @@
 #               <absolute path to download directory (create if empty)>
 #               <absolute path to install directory (create if empty)>
 #               <absolute path to environment file (or create .bash_profile)>
+#               <absolute path to home directory (default is /home/vagrant)>
 #               <install ants: yes or no? (default is yes)>
 #
 #     Example:
@@ -32,18 +33,26 @@
 #=============================================================================
 
 #-----------------------------------------------------------------------------
-# Assign download and installation path arguments:
+# Path arguments:
 #-----------------------------------------------------------------------------
 DOWNLOAD=$1
 INSTALL=$2
 ENV=$3
-ANTS=$4
-SUDO=1
+HOME=$4
+ANTS=$5
+
+#-----------------------------------------------------------------------------
+# OS and sudo:
+#-----------------------------------------------------------------------------
 OS=Linux
+SUDO=1
 
 #-----------------------------------------------------------------------------
 # Create folders and file if they don't exist:
 #-----------------------------------------------------------------------------
+if [ -z "$HOME" ]; then
+    HOME="/home/vagrant"
+fi
 if [ -z "$DOWNLOAD" ]; then
     DOWNLOAD="$HOME/downloads"
 fi
@@ -69,7 +78,7 @@ if [ ! -w "$ENV" ] ; then
     exit 1
 fi
 if [ -z "$ANTS" ]; then
-    ANTS="yes"
+    ANTS="no"
 fi
 #if [ -z "$SUDO" ]; then
 #    SUDO=1
