@@ -78,7 +78,7 @@ if [ ! -w "$ENV" ] ; then
     exit 1
 fi
 if [ -z "$ANTS" ]; then
-    ANTS="yes"
+    ANTS="no"
 fi
 #if [ -z "$SUDO" ]; then
 #    SUDO=1
