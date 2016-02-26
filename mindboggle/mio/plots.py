@@ -50,7 +50,7 @@ def plot_surfaces(vtk_files, use_colormap=False, colormap_file=''):
     >>> os.rename(label_file, label_file + '.nii.gz')
     >>> label_file = label_file + '.nii.gz'
     >>> use_colormap = True
-    >>> colormap_file = '/software/surface_cpp_tools/colormap.xml' # doctest: +SKIP
+    >>> colormap_file = '/software/vtk_cpp_tools/colormap.xml' # doctest: +SKIP
     >>> plot_surfaces(vtk_files, use_colormap, colormap_file) # doctest: +SKIP
 
     """

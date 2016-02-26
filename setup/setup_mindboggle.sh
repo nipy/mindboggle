@@ -163,17 +163,17 @@ pip install nibabel nipype
 #-----------------------------------------------------------------------------
 # Install the latest Mindboggle:
 #-----------------------------------------------------------------------------
-surface_cpp_tools=$INSTALL/mindboggle/surface_cpp_tools/bin
+vtk_cpp_tools=$INSTALL/mindboggle/vtk_cpp_tools/bin
 git clone https://github.com/nipy/mindboggle.git $INSTALL/mindboggle
 cd $INSTALL/mindboggle
 python setup.py install  #--prefix=$INSTALL
-cd $surface_cpp_tools
+cd $vtk_cpp_tools
 cmake ../  # -DVTK_DIR:STRING=$VTK_DIR
 make
 
 # Set environment variables:
 echo "# Mindboggle" >> $ENV
-echo "export PATH=$surface_cpp_tools:\$PATH" >> $ENV
+echo "export PATH=$vtk_cpp_tools:\$PATH" >> $ENV
 source $ENV
 
 #-----------------------------------------------------------------------------

@@ -1,22 +1,18 @@
 # Vagrantfile (http://www.vagrantup.com)
 #=============================================================================
-# This program packages Mindboggle (http://mindboggle.info) and dependencies
-# in a virtual Linux machine using Vagrant software.
+# This program installs Mindboggle (http://mindboggle.info) and dependencies
+# in a VirtualBox environment (virtual machine) using Vagrant software.
 # It calls a bash setup script in the same folder: setup_mindboggle.sh.
 # Vagrant (vagrantup.com) and VirtualBox (virtualbox.org) should be installed,
 # and there needs to be a good Internet connection.
+#
+# See build_box.sh to build a reusable box from the running VirtualBox.
 #
 # Usage:
 #     vagrant up
 #
 # ssh into the vm:
 #     vagrant ssh
-#
-# Build a box and upload it to a website:
-#     VBoxManage list vms  # to find <vm name> below
-#     vagrant package --base <vm name> --output mindboggle.<version>.box
-#     rsync -avz --sparse -e /usr/bin/ssh mindboggle.<version>.box
-#         binarybottle@binarybottle.com:media.mindboggle.info/vm/
 #
 #
 # Authors:
@@ -27,7 +23,7 @@
 
 Vagrant.configure("2") do |config|
   config.vm.box = "hashicorp/precise64"
-  config.vm.provision "shell", path: "https://github.com/nipy/mindboggle/blob/master/setup/setup_mindboggle.sh"
+  config.vm.provision "shell", path: "https://raw.githubusercontent.com/nipy/mindboggle/master/setup/setup_mindboggle.sh"
   config.ssh.username = "vagrant"
   config.ssh.password = "vagrant"
 end

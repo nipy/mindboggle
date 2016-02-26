@@ -4,7 +4,7 @@
 doctrees
 mindboggle.*.box
 mindboggle.egg-info
-surface_cpp_tools/bin
+vtk_cpp_tools/bin
 .vagrant/
 /Vagrantfile
 

@@ -113,10 +113,10 @@ _`Mindboggle processing steps`
 
     4. Compute surface shape measures for every cortical mesh vertex:
 
-        - `surface area <https://github.com/nipy/mindboggle/blob/master/surface_cpp_tools/PointAreaComputer.cpp>`_
-        - `travel depth <https://github.com/nipy/mindboggle/blob/master/surface_cpp_tools/TravelDepth.cpp>`_
-        - `geodesic depth <https://github.com/nipy/mindboggle/blob/master/surface_cpp_tools/geodesic_depth/GeodesicDepthMain.cpp>`_
-        - `mean curvature <https://github.com/nipy/mindboggle/blob/master/surface_cpp_tools/curvature/CurvatureMain.cpp>`_
+        - `surface area <https://github.com/nipy/mindboggle/blob/master/vtk_cpp_tools/PointAreaComputer.cpp>`_
+        - `travel depth <https://github.com/nipy/mindboggle/blob/master/vtk_cpp_tools/TravelDepth.cpp>`_
+        - `geodesic depth <https://github.com/nipy/mindboggle/blob/master/vtk_cpp_tools/geodesic_depth/GeodesicDepthMain.cpp>`_
+        - `mean curvature <https://github.com/nipy/mindboggle/blob/master/vtk_cpp_tools/curvature/CurvatureMain.cpp>`_
         - convexity (from FreeSurfer)
         - thickness (from FreeSurfer)
 

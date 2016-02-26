@@ -310,7 +310,7 @@ do_smooth_fundi = False
 # ----------------------------------------------------------------------------
 # Path to C++ code:
 # ----------------------------------------------------------------------------
-ccode_path = os.environ['surface_cpp_tools']  # Mindboggle C++ code directory
+ccode_path = os.environ['vtk_cpp_tools']  # Mindboggle C++ code directory
 # ----------------------------------------------------------------------------
 # Hashes to verify retrieved data, and output, working, and cache directories:
 # ----------------------------------------------------------------------------
