@@ -6,7 +6,6 @@ mindboggle.*.box
 mindboggle.egg-info
 vtk_cpp_tools/bin
 .vagrant/
-/Vagrantfile
 
 build
 CMakeCache.txt
