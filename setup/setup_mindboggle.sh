@@ -69,7 +69,7 @@ if [ ! -w "$ENV" ] ; then
     exit 1
 fi
 if [ -z "$ANTS" ]; then
-    ANTS="no"
+    ANTS="yes"
 fi
 #if [ -z "$SUDO" ]; then
 #    SUDO=1
@@ -185,9 +185,9 @@ if [ $ANTS = "yes" ]; then
     make
     cp -r $ANTS_DL/Scripts/* $ANTSPATH
     # Remove non-essential directories:
-    mv $ANTSPATH $INSTALL/ants_bin
-    rm -rf $INSTALL/ants/*
-    mv $INSTALL/ants_bin $ANTSPATH
+    #mv $ANTSPATH $INSTALL/ants_bin
+    #rm -rf $INSTALL/ants/*
+    #mv $INSTALL/ants_bin $ANTSPATH
 
     # Set environment variables:
     echo "# ANTs" >> $ENV
@@ -199,7 +199,7 @@ fi
 #-----------------------------------------------------------------------------
 # Remove non-essential directories:
 #-----------------------------------------------------------------------------
-rm_extras=1
+rm_extras=0
 if [ $rm_extras -eq 1 ]; then
     rm -r $DOWNLOAD/*
 fi
