@@ -109,10 +109,10 @@ if args.out:
 else:
     out_string = '"{0}/mindboggled", "/home/vagrant/mindboggled"'.format(home)
 if args.freesurfer:
-    freesurfer_string = '"{0}", "/home/vagrant/freesurfer/subjects"'.\
+    freesurfer_string = '"{0}", "/home/vagrant/freesurfer_subjects"'.\
         format(args.freesurfer)
 else:
-    freesurfer_string = '"{0}", "/home/vagrant/freesurfer/subjects"'.\
+    freesurfer_string = '"{0}", "/home/vagrant/freesurfer_subjects"'.\
         format(os.environ['SUBJECTS_DIR'])
 if args.ants:
     ants_string = 'conf.vm.synced_folder "{0}", ' \
@@ -150,13 +150,12 @@ Vagrant.configure("2") do |config|
 
         # Share additional folders to the guest VM,
         # with paths on the guest to mount the folder.
-        # Ex: conf.vm.synced_folder "../data", "/vagrant_data"
         conf.vm.synced_folder {1}
         conf.vm.synced_folder {2}
         {3}
         {4}
 
-        # Configure number of CPUs maximum % per CPU, and memory (MB RAM):
+        # Configure number of CPUs, maximum % per CPU, and memory (MB RAM):
         conf.vm.provider :virtualbox do |vb|
             vb.customize ["modifyvm", :id, "--cpus", "{5}"]
             vb.customize ["modifyvm", :id, "--cpuexecutioncap", "{6}"]
