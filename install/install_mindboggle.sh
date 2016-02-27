@@ -1,7 +1,7 @@
 #!/bin/bash
 #=============================================================================
 # This script provides directions for installing Mindboggle and dependencies
-# (http://mindboggle.info) on a Linux machine (tested on Ubuntu 14.04).
+# (http://mindboggle.info) on a Linux machine (tested on Ubuntu 12.04, 14.04).
 # Running it requires a good Internet connection.
 #
 # This script assumes that if it isn't installing ANTs, the global environment
