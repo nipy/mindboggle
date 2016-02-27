@@ -14,7 +14,8 @@ Here we configure access to FreeSurfer and ANTs data and an output directory
 via local mounted directories, and set the number of processors, the memory,
 and the percent cpu.  All arguments are optional, since the script assumes
 a default --out of $HOME/mindboggled and --freesurfer of $SUBJECTS_DIR
-and no --ants data::
+and no --ants data. Here we set the number of CPUs, percent CPU, and RAM,
+as well as the version of Mindboggle::
 
     python configure_mindboggle_vm \
                 --out $HOME/mindboggled \
@@ -37,6 +38,7 @@ Miscellaneous Vagrant commands::
 
     VBoxManage list runningvms  # running virtual machines
     vagrant status  # status of virtual machines
+    vagrant box add <title> <box>; vagrant init <box>; vagrant up; vagrant ssh
 
 
 Authors:
