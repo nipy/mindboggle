@@ -115,12 +115,12 @@ else:
     freesurfer_string = '"{0}", "/home/vagrant/freesurfer_subjects"'.\
         format(os.environ['SUBJECTS_DIR'])
 if args.ants:
-    ants_string = 'conf.vm.synced_folder "{0}", ' \
+    ants_string = 'config.vm.synced_folder "{0}", ' \
                   '"/home/vagrant/ants_subjects"'.format(args.ants)
 else:
     ants_string = ''
 if args.atlases:
-    atlases_string = 'conf.vm.synced_folder "{0}", ' \
+    atlases_string = 'config.vm.synced_folder "{0}", ' \
                      '"{1}/atlases"'.format(args.atlases, home)
 else:
     atlases_string = ''
@@ -133,41 +133,35 @@ f = open('Vagrantfile', 'w')
 vagrant_file = """# Vagrantfile (http://www.vagrantup.com)
 
 #=============================================================================
-# Configure Vagrantfile
+# Configure the Mindboggle Vagrant box and mount local directories
 #=============================================================================
 Vagrant.configure("2") do |config|
 
-    #-------------------------------------------------------------------------
-    # Configure the Mindboggle Vagrant box and mount local directories
-    #-------------------------------------------------------------------------
-    config.vm.define :config do |conf|
+    # Fetch the mindboggle Vagrant virtual box if not already cached:
+    config.vm.box = "mindboggle"
+    config.vm.box_url = "http://media.mindboggle.info/vm/mindboggle.{0}.box"
+    config.vm.hostname = "mindboggler"
 
-        # Fetch the mindboggle.box Vagrant virtual box
-        # (VirtualBox caches it so you only download once):
-        conf.vm.box = "mindboggle"
-        conf.vm.box_url = "http://media.mindboggle.info/vm/mindboggle.{0}.box"
-        conf.vm.hostname = "mindboggler"
+    # Share additional folders to the guest VM,
+    # with paths on the guest to mount the folder:
+    config.vm.synced_folder {1}
+    config.vm.synced_folder {2}
+    {3}
+    {4}
 
-        # Share additional folders to the guest VM,
-        # with paths on the guest to mount the folder.
-        conf.vm.synced_folder {1}
-        conf.vm.synced_folder {2}
-        {3}
-        {4}
-
-        # Configure number of CPUs, maximum % per CPU, and memory (MB RAM):
-        conf.vm.provider :virtualbox do |vb|
-            vb.customize ["modifyvm", :id, "--cpus", "{5}"]
-            vb.customize ["modifyvm", :id, "--cpuexecutioncap", "{6}"]
-            vb.customize ["modifyvm", :id, "--memory", "{7}"]
-            vb.customize ["modifyvm", :id, "--ioapic", "on"]
-        end
-
-        # Disable private key for easy ssh login:
-        conf.ssh.username = "vagrant"
-        conf.ssh.password = "vagrant"
-
+    # Configure number of CPUs, maximum % per CPU, and memory (MB RAM):
+    config.vm.provider :virtualbox do |vb|
+        vb.name = "MindboggleVM"
+        vb.customize ["modifyvm", :id, "--cpus", "{5}"]
+        vb.customize ["modifyvm", :id, "--cpuexecutioncap", "{6}"]
+        vb.customize ["modifyvm", :id, "--memory", "{7}"]
+        vb.customize ["modifyvm", :id, "--ioapic", "on"]
     end
+
+    # Disable private key for easy ssh login:
+    config.ssh.username = "vagrant"
+    config.ssh.password = "vagrant"
+
 end
 """.format(mindboggle_version, out_string, freesurfer_string,
            ants_string, atlases_string, args.cpus, args.cpumax, args.mem)
