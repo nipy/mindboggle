@@ -38,7 +38,7 @@ Miscellaneous Vagrant commands::
 
     VBoxManage list runningvms  # running virtual machines
     vagrant status  # status of virtual machines
-    vagrant box add <title> <box>; vagrant init <box>; vagrant up; vagrant ssh
+    vagrant box add <title> <box>; vagrant init; vagrant up; vagrant ssh
 
 
 Authors:
@@ -64,7 +64,7 @@ This script should be placed in its own directory and will generate a
 Vagrantfile. You must have Vagrant (vagrantup.com) and VirtualBox
 (virtualbox.org) installed, as well as a good Internet connection.
 
-Ex: python setup_mindboggle_vm
+Ex: python configure_mindboggle_vm
     --out /Users/arno/mindboggled
     --freesurfer /Applications/freesurfer/subjects
     --ants /data/antsCorticalThickness/subjects
