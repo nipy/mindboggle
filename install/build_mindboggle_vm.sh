@@ -12,7 +12,7 @@
 #
 # Upload the box to a website for others to download:
 #     rsync -avz --sparse -e /usr/bin/ssh mindboggle.<version>.box
-#         binarybottle@binarybottle.com:media.mindboggle.info/vm/
+#         binarybottle@media.mindboggle.info:media.mindboggle.info/vm/
 #
 #
 # Authors:
