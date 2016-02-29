@@ -75,10 +75,10 @@ parser = argparse.ArgumentParser(description="""
                      formatter_class = lambda prog:
                      argparse.HelpFormatter(prog, max_help_position=40))
 
-features_group = parser.add_argument_group('more features (or --all)')
-shapes_group = parser.add_argument_group('more shapes (or --all)')
-outputs_group = parser.add_argument_group('modify outputs')
-inputs_group = parser.add_argument_group('advanced settings')
+ftr_args = parser.add_argument_group('more features (or --all)')
+shp_args = parser.add_argument_group('more shapes (or --all)')
+out_args = parser.add_argument_group('modify outputs')
+adv_args = parser.add_argument_group('advanced settings')
 
 # "positional arguments":
 parser.add_argument("SUBJECT",
@@ -106,97 +106,96 @@ parser.add_argument("-p", "--proc",
                     type=int, default=1, metavar='INT')
 parser.add_argument("-v", "--version", help="mindboggle version number",
                     action='version', version='%(prog)s 0.1')
-features_group.add_argument("--folds", action='store_true',
-                            help="save all (unidentified) folds")
-features_group.add_argument("--sulci", action='store_true',
-                            help="extract, identify, and measure sulci"
-                                 " in folds")
-features_group.add_argument("--fundi", action='store_true',
-                            help="extract, identify, and measure fundi"
-                                 " in sulci [UNTESTED, not included in --all]")
-features_group.add_argument("--points", action='store_true',
-                    help=("table of per-vertex surface shape measures"))
-features_group.add_argument("--surfaces_in_mni", action='store_true',
-                    help="cortical surfaces in MNI152 space")
-shapes_group.add_argument("--thickness", action='store_true',
-                    help="thickinthehead: volume-based cortical label"
-                         " thicknesses (volume / middle area)")
-shapes_group.add_argument("--moments",
-                    help="Zernike moments order per label/feature"
-                         " (ex: 10) [not included in --all"
-                         " due to memory leak]",
-                    default=0, type=int, metavar='INT')
-shapes_group.add_argument("--spectra",
-                    help="Laplace-Beltrami spectrum eigenvalues"
-                         " per label/feature (ex: 10)",
-                    default=0, type=int, metavar='INT')
-outputs_group.add_argument("--out",
-                    help='output folder (if not $HOME/mindboggled)',
-                    default=os.path.join(os.environ['HOME'],
-                                         'mindboggled'), metavar='STR')
-outputs_group.add_argument("--working",
-                    help="working folder (if not $HOME/mindboggle_working)",
-                    default=os.path.join(os.environ['HOME'],
-                                         'mindboggle_working'), metavar='STR')
-outputs_group.add_argument("--cache",
-                    help='download folder (if not $HOME/mindboggle_cache)',
-                    default=os.path.join(os.environ['HOME'],
-                                         'mindboggle_cache'), metavar='STR')
-outputs_group.add_argument("--no_volumes", action='store_true',
-                    help="no volume labels, features, or shape tables")
-outputs_group.add_argument("--no_surfaces", action='store_true',
-                    help="no surface labels, features, or shape tables")
-outputs_group.add_argument("--no_labels", action='store_true',
-                    help="no surface or volume labels")
-outputs_group.add_argument("--no_shapes", action='store_true',
-                    help="no shape tables of surface labels or features")
-outputs_group.add_argument("--save_only_tables", action='store_true',
-                    help="save only tables to free up space")
-parser.add_argument("-g", "--graph",
-                    default='hier',
-                    help='plot workflow graph: "hier", "flat", "exec"',
-                    choices=['hier', 'flat', 'exec'], metavar='STR')
-inputs_group.add_argument("--plugin", dest="plugin",
-                    default='Linear',
-                    help="Plugin to use, such as: --plugin PBS")
-inputs_group.add_argument("--plugin_args", dest="plugin_args",
-                    help="Plugin arguments in dictionary form, such as:"
-                         " --plugin_args \"dict(qsub_args='-q many')\"")
-inputs_group.add_argument("--my_atlas",
-                    help=("alternate atlas to OASIS-TRT-20 jointfusion atlas;"
-                          " must follow DKT31 cortical and CMA noncortical"
-                          " labeling protocols, be in MNI152 space,"
-                          " and should correspond to Atropos template used"
-                          " in antsCorticalThickness.sh"),
-                    metavar='STR')
-inputs_group.add_argument("--my_atlases",
-                    help=("extra labeling volume atlas(es) in MNI152 space;"
-                          " use any label numbers (disregard names) in"
-                          " LUT.py's return_numbers_names_colors() function"),
-                    nargs='+', metavar='')
-inputs_group.add_argument("--my_segments",
-                          help=("use this non/cortex-segmented file,"
-                                " for example when running Mindboggle on"
-                                " edited version of FreeSurfer-ANTs hybrid"
-                                " segmentation generated by Mindboggle"
-                                " (must still call --ants for transforms)"
-                                " "),
-                    metavar='STR')
-inputs_group.add_argument("--volume_labels",
-                    help=(argparse.SUPPRESS),
-                    choices=['wmparc', 'aparc+aseg'],
-                    default='wmparc', metavar='STR')
-inputs_group.add_argument("--surface_labels",
-                    help=(argparse.SUPPRESS),
-                    choices=['freesurfer', 'manual'],
-                    default='freesurfer', metavar='STR')
-inputs_group.add_argument("--my_transform",
-                    help=("alternate affine transform from Atropos template"
-                          " to MNI152 space, in case the OASIS-30 Atropos"
-                          " template was not used in antsCorticalThickness.sh"
-                          " (format should match antsAffine.sh"
-                          " ITK transform)"),
-                    metavar='STR')
+ftr_args.add_argument("--folds", action='store_true',
+                      help="save all (unidentified) folds")
+ftr_args.add_argument("--sulci", action='store_true',
+                      help="extract, identify, and measure sulci in folds")
+ftr_args.add_argument("--fundi", action='store_true',
+                      help="extract, identify, and measure fundi in"
+                           " sulci [UNTESTED, not included in --all]")
+ftr_args.add_argument("--points", action='store_true',
+                      help=("table of per-vertex surface shape measures"))
+ftr_args.add_argument("--surfaces_in_mni", action='store_true',
+                      help="cortical surfaces in MNI152 space")
+shp_args.add_argument("--thickness", action='store_true',
+                      help="thickinthehead: volume-based cortical label"
+                           " thicknesses (volume / middle area)")
+shp_args.add_argument("--moments",
+                      help="Zernike moments order per label/feature"
+                           " (ex: 10) [not included in --all"
+                           " due to memory leak]",
+                      default=0, type=int, metavar='INT')
+shp_args.add_argument("--spectra",
+                      help="Laplace-Beltrami spectrum eigenvalues"
+                           " per label/feature (ex: 10)",
+                      default=0, type=int, metavar='INT')
+out_args.add_argument("--out",
+                      help='output folder (if not $HOME/mindboggled)',
+                      default=os.path.join(os.environ['HOME'],
+                                           'mindboggled'), metavar='STR')
+out_args.add_argument("--working",
+                      help="working folder (if not $HOME/mindboggle_working)",
+                      default=os.path.join(os.environ['HOME'],
+                                           'mindboggle_working'),
+                      metavar='STR')
+out_args.add_argument("--cache",
+                      help='download folder (if not $HOME/mindboggle_cache)',
+                      default=os.path.join(os.environ['HOME'],
+                                           'mindboggle_cache'), metavar='STR')
+out_args.add_argument("--no_volumes", action='store_true',
+                      help="no volume labels, features, or shape tables")
+out_args.add_argument("--no_surfaces", action='store_true',
+                      help="no surface labels, features, or shape tables")
+out_args.add_argument("--no_labels", action='store_true',
+                      help="no surface or volume labels")
+out_args.add_argument("--no_shapes", action='store_true',
+                      help="no shape tables of surface labels or features")
+out_args.add_argument("--save_only_tables", action='store_true',
+                      help="save only tables to free up space")
+out_args.add_argument("-g", "--graph",
+                      default='hier',
+                      help='plot workflow graph: "hier", "flat", "exec"',
+                      choices=['hier', 'flat', 'exec'], metavar='STR')
+adv_args.add_argument("--plugin", dest="plugin",
+                      default='Linear',
+                      help="Plugin to use, such as: --plugin PBS")
+adv_args.add_argument("--plugin_args", dest="plugin_args",
+                      help="Plugin arguments in dictionary form, such as:"
+                           " --plugin_args \"dict(qsub_args='-q many')\"")
+adv_args.add_argument("--my_atlas",
+                      help=("alternate atlas to OASIS-TRT-20 jointfusion"
+                            " atlas; must follow DKT31 cortical and CMA"
+                            " noncortical labeling protocols, be in MNI152"
+                            " space, and should correspond to Atropos"
+                            " template used in antsCorticalThickness.sh"),
+                      metavar='STR')
+adv_args.add_argument("--my_atlases",
+                      help=("extra labeling volume atlas(es) in MNI152 space;"
+                            " use any label numbers (disregard names) in"
+                            " return_numbers_names_colors() function"),
+                      nargs='+', metavar='')
+adv_args.add_argument("--my_segments",
+                      help=("use this gray/white matter-segmented file,"
+                            " for example when running Mindboggle on"
+                            " edited version of FreeSurfer-ANTs gray/white"
+                            " matter hybrid generated by Mindboggle"
+                            " (must still call --ants for transforms)"),
+                      metavar='STR')
+adv_args.add_argument("--volume_labels",
+                      help=(argparse.SUPPRESS),
+                      choices=['wmparc', 'aparc+aseg'],
+                      default='wmparc', metavar='STR')
+adv_args.add_argument("--surface_labels",
+                      help=(argparse.SUPPRESS),
+                      choices=['freesurfer', 'manual'],
+                      default='freesurfer', metavar='STR')
+adv_args.add_argument("--my_transform",
+                      help=("alternate affine transform from Atropos template"
+                            " to MNI152 space, in case OASIS-30 Atropos"
+                            " template was not used when running"
+                            " antsCorticalThickness.sh (format should match"
+                            " antsAffine.sh ITK transform)"),
+                      metavar='STR')
 args = parser.parse_args()
 
 # ----------------------------------------------------------------------------
@@ -2245,14 +2244,14 @@ if do_label and not args.no_volumes:
                             'segmented_file')
                 if overwrite_cerebrum_with_cerebellum:
                     mbFlow.connect(VolLabelFlow,
-                       'Add_freesurfer_cerebellum_to_ants_cerebrum.output_file',
-                       VolShapeFlow,
-                       'Thickness_per_ants_cortex_label.labeled_file')
+                      'Add_freesurfer_cerebellum_to_ants_cerebrum.output_file',
+                      VolShapeFlow,
+                      'Thickness_per_ants_cortex_label.labeled_file')
                 else:
                     mbFlow.connect(VolLabelFlow,
-                    'Combine_ants_cortex_noncortex_labels.output_file',
-                    VolShapeFlow,
-                    'Thickness_per_ants_cortex_label.labeled_file')
+                      'Combine_ants_cortex_noncortex_labels.output_file',
+                      VolShapeFlow,
+                      'Thickness_per_ants_cortex_label.labeled_file')
                 ANTsThicknesses.inputs.labels = dkt.cerebrum_cortex_numbers
                 ANTsThicknesses.inputs.names = dkt.cerebrum_cortex_names
                 ANTsThicknesses.inputs.output_table = \
