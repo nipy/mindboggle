@@ -91,7 +91,7 @@ parser.add_argument("--all", help="compute all shape measures on all features"
                                   " (except where noted)",
                     action='store_true')
 parser.add_argument("--ants",
-                    help=("antsCorticalThickness.sh segmentation file"
+                    help=("antsCorticalThickness.sh brain segmentation file"
                           " (ex: /ants/data/arno/"
                           "antsBrainSegmentation.nii.gz);"
                           " if --ants is set, then transforms are also"
@@ -156,12 +156,6 @@ out_args.add_argument("--graph",
                       help='plot workflow graph: "hier", "flat", "exec"',
                       choices=['hier', 'flat', 'exec'],
                       default='hier', metavar='STR')
-adv_args.add_argument("--plugin", dest="plugin",
-                      default='Linear',
-                      help="Plugin to use, such as: --plugin PBS")
-adv_args.add_argument("--plugin_args", dest="plugin_args",
-                      help="Plugin arguments in dictionary form, such as:"
-                           " --plugin_args \"dict(qsub_args='-q many')\"")
 adv_args.add_argument("--my_atlas",
                       help=("alternate atlas to OASIS-TRT-20 jointfusion"
                             " atlas; must follow DKT31 cortical and CMA"
@@ -196,6 +190,12 @@ adv_args.add_argument("--my_transform",
                             " antsCorticalThickness.sh (format should match"
                             " antsAffine.sh ITK transform)"),
                       metavar='STR')
+adv_args.add_argument("--plugin", dest="plugin",
+                      default='Linear',
+                      help="Plugin to use, such as: --plugin PBS")
+adv_args.add_argument("--plugin_args", dest="plugin_args",
+                      help="Plugin arguments in dictionary form, such as:"
+                           " --plugin_args \"dict(qsub_args='-q many')\"")
 args = parser.parse_args()
 
 # ----------------------------------------------------------------------------
