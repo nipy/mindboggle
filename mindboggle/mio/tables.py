@@ -402,7 +402,7 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
         transform_format='itk', area_file='', mean_curvature_file='',
         travel_depth_file='', geodesic_depth_file='',
         freesurfer_thickness_file='', freesurfer_curvature_file='',
-        freesurfer_sulc_file='', ants_path=''):
+        freesurfer_sulc_file=''):
     """
     Make a table of shape values per vertex.
 
@@ -440,8 +440,6 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
         name of VTK file with FreeSurfer curvature (curv) scalar values
     freesurfer_sulc_file :  string
         name of VTK file with FreeSurfer convexity (sulc) scalar values
-    ants_path : string
-        path to bin/ directory with antsApplyTransformsToPoints command
 
     Returns
     -------
@@ -470,13 +468,11 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     >>> inverse_booleans = [1]
     >>> transform_format = 'itk'
     >>> swap_xy = True
-    >>> ants_path = '/software/install/ants/bin'
     >>> output_table = write_vertex_measures(output_table, labels_or_file,
     ...     sulci, fundi, affine_transform_files, inverse_booleans,
     ...     transform_format, area_file, mean_curvature_file,
     ...     travel_depth_file, geodesic_depth_file, freesurfer_thickness_file,
-    ...     freesurfer_curvature_file, freesurfer_sulc_file,
-    ...     ants_path)
+    ...     freesurfer_curvature_file, freesurfer_sulc_file)
 
     """
     import os
@@ -538,13 +534,11 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
                 first_pass = False
 
                 # Append standard space x,y,z position to columns:
-                if affine_transform_files and transform_format and \
-                   ants_path:
+                if affine_transform_files and transform_format:
                     affine_points, \
                         foo1 = apply_affine_transforms(affine_transform_files,
                                     inverse_booleans, transform_format,
-                                    points, vtk_file_stem='',
-                                    command_path=ants_path)
+                                    points, vtk_file_stem='')
                     xyz_std_positions = affine_points
                     for ixyz, xyz in enumerate(['x','y','z']):
                         column_names.append('position in standard space:'

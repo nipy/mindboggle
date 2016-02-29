@@ -24,7 +24,7 @@ Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 
 def antsApplyTransformsToPoints(points, transform_files,
-                                inverse_booleans=[0], ants_path=''):
+                                inverse_booleans=[0]):
     """
     Run ANTs antsApplyTransformsToPoints function to transform points.
     (Creates pre- and post-transformed .csv points files for ANTs.)
@@ -37,8 +37,6 @@ def antsApplyTransformsToPoints(points, transform_files,
         transform file names
     inverse_booleans : list
         for each transform, one to apply inverse of transform (otherwise zero)
-    ants_path : string
-        path to bin/ directory with antsApplyTransformsToPoints command
 
     Returns
     -------
@@ -62,9 +60,8 @@ def antsApplyTransformsToPoints(points, transform_files,
     >>> vtk_file = fetch_data(urls['left_pial'])
     >>> points  = read_points(vtk_file)
     >>> inverse_booleans = [0,0,1]
-    >>> ants_path = '/software/install/ants/bin' # doctest: +SKIP
     >>> transformed_points = antsApplyTransformsToPoints(points,
-    ...     transform_files, inverse_booleans, ants_path) # doctest: +SKIP
+    ...     transform_files, inverse_booleans) # doctest: +SKIP
     >>> print(np.array_str(np.array(transformed_points[0:5]),
     ...       precision=5, suppress_small=True)) # doctest: +SKIP
     [[-11.23189 -46.78223 -39.88869]
@@ -98,16 +95,12 @@ def antsApplyTransformsToPoints(points, transform_files,
     for ixfm, transform_file in enumerate(transform_files):
         transform_string += " --t [{0},{1}]".\
             format(transform_file, str(inverse_booleans[ixfm]))
-    if ants_path:
-        ants_command = os.path.join(ants_path, 'antsApplyTransformsToPoints')
-    else:
-        ants_command = 'antsApplyTransformsToPoints'
-    cmd = [ants_command, '-d', '3', '-i', points_file,
+    cmd = ['antsApplyTransformsToPoints', '-d', '3', '-i', points_file,
            '-o', transformed_points_file, transform_string]
     try:
         execute(cmd, 'os')
     except:
-        raise Exception("Cannot find the {0} command.".format(ants_command))
+        raise Exception("Cannot find antsApplyTransformsToPoints command.")
 
     if not os.path.exists(transformed_points_file):
         raise IOError("antsApplyTransformsToPoints did not create {0}.".
@@ -128,7 +121,7 @@ def antsApplyTransformsToPoints(points, transform_files,
     return transformed_points
 
 
-def ImageMath(volume1, volume2, operator='m', output_file='', ants_path=''):
+def ImageMath(volume1, volume2, operator='m', output_file=''):
     """
     Use the ImageMath function in ANTs to perform operation on two volumes::
 
@@ -158,8 +151,6 @@ def ImageMath(volume1, volume2, operator='m', output_file='', ants_path=''):
         ImageMath string corresponding to mathematical operator
     output_file : string
         nibabel-readable image volume
-    ants_path : string
-        path to bin/ directory with ImageMath command
 
     Returns
     -------
@@ -181,9 +172,7 @@ def ImageMath(volume1, volume2, operator='m', output_file='', ants_path=''):
     >>> volume2 += '.nii.gz'
     >>> operator = 'm'
     >>> output_file = ''
-    >>> ants_path = '' #'/software/install/ants/bin'
-    >>> output_file = ImageMath(volume1, volume2, operator, output_file,
-    ...                         ants_path) # doctest: +SKIP
+    >>> output_file = ImageMath(volume1, volume2, operator, output_file) # doctest: +SKIP
 
     View result (skip test):
 
@@ -198,11 +187,7 @@ def ImageMath(volume1, volume2, operator='m', output_file='', ants_path=''):
         output_file = os.path.join(os.getcwd(),
                                    os.path.basename(volume1) + '_' +
                                    os.path.basename(volume2))
-    if ants_path:
-        ants_command = os.path.join(ants_path, 'ImageMath')
-    else:
-        ants_command = 'ImageMath'
-    cmd = [ants_command, '3', output_file, operator, volume1, volume2]
+    cmd = ['ImageMath', '3', output_file, operator, volume1, volume2]
     execute(cmd, 'os')
     if not os.path.exists(output_file):
         raise IOError("ImageMath did not create " + output_file + ".")
@@ -210,8 +195,7 @@ def ImageMath(volume1, volume2, operator='m', output_file='', ants_path=''):
     return output_file
 
 
-def ThresholdImage(volume, output_file='', threshlo=1, threshhi=10000,
-                   ants_path=''):
+def ThresholdImage(volume, output_file='', threshlo=1, threshhi=10000):
     """
     Use the ThresholdImage function in ANTs to threshold image volume.
 
@@ -228,8 +212,6 @@ def ThresholdImage(volume, output_file='', threshlo=1, threshhi=10000,
         lower threshold
     threshhi : integer
         upper threshold
-    ants_path : string
-        path to bin/ directory with ThresholdImage command
 
     Returns
     -------
@@ -248,9 +230,7 @@ def ThresholdImage(volume, output_file='', threshlo=1, threshhi=10000,
     >>> output_file = ''
     >>> threshlo = 500
     >>> threshhi = 10000
-    >>> ants_path = '/software/install/ants/bin'
-    >>> output_file = ThresholdImage(volume, output_file, threshlo, threshhi,
-    ...                              ants_path) # doctest: +SKIP
+    >>> output_file = ThresholdImage(volume, output_file, threshlo, threshhi) # doctest: +SKIP
 
     View result (skip test):
 
@@ -264,11 +244,7 @@ def ThresholdImage(volume, output_file='', threshlo=1, threshhi=10000,
     if not output_file:
         output_file = os.path.join(os.getcwd(),
                                    'threshold_' + os.path.basename(volume))
-    if ants_path:
-        ants_command = os.path.join(ants_path, 'ThresholdImage')
-    else:
-        ants_command = 'ThresholdImage'
-    cmd = [ants_command, '3', volume, output_file,
+    cmd = ['ThresholdImage', '3', volume, output_file,
            str(threshlo), str(threshhi)]
     execute(cmd, 'os')
     if not os.path.exists(output_file):
@@ -278,7 +254,7 @@ def ThresholdImage(volume, output_file='', threshlo=1, threshhi=10000,
 
 
 def PropagateLabelsThroughMask(mask, labels, mask_index=None, output_file='',
-                               binarize=True, stopvalue='', ants_path=''):
+                               binarize=True, stopvalue=''):
     """
     Use ANTs to fill a binary volume mask with initial labels.
 
@@ -306,8 +282,6 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None, output_file='',
         binarize mask?
     stopvalue : integer (optional)
         stopping value
-    ants_path : string (optional)
-        path to bin/ directory with PropagateLabelsThroughMask command
 
     Returns
     -------
@@ -331,9 +305,8 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None, output_file='',
     >>> output_file = ''
     >>> binarize = True
     >>> stopvalue = None
-    >>> ants_path = '/software/install/ants/bin'
     >>> output_file = PropagateLabelsThroughMask(mask, labels, mask_index,
-    ...     output_file, binarize, stopvalue, ants_path) # doctest: +SKIP
+    ...     output_file, binarize, stopvalue) # doctest: +SKIP
 
     View result (skip test):
 
@@ -357,11 +330,7 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None, output_file='',
     if binarize:
         temp_file = os.path.join(os.getcwd(),
                                  'PropagateLabelsThroughMask.nii.gz')
-        if ants_path:
-            ants_command = os.path.join(ants_path, 'ThresholdImage')
-        else:
-            ants_command = 'ThresholdImage'
-        cmd = [ants_command, '3', mask, temp_file, '0 1 0 1']
+        cmd = ['ThresholdImage', '3', mask, temp_file, '0 1 0 1']
         execute(cmd, 'os')
         mask = temp_file
 
@@ -369,11 +338,7 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None, output_file='',
     if mask_index:
         mask2 = os.path.join(os.getcwd(), 'temp.nii.gz')
 
-        if ants_path:
-            ants_command = os.path.join(ants_path, 'ThresholdImage')
-        else:
-            ants_command = 'ThresholdImage'
-        cmd = [ants_command, '3', mask, mask2,
+        cmd = ['ThresholdImage', '3', mask, mask2,
                str(mask_index), str(mask_index)]
         execute(cmd, 'os')
     else:
@@ -381,11 +346,7 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None, output_file='',
 
     # Propagate labels:
 
-    if ants_path:
-        ants_command = os.path.join(ants_path, 'ImageMath')
-    else:
-        ants_command = 'ImageMath'
-    cmd = [ants_command, '3', output_file, 'PropagateLabelsThroughMask',
+    cmd = ['ImageMath', '3', output_file, 'PropagateLabelsThroughMask',
            mask2, labels]
     if stopvalue:
         cmd.extend(str(stopvalue))
@@ -397,8 +358,7 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None, output_file='',
 
 
 def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
-                           outzspc=1, dosmooth=0, addvox=0, nninterp=1,
-                           ants_path=''):
+                           outzspc=1, dosmooth=0, addvox=0, nninterp=1):
     """
     Use the ResampleImageBySpacing function in ANTs to resample image volume.
 
@@ -423,8 +383,6 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
         pad each dimension by addvox
     nninterp : Boolean
         nearest-neighbor interpolation?
-    ants_path : string
-        path to bin/ directory with ThresholdImage command
 
     Returns
     -------
@@ -448,9 +406,8 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
     >>> dosmooth = 0
     >>> addvox = 0
     >>> nninterp = 1
-    >>> ants_path = '' #'/software/install/ants/bin'
     >>> output_file = ResampleImageBySpacing(volume, output_file, outxspc,
-    ...     outxspc, outzspc, dosmooth, addvox, nninterp, ants_path) # doctest: +SKIP
+    ...     outxspc, outzspc, dosmooth, addvox, nninterp) # doctest: +SKIP
 
     View result (skip test):
 
@@ -464,11 +421,7 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
     if not output_file:
         output_file = os.path.join(os.getcwd(),
                                    'resampled_' + os.path.basename(volume))
-    if ants_path:
-        ants_command = os.path.join(ants_path, 'ResampleImageBySpacing')
-    else:
-        ants_command = 'ResampleImageBySpacing'
-    cmd = [ants_command, '3', volume, output_file,
+    cmd = ['ResampleImageBySpacing', '3', volume, output_file,
            str(outxspc), str(outyspc), str(outzspc)]
     execute(cmd, 'os')
     if not os.path.exists(output_file):
@@ -480,8 +433,7 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
 
 # def fill_volume_with_surface_labels(hemi, left_mask, right_mask,
 #                                     surface_files, mask_index=None,
-#                                     output_file='', binarize=False,
-#                                     ants_path=''):
+#                                     output_file='', binarize=False):
 #     """
 #     Use ANTs to fill a volume mask with surface mesh labels.
 #
@@ -509,8 +461,6 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
 #         name of output file
 #     binarize : Boolean
 #         binarize mask?
-#     ants_path : string
-#         path to bin/ directory with PropagateLabelsThroughMask command
 #
 #     Returns
 #     -------
@@ -536,10 +486,8 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
 #     >>> mask_index = None
 #     >>> output_file = ''
 #     >>> binarize = True
-#     >>> ants_path = '/software/install/ants/bin'
 #     >>> output_file = fill_volume_with_surface_labels(hemi, left_mask,
-#     ...     right_mask, surface_files, mask_index, output_file, binarize,
-#     ...     ants_path)
+#     ...     right_mask, surface_files, mask_index, output_file, binarize)
 #
 #     >>> # View
 #     >>> from mindboggle.mio.plots import plot_volumes
@@ -576,7 +524,7 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
 #     # Use ANTs to fill a binary volume mask with initial labels:
 #     output_file = PropagateLabelsThroughMask(mask, surface_in_volume,
 #                                              mask_index, output_file,
-#                                              binarize, ants_path)
+#                                              binarize)
 #     if not os.path.exists(output_file):
 #         raise IOError("PropagateLabelsThroughMask() did not create {0}.".
 #                       format(output_file))
@@ -584,7 +532,7 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
 #     return output_file  # surface_in_volume
 
 
-# def ANTS(source, target, iterations='30x99x11', output_stem='', ants_path=''):
+# def ANTS(source, target, iterations='30x99x11', output_stem=''):
 #     """
 #     Use ANTs to register a source image volume to a target image volume.
 #
@@ -600,8 +548,6 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
 #         number of iterations ("0" for affine, "30x99x11" default)
 #     output_stem : string
 #         file name stem for output transform matrix
-#     ants_path : string
-#         path to bin/ directory with ANTS command
 #
 #     Returns
 #     -------
@@ -623,8 +569,7 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
 #     >>> target = os.path.join(path, 'atlases', 'MNI152_T1_1mm_brain.nii.gz')
 #     >>> iterations = "0"
 #     >>> output_stem = ""
-#     >>> ants_path = '/software/install/ants/bin'
-#     >>> ANTS(source, target, iterations, output_stem, ants_path)
+#     >>> ANTS(source, target, iterations, output_stem)
 #
 #     """
 #     import os
@@ -635,12 +580,7 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
 #         tgt = os.path.basename(target).split('.')[0]
 #         output_stem = os.path.join(os.getcwd(), src+'_to_'+tgt)
 #
-#     if ants_path:
-#         ants_command = os.path.join(ants_path, 'ANTS')
-#     else:
-#         ants_command = 'ANTS'
-#
-#     cmd = [ants_command, '3', '-m CC[' + target + ',' + source + ',1,2]',
+#     cmd = ['ANTS', '3', '-m CC[' + target + ',' + source + ',1,2]',
 #             '-r Gauss[2,0]', '-t SyN[0.5] -i', iterations,
 #             '-o', output_stem, '--use-Histogram-Matching',
 #             '--number-of-affine-iterations 10000x10000x10000x10000x10000']
@@ -664,7 +604,7 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
 # def WarpImageMultiTransform(source, target, output='',
 #                             interp='--use-NN', xfm_stem='',
 #                             affine_transform='', nonlinear_transform='',
-#                             inverse=False, affine_only=False, ants_path=''):
+#                             inverse=False, affine_only=False):
 #     """
 #     Use ANTs to transform a source image volume to a target image volume.
 #
@@ -690,8 +630,6 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
 #         apply inverse transform?
 #     affine_only : Boolean
 #         apply only affine transform?
-#     ants_path : string
-#         path to bin/ directory with WarpImageMultiTransform command
 #
 #     Returns
 #     -------
@@ -719,24 +657,19 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
 #     if not os.path.exists(nonlinear_transform):
 #         affine_only = True
 #
-#     if ants_path:
-#         ants_command = os.path.join(ants_path, 'WarpImageMultiTransform')
-#     else:
-#         ants_command = 'WarpImageMultiTransform'
-#
 #     if affine_only:
 #         if inverse:
-#             cmd = [ants_command, '3', source, output, '-R',
+#             cmd = ['WarpImageMultiTransform', '3', source, output, '-R',
 #                    target, interp, '-i', affine_transform]
 #         else:
-#             cmd = [ants_command, '3', source, output, '-R',
+#             cmd = ['WarpImageMultiTransform', '3', source, output, '-R',
 #                    target, interp, affine_transform]
 #     else:
 #         if inverse:
-#             cmd = [ants_command, '3', source, output, '-R',
+#             cmd = ['WarpImageMultiTransform', '3', source, output, '-R',
 #                    target, interp, '-i', affine_transform, nonlinear_transform]
 #         else:
-#             cmd = [ants_command, '3', source, output, '-R',
+#             cmd = ['WarpImageMultiTransform', '3', source, output, '-R',
 #                    target, interp, nonlinear_transform, affine_transform]
 #     execute(cmd, 'os')
 #
@@ -747,7 +680,7 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
 
 
 # def ComposeMultiTransform(transform_files, inverse_Booleans,
-#                           output_transform_file='', ext='.txt', ants_path=''):
+#                           output_transform_file='', ext='.txt'):
 #     """
 #     Run ANTs ComposeMultiTransform function to create a single transform.
 #
@@ -761,8 +694,6 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
 #         transform file name
 #     ext : string
 #         '.txt' to save transform file as text, '.mat' for data file
-#     ants_path : string
-#         path to bin/ directory with ComposeMultiTransform command
 #
 #     Returns
 #     -------
@@ -781,9 +712,8 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
 #     >>> inverse_Booleans = [False, False]
 #     >>> output_transform_file = ''
 #     >>> ext = '.txt'
-#     >>> ants_path = '/software/install/ants/bin'
 #     >>> ComposeMultiTransform(transform_files, inverse_Booleans,
-#     ...                       output_transform_file, ext, ants_path)
+#     ...                       output_transform_file, ext)
 #
 #     """
 #     import os
@@ -799,11 +729,7 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
 #             xfms.append('-i')
 #         xfms.append(xfm)
 #
-#     if ants_path:
-#         ants_command = os.path.join(ants_path, 'ComposeMultiTransform')
-#     else:
-#         ants_command = 'ComposeMultiTransform'
-#     cmd = [ants_command, '3', output_transform_file, ' '.join(xfms)]
+#     cmd = ['ComposeMultiTransform', '3', output_transform_file, ' '.join(xfms)]
 #     execute(cmd, 'os')
 #     #if not os.path.exists(output_transform_file):
 #     #    raise IOError(output_transform_file + " not found")
