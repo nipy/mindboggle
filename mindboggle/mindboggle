@@ -91,19 +91,19 @@ parser.add_argument("--all", help="compute all shape measures on all features"
                                   " (except where noted)",
                     action='store_true')
 parser.add_argument("--ants",
-                    help=("antsCorticalThickness.sh brain segmentation file"
-                          " (/ants/data/arno/antsBrainSegmentation.nii.gz);"
+                    help=("path to antsCorticalThickness.sh brain"
+                          " segmentation file (antsBrainSegmentation.nii.gz);"
                           " if --ants is set, then transforms are also"
                           " accessed from the same directory"),
                     metavar='STR')
 parser.add_argument("--subjects_dir",
-                    help=("directory containing SUBJECT subdirectory, if not"
-                          " equal to environment variable $SUBJECTS_DIR"),
+                    help=("path to directory containing SUBJECT subdirectory,"
+                          " if not environment variable $SUBJECTS_DIR"),
                     metavar='STR')
 parser.add_argument("-p", "--proc",
                     help='number of processors (default: 1)',
                     type=int, default=1, metavar='INT')
-parser.add_argument("-v", "--version", help="mindboggle version number",
+parser.add_argument("-v", "--version", help="Mindboggle version number",
                     action='version', version='%(prog)s 1.0')
 ftr_args.add_argument("--folds", action='store_true',
                       help="save all (unidentified) folds")
