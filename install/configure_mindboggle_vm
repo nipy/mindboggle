@@ -36,7 +36,7 @@ For help, type the following in a terminal window::
 
 Miscellaneous Vagrant commands::
 
-    VBoxManage list runningvms  # running virtual machines
+    vagrant box list/remove  # boxes
     vagrant status  # status of virtual machines
     vagrant box add <title> <box>; vagrant init; vagrant up; vagrant ssh
 
@@ -64,11 +64,11 @@ This script should be placed in its own directory and will generate a
 Vagrantfile. You must have Vagrant (vagrantup.com) and VirtualBox
 (virtualbox.org) installed, as well as a good Internet connection.
 
-Ex: python configure_mindboggle_vm
-    --out /Users/arno/mindboggled
-    --freesurfer /Applications/freesurfer/subjects
-    --ants /data/antsCorticalThickness/subjects
-    --cpus 6 --mem 4096 --cpumax 75 """,
+Example (default settings except --ants): python configure_mindboggle_vm
+    --out $HOME/mindboggled
+    --freesurfer $SUBJECTS_DIR
+    --ants $HOME/antsCorticalThickness/subjects
+    --cpus 1 --cpumax 80 --mem 4096""",
     formatter_class = lambda prog:
     argparse.HelpFormatter(prog, max_help_position=40))
 
@@ -157,6 +157,10 @@ Vagrant.configure("2") do |config|
         vb.customize ["modifyvm", :id, "--memory", "{7}"]
         vb.customize ["modifyvm", :id, "--ioapic", "on"]
     end
+
+    # Forward a port to use local browser to see files
+    # served from remote vagrant box:
+    config.vm.network "forwarded_port", guest: 80, host: 8080
 
     # Disable private key for easy ssh login:
     config.ssh.username = "vagrant"

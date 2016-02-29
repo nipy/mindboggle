@@ -81,11 +81,11 @@ fi
 if [ -z "$ANTS" ]; then
     ANTS="yes"
 fi
-#if [ -z "$SUDO" ]; then
-#    SUDO=1
-#fi
 #if [ -z "$OS" ]; then
 #    OS="Linux"
+#fi
+#if [ -z "$SUDO" ]; then
+#    SUDO=1
 #fi
 
 #-----------------------------------------------------------------------------
@@ -175,6 +175,7 @@ make
 
 # Set environment variables:
 echo "# Mindboggle" >> $ENV
+echo "export vtk_cpp_tools=$vtk_cpp_tools" >> $ENV
 echo "export PATH=$vtk_cpp_tools:\$PATH" >> $ENV
 source $ENV
 
@@ -195,10 +196,6 @@ if [ $ANTS = "yes" ]; then
     cmake $ANTS_DL  # -DVTK_DIR:STRING=$VTK_DIR
     make
     cp -r $ANTS_DL/Scripts/* $ANTSPATH
-    # Remove non-essential directories:
-    #mv $ANTSPATH $INSTALL/ants_bin
-    #rm -rf $INSTALL/ants/*
-    #mv $INSTALL/ants_bin $ANTSPATH
 
     # Set environment variables:
     echo "# ANTs" >> $ENV
@@ -208,10 +205,19 @@ if [ $ANTS = "yes" ]; then
 fi
 
 #-----------------------------------------------------------------------------
-# Remove non-essential directories:
+# Remove non-essential directories
+# (set to 0 to keep a complete box for easy git updates of ANTs):
 #-----------------------------------------------------------------------------
 rm_extras=0
 if [ $rm_extras -eq 1 ]; then
+
     rm -r $DOWNLOAD/*
+
+    if [ $ANTS = "yes" ]; then
+        mv $ANTSPATH $INSTALL/ants_bin
+        rm -rf $INSTALL/ants/*
+        mv $INSTALL/ants_bin $ANTSPATH
+    fi
+
 fi
 
