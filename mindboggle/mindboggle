@@ -93,9 +93,9 @@ parser.add_argument("--all", help="compute all shape measures on all features"
 parser.add_argument("--ants",
                     help=("antsCorticalThickness.sh brain segmentation file"
                           " (ex: /ants/data/arno/"
-                          "antsBrainSegmentation.nii.gz);"
-                          " if --ants is set, then transforms are also"
-                          " accessed from the same directory"),
+                          "antsBrainSegmentation.nii.gz)"
+                          " (if --ants is set, then transforms are also"
+                          " accessed from the same directory)"),
                     metavar='STR')
 parser.add_argument("--subjects_dir",
                     help=("directory containing SUBJECT subdirectory, if not"
