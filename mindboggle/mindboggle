@@ -91,8 +91,8 @@ parser.add_argument("--all", help="compute all shape measures on all features"
                                   " (except where noted)",
                     action='store_true')
 parser.add_argument("--ants",
-                    help=("antsCorticalThickness.sh gray/white matter file"
-                          " (ex: $HOME/ants_data/Twins-2-1/"
+                    help=("antsCorticalThickness.sh segmentation file"
+                          " (ex: /ants/data/arno/"
                           "antsBrainSegmentation.nii.gz);"
                           " if --ants is set, then transforms are also"
                           " accessed from the same directory"),
@@ -152,10 +152,10 @@ out_args.add_argument("--no_shapes", action='store_true',
                       help="no shape tables of surface labels or features")
 out_args.add_argument("--save_only_tables", action='store_true',
                       help="save only tables to free up space")
-out_args.add_argument("-g", "--graph",
-                      default='hier',
+out_args.add_argument("--graph",
                       help='plot workflow graph: "hier", "flat", "exec"',
-                      choices=['hier', 'flat', 'exec'], metavar='STR')
+                      choices=['hier', 'flat', 'exec'],
+                      default='hier', metavar='STR')
 adv_args.add_argument("--plugin", dest="plugin",
                       default='Linear',
                       help="Plugin to use, such as: --plugin PBS")
