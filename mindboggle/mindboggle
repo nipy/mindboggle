@@ -105,7 +105,7 @@ parser.add_argument("-p", "--proc",
                     help='number of processors (default: 1)',
                     type=int, default=1, metavar='INT')
 parser.add_argument("-v", "--version", help="mindboggle version number",
-                    action='version', version='%(prog)s 0.1')
+                    action='version', version='%(prog)s 1.0')
 ftr_args.add_argument("--folds", action='store_true',
                       help="save all (unidentified) folds")
 ftr_args.add_argument("--sulci", action='store_true',
