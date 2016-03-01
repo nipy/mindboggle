@@ -122,7 +122,7 @@ out_args.add_argument("--cache",
 out_args.add_argument("--graph",
                       help='plot workflow graph: "hier", "flat", "exec"',
                       choices=['hier', 'flat', 'exec'],
-                      default='hier', metavar='STR')
+                      metavar='STR')  # default='hier'
 out_args.add_argument("--save_only_tables", action='store_true',
                       help="save only tables to free up space")
 out_args.add_argument("--no_volumes", action='store_true',
@@ -288,7 +288,7 @@ else:
 if do_spectra:
     spectra = args.spectra
     if spectra <= 0:
-        raise IOError("spectra needs to greater than zero.")
+        raise IOError("spectra needs to be greater than zero.")
 
 # Only compute Zernike moments if set:
 if args.no_moments:
@@ -299,7 +299,7 @@ if do_moments:
     moments = args.moments
     if moments <= 0:
         do_moments = False
-        #raise IOError("moments needs to greater than zero.")
+        #raise IOError("moments needs to be greater than zero.")
 
 # Extra labeling atlases in MNI space:
 atlases = args.my_atlases
