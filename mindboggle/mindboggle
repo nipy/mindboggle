@@ -174,8 +174,8 @@ adv_args.add_argument("--surface_labels",
                       choices=['freesurfer', 'manual'],
                       default='freesurfer', metavar='STR')
 adv_args.add_argument("--my_transform",
-                      help=("different ITK affine transform to MNI "
-                            " if different template used for --ants output)"),
+                      help=("different ITK affine transform to MNI (if "
+                            " different template used for --ants output)"),
                       metavar='STR')
 adv_args.add_argument("--plugin", dest="plugin",
                       default='Linear',
