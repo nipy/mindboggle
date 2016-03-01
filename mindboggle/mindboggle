@@ -154,8 +154,7 @@ adv_args.add_argument("--my_atlas",
                       help=("different atlas than OASIS-TRT-20 jointfusion "
                             "atlas; must follow CMA/DKT31 non/cortical "
                             "labeling protocols, be in MNI152 space, "
-                            "and correspond to Atropos template used by "
-                            "antsCorticalThickness.sh"),
+                            "and correspond to Atropos template (if --ants)"),
                       metavar='STR')
 adv_args.add_argument("--my_atlases",
                       help=("extra labeling volume atlas(es) in MNI152 "
@@ -163,10 +162,9 @@ adv_args.add_argument("--my_atlases",
                             "in return_numbers_names_colors() function"),
                       nargs='+', metavar='')
 adv_args.add_argument("--my_graywhite",
-                      help=("use this gray/white matter file, "
-                            "such as an edited version of Mindboggle's "
-                            "FreeSurfer-ANTs gray/white matter hybrid "
-                            "(must still call --ants for transforms)"),
+                      help=("use this gray/white matter file (ex: edited "
+                            "version of Mindboggle's gray/white output); "
+                            "must still call --ants for transforms"),
                       metavar='STR')
 adv_args.add_argument("--volume_labels",
                       help=(argparse.SUPPRESS),
@@ -179,9 +177,8 @@ adv_args.add_argument("--surface_labels",
 adv_args.add_argument("--my_transform",
                       help=("different affine transform from Atropos "
                             "template to MNI152 space (if OASIS-30 "
-                            "template not used with "
-                            "antsCorticalThickness.sh); use antsAffine.sh "
-                            "ITK transform format"),
+                            "template not used to get --ants output); "
+                            "use antsAffine.sh ITK transform format"),
                       metavar='STR')
 adv_args.add_argument("--plugin", dest="plugin",
                       default='Linear',
