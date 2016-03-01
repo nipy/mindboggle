@@ -256,17 +256,14 @@ else:
     save_folds = True
 if args.no_sulci:
     do_sulci = False
-#    do_fundi = False
+    do_fundi = False
 else:
     do_sulci = True
-#    if args.no_fundi:
-#        do_fundi = False
-#    else:
-#        do_fundi = True
-if args.fundi:
-    do_fundi = True
-else:
-    do_fundi = False
+    do_shapes = True
+    if args.no_fundi:
+        do_fundi = False
+    else:
+        do_fundi = True
 if args.no_points:
     do_points = False
 else:
