@@ -66,26 +66,37 @@ Vagrantfile. You must have Vagrant (vagrantup.com) and VirtualBox
 
 Example (default settings except --ants): python configure_mindboggle_vm
     --out $HOME/mindboggled
+    --work $HOME/mindboggle_working
+    --cache $HOME/mindboggle_cache
     --freesurfer $SUBJECTS_DIR
     --ants $HOME/antsCorticalThickness/subjects
     --cpus 1 --cpumax 80 --mem 4096""",
-    formatter_class = lambda prog:
-    argparse.HelpFormatter(prog, max_help_position=40))
+                                 formatter_class = lambda prog:
+                                 argparse.HelpFormatter(prog,
+                                                        max_help_position=40))
 
 parser.add_argument("--out",
                     help="Output directory (default: $HOME/mindboggled)",
                     metavar='STR')
+parser.add_argument("--work",
+                    help="Working directory (default: "
+                         "$HOME/mindboggle_working)",
+                    metavar='STR')
+parser.add_argument("--cache",
+                    help="Download directory (default: "
+                         "$HOME/mindboggle_cache)",
+                    metavar='STR')
 parser.add_argument("--freesurfer",
-                    help=("FreeSurfer subjects directory (default: "
+                    help=("Path to FreeSurfer subjects directory (default: "
                           "$SUBJECTS_DIR)"),
                     metavar='STR')
 parser.add_argument("--ants",
-                    help=("Optional directory containing "
-                          "antsCorticalThickness.sh "
-                          "output in individual subject directories"),
+                    help=("Path to antsCorticalThickness.sh subjects "
+                          "directory (optional)"),
                     metavar='STR')
 parser.add_argument("--atlases",
-                    help="Optional directory containing additional atlases",
+                    help="Path to directory containing additional atlases "
+                         "(optional)",
                     metavar='STR')
 parser.add_argument("--cpus",
                     help='Number of processors: "--cpus 1" (default)',
@@ -103,27 +114,38 @@ args = parser.parse_args()
 #=============================================================================
 mindboggle_version = "1.0"
 home = os.environ['HOME']
+guest = "/home/vagrant"
 
 if args.out:
-    out_string = '"{0}", "/home/vagrant/mindboggled"'.format(args.out)
+    out_str = '"{0}", "{1}/mindboggled"'.format(args.out, guest)
 else:
-    out_string = '"{0}/mindboggled", "/home/vagrant/mindboggled"'.format(home)
+    out_str = '"{0}/mindboggled", "{1}/mindboggled"'.format(home, guest)
+if args.out:
+    work_str = '"{0}", "{1}/mindboggle_working"'.format(args.out, guest)
+else:
+    work_str = '"{0}/mindboggled", "{1}/mindboggle_working"'.format(home,
+                                                                    guest)
+if args.out:
+    cache_str = '"{0}", "{1}/mindboggle_cache"'.format(args.out, guest)
+else:
+    cache_str = '"{0}/mindboggled", "{1}/mindboggle_cache"'.format(home,
+                                                                   guest)
 if args.freesurfer:
-    freesurfer_string = '"{0}", "/home/vagrant/freesurfer_subjects"'.\
-        format(args.freesurfer)
+    freesurfer_str = '"{0}", "{1}/freesurfer_subjects"'.\
+        format(args.freesurfer, guest)
 else:
-    freesurfer_string = '"{0}", "/home/vagrant/freesurfer_subjects"'.\
-        format(os.environ['SUBJECTS_DIR'])
+    freesurfer_str = '"{0}", "{1}/freesurfer_subjects"'.\
+        format(os.environ['SUBJECTS_DIR'], guest)
 if args.ants:
-    ants_string = 'config.vm.synced_folder "{0}", ' \
-                  '"/home/vagrant/ants_subjects"'.format(args.ants)
+    ants_str = 'config.vm.synced_folder "{0}", "{1}/ants_subjects"'.\
+        format(args.ants, guest)
 else:
-    ants_string = ''
+    ants_str = ''
 if args.atlases:
-    atlases_string = 'config.vm.synced_folder "{0}", ' \
-                     '"{1}/atlases"'.format(args.atlases, home)
+    atlases_str = 'config.vm.synced_folder "{0}", "{1}/atlases"'.\
+        format(args.atlases, guest)
 else:
-    atlases_string = ''
+    atlases_str = ''
 
 #=============================================================================
 # Create Vagrantfile
@@ -146,15 +168,17 @@ Vagrant.configure("2") do |config|
     # with paths on the guest to mount the folder:
     config.vm.synced_folder {1}
     config.vm.synced_folder {2}
-    {3}
-    {4}
+    config.vm.synced_folder {3}
+    config.vm.synced_folder {4}
+    {5}
+    {6}
 
     # Configure number of CPUs, maximum % per CPU, and memory (MB RAM):
     config.vm.provider :virtualbox do |vb|
         vb.name = "MindboggleVM"
-        vb.customize ["modifyvm", :id, "--cpus", "{5}"]
-        vb.customize ["modifyvm", :id, "--cpuexecutioncap", "{6}"]
-        vb.customize ["modifyvm", :id, "--memory", "{7}"]
+        vb.customize ["modifyvm", :id, "--cpus", "{7}"]
+        vb.customize ["modifyvm", :id, "--cpuexecutioncap", "{8}"]
+        vb.customize ["modifyvm", :id, "--memory", "{9}"]
         vb.customize ["modifyvm", :id, "--ioapic", "on"]
     end
 
@@ -167,8 +191,8 @@ Vagrant.configure("2") do |config|
     config.ssh.password = "vagrant"
 
 end
-""".format(mindboggle_version, out_string, freesurfer_string,
-           ants_string, atlases_string, args.cpus, args.cpumax, args.mem)
+""".format(mindboggle_version, out_str, work_str, cache_str, freesurfer_str,
+           ants_str, atlases_str, args.cpus, args.cpumax, args.mem)
 
 #=============================================================================
 # Write Vagrantfile with substitutions

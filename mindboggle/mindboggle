@@ -72,8 +72,9 @@ parser = argparse.ArgumentParser(description="""
                     The Mindboggle software automates shape analysis of
                     anatomical labels and features extracted from human brain
                     MR image data (http://mindboggle.info).""",
-                     formatter_class = lambda prog:
-                     argparse.HelpFormatter(prog, max_help_position=40))
+                                 formatter_class = lambda prog:
+                                 argparse.HelpFormatter(prog,
+                                                        max_help_position=40))
 
 exp_args = parser.add_argument_group('experimental settings')
 out_args = parser.add_argument_group('modify outputs')
