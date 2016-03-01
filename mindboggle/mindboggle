@@ -71,7 +71,9 @@ from mindboggle.thirdparty.ants import PropagateLabelsThroughMask
 parser = argparse.ArgumentParser(description="""
                     The Mindboggle software automates shape analysis of
                     anatomical labels and features extracted from human brain
-                    MR image data (http://mindboggle.info).""",
+                    MR image data (http://mindboggle.info).  Example:
+                    mindboggle $HOME/freesurfer/subjects/arno --ants
+                    $HOME/ants/subjects/arno/antsBrainSegmentation.nii.gz""",
                                  formatter_class = lambda prog:
                                  argparse.HelpFormatter(prog,
                                                         max_help_position=40))
