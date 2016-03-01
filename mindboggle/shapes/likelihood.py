@@ -111,7 +111,8 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
     probs_nonborder = np.zeros(len(folds))
 
     # Load estimated depth and curvature distribution parameters:
-    depth_border, curv_border, depth_nonborder, curv_nonborder = pickle.load(open(trained_file, "r"))
+    depth_border, curv_border, depth_nonborder, \
+        curv_nonborder = pickle.load(open(trained_file, "r"))
 
     # Load depths, curvatures:
     depths, name = read_scalars(depth_file, True, True)
@@ -147,7 +148,8 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
             ((curvatures[I]-curv_nonborder['means'][j])**2) / \
             curv_nonborder['sigmas'][j]**2
         expNB = -expNB / 2
-        probs_nonborder[I] = probs_nonborder[I] + norm_nonborder[j] * np.exp(expNB)
+        probs_nonborder[I] = probs_nonborder[I] + \
+                             norm_nonborder[j] * np.exp(expNB)
 
     likelihoods = probs_border / (probs_nonborder + probs_border + tiny)
     likelihoods = likelihoods.tolist()
@@ -169,7 +171,8 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
     return likelihoods, likelihoods_file
 
 
-def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
+def estimate_distribution(scalar_files, scalar_range, fold_files, label_files,
+                          verbose):
     """
     Estimate sulcus label border scalar distributions from VTK files.
 
@@ -190,6 +193,8 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
         names of VTK files with fold numbers for scalar values
     label_files : list of strings
         names of VTK files with label numbers for scalar values
+    verbose : Boolean
+        print statements?
 
     Returns
     -------
@@ -244,12 +249,13 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
     >>> #
     >>> scalar_files = depth_files
     >>> scalar_range = np.linspace(0, 1, 51, endpoint=True) # (0 to 1 by 0.02)
+    >>> verbose = False
     >>> depth_border, depth_nonborder = estimate_distribution(scalar_files,
-    ...     scalar_range, fold_files, label_files)
+    ...     scalar_range, fold_files, label_files, verbose)
     >>> scalar_files = curv_files
     >>> scalar_range = np.linspace(-1, 1, 101, endpoint=True) # (-1 to 1 by 0.02)
     >>> curv_border, curv_nonborder = estimate_distribution(scalar_files,
-    ...     scalar_range, fold_files, label_files)
+    ...     scalar_range, fold_files, label_files, verbose)
     >>> print(np.array_str(np.array(depth_border['means']),
     ...       precision=5, suppress_small=True))
     [  6.29198  13.52503  18.67128]
@@ -278,10 +284,11 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
 
     # Estimate distribution parameters:
     border_means, border_sigmas, \
-        border_weights = fit_normals_to_histogram(border_scalars, scalar_range)
+        border_weights = fit_normals_to_histogram(border_scalars,
+                                                  scalar_range, verbose)
     nonborder_means, nonborder_sigmas, \
         nonborder_weights = fit_normals_to_histogram(nonborder_scalars,
-                                                     scalar_range)
+                                                     scalar_range, verbose)
 
     # Store outputs in dictionaries:
     border_parameters = {

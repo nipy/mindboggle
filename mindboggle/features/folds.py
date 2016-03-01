@@ -54,7 +54,7 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
     save_file : Boolean
         save output VTK file?
     verbose : Boolean
-        verbose output?
+        print statements?
 
     Returns
     -------

@@ -787,22 +787,26 @@ if not args.no_surfaces:
         SurfaceArea = Node(name='Surface_area',
                            interface=Fn(function=area,
                                         input_names=['command',
-                                                     'surface_file'],
+                                                     'surface_file',
+                                                     'verbose'],
                                         output_names=['area_file']))
         area_command = os.path.join(ccode_path, 'area', 'PointAreaMain')
         SurfaceArea.inputs.command = area_command
+        SurfaceArea.inputs.verbose = True
         # --------------------------------------------------------------------
         # Measure surface travel depth:
         # --------------------------------------------------------------------
         TravelDepth = Node(name='Travel_depth',
                            interface=Fn(function=travel_depth,
                                         input_names=['command',
-                                                     'surface_file'],
+                                                     'surface_file',
+                                                     'verbose'],
                                         output_names=['depth_file']))
         WholeSurfShapeFlow.add_nodes([TravelDepth])
         TravelDepth.inputs.command = os.path.join(ccode_path,
                                                   'travel_depth',
                                                   'TravelDepthMain')
+        TravelDepth.inputs.verbose = True
         # --------------------------------------------------------------------
         # Rescale surface travel depth:
         # --------------------------------------------------------------------
@@ -834,11 +838,13 @@ if not args.no_surfaces:
         GeodesicDepth = Node(name='Geodesic_depth',
                              interface=Fn(function=geodesic_depth,
                                           input_names=['command',
-                                                       'surface_file'],
+                                                       'surface_file',
+                                                       'verbose'],
                                           output_names=['depth_file']))
         GeodesicDepth.inputs.command = os.path.join(ccode_path,
                                                     'geodesic_depth',
                                                     'GeodesicDepthMain')
+        GeodesicDepth.inputs.verbose = True
         # --------------------------------------------------------------------
         # Measure surface curvature:
         # --------------------------------------------------------------------
@@ -847,7 +853,8 @@ if not args.no_surfaces:
                              input_names=['command',
                                           'method',
                                           'arguments',
-                                          'surface_file'],
+                                          'surface_file',
+                                          'verbose'],
                              output_names=['mean_curvature_file',
                                            'gauss_curvature_file',
                                            'max_curvature_file',
@@ -858,6 +865,7 @@ if not args.no_surfaces:
                                                'CurvatureMain')
         CurvNode.inputs.method = 2
         CurvNode.inputs.arguments = '-n 0.7'
+        CurvNode.inputs.verbose = True
         # --------------------------------------------------------------------
         # Convert FreeSurfer surface measures to VTK:
         # --------------------------------------------------------------------
@@ -963,7 +971,8 @@ if not args.no_surfaces:
                                                        'min_fold_size',
                                                        'do_fill_holes',
                                                        'min_hole_depth',
-                                                       'save_file'],
+                                                       'save_file',
+                                                       'verbose'],
                                           output_names=['folds',
                                                         'n_folds',
                                                         'depth_threshold',
@@ -978,6 +987,7 @@ if not args.no_surfaces:
             FoldsNode.inputs.do_fill_holes = False
             FoldsNode.inputs.min_hole_depth = 0.001
             FoldsNode.inputs.save_file = True
+            FoldsNode.inputs.verbose = True
             if save_folds and save_all:
                mbFlow.connect(SurfFeatureFlow, 'Folds.folds_file',
                               Sink, 'features.@folds')
@@ -1156,7 +1166,8 @@ if not args.no_surfaces:
                                                            'exclude_labels',
                                                            'normalization',
                                                            'area_file',
-                                                           'largest_segment'],
+                                                           'largest_segment',
+                                                           'verbose'],
                                               output_names=['spectrum_lists',
                                                             'label_list']))
             SurfFeatureShapeFlow.add_nodes([SpectraLabels])
@@ -1167,6 +1178,7 @@ if not args.no_surfaces:
             SpectraLabels.inputs.normalization = "area"
             SpectraLabels.inputs.area_file = ""
             SpectraLabels.inputs.largest_segment = True
+            SpectraLabels.inputs.verbose = True
             mbFlow.connect(WholeSurfShapeFlow, 'Surface_area.area_file',
                            SurfFeatureShapeFlow, 'Spectra_labels.area_file')
             # ----------------------------------------------------------------
@@ -1193,7 +1205,8 @@ if not args.no_surfaces:
                                            'exclude_labels',
                                            'scale_input',
                                            'decimate_fraction',
-                                           'decimate_smooth'],
+                                           'decimate_smooth',
+                                           'verbose'],
                               output_names=['descriptors_lists',
                                             'label_list']))
             SurfFeatureShapeFlow.add_nodes([ZernikeLabels])
@@ -1204,6 +1217,7 @@ if not args.no_surfaces:
             ZernikeLabels.inputs.scale_input = True
             ZernikeLabels.inputs.decimate_fraction = 0
             ZernikeLabels.inputs.decimate_smooth = 0
+            ZernikeLabels.inputs.verbose = True
             # ----------------------------------------------------------------
             # Compute Zernike moments of sulci:
             # ----------------------------------------------------------------
@@ -2104,7 +2118,8 @@ if do_label and not args.no_volumes:
                                                          'exclude_labels',
                                                          'label_names',
                                                          'save_table',
-                                                         'output_table'],
+                                                         'output_table',
+                                                         'verbose'],
                                             output_names=['unique_labels',
                                                           'volumes',
                                                           'output_table']))
@@ -2115,6 +2130,7 @@ if do_label and not args.no_volumes:
         VolumesFSlabels.inputs.save_table = True
         VolumesFSlabels.inputs.output_table = \
             'volume_per_freesurfer_label.csv'
+        VolumesFSlabels.inputs.verbose = True
         mbFlow.connect(VolLabelFlow,
                'Combine_freesurfer_cortex_noncortex_labels.output_file',
                VolShapeFlow, 'Volume_per_freesurfer_label.input_file')
@@ -2183,7 +2199,8 @@ if do_label and not args.no_volumes:
                                           'propagate',
                                           'output_dir',
                                           'save_table',
-                                          'output_table'],
+                                          'output_table',
+                                          'verbose'],
                              output_names=['label_volume_thickness',
                                            'output_table']))
             VolShapeFlow.add_nodes([FSthicknesses])
@@ -2224,6 +2241,7 @@ if do_label and not args.no_volumes:
             FSthicknesses.inputs.save_table = True
             FSthicknesses.inputs.output_table = \
                 'thickinthehead_per_freesurfer_cortex_label.csv'
+            FSthicknesses.inputs.verbose = True
             # Save table:
             mbFlow.connect(VolShapeFlow,
             'Thickness_per_freesurfer_cortex_label.output_table',
@@ -2265,6 +2283,7 @@ if do_label and not args.no_volumes:
                 ANTsThicknesses.inputs.names = dkt.cerebrum_cortex_names
                 ANTsThicknesses.inputs.output_table = \
                     'thickinthehead_per_ants_cortex_label.csv'
+                ANTsThicknesses.inputs.verbose = True
                 # Save table:
                 mbFlow.connect(VolShapeFlow,
                    'Thickness_per_ants_cortex_label.output_table',

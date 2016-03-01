@@ -10,7 +10,8 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-def area(command, surface_file):
+
+def area(command, surface_file, verbose=False):
     """
     Measure area of each vertex in a surface mesh.
     (Calls Joachim Giard's C++ code)
@@ -21,6 +22,8 @@ def area(command, surface_file):
         Voronoi-based surface area C++ executable command
     surface_file : string
         vtk file with surface mesh
+    verbose : Boolean
+        print statements?
 
     Returns
     -------
@@ -31,10 +34,15 @@ def area(command, surface_file):
     import os
     from nipype.interfaces.base import CommandLine
 
-    area_file = os.path.join(os.getcwd(),
-                os.path.splitext(os.path.basename(surface_file))[0] + '.area.vtk')
-    cli = CommandLine(command = command)
-    cli.inputs.args = ' '.join([surface_file, area_file])
+    basename = os.path.splitext(os.path.basename(surface_file))[0]
+    area_file = os.path.join(os.getcwd(), basename + '.area.vtk')
+    args = ' '.join([surface_file, area_file])
+
+    if verbose:
+        print("{0} {1}".format(command, args))
+
+    cli = CommandLine(command=command)
+    cli.inputs.args = args
     cli.cmdline
     cli.run()
 
@@ -44,15 +52,19 @@ def area(command, surface_file):
     return area_file
 
 
-def travel_depth(command, surface_file):
+def travel_depth(command, surface_file, verbose=False):
     """
     Measure "travel depth" of each vertex in a surface mesh.
     (Calls Joachim Giard's C++ code)
 
     Parameters
     ----------
-    command : travel depth C++ executable command
-    surface_file : ``vtk file``
+    command : string
+        travel depth C++ executable command
+    surface_file : string
+        vtk file
+    verbose : Boolean
+        print statements?
 
     Returns
     -------
@@ -63,10 +75,15 @@ def travel_depth(command, surface_file):
     import os
     from nipype.interfaces.base import CommandLine
 
-    depth_file = os.path.join(os.getcwd(),
-                 os.path.splitext(os.path.basename(surface_file))[0] + '.travel_depth.vtk')
-    cli = CommandLine(command = command)
-    cli.inputs.args = ' '.join([surface_file, depth_file])
+    basename = os.path.splitext(os.path.basename(surface_file))[0]
+    depth_file = os.path.join(os.getcwd(), basename + '.travel_depth.vtk')
+    args = ' '.join([surface_file, depth_file])
+
+    if verbose:
+        print("{0} {1}".format(command, args))
+
+    cli = CommandLine(command=command)
+    cli.inputs.args = args
     cli.cmdline
     cli.run()
 
@@ -76,7 +93,7 @@ def travel_depth(command, surface_file):
     return depth_file
 
 
-def geodesic_depth(command, surface_file):
+def geodesic_depth(command, surface_file, verbose=False):
     """
     Measure "travel depth" of each vertex in a surface mesh.
     (Calls Joachim Giard's C++ code)
@@ -85,6 +102,8 @@ def geodesic_depth(command, surface_file):
     ----------
     command : travel depth C++ executable command
     surface_file : ``vtk file``
+    verbose : Boolean
+        print statements?
 
     Returns
     -------
@@ -95,10 +114,15 @@ def geodesic_depth(command, surface_file):
     import os
     from nipype.interfaces.base import CommandLine
 
-    depth_file = os.path.join(os.getcwd(),
-                 os.path.splitext(os.path.basename(surface_file))[0] + '.geodesic_depth.vtk')
-    cli = CommandLine(command = command)
-    cli.inputs.args = ' '.join([surface_file, depth_file])
+    basename = os.path.splitext(os.path.basename(surface_file))[0]
+    depth_file = os.path.join(os.getcwd(), basename + '.geodesic_depth.vtk')
+    args = ' '.join([surface_file, depth_file])
+
+    if verbose:
+        print("{0} {1}".format(command, args))
+
+    cli = CommandLine(command=command)
+    cli.inputs.args = args
     cli.cmdline
     cli.run()
 
@@ -108,7 +132,7 @@ def geodesic_depth(command, surface_file):
     return depth_file
 
 
-def curvature(command, method, arguments, surface_file):
+def curvature(command, method, arguments, surface_file, verbose=False):
     """
     Measure curvature values of each vertex in a surface mesh (-m 0).
     (Calls Joachim Giard's C++ code)
@@ -155,6 +179,8 @@ def curvature(command, method, arguments, surface_file):
         additional arguments, such as neighborhood parameter
     surface_file : string
         name of VTK surface mesh file
+    verbose : Boolean
+        print statements?
 
     """
     import os
@@ -166,9 +192,9 @@ def curvature(command, method, arguments, surface_file):
     min_curvature_file = None
     min_curvature_vector_file = None
 
-    stem = os.path.join(os.getcwd(),
-                        os.path.splitext(os.path.basename(surface_file))[0])
-    mean_curvature_file = stem + '.mean_curvature.vtk'
+    basename = os.path.splitext(os.path.basename(surface_file))[0]
+    mean_curvature_file = os.path.join(os.getcwd(), basename) + \
+        '.mean_curvature.vtk'
     if method in [0,1]:
         gauss_curvature_file = stem + '.gauss_curvature.vtk'
         args.extend(['-g', gauss_curvature_file])
@@ -181,7 +207,10 @@ def curvature(command, method, arguments, surface_file):
                      '-d', min_curvature_vector_file])
     args.extend([surface_file, mean_curvature_file])
 
-    cli = CommandLine(command = command)
+    if verbose:
+        print("{0} {1}".format(command, args))
+
+    cli = CommandLine(command=command)
     cli.inputs.args = ' '.join(args)
     cli.cmdline
     cli.run()

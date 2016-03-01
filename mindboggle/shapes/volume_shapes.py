@@ -12,7 +12,8 @@ Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 
 def volume_per_brain_region(input_file, include_labels=[], exclude_labels=[],
-                            label_names=[], save_table=False, output_table=''):
+                            label_names=[], save_table=False,
+                            output_table='', verbose=False):
     """
     Compute volume per labeled region in a nibabel-readable image.
 
@@ -34,6 +35,8 @@ def volume_per_brain_region(input_file, include_labels=[], exclude_labels=[],
         save output table file with labels and volume values?
     output_table : string
         name of output table file with labels and volume values
+    verbose : Boolean
+        print statements?
 
     Returns
     -------
@@ -61,9 +64,10 @@ def volume_per_brain_region(input_file, include_labels=[], exclude_labels=[],
     >>> label_names = dkt.label_names
     >>> save_table = True
     >>> output_table = 'volumes.csv'
+    >>> verbose = False
     >>> unique_labels, volumes, table = volume_per_brain_region(input_file,
     ...     include_labels, exclude_labels, label_names, save_table,
-    ...     output_table)
+    ...     output_table, verbose)
     >>> print(np.array_str(np.array(volumes[0:5]),
     ...       precision=5, suppress_small=True))
     [  971.99797  2413.99496  2192.99543  8328.98262  2940.99386]
@@ -104,10 +108,17 @@ def volume_per_brain_region(input_file, include_labels=[], exclude_labels=[],
         # Loop through labels:
         for ilabel, label in enumerate(unique_labels):
             if volumes[ilabel]:
+
                 if len(label_names) == len(unique_labels):
+                    if verbose:
+                        print('{0} ({1}) volume = {2:2.3f}mm^3\n'.format(
+                              label_names[ilabel], label, volumes[ilabel]))
                     fid.write('{0}, {1}, {2:2.3f}\n'.format(
                               label_names[ilabel], label, volumes[ilabel]))
                 else:
+                    if verbose:
+                        print('{0} volume = {1:2.3f}mm^3\n'.format(
+                              label, volumes[ilabel]))
                     fid.write('{0}, {1:2.3f}\n'.format(label, volumes[ilabel]))
     else:
         output_table = ''
@@ -118,7 +129,7 @@ def volume_per_brain_region(input_file, include_labels=[], exclude_labels=[],
 def thickinthehead(segmented_file, labeled_file, cortex_value=2,
                    noncortex_value=3, labels=[], names=[], resize=True,
                    propagate=True, output_dir='', save_table=False,
-                   output_table='', ants_path=''):
+                   output_table='', ants_path='', verbose=False):
     """
     Compute a simple thickness measure for each labeled cortex region volume.
 
@@ -203,8 +214,8 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
         save output table file with label volumes and thickness values?
     output_table : string
         name of output table file with label volumes and thickness values
-    ants_path : string
-        path to ants bin/ directory
+    verbose : Boolean
+        print statements?
 
     Returns
     -------
@@ -243,19 +254,18 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     >>> output_dir = ''
     >>> save_table = True
     >>> output_table = ''
-    >>> ants_path = '/software/install/ants/bin'
+    >>> verbose = False
     >>> label_volume_thickness, output_table = thickinthehead(segmented_file,
     ...     labeled_file, cortex_value, noncortex_value, labels, names,
-    ...     resize, propagate, output_dir, save_table, output_table,
-    ...     ants_path) # doctest: +SKIP
+    ...     resize, propagate, output_dir, save_table, output_table, verbose)
     >>> print(np.array_str(np.array(label_volume_thickness[0][0:10]),
-    ...       precision=5, suppress_small=True)) # doctest: +SKIP
+    ...       precision=5, suppress_small=True))
     [ 1002.  1003.  1005.  1006.  1007.  1008.  1009.  1010.  1011.  1012.]
     >>> print(np.array_str(np.array(label_volume_thickness[1][0:5]),
-    ...       precision=5, suppress_small=True)) # doctest: +SKIP
+    ...       precision=5, suppress_small=True))
     [  3136.99383   7206.98582   3257.99359   1950.99616  12458.97549]
     >>> print(np.array_str(np.array(label_volume_thickness[2][0:5]),
-    ...       precision=5, suppress_small=True)) # doctest: +SKIP
+    ...       precision=5, suppress_small=True))
     [ 3.8639   3.69637  2.56334  4.09336  4.52592]
 
     """
@@ -298,14 +308,9 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     #-------------------------------------------------------------------------
     # ants command paths:
     #-------------------------------------------------------------------------
-    if ants_path:
-        ants_thresh = os.path.join(ants_path, 'ThresholdImage')
-        ants_math = os.path.join(ants_path, 'ImageMath')
-        ants_resample = os.path.join(ants_path, 'ResampleImageBySpacing')
-    else:
-        ants_thresh = 'ThresholdImage'
-        ants_math = 'ImageMath'
-        ants_resample = 'ResampleImageBySpacing'
+    ants_thresh = 'ThresholdImage'
+    ants_math = 'ImageMath'
+    ants_resample = 'ResampleImageBySpacing'
 
     #-------------------------------------------------------------------------
     # Extract noncortex and cortex:
@@ -424,21 +429,17 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
             label_volume_thickness[ilabel, 1] = label_cortex_volume
             label_volume_thickness[ilabel, 2] = thickness
 
-            #print('label {0} volume: cortex={1:2.2f}, inner={2:2.2f}, '
-            #      'outer={3:2.2f}, area51={4:2.2f}, thickness={5:2.2f}mm'.
-            #      format(name, label, label_cortex_volume, label_inner_edge_volume,
-            #      label_outer_edge_volume, label_area, thickness))
-            if names:
-                print('{0} ({1}) thickness={2:2.2f}mm'.
-                      format(name, label, thickness))
-            else:
-                print('{0}, thickness={1:2.2f}mm'.format(label, thickness))
-
             if save_table:
                 if names:
-                    fid.write('{0}, {1}, {2:2.3f}\n'.format(
-                              name, label, thickness))
+                    if verbose:
+                        print('{0} ({1}) thickinthehead thickness = '
+                              '{2:2.2f}mm'.format(name, label, thickness))
+                    fid.write('{0}, {1}, {2:2.3f}\n'.format(name, label,
+                                                            thickness))
                 else:
+                    if verbose:
+                        print('{0} thickinthehead thickness = {1:2.2f}mm'.
+                              format(label, thickness))
                     fid.write('{0}, {1:2.3f}\n'.format(label, thickness))
 
     label_volume_thickness = label_volume_thickness.transpose().tolist()

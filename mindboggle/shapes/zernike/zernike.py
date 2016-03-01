@@ -14,7 +14,8 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 
 def zernike_moments(points, faces, order=10, scale_input=True,
-                    decimate_fraction=0, decimate_smooth=0, pl_cls=None):
+                    decimate_fraction=0, decimate_smooth=0, pl_cls=None,
+                    verbose=False):
     """
     Compute the Zernike moments of a surface patch of points and faces.
 
@@ -39,6 +40,8 @@ def zernike_moments(points, faces, order=10, scale_input=True,
         fraction of mesh faces to remove for decimation (0 for no decimation)
     decimate_smooth : integer
         number of smoothing steps for decimation
+    verbose : Boolean
+        print statements?
 
     Returns
     -------
@@ -55,7 +58,9 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     >>> faces = [[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]]
     >>> order = 3
     >>> scale_input = True
-    >>> descriptors = zernike_moments(points, faces, order, scale_input)
+    >>> verbose = False
+    >>> descriptors = zernike_moments(points, faces, order, scale_input,
+    ...     verbose)
     >>> print(np.array_str(np.array(descriptors),
     ...       precision=5, suppress_small=True))
     [ 0.09189  0.09357  0.04309  0.06466  0.0382   0.04138]
@@ -73,7 +78,9 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     >>> faces = keep_faces(faces, I22)
     >>> order = 3
     >>> scale_input = True
-    >>> descriptors = zernike_moments(points, faces, order, scale_input)
+    >>> verbose = False
+    >>> descriptors = zernike_moments(points, faces, order, scale_input,
+    ...     verbose)
     >>> print(np.array_str(np.array(descriptors),
     ...       precision=5, suppress_small=True))
     [ 0.00471  0.0084   0.00295  0.00762  0.0014   0.00076]
@@ -88,7 +95,9 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     >>> faces = keep_faces(faces, I22)
     >>> order = 3
     >>> scale_input = True
-    >>> descriptors = zernike_moments(points, faces, order, scale_input)
+    >>> verbose = False
+    >>> descriptors = zernike_moments(points, faces, order, scale_input,
+    ...     verbose)
     >>> print(np.array_str(np.array(descriptors),
     ...       precision=5, suppress_small=True))
     [ 0.00586  0.00973  0.00322  0.00818  0.0013   0.00131]
@@ -163,12 +172,15 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     #-------------------------------------------------------------------------
     descriptors = pl.feature_extraction(Z, order).tolist()
 
+    if verbose:
+        print("Zernike moments: {0}".format(descriptors))
+
     return descriptors
 
 
 def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
-                              scale_input=True,
-                              decimate_fraction=0, decimate_smooth=25):
+                              scale_input=True, decimate_fraction=0,
+                              decimate_smooth=25, verbose=False):
     """
     Compute the Zernike moments per labeled region in a file.
 
@@ -189,6 +201,8 @@ def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
         fraction of mesh faces to remove for decimation (1 for no decimation)
     decimate_smooth : integer
         number of smoothing steps for decimation
+    verbose : Boolean
+        print statements?
 
     Returns
     -------
@@ -210,8 +224,9 @@ def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
     >>> order = 3
     >>> exclude_labels = [-1]
     >>> scale_input = True
+    >>> verbose = False
     >>> descriptors_lists, label_list = zernike_moments_per_label(vtk_file,
-    ...     order, exclude_labels, scale_input)
+    ...     order, exclude_labels, scale_input, verbose)
     >>> label_list[0:10]
     [999, 1001, 1002, 1003, 1005, 1006, 1007, 1008, 1009, 1010]
     >>> print(np.array_str(np.array(descriptors_lists[0]),
@@ -258,7 +273,8 @@ def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
         # Determine the indices per label:
         #---------------------------------------------------------------------
         Ilabel = [i for i,x in enumerate(labels) if x == label]
-        # print('  {0} vertices for label {1}'.format(len(Ilabel), label))
+        if verbose:
+          print('  {0} vertices for label {1}'.format(len(Ilabel), label))
         if len(Ilabel) > min_points_faces:
 
             #-----------------------------------------------------------------
@@ -273,7 +289,7 @@ def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
                 descriptors = zernike_moments(points, pick_faces,
                                               order, scale_input,
                                               decimate_fraction,
-                                              decimate_smooth)
+                                              decimate_smooth, verbose)
 
                 #-------------------------------------------------------------
                 # Append to a list of lists of spectra:

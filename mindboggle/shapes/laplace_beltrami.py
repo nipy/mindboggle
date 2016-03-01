@@ -462,8 +462,8 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None,
         # maxiter = 40 forces lobpcg to use 20 iterations.
         # Strangely, largest=false finds largest eigenvalues
         # and largest=True gives the smallest eigenvalues:
-        eigenvalues, eigenvectors =  lobpcg(A, init_eigenvecs, B=B,
-                                            largest=True, maxiter=40)
+        eigenvalues, eigenvectors = lobpcg(A, init_eigenvecs, B=B,
+                                           largest=True, maxiter=40)
         # Extract the real parts:
         spectrum = [value.real for value in eigenvalues]
 
@@ -476,7 +476,8 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None,
     if normalization == "area":
         spectrum = area_normalize(points, faces, spectrum)
         if verbose:
-            print("Compute area-normalized linear FEM Laplace-Beltrami spectrum")
+            print("Compute area-normalized linear FEM Laplace-Beltrami "
+                  "spectrum")
     else:
         if verbose:
             print("Compute linear FEM Laplace-Beltrami spectrum")
@@ -485,7 +486,7 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None,
 
 
 def spectrum_of_largest(points, faces, spectrum_size=10, exclude_labels=[-1],
-                        normalization=None, areas=None):
+                        normalization=None, areas=None, verbose=False):
     """
     Compute Laplace-Beltrami spectrum on largest connected segment.
 
@@ -507,6 +508,8 @@ def spectrum_of_largest(points, faces, spectrum_size=10, exclude_labels=[-1],
         if "area", use area of the 2D structure as in Reuter et al. 2006
     areas : numpy array or list of floats (or None)
         surface area scalar values for all vertices
+    verbose : Boolean
+        print statements?
 
     Returns
     -------
@@ -535,8 +538,9 @@ def spectrum_of_largest(points, faces, spectrum_size=10, exclude_labels=[-1],
     >>> faces = keep_faces(faces, I22)
     >>> faces, points, o1 = reindex_faces_points(faces, points)
     >>> areas, u1 = read_scalars(area_file, True, True)
+    >>> verbose = False
     >>> spectrum = spectrum_of_largest(points, faces, spectrum_size,
-    ...     exclude_labels, normalization, areas)
+    ...     exclude_labels, normalization, areas, verbose)
     >>> print(np.array_str(np.array(spectrum[1::]),
     ...                    precision=5, suppress_small=True))
     [ 0.00057  0.00189  0.00432  0.00691  0.00775]
@@ -588,14 +592,14 @@ def spectrum_of_largest(points, faces, spectrum_size=10, exclude_labels=[-1],
             # Compute spectrum:
             #-----------------------------------------------------------------
             spectrum = fem_laplacian(points, faces, spectrum_size,
-                                     normalization, verbose=False)
+                                     normalization, verbose)
             return spectrum
         else:
             return None
 
 
 def spectrum_from_file(vtk_file, spectrum_size=10, exclude_labels=[-1],
-                       normalization=None, area_file=''):
+                       normalization=None, area_file='', verbose=False):
     """
     Compute Laplace-Beltrami spectrum of a 3D shape in a VTK file.
 
@@ -612,6 +616,8 @@ def spectrum_from_file(vtk_file, spectrum_size=10, exclude_labels=[-1],
         if "area", use area of the 2D structure as in Reuter et al. 2006
     area_file :  string
         name of VTK file with surface area scalar values
+    verbose : Boolean
+        print statements?
 
     Returns
     -------
@@ -646,14 +652,15 @@ def spectrum_from_file(vtk_file, spectrum_size=10, exclude_labels=[-1],
         areas = None
 
     spectrum = spectrum_of_largest(points, faces, spectrum_size,
-                                   exclude_labels, normalization, areas)
+                                   exclude_labels, normalization, areas,
+                                   verbose)
 
     return spectrum
 
 
 def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
                        normalization='area', area_file='',
-                       largest_segment=True):
+                       largest_segment=True, verbose=False):
     """
     Compute Laplace-Beltrami spectrum per labeled region in a file.
 
@@ -672,6 +679,8 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
         name of VTK file with surface area scalar values
     largest_segment :  Boolean
         compute spectrum only for largest segment with a given label?
+    verbose : Boolean
+        print statements?
 
     Returns
     -------
@@ -693,8 +702,10 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
     >>> spectrum_size = 6
     >>> exclude_labels = [0]  #[-1]
     >>> largest_segment = True
+    >>> verbose = False
     >>> spectrum_lists, label_list = spectrum_per_label(vtk_file,
-    ...     spectrum_size, exclude_labels, None, area_file, largest_segment)
+    ...     spectrum_size, exclude_labels, None, area_file, largest_segment,
+    ...     verbose)
     >>> print(np.array_str(np.array(spectrum_lists[0][1::]),
     ...                    precision=5, suppress_small=True))
     [ 0.00054  0.00244  0.00291  0.00456  0.00575]
@@ -741,10 +752,10 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
             spectrum = spectrum_of_largest(pick_points, pick_faces,
                                            spectrum_size,
                                            exclude_labels_inner,
-                                           normalization, areas)
+                                           normalization, areas, verbose)
         else:
             spectrum = fem_laplacian(pick_points, pick_faces, spectrum_size,
-                                     normalization, verbose=False)
+                                     normalization, verbose)
 
         # Append to a list of lists of spectra:
         spectrum_lists.append(spectrum)
