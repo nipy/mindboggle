@@ -740,7 +740,8 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
 
         # Determine the indices per label:
         Ilabel = [i for i,x in enumerate(labels) if x == label]
-        #print('{0} vertices for label {1}'.format(len(Ilabel), label))
+        if verbose:
+          print('{0} vertices for label {1}'.format(len(Ilabel), label))
 
         # Remove background faces:
         pick_faces = keep_faces(faces, Ilabel)

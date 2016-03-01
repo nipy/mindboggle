@@ -14,8 +14,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 
 def zernike_moments(points, faces, order=10, scale_input=True,
-                    decimate_fraction=0, decimate_smooth=0, pl_cls=None,
-                    verbose=False):
+                    decimate_fraction=0, decimate_smooth=0, verbose=False):
     """
     Compute the Zernike moments of a surface patch of points and faces.
 
@@ -117,10 +116,7 @@ def zernike_moments(points, faces, order=10, scale_input=True,
 
     from mindboggle.guts.mesh import reindex_faces_0to1
     from mindboggle.guts.mesh import decimate
-    if pl_cls is None:
-        from .pipelines import DefaultPipeline as ZernikePipeline
-    else:
-        ZernikePipeline = pl_cls
+    from .pipelines import DefaultPipeline as ZernikePipeline
 
     # Convert 0-indices (Python) to 1-indices (Matlab) for all face indices:
     index1 = False  # already done elsewhere in the code
@@ -275,6 +271,7 @@ def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
         Ilabel = [i for i,x in enumerate(labels) if x == label]
         if verbose:
           print('  {0} vertices for label {1}'.format(len(Ilabel), label))
+
         if len(Ilabel) > min_points_faces:
 
             #-----------------------------------------------------------------
