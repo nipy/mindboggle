@@ -97,11 +97,11 @@ parser.add_argument("-v", "--version", help="version number",
                     action='version', version='%(prog)s 1.0')
 shp_args.add_argument("--fundi", action='store_true',
                       help="extract, identify, and measure fundi in"
-                           " sulci [off by default because untested]")
+                           " sulci [turned off by default because untested]")
 shp_args.add_argument("--moments",
                       help="Zernike moments order per label/feature "
-                           "(ex: 10; off by default, since there is an "
-                           "occasional memory leak)",
+                           "(ex: 10; off by default due to occasional "
+                           "memory leak)",
                       default=0, type=int, metavar='INT')
 shp_args.add_argument("--spectra",
                       help="Laplace-Beltrami spectrum eigenvalues "
@@ -146,22 +146,22 @@ out_args.add_argument("--no_moments", action='store_true',
 out_args.add_argument("--no_spectra", action='store_true',
                       help="no Laplace-Beltrami for surface labels/features")
 out_args.add_argument("--no_thickness", action='store_true',
-                      help="no thickinthehead volume-based cortical "
-                           "label thicknesses (volume / midsurface area)")
+                      help="no volume-based cortical label thicknesses")
 out_args.add_argument("--no_surfaces_in_mni", action='store_true',
                       help="no cortical surfaces in MNI152 space")
 
 adv_args.add_argument("--my_atlas",
-                      help=("alternate atlas to OASIS-TRT-20 jointfusion "
-                            "atlas; must follow DKT31 cortical and CMA "
-                            "noncortical labeling protocols, be in MNI152 "
-                            "space, and should correspond to Atropos "
-                            "template used by antsCorticalThickness.sh"),
+                      help=("different atlas than OASIS-TRT-20 jointfusion "
+                            "atlas; must follow CMA/DKT31 non/cortical "
+                            "labeling protocols, be in MNI152 space, "
+                            "correspond to Atropos template used by "
+                            "antsCorticalThickness.sh"),
                       metavar='STR')
 adv_args.add_argument("--my_atlases",
                       help=("extra labeling volume atlas(es) in MNI152 "
-                            "space; use any label numbers (disregard names) "
-                            "in return_numbers_names_colors() function"),
+                            "space; use any label numbers in "
+                            "return_numbers_names_colors() function "
+                            "(disregard names)"),
                       nargs='+', metavar='')
 adv_args.add_argument("--my_graywhite",
                       help=("use this gray/white matter file, "
@@ -179,10 +179,10 @@ adv_args.add_argument("--surface_labels",
                       default='freesurfer', metavar='STR')
 adv_args.add_argument("--my_transform",
                       help=("alternate affine transform from Atropos "
-                            "template to MNI152 space, in case OASIS-30 "
-                            "Atropos template was not used when running "
-                            "antsCorticalThickness.sh (format should match "
-                            "antsAffine.sh ITK transform)"),
+                            "template to MNI152 space (if OASIS-30 "
+                            "Atropos template not used when running "
+                            "antsCorticalThickness.sh); use antsAffine.sh "
+                            "ITK transform format)"),
                       metavar='STR')
 adv_args.add_argument("--plugin", dest="plugin",
                       default='Linear',
