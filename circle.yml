@@ -1,55 +1,83 @@
+# Configuration file for circleci.com continuous integration (testing)
+
+machine:
+
+  python:
+    version: 2.7.5
+
+  environment:
+    ENV: ${HOME}/.bash_profile
+    MINI: ${HOME}/miniconda2
+    MB: ${HOME}/mindboggle
+    vtk_cpp_tools: ${HOME}/mindboggle/vtk_cpp_tools/bin
+
 dependencies:
-#  cache_directories:
-#    - "~/.apt-cache"
-#    - "~/examples/data"
-  pre:
-    # Let CircleCI cache the apt archive
-#    - sudo rm -rf /var/cache/apt/archives && sudo ln -s ~/.apt-cache /var/cache/apt/archives
-#    - bash <(wget -q -O- http://neuro.debian.net/_files/neurodebian-travis.sh)
+
   override:
-    - wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
-    - bash miniconda.sh -b -p $HOME/miniconda
-    - echo "export PATH="$HOME/miniconda/bin:$PATH"" >> $HOME/.profile
-    - source $HOME/.profile
+
+    #-------------------------------------------------------------------------
+    # Install system-wide dependencies in linux:
+    #-------------------------------------------------------------------------
+    - sudo apt-get update
+    - sudo apt-get install -y g++ git make xorg
+    #-------------------------------------------------------------------------
+    # Install Anaconda's latest miniconda Python distribution:
+    #-------------------------------------------------------------------------
+    - wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+    - bash miniconda.sh -b -p $MINI
+    - echo "export PATH="${MINI}/bin:$PATH"" >> $ENV
+    - source $ENV
     - conda config --set always_yes yes --set changeps1 no
     - conda update -q conda
-    - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION atlas numpy scipy networkx matplotlib nose pandas vtk
-
-    # Set up python environment
+    #-------------------------------------------------------------------------
+    # Use conda and pip to set up python environment:
+    #-------------------------------------------------------------------------
+    - conda create -q -n test-environment cmake pip numpy scipy matplotlib pandas networkx vtk ipython
     - pip install --upgrade pip
-    - pip install -e .
-    - pip install nibabel
-
-    # Coverage packages:
-    - pip install python-coveralls coverage nose-cov
-
+    - pip install nose coverage  # install testing tools for circle
+    - pip install -I .
+    - pip install nibabel nipype
+    #-------------------------------------------------------------------------
     # Install Mindboggle:
+    #-------------------------------------------------------------------------
+    - git clone https://github.com/nipy/mindboggle.git $MB
+    - cd $MB
     - python setup.py install
+    - mkdir $vtk_cpp_tools
+    - cd $vtk_cpp_tools
+    - cmake ../
+    - make
+    # Set environment variables:
+    - echo "export vtk_cpp_tools=$vtk_cpp_tools" >> $ENV
+    - echo "export PATH=$vtk_cpp_tools:\$PATH" >> $ENV
+    - source $ENV
 
-#machine:
-#  environment:
-#    FSLOUTPUTTYPE: NIFTI_GZ
-#test:
-#  override:
-#    - mkdir -p ${CIRCLE_TEST_REPORTS}/nose
-#    - source $HOME/.profile; nosetests --with-doctest --xunit-file="${CIRCLE_TEST_REPORTS}/nose/${CIRCLE_PROJECT_REPONAME}.xml" -c ./.noserc --logging-level=DEBUG --verbosity=3:
-#        environment:
-#          SPMMCRCMD: "$HOME/spm12/run_spm12.sh $HOME/mcr/v85/ script"
-#          FORCE_SPMMCR: 1
-#          FSL_COURSE_DATA: "$HOME/examples/fsl_course_data"
-#        timeout: 2600
-#    - set -o pipefail && cd doc && make html 2>&1 | tee ~/log.txt
-#    - cat ~/log.txt && if grep -q "ERROR" ~/log.txt; then false; else true; fi
-#    - source $HOME/.profile; python ~/nipype/tools/run_examples.py test_spm Linear workflow3d workflow4d:
-#        pwd: ../examples
-#        environment:
-#          SPMMCRCMD: "$HOME/spm12/run_spm12.sh $HOME/mcr/v85/ script"
-#          FORCE_SPMMCR: 1
-#        timeout: 1600
-#
-#general:
-#  artifacts:
-#    - "doc/_build/html"
-#    - "~/log.txt"
-#    - "nosetests.xml"
-#    - "coverage.xml"
+
+    #-------------------------------------------------------------------------
+    # Fix paths to Linux libraries using symbolic links:
+    #-------------------------------------------------------------------------
+    # To avoid the following errors:
+    # "No rule to make target `/usr/lib/x86_64-linux-gnu/libGLU.so'"
+    # ...
+    # http://techtidings.blogspot.com/2012/01/problem-with-libglso-on-64-bit-ubuntu.html
+    #if [ $OS = "Linux" ]; then
+    #    if [ $SUDO -eq 1 ]; then
+    #        sudo mkdir /usr/lib64
+    #        sudo ln -s /usr/lib/x86_64-linux-gnu/libGLU.so.1 /usr/lib64/libGLU.so
+    #        sudo ln -s /usr/lib/x86_64-linux-gnu/libSM.so.6 /usr/lib64/libSM.so
+    #        sudo ln -s /usr/lib/x86_64-linux-gnu/libICE.so.6 /usr/lib64/libICE.so
+    #        sudo ln -s /usr/lib/x86_64-linux-gnu/libX11.so.6 /usr/lib64/libX11.so
+    #        sudo ln -s /usr/lib/x86_64-linux-gnu/libXext.so.6 /usr/lib64/libXext.so
+    #        sudo ln -s /usr/lib/x86_64-linux-gnu/libXt.so.6 /usr/lib64/libXt.so
+    #        sudo ln -s /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1 /usr/lib64/libGL.so
+    #    else
+    #        mkdir /usr/lib64
+    #        ln -s /usr/lib/x86_64-linux-gnu/libGLU.so.1 /usr/lib64/libGLU.so
+    #        ln -s /usr/lib/x86_64-linux-gnu/libSM.so.6 /usr/lib64/libSM.so
+    #        ln -s /usr/lib/x86_64-linux-gnu/libICE.so.6 /usr/lib64/libICE.so
+    #        ln -s /usr/lib/x86_64-linux-gnu/libX11.so.6 /usr/lib64/libX11.so
+    #        ln -s /usr/lib/x86_64-linux-gnu/libXext.so.6 /usr/lib64/libXext.so
+    #        ln -s /usr/lib/x86_64-linux-gnu/libXt.so.6 /usr/lib64/libXt.so
+    #        ln -s /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1 /usr/lib64/libGL.so
+    #    fi
+    #fi
