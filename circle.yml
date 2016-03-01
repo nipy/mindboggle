@@ -3,42 +3,44 @@
 machine:
 
   python:
-    version: 2.7.5
+    version: 2.7.10
 
   environment:
-    ENV: ${HOME}/.bash_profile
-    MINI: ${HOME}/miniconda2
-    MB: ${HOME}/mindboggle
-    vtk_cpp_tools: ${HOME}/mindboggle/vtk_cpp_tools/bin
+    MINI: $HOME/miniconda2
+    MB: $HOME/mindboggle
+    vtk_cpp_tools: $MB/vtk_cpp_tools/bin
+    PATH: $MINI/bin:$vtk_cpp_tools:$PATH
 
 dependencies:
 
-  override:
+  pre:
 
     #-------------------------------------------------------------------------
-    # Install system-wide dependencies in linux:
+    # Install system-wide dependencies in linux
     #-------------------------------------------------------------------------
-    - sudo apt-get update
-    - sudo apt-get install -y g++ git make xorg
+    - sudo apt-get update; sudo apt-get install g++ git make xorg
     #-------------------------------------------------------------------------
-    # Install Anaconda's latest miniconda Python distribution:
+    # Install conda and add it to PATH
     #-------------------------------------------------------------------------
-    - wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+    - wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
     - bash miniconda.sh -b -p $MINI
-    - echo "export PATH="${MINI}/bin:$PATH"" >> $ENV
-    - source $ENV
-    - conda config --set always_yes yes --set changeps1 no
+    - hash -r
+    #-------------------------------------------------------------------------
+    # Update conda and print info about the installation (for debugging)
+    #-------------------------------------------------------------------------
+    - conda config --set always_yes yes
     - conda update -q conda
+    - conda info -a
     #-------------------------------------------------------------------------
     # Use conda and pip to set up python environment:
     #-------------------------------------------------------------------------
-    - conda create -q -n test-environment cmake pip numpy scipy matplotlib pandas networkx vtk ipython
+    - conda install cmake pip numpy scipy matplotlib pandas networkx vtk ipython
     - pip install --upgrade pip
     - pip install nose coverage  # install testing tools for circle
     - pip install -I .
     - pip install nibabel nipype
     #-------------------------------------------------------------------------
-    # Install Mindboggle:
+    # Install Mindboggle
     #-------------------------------------------------------------------------
     - git clone https://github.com/nipy/mindboggle.git $MB
     - cd $MB
@@ -47,11 +49,9 @@ dependencies:
     - cd $vtk_cpp_tools
     - cmake ../
     - make
-    # Set environment variables:
-    - echo "export vtk_cpp_tools=$vtk_cpp_tools" >> $ENV
-    - echo "export PATH=$vtk_cpp_tools:\$PATH" >> $ENV
-    - source $ENV
-
+    #- export vtk_cpp_tools=$vtk_cpp_tools
+    #- export PATH=$vtk_cpp_tools:$PATH
+    #- export PATH=$MINI/bin:$PATH
 
     #-------------------------------------------------------------------------
     # Fix paths to Linux libraries using symbolic links:
