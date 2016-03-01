@@ -260,6 +260,7 @@ if args.no_sulci:
 else:
     do_sulci = True
     do_shapes = True
+    do_label = True
     if args.fundi:
         do_fundi = True
     else:
