@@ -208,16 +208,19 @@ fi
 # Remove non-essential directories
 # (set to 0 to keep a complete box for easy git updates of ANTs):
 #-----------------------------------------------------------------------------
-rm_extras=0
+rm_extras=1
 if [ $rm_extras -eq 1 ]; then
-
-    rm -r $DOWNLOAD/*
-
     if [ $ANTS = "yes" ]; then
-        mv $ANTSPATH $INSTALL/ants_bin
-        rm -rf $INSTALL/ants/*
-        mv $INSTALL/ants_bin $ANTSPATH
+        if [ $SUDO -eq 1 ]; then
+            sudo mv $ANTSPATH $INSTALL/ants_bin
+            sudo rm -rf $INSTALL/ants/*
+            sudo mv $INSTALL/ants_bin $ANTSPATH
+        else
+            mv $ANTSPATH $INSTALL/ants_bin
+            rm -rf $INSTALL/ants/*
+            mv $INSTALL/ants_bin $ANTSPATH
+        fi
     fi
-
+    #rm -r $DOWNLOAD/*
 fi
 
