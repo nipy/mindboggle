@@ -121,15 +121,15 @@ if args.out:
 else:
     out_str = '"{0}/mindboggled", "{1}/mindboggled"'.format(home, guest)
 if args.out:
-    work_str = '"{0}", "{1}/mindboggle_working"'.format(args.out, guest)
+    work_str = '"{0}", "{1}/mindboggle_working"'.format(args.work, guest)
 else:
-    work_str = '"{0}/mindboggled", "{1}/mindboggle_working"'.format(home,
-                                                                    guest)
+    work_str = '"{0}/mindboggle_working", "{1}/mindboggle_working"'.\
+        format(home, guest)
 if args.out:
-    cache_str = '"{0}", "{1}/mindboggle_cache"'.format(args.out, guest)
+    cache_str = '"{0}", "{1}/mindboggle_cache"'.format(args.cache, guest)
 else:
-    cache_str = '"{0}/mindboggled", "{1}/mindboggle_cache"'.format(home,
-                                                                   guest)
+    cache_str = '"{0}/mindboggle_cache", "{1}/mindboggle_cache"'.\
+        format(home, guest)
 if args.freesurfer:
     freesurfer_str = '"{0}", "{1}/freesurfer_subjects"'.\
         format(args.freesurfer, guest)
