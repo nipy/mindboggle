@@ -78,7 +78,7 @@ parser = argparse.ArgumentParser(description="""
 shp_args = parser.add_argument_group('modify shape settings')
 out_args = parser.add_argument_group('modify outputs (overrides other '
                                      'settings')
-adv_args = parser.add_argument_group('modify inputs (advanced)')
+adv_args = parser.add_argument_group('advanced input settings')
 
 # "positional arguments":
 parser.add_argument("DATA", help=("path to directory of an individual's "
@@ -97,10 +97,13 @@ parser.add_argument("--cpus",
                     type=int, default=1, metavar='INT')
 parser.add_argument("-v", "--version", help="version number",
                     action='version', version='%(prog)s 1.0')
+shp_args.add_argument("--fundi", action='store_true',
+                      help="extract, identify, and measure fundi in"
+                           " sulci [off by default because untested]")
 shp_args.add_argument("--moments",
                       help="Zernike moments order per label/feature "
-                           "(ex: 10) (if not set, don't compute "
-                           "since there is an occasional memory leak)",
+                           "(ex: 10; off by default, since there is an "
+                           "occasional memory leak)",
                       default=0, type=int, metavar='INT')
 shp_args.add_argument("--spectra",
                       help="Laplace-Beltrami spectrum eigenvalues "
@@ -119,6 +122,8 @@ out_args.add_argument("--cache",
                       help='download folder (if not $HOME/mindboggle_cache)',
                       default=os.path.join(os.environ['HOME'],
                                            'mindboggle_cache'), metavar='STR')
+out_args.add_argument("--save_only_tables", action='store_true',
+                      help="save only tables to free up space")
 out_args.add_argument("--no_volumes", action='store_true',
                       help="no volume labels, features, or shape tables")
 out_args.add_argument("--no_surfaces", action='store_true',
@@ -128,29 +133,23 @@ out_args.add_argument("--no_labels", action='store_true',
 out_args.add_argument("--no_shapes", action='store_true',
                       help="no shape tables of surface labels or features")
 out_args.add_argument("--no_folds", action='store_true',
-                      help="don't save folds")
+                      help="no folds")
 out_args.add_argument("--no_sulci", action='store_true',
-                      help="don't extract, identify, and measure sulci "
-                           "in folds")
-out_args.add_argument("--no_fundi", action='store_true',
-                      help="don't extract, identify, and measure fundi in"
-                           " sulci [set by default because untested]")
+                      help="no sulci from folds")
 out_args.add_argument("--no_points", action='store_true',
-                      help=("don't save table of per-vertex surface shape "
+                      help=("no table of per-vertex surface shape "
                             "measures"))
 out_args.add_argument("--no_surfaces_in_mni", action='store_true',
-                      help="don't save cortical surfaces in MNI152 space")
+                      help="no cortical surfaces in MNI152 space")
 out_args.add_argument("--no_moments", action='store_true',
-                      help="don't save Zernike moments for surface "
+                      help="no Zernike moments for surface "
                            "labels/features (don't save by default)")
 out_args.add_argument("--no_spectra", action='store_true',
-                      help="don't save Laplace-Beltrami spectra for surface "
+                      help="no Laplace-Beltrami spectra for surface "
                            "labels/features")
 out_args.add_argument("--no_thickness", action='store_true',
-                      help="don't save thickinthehead volume-based cortical "
+                      help="no thickinthehead volume-based cortical "
                            "label thicknesses (volume / midsurface area)")
-out_args.add_argument("--save_only_tables", action='store_true',
-                      help="save only tables to free up space")
 out_args.add_argument("--graph",
                       help='plot workflow graph: "hier", "flat", "exec"',
                       choices=['hier', 'flat', 'exec'],
@@ -267,13 +266,17 @@ else:
     save_folds = True
 if args.no_sulci:
     do_sulci = False
-    do_fundi = False
+#    do_fundi = False
 else:
     do_sulci = True
-    if args.no_fundi:
-        do_fundi = False
-    else:
-        do_fundi = True
+#    if args.no_fundi:
+#        do_fundi = False
+#    else:
+#        do_fundi = True
+if args.fundi:
+    do_fundi = True
+else:
+    do_fundi = False
 if args.no_points:
     do_points = False
 else:
