@@ -10,14 +10,14 @@ Mindboggle can be run as a single command, and can be
 easily installed as a cross-platform virtual machine for convenience and
 reproducibility of results. Behind the scenes, open source
 Python and C++ code run within a Nipype pipeline framework.
-Keep reading!::
+Keep reading!
 
-    1. `Help`_
-    2. `Installing Mindboggle`_
-    3. `Running Mindboggle`_
-    4. `Preprocessing`_
-    5. `Processing steps`_
-    6. `Output`_
+1. `Help`_
+2. `Installing Mindboggle`_
+3. `Running Mindboggle`_
+4. `Preprocessing`_
+5. `Processing steps`_
+6. `Output`_
 
 ------------------------------------------------------------------------------
 _`Help`
