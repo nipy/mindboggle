@@ -41,10 +41,10 @@ dependencies:
     #-------------------------------------------------------------------------
     # Install Mindboggle
     #-------------------------------------------------------------------------
-    #- pip install -I .
-    - git clone https://github.com/nipy/mindboggle.git $MB
-    - cd $MB
-    - python setup.py install
+    - pip install -I .
+    #- git clone https://github.com/nipy/mindboggle.git $MB
+    #- cd $MB
+    #- python setup.py install
     - mkdir $vtk_cpp_tools
     - cd $vtk_cpp_tools
     - cmake ../
