@@ -96,25 +96,24 @@ Mindboggle can be run as a single command, and can be
 easily installed as a cross-platform virtual machine for convenience and
 reproducibility of results. Behind the scenes, open source
 Python and C++ code run within a Nipype pipeline framework.
-|
-| 1. <a class="reference internal" href="#help">Help</a>
-| 2. <a class="reference internal" href="#installing-mindboggle">Installing Mindboggle</a>
-| 3. <a class="reference internal" href="#running-mindboggle">Running Mindboggle</a>
-| 4. <a href="#id9"><span class="problematic" id="id10">`Dependencies`_</span></a>
-| 5. <a class="reference internal" href="#preprocessing">Preprocessing</a>
-| 6. <a class="reference internal" href="#processing-steps">Processing steps</a>
-| 7. <a class="reference internal" href="#mindboggle-output">Mindboggle output</a></p>
+Keep reading!:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>| 1. `Help`_
+| 2. `Installing Mindboggle`_
+| 3. `Running Mindboggle`_
+| 4. `Preprocessing`_
+| 5. `Processing steps`_
+| 6. `Mindboggle output`_
+</pre></div>
+</div>
 <div class="section" id="id2">
 <h2><span class="target" id="help">Help</span><a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <ul>
-<li><p class="first">For help, type the following in a terminal window:</p>
+<li><p class="first">For help after installing, type the following in a terminal window:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">mindboggle</span> <span class="o">-</span><span class="n">h</span>
 </pre></div>
 </div>
 </li>
 <li><p class="first"><a class="reference external" href="http://mindboggle.info/documentation.html">Documentation</a></p>
-</li>
-<li><p class="first"><a class="reference external" href="http://mindboggle.info/users/INSTALL.html">Installation</a></p>
 </li>
 <li><p class="first"><a class="reference external" href="http://github.com/binarybottle/mindboggle">GitHub</a></p>
 </li>
@@ -126,65 +125,62 @@ Python and C++ code run within a Nipype pipeline framework.
 </div>
 <div class="section" id="id3">
 <h2><span class="target" id="installing-mindboggle">Installing Mindboggle</span><a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
-<dl class="docutils">
-<dt>Mindboggle comes as a single installation script,</dt>
-<dd><a class="reference external" href="https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle.sh">install_mindboggle.sh</a></dd>
-</dl>
-<p>that may be called directly to install Mindboggle on a Linux machine:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>source install_mindboggle.sh
-</pre></div>
-</div>
-<p>However, for reasons of convenience and reproducibility of results,
+<p>Mindboggle comes as a single installation script, <a class="reference external" href="https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle.sh">install_mindboggle.sh</a>,
+that may be directly called to install Mindboggle on a Linux machine.
+However, for reasons of convenience and reproducibility of results,
 we recommend using a different script,
 <a class="reference external" href="https://raw.githubusercontent.com/nipy/mindboggle/master/install/configure_mindboggle_vm">configure_mindboggle_vm</a>,
 to perform the same installation on Linux, MacOSX, or Windows,
 but in a virtual machine (VM). Download the VM script to wherever you want
 the startup directory to be, and do the following (type commands in a
 terminal for steps 2-4):</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>1. Install dependencies::
-
-      `Vagrant &lt;http://www.vagrantup.com/downloads.html&gt;`_ manages virtual machines.
-          Vagrant provides reproducible and portable work environments
-          that isolate dependencies and their configuration within a single
-          disposable, consistent environment that can run on
-          Linux, MacOSX, or Windows.
-
-      `Virtualbox &lt;https://www.virtualbox.org/wiki/Downloads&gt;`_ provides
-          virtual machines used by Vagrant. Alternative backend providers
-          for Vagrant include VMware and Amazon Web Services.
-
-2. Download and configure the virtual machine to access your local
-FreeSurfer data directory by typing the following in the same directory
-as the VM script. This generates a configuration file called
-``Vagrantfile``::
-
-      python configure_mindboggle_vm
-
-3. For help with more options, such as how to mount your local ANTs data
-directory, set the number of processors, etc., type::
-
-      python configure_mindboggle_vm -h
-
-4. Henceforth, whenever running Mindboggle, first type the following
-in the same directory::
-
-      vagrant up
-      vagrant ssh
+<ol class="arabic">
+<li><p class="first">Install dependencies:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt><a class="reference external" href="http://www.vagrantup.com/downloads.html">Vagrant</a> manages virtual machines.</dt>
+<dd><p class="first last">Vagrant provides reproducible and portable work environments
+that isolate dependencies and their configuration within a single
+disposable, consistent environment that can run on
+Linux, MacOSX, or Windows.</p>
+</dd>
+<dt><a class="reference external" href="https://www.virtualbox.org/wiki/Downloads">Virtualbox</a> provides</dt>
+<dd><p class="first last">virtual machines used by Vagrant. Alternative backend providers
+for Vagrant include VMware and Amazon Web Services.</p>
+</dd>
+</dl>
+</div></blockquote>
+</li>
+</ol>
+<p>2. Download and configure the virtual machine to access your local
+brain image (usually FreeSurfer output) data by typing the following
+in the same directory as the VM script. This generates a configuration
+file called &#8220;Vagrantfile&#8221;:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>python configure_mindboggle_vm
+</pre></div>
+</div>
+<p>3. For help with more options, such as how to mount your local ANTs data
+directory, set the number of processors, etc., type:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>python configure_mindboggle_vm -h
+</pre></div>
+</div>
+<p>4. Henceforth, whenever running Mindboggle, first type the following
+in the same directory as the Vagrantfile:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>vagrant up
+vagrant ssh
 </pre></div>
 </div>
 </div>
 <div class="section" id="id4">
 <h2><span class="target" id="running-mindboggle">Running Mindboggle</span><a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
 <p>To run the following examples, download and uncompress
-(&#8220;tar cvfz example.tar.gz&#8221;) the
-<a class="reference external" href="http://media.mindboggle.info/data/cache/example.tar.gz">example directory</a>,
-which includes abridged freesurfer, ANTs, and mindboggle output for one
-person (over 500MB), or generate your own preprocessed data
+(&#8220;tar xvfz example.tar.gz&#8221;) the
+<a class="reference external" href="http://media.mindboggle.info/data/cache/example.tar.gz">example directory</a>
+(over 500MB), which includes abridged freesurfer, ANTs, and mindboggle output
+for one person, or generate your own preprocessed data
 (see <a class="reference internal" href="#preprocessing">Preprocessing</a> below):</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>**Example 1:**
-</pre></div>
-</div>
-<p>The following bare-bones command runs Mindboggle
+<p><strong>Example 1:</strong>
+The following bare-bones command runs Mindboggle
 on data processed by FreeSurfer but not ANTs:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">mindboggle</span> <span class="o">/</span><span class="n">example</span><span class="o">/</span><span class="n">freesurfer_subjects</span><span class="o">/</span><span class="n">arno</span>
 </pre></div>
@@ -296,10 +292,11 @@ files (backslash denotes a line return):</p>
 </div>
 <div class="section" id="id7">
 <h2><span class="target" id="mindboggle-output">Mindboggle output</span><a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
-<p>Example output data is in the <code class="docutils literal"><span class="pre">mindboggled/</span></code> directory in the example data
-used in the <a class="reference internal" href="#preprocessing">Preprocessing</a> section above.
+<p>Example output data is in the example/mindboggled/ directory
+downloaded in the <a class="reference internal" href="#preprocessing">Preprocessing</a> section above.
 By default, output files are saved in $HOME/mindboggled/SUBJECT, where $HOME
-is the home directory and SUBJECT is usually the name of the subject.
+is the home directory and SUBJECT is a name representing the person&#8217;s
+brain that has been scanned.
 Volume files are in <a class="reference external" href="http://nifti.nimh.nih.gov">Nifti</a> format,
 surface meshes in <a class="reference external" href="http://www.vtk.org/">VTK</a> format,
 and tables are comma-delimited.
@@ -358,7 +355,7 @@ The following include outputs from most, but not all, optional arguments.</p>
 <p><strong>fundus_per_sulcus.vtk</strong>:  <em>fundus curve per sulcus</em>  <strong>&#8211; UNDER EVALUATION &#8211;</strong></p>
 <p><strong>cortex_in_MNI152_space.vtk</strong>:  <em>cortical surfaces aligned to an MNI152 template</em></p>
 </div></blockquote>
-<p><strong>shapes</strong> / [left,right]_surface /</p>
+<p><strong>shapes</strong> / [left,right]_cortical_surface /</p>
 <blockquote>
 <div><p><strong>area.vtk</strong>:  <em>per-vertex surface area</em></p>
 <p><strong>mean_curvature.vtk</strong>:  <em>per-vertex mean curvature</em></p>
@@ -372,9 +369,9 @@ The following include outputs from most, but not all, optional arguments.</p>
 <blockquote>
 <div><p><strong>volume_per_freesurfer_label.csv</strong>:  <em>volume per FS label</em></p>
 <p><strong>volumes_per_ants_label.csv</strong>:  <em>volume per ANTs label</em></p>
-<p><strong>thickinthehead_per_freesurfer_cortex_label.csv</strong>:  <em>thickness measure per FS cortical label</em></p>
-<p><strong>thickinthehead_per_ants_cortex_label.csv</strong>:  <em>thickness measure per ANTs cortical label</em></p>
-<p>[left,right]_surface /</p>
+<p><strong>thickinthehead_per_freesurfer_cortex_label.csv</strong>:  <em>FS cortex label thickness</em></p>
+<p><strong>thickinthehead_per_ants_cortex_label.csv</strong>:  <em>ANTs cortex label thickness</em></p>
+<p>[left,right]_cortical_surface /</p>
 <blockquote>
 <div><p><strong>label_shapes.csv</strong>:  <em>per-label surface shape statistics</em></p>
 <p><strong>sulcus_shapes.csv</strong>:  <em>per-sulcus surface shape statistics</em></p>
