@@ -12,9 +12,9 @@ Documentation
    Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    README.rst
    INSTALL.rst
