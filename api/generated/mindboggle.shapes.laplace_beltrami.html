@@ -1,0 +1,689 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Mindboggle &mdash; Mindboggle</title>
+    
+    <link rel="stylesheet" href="../../shared/mindboggle.css" type="text/css" />
+    <link rel="stylesheet" href="../../shared/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '%s.%s.%s%s',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../shared/jquery.js"></script>
+    <script type="text/javascript" src="../../shared/underscore.js"></script>
+    <script type="text/javascript" src="../../shared/doctools.js"></script>
+    <link rel="top" title="Mindboggle" href="../../index.html" />
+  <HTML><head><title>Mindboggle</title>
+  <link rel="icon" type="image/png" sizes="96x96" href="http://mindboggle.info/shared/favicon-96x96.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="http://mindboggle.info/shared/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="http://mindboggle.info/shared/favicon-16x16.png">
+  <meta http-equiv="Content-language" content="en">
+  <meta name="description" content="Mindboggle">
+  <meta name="keywords" content="Mindboggle, neuroimaging, brain imaging, python, neuroscience, labeling, parcellation, morphometry, shape analysis, MRI">
+  <meta name="author" content="mailto:arno&#64;mindboggle.info">
+  <meta name="dc.title" content="Mindboggle"> 
+  <meta name="dc.creator.address" content="arno&#64;mindboggle.info">
+  <meta name="dc.subject" content="Mindboggle">
+  <meta name="dc.type" content="text.homepage.academic"> 
+  <meta name="dc.format" content="text/html"> 
+  <meta name="dc.identifier" content="http://mindboggle.info">
+
+  </head>
+  <body role="document">
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+ <table>
+  <tr>
+   <td>
+
+ <a href="../../index.html">
+  <img src="http://nipy.github.io/mindboggle/shared/mindboggle_logo_small.jpg" alt="small mindboggle logo"  border="0" width="160"/></a>
+
+   </td>
+   <td>
+    <table>
+     <tr>
+ <a style="padding: 20px 20px 20px 20px; color: #b07613; text-decoration: none; font-size: 32px"
+  href="../../index.html">Mindboggle</a>
+     </tr>
+     <tr> <td height="18"></td>
+     </tr>
+     <tr>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="http://nipy.github.io/mindboggle/users/README.html">Software</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="../../data.html">Data</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="../../papers.html">Papers</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="../../people.html">People</a>
+      </td>
+     </tr>
+    </table>
+   </td>
+  </tr>
+ </table>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="shapes-laplace-beltrami">
+<h1>shapes.laplace_beltrami<a class="headerlink" href="#shapes-laplace-beltrami" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-mindboggle.shapes.laplace_beltrami">
+<span id="module-shapes-laplace-beltrami"></span><h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">shapes.laplace_beltrami</span></code><a class="headerlink" href="#module-mindboggle.shapes.laplace_beltrami" title="Permalink to this headline">¶</a></h2>
+<p>Compute the Laplace-Beltrami spectrum using a linear finite element method.</p>
+<dl class="docutils">
+<dt>We follow the definitions and steps given in Martin Reuter et al.&#8217;s 2009 paper:</dt>
+<dd><a href="#id1"><span class="problematic" id="id2">``</span></a>Discrete Laplace-Beltrami Operators for Shape Analysis and Segmentation&#8217;&#8216;</dd>
+</dl>
+<p>References (please cite when using for publication):
+Martin Reuter et al.</p>
+<blockquote>
+<div>Discrete Laplace-Beltrami Operators for Shape Analysis and Segmentation
+Computers &amp; Graphics 33(3):381-390, 2009</div></blockquote>
+<dl class="docutils">
+<dt>Martin Reuter et al.</dt>
+<dd>Laplace-Beltrami spectra as &#8220;Shape-DNA&#8221; of surfaces and solids
+Computer-Aided Design 38(4):342-366, 2006</dd>
+<dt>Dependency:</dt>
+<dd>Scipy 0.10 or later to solve the generalized eigenvalue problem.
+Information about using Scipy to solve a generalized eigenvalue problem:
+<a class="reference external" href="http://docs.scipy.org/doc/scipy/reference/tutorial/arpack.html">http://docs.scipy.org/doc/scipy/reference/tutorial/arpack.html</a></dd>
+</dl>
+<p>NOTE</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>For ``points``, only include coordinates of vertices in the 3-D structure
+whose spectrum is to be calculated. For example, do not use coordinates
+of all POINTS from a VTK file as ``points`` and use only corresponding
+faces as ``faces``. Otherwise this will cause a singular matrix error
+when inverting matrices because some rows are all zeros.
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Acknowledgments:</dt>
+<dd><ul class="first last simple">
+<li>Dr. Martin Reuter, MIT, provided his MATLAB code and assisted us in
+understanding his articles about the Laplace-Beltrami operator.</li>
+<li>Dr. Eric You Xu, Google (<a class="reference external" href="http://www.youxu.info/">http://www.youxu.info/</a>),
+explained how eigenvalue problems are solved numerically.</li>
+</ul>
+</dd>
+<dt>Authors:</dt>
+<dd><ul class="first last simple">
+<li>Martin Reuter, 2009-2016, <a class="reference external" href="http://reuter.mit.edu/">http://reuter.mit.edu/</a> (original MATLAB code)</li>
+<li>Eliezer Stavsky, 2012  (<a class="reference external" href="mailto:eli&#46;stavsky&#37;&#52;&#48;gmail&#46;com">eli<span>&#46;</span>stavsky<span>&#64;</span>gmail<span>&#46;</span>com</a>)</li>
+<li>Forrest Sheng Bao, 2012-2013  (<a class="reference external" href="mailto:forrest&#46;bao&#37;&#52;&#48;gmail&#46;com">forrest<span>&#46;</span>bao<span>&#64;</span>gmail<span>&#46;</span>com</a>)  <a class="reference external" href="http://fsbao.net">http://fsbao.net</a></li>
+<li>Arno Klein, 2012-2016  (<a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>)  <a class="reference external" href="http://binarybottle.com">http://binarybottle.com</a></li>
+</ul>
+</dd>
+</dl>
+<p>Copyright 2016,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mindboggle.shapes.laplace_beltrami.area_normalize">
+<code class="descclassname">mindboggle.shapes.laplace_beltrami.</code><code class="descname">area_normalize</code><span class="sig-paren">(</span><em>points</em>, <em>faces</em>, <em>spectrum</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.area_normalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalize a spectrum using areas as suggested in Reuter et al. (2006)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>points</strong> : list of lists of 3 floats</p>
+<blockquote>
+<div><p>x,y,z coordinates for each vertex of the structure</p>
+</div></blockquote>
+<p><strong>faces</strong> : list of lists of 3 integers</p>
+<blockquote>
+<div><p>3 indices to vertices that form a triangle on the mesh</p>
+</div></blockquote>
+<p><strong>spectrum</strong> : list of floats</p>
+<blockquote>
+<div><p>LB spectrum of a given shape defined by _points_ and _faces_</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>new_spectrum</strong> : list of floats</p>
+<blockquote class="last">
+<div><p>LB spectrum normalized by area</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.laplace_beltrami</span> <span class="kn">import</span> <span class="n">area_normalize</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.laplace_beltrami</span> <span class="kn">import</span> <span class="n">fem_laplacian</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Define a cube:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>          <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>         <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spectrum</span> <span class="o">=</span> <span class="n">fem_laplacian</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">spectrum_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+<span class="gp">... </span>                         <span class="n">normalization</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spectrum</span><span class="p">[</span><span class="mi">1</span><span class="p">::]),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 4.58359  4.8    ]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_spectrum</span> <span class="o">=</span> <span class="n">area_normalize</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">spectrum</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">new_spectrum</span><span class="p">[</span><span class="mi">1</span><span class="p">::]),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 27.50155  28.8    ]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="mindboggle.shapes.laplace_beltrami.computeAB">
+<code class="descclassname">mindboggle.shapes.laplace_beltrami.</code><code class="descname">computeAB</code><span class="sig-paren">(</span><em>points</em>, <em>faces</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.computeAB" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute matrices for the Laplace-Beltrami operator.</p>
+<p>The matrices correspond to A and B from Reuter&#8217;s 2009 article.</p>
+<dl class="docutils">
+<dt>Note ::</dt>
+<dd>All points must be on faces. Otherwise, a singular matrix error
+is generated when inverting D.</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>points</strong> : list of lists of 3 floats</p>
+<blockquote>
+<div><p>x,y,z coordinates for each vertex</p>
+</div></blockquote>
+<p><strong>faces</strong> : list of lists of 3 integers</p>
+<blockquote>
+<div><p>each list contains indices to vertices that form a triangle on a mesh</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>A</strong> : csr_matrix</p>
+<p class="last"><strong>B</strong> : csr_matrix</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Define a cube, then compute A and B on a selection of faces.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.laplace_beltrami</span> <span class="kn">import</span> <span class="n">computeAB</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span>
+<span class="gp">... </span>          <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">7</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">faces</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="p">,</span> <span class="n">B</span> <span class="o">=</span> <span class="n">computeAB</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">toarray</span><span class="p">(),</span> <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[[ 1.5     -1.      -0.5      0.       0.       0.       0.       0.     ]</span>
+<span class="go"> [-1.       2.       0.       0.      -0.5      0.       0.      -0.5    ]</span>
+<span class="go"> [-0.5      0.       2.      -0.5     -1.       0.       0.       0.     ]</span>
+<span class="go"> [ 0.       0.      -0.5      2.56066 -0.35355 -1.20711 -0.5      0.     ]</span>
+<span class="go"> [ 0.      -0.5     -1.      -0.35355  1.85355  0.       0.       0.     ]</span>
+<span class="go"> [ 0.       0.       0.      -1.20711  0.       1.20711  0.       0.     ]</span>
+<span class="go"> [ 0.       0.       0.      -0.5      0.       0.       0.5      0.     ]</span>
+<span class="go"> [ 0.      -0.5      0.       0.       0.       0.       0.       0.5    ]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">B</span><span class="o">.</span><span class="n">toarray</span><span class="p">(),</span> <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[[ 0.25     0.08333  0.04167  0.       0.08333  0.       0.       0.04167]</span>
+<span class="go"> [ 0.08333  0.16667  0.       0.       0.04167  0.       0.       0.04167]</span>
+<span class="go"> [ 0.04167  0.       0.16667  0.04167  0.08333  0.       0.       0.     ]</span>
+<span class="go"> [ 0.       0.       0.04167  0.28452  0.10059  0.10059  0.04167  0.     ]</span>
+<span class="go"> [ 0.08333  0.04167  0.08333  0.10059  0.36785  0.05893  0.       0.     ]</span>
+<span class="go"> [ 0.       0.       0.       0.10059  0.05893  0.20118  0.04167  0.     ]</span>
+<span class="go"> [ 0.       0.       0.       0.04167  0.       0.04167  0.08333  0.     ]</span>
+<span class="go"> [ 0.04167  0.04167  0.       0.       0.       0.       0.       0.08333]]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="mindboggle.shapes.laplace_beltrami.fem_laplacian">
+<code class="descclassname">mindboggle.shapes.laplace_beltrami.</code><code class="descname">fem_laplacian</code><span class="sig-paren">(</span><em>points</em>, <em>faces</em>, <em>spectrum_size=10</em>, <em>normalization=None</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.fem_laplacian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute linear finite-element method Laplace-Beltrami spectrum
+after Martin Reuter&#8217;s MATLAB code.</p>
+<p>Note</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>Compare fem_laplacian() with Martin Reuter&#39;s Matlab eigenvalues:
+
+fem_laplacian() results for Twins-2-1 left hemisphere (6 values):
+[4.829758648026221e-18,
+ 0.0001284173002467199,
+ 0.0002715181572272745,
+ 0.0003205150847159417,
+ 0.0004701628070486448,
+ 0.0005768904023010318]
+
+Martin Reuter&#39;s shapeDNA-tria Matlab code:
+{-4.7207711983791511358e-18 ;
+ 0.00012841730024672144738 ;
+ 0.00027151815722727096853 ;
+ 0.00032051508471592313632 ;
+ 0.0004701628070486902353  ;
+ 0.00057689040230097490998 }
+
+fem_laplacian() results for Twins-2-1 left postcentral (1022):
+[6.3469513010430304e-18,
+ 0.0005178862383467463,
+ 0.0017434911095630772,
+ 0.003667561767487686,
+ 0.005429017880363784,
+ 0.006309346984678924]
+
+Martin Reuter&#39;s Matlab code:
+{-2.1954862991027e-18 ;
+ 0.0005178862383468 ;
+ 0.0017434911095628 ;
+ 0.0036675617674875 ;
+ 0.0054290178803611 ;
+ 0.006309346984678 }
+</pre></div>
+</div>
+<p>Julien Lefevre, regarding comparison with Spongy results:
+&#8220;I have done some comparisons between my Matlab codes and yours
+on python and everything sounds perfect:
+The evaluation has been done only for one mesh (about 10000 vertices).&#8221;
+- L2 error between your A and B matrices and mine are about 1e-16.
+- I have also compared eigenvalues of the generalized problem;</p>
+<blockquote>
+<div>even if the error is slightly increasing, it remains on the order
+of machine precision.</div></blockquote>
+<ul class="simple">
+<li>Another good point: computation time for 1000 eigenvalues was 67s
+with python versus 63s in matlab.
+And it is quite the same behavior for lower orders.</li>
+<li>Since the eigenvalues are increasing with order,
+it is also interesting to look at the relative error...
+high frequencies are not so much perturbed.&#8221;</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>points</strong> : list of lists of 3 floats</p>
+<blockquote>
+<div><p>x,y,z coordinates for each vertex of the structure</p>
+</div></blockquote>
+<p><strong>faces</strong> : list of lists of 3 integers</p>
+<blockquote>
+<div><p>3 indices to vertices that form a triangle on the mesh</p>
+</div></blockquote>
+<p><strong>spectrum_size</strong> : integer</p>
+<blockquote>
+<div><p>number of eigenvalues to be computed (the length of the spectrum)</p>
+</div></blockquote>
+<p><strong>normalization</strong> : string</p>
+<blockquote>
+<div><p>the method used to normalize eigenvalues (&#8216;area&#8217; or None)
+if &#8220;area&#8221;, use area of the 2D structure as in Reuter et al. 2006</p>
+</div></blockquote>
+<p><strong>verbose</strong> : Boolean</p>
+<blockquote>
+<div><p>print statements?</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>spectrum</strong> : list</p>
+<blockquote class="last">
+<div><p>first spectrum_size eigenvalues for Laplace-Beltrami spectrum</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.laplace_beltrami</span> <span class="kn">import</span> <span class="n">fem_laplacian</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Define a cube:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>          <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>         <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spectrum</span> <span class="o">=</span> <span class="n">fem_laplacian</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">spectrum_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+<span class="gp">... </span>                         <span class="n">normalization</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spectrum</span><span class="p">[</span><span class="mi">1</span><span class="p">::]),</span>
+<span class="gp">... </span>                   <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 4.58359  4.8    ]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spectrum</span> <span class="o">=</span> <span class="n">fem_laplacian</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">spectrum_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+<span class="gp">... </span>                         <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;area&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spectrum</span><span class="p">[</span><span class="mi">1</span><span class="p">::]),</span>
+<span class="gp">... </span>                   <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 27.50155  28.8    ]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Spectrum for entire left hemisphere of Twins-2-1:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_vtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">label_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span><span class="p">,</span> <span class="n">f1</span><span class="p">,</span><span class="n">f2</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">f3</span><span class="p">,</span><span class="n">f4</span><span class="p">,</span><span class="n">f5</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">label_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spectrum</span> <span class="o">=</span> <span class="n">fem_laplacian</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">spectrum_size</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+<span class="gp">... </span>                         <span class="n">normalization</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spectrum</span><span class="p">[</span><span class="mi">1</span><span class="p">::]),</span>
+<span class="gp">... </span>                   <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 0.00013  0.00027  0.00032  0.00047  0.00058]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Spectrum for Twins-2-1 left postcentral pial surface (22):</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">keep_faces</span><span class="p">,</span> <span class="n">reindex_faces_points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">I22</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span><span class="o">==</span><span class="mi">1022</span><span class="p">]</span> <span class="c1"># postcentral</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="n">keep_faces</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">I22</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">o1</span> <span class="o">=</span> <span class="n">reindex_faces_points</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spectrum</span> <span class="o">=</span> <span class="n">fem_laplacian</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">spectrum_size</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+<span class="gp">... </span>                         <span class="n">normalization</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spectrum</span><span class="p">[</span><span class="mi">1</span><span class="p">::]),</span>
+<span class="gp">... </span>                   <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 0.00057  0.00189  0.00432  0.00691  0.00775]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Area-normalized spectrum for a single label (postcentral):</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spectrum</span> <span class="o">=</span> <span class="n">fem_laplacian</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">spectrum_size</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+<span class="gp">... </span>                         <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;area&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spectrum</span><span class="p">[</span><span class="mi">1</span><span class="p">::]),</span>
+<span class="gp">... </span>                   <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[  2.69259   8.97865  20.44857  32.74477  36.739  ]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="mindboggle.shapes.laplace_beltrami.spectrum_from_file">
+<code class="descclassname">mindboggle.shapes.laplace_beltrami.</code><code class="descname">spectrum_from_file</code><span class="sig-paren">(</span><em>vtk_file, spectrum_size=10, exclude_labels=[-1], normalization=None, area_file='', verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.spectrum_from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute Laplace-Beltrami spectrum of a 3D shape in a VTK file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>vtk_file</strong> : string</p>
+<blockquote>
+<div><p>the input vtk file</p>
+</div></blockquote>
+<p><strong>spectrum_size</strong> : integer</p>
+<blockquote>
+<div><p>number of eigenvalues to be computed (the length of the spectrum)</p>
+</div></blockquote>
+<p><strong>exclude_labels</strong> : list of integers</p>
+<blockquote>
+<div><p>labels to be excluded</p>
+</div></blockquote>
+<p><strong>normalization</strong> : string</p>
+<blockquote>
+<div><p>the method used to normalize eigenvalues (&#8216;area&#8217; or None)
+if &#8220;area&#8221;, use area of the 2D structure as in Reuter et al. 2006</p>
+</div></blockquote>
+<p><strong>area_file</strong> :  string</p>
+<blockquote>
+<div><p>name of VTK file with surface area scalar values</p>
+</div></blockquote>
+<p><strong>verbose</strong> : Boolean</p>
+<blockquote>
+<div><p>print statements?</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>spectrum</strong> : list of floats</p>
+<blockquote class="last">
+<div><p>first spectrum_size of Laplace-Beltrami spectrum</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Spectrum for entire left hemisphere of Twins-2-1:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.laplace_beltrami</span> <span class="kn">import</span> <span class="n">spectrum_from_file</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.laplace_beltrami</span> <span class="kn">import</span> <span class="n">spectrum_per_label</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spectrum</span> <span class="o">=</span> <span class="n">spectrum_from_file</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="n">spectrum_size</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spectrum</span><span class="p">[</span><span class="mi">1</span><span class="p">::]),</span>
+<span class="gp">... </span>                   <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 0.00013  0.00027  0.00032  0.00047  0.00058]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="mindboggle.shapes.laplace_beltrami.spectrum_of_largest">
+<code class="descclassname">mindboggle.shapes.laplace_beltrami.</code><code class="descname">spectrum_of_largest</code><span class="sig-paren">(</span><em>points, faces, spectrum_size=10, exclude_labels=[-1], normalization=None, areas=None, verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.spectrum_of_largest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute Laplace-Beltrami spectrum on largest connected segment.</p>
+<p>In case a surface patch is fragmented, we select the largest fragment,
+remove extraneous triangular faces, and reindex indices.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>points</strong> : list of lists of 3 floats</p>
+<blockquote>
+<div><p>x,y,z coordinates for each vertex of the structure</p>
+</div></blockquote>
+<p><strong>faces</strong> : list of lists of 3 integers</p>
+<blockquote>
+<div><p>3 indices to vertices that form a triangle on the mesh</p>
+</div></blockquote>
+<p><strong>spectrum_size</strong> : integer</p>
+<blockquote>
+<div><p>number of eigenvalues to be computed (the length of the spectrum)</p>
+</div></blockquote>
+<p><strong>exclude_labels</strong> : list of integers</p>
+<blockquote>
+<div><p>background values to exclude</p>
+</div></blockquote>
+<p><strong>normalization</strong> : string</p>
+<blockquote>
+<div><p>the method used to normalize eigenvalues (&#8216;area&#8217; or None)
+if &#8220;area&#8221;, use area of the 2D structure as in Reuter et al. 2006</p>
+</div></blockquote>
+<p><strong>areas</strong> : numpy array or list of floats (or None)</p>
+<blockquote>
+<div><p>surface area scalar values for all vertices</p>
+</div></blockquote>
+<p><strong>verbose</strong> : Boolean</p>
+<blockquote>
+<div><p>print statements?</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>spectrum</strong> : list</p>
+<blockquote class="last">
+<div><p>first spectrum_size eigenvalues for Laplace-Beltrami spectrum</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Spectrum for left postcentral + pars triangularis pial surfaces:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span><span class="p">,</span> <span class="n">read_vtk</span><span class="p">,</span> <span class="n">write_vtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">keep_faces</span><span class="p">,</span> <span class="n">reindex_faces_points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.laplace_beltrami</span> <span class="kn">import</span> <span class="n">spectrum_of_largest</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">label_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">area_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_area&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spectrum_size</span> <span class="o">=</span> <span class="mi">6</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exclude_labels</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">normalization</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">f1</span><span class="p">,</span> <span class="n">npoints</span><span class="p">,</span> <span class="n">f2</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">label_file</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">return_first</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">return_array</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">I20</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span><span class="o">==</span><span class="mi">1020</span><span class="p">]</span> <span class="c1"># pars triangularis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">I22</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span><span class="o">==</span><span class="mi">1022</span><span class="p">]</span> <span class="c1"># postcentral</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">I22</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">I20</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="n">keep_faces</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">I22</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">o1</span> <span class="o">=</span> <span class="n">reindex_faces_points</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">areas</span><span class="p">,</span> <span class="n">u1</span> <span class="o">=</span> <span class="n">read_scalars</span><span class="p">(</span><span class="n">area_file</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spectrum</span> <span class="o">=</span> <span class="n">spectrum_of_largest</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">spectrum_size</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">exclude_labels</span><span class="p">,</span> <span class="n">normalization</span><span class="p">,</span> <span class="n">areas</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spectrum</span><span class="p">[</span><span class="mi">1</span><span class="p">::]),</span>
+<span class="gp">... </span>                   <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 0.00057  0.00189  0.00432  0.00691  0.00775]</span>
+</pre></div>
+</div>
+<p>View both segments (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">labels</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars</span><span class="p">[</span><span class="n">I22</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="s1">&#39;test_two_labels.vtk&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">write_vtk</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span>
+<span class="gp">... </span>          <span class="n">scalars</span><span class="p">,</span> <span class="n">scalar_names</span><span class="o">=</span><span class="s1">&#39;scalars&#39;</span><span class="p">,</span> <span class="n">scalar_type</span><span class="o">=</span><span class="s1">&#39;int&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">)</span> 
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="mindboggle.shapes.laplace_beltrami.spectrum_per_label">
+<code class="descclassname">mindboggle.shapes.laplace_beltrami.</code><code class="descname">spectrum_per_label</code><span class="sig-paren">(</span><em>vtk_file, spectrum_size=10, exclude_labels=[-1], normalization='area', area_file='', largest_segment=True, verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.spectrum_per_label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute Laplace-Beltrami spectrum per labeled region in a file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>vtk_file</strong> : string</p>
+<blockquote>
+<div><p>name of VTK surface mesh file containing index scalars (labels)</p>
+</div></blockquote>
+<p><strong>spectrum_size</strong> : integer</p>
+<blockquote>
+<div><p>number of eigenvalues to be computed (the length of the spectrum)</p>
+</div></blockquote>
+<p><strong>exclude_labels</strong> : list of integers</p>
+<blockquote>
+<div><p>labels to be excluded</p>
+</div></blockquote>
+<p><strong>normalization</strong> : string</p>
+<blockquote>
+<div><p>the method used to normalize eigenvalues (&#8216;area&#8217; or None)
+if &#8220;area&#8221;, use area of the 2D structure as in Reuter et al. 2006</p>
+</div></blockquote>
+<p><strong>area_file</strong> :  string (optional)</p>
+<blockquote>
+<div><p>name of VTK file with surface area scalar values</p>
+</div></blockquote>
+<p><strong>largest_segment</strong> :  Boolean</p>
+<blockquote>
+<div><p>compute spectrum only for largest segment with a given label?</p>
+</div></blockquote>
+<p><strong>verbose</strong> : Boolean</p>
+<blockquote>
+<div><p>print statements?</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>spectrum_lists</strong> : list of lists</p>
+<blockquote>
+<div><p>first eigenvalues for each label&#8217;s Laplace-Beltrami spectrum</p>
+</div></blockquote>
+<p><strong>label_list</strong> : list of integers</p>
+<blockquote class="last">
+<div><p>list of unique labels for which spectra are obtained</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Uncomment &quot;if label==22:&quot; below to run example:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Spectrum for Twins-2-1 left postcentral (22) pial surface:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.laplace_beltrami</span> <span class="kn">import</span> <span class="n">spectrum_per_label</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">area_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_area&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spectrum_size</span> <span class="o">=</span> <span class="mi">6</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exclude_labels</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1">#[-1]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">largest_segment</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spectrum_lists</span><span class="p">,</span> <span class="n">label_list</span> <span class="o">=</span> <span class="n">spectrum_per_label</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">spectrum_size</span><span class="p">,</span> <span class="n">exclude_labels</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">area_file</span><span class="p">,</span> <span class="n">largest_segment</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">verbose</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spectrum_lists</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">::]),</span>
+<span class="gp">... </span>                   <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 0.00054  0.00244  0.00291  0.00456  0.00575]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">label_list</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">10</span><span class="p">]</span>
+<span class="go">[1029, 1005, 1011, 1021, 1008, 1025, 999, 1013, 1007, 1022]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="mindboggle.shapes.laplace_beltrami.wesd">
+<code class="descclassname">mindboggle.shapes.laplace_beltrami.</code><code class="descname">wesd</code><span class="sig-paren">(</span><em>EVAL1</em>, <em>EVAL2</em>, <em>Vol1</em>, <em>Vol2</em>, <em>show_error=False</em>, <em>N=3</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.wesd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weighted Spectral Distance. See Konukoglu et al. (2012)</p>
+<dl class="docutils">
+<dt>Note ::</dt>
+<dd>At present, algorithm doesn&#8217;t return normalized result.
+It therefore doesn&#8217;t require calculation of volume.</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>EVAL1</strong> : numpy array of floats</p>
+<blockquote>
+<div><p>LB spectrum from the 1st shape</p>
+</div></blockquote>
+<p><strong>EVAL2</strong> : numpy array of floats</p>
+<blockquote>
+<div><p>LB spectrum from the 2nd shape</p>
+</div></blockquote>
+<p><strong>Vol1: float</strong> :</p>
+<blockquote>
+<div><p>Volume (area for 2D) of the 1st shape</p>
+</div></blockquote>
+<p><strong>Vol2: float</strong> :</p>
+<blockquote>
+<div><p>Volume (area for 2D) of the 2nd shape</p>
+</div></blockquote>
+<p><strong>show_error: boolean</strong> :</p>
+<blockquote>
+<div><p>display the error of WESD using Eqs.(9) and (10) in Konukoglu (2012)?
+default: false</p>
+</div></blockquote>
+<p><strong>N</strong> : integer</p>
+<blockquote class="last">
+<div><p>The length of spetrum used (N&gt;=3, default: 3)</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<!-- Google Analytics -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-693862-13");
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+
+  </body>
+</html>

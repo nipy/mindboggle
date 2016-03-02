@@ -1,0 +1,244 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Mindboggle &mdash; Mindboggle</title>
+    
+    <link rel="stylesheet" href="../../shared/mindboggle.css" type="text/css" />
+    <link rel="stylesheet" href="../../shared/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '%s.%s.%s%s',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../shared/jquery.js"></script>
+    <script type="text/javascript" src="../../shared/underscore.js"></script>
+    <script type="text/javascript" src="../../shared/doctools.js"></script>
+    <link rel="top" title="Mindboggle" href="../../index.html" />
+  <HTML><head><title>Mindboggle</title>
+  <link rel="icon" type="image/png" sizes="96x96" href="http://mindboggle.info/shared/favicon-96x96.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="http://mindboggle.info/shared/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="http://mindboggle.info/shared/favicon-16x16.png">
+  <meta http-equiv="Content-language" content="en">
+  <meta name="description" content="Mindboggle">
+  <meta name="keywords" content="Mindboggle, neuroimaging, brain imaging, python, neuroscience, labeling, parcellation, morphometry, shape analysis, MRI">
+  <meta name="author" content="mailto:arno&#64;mindboggle.info">
+  <meta name="dc.title" content="Mindboggle"> 
+  <meta name="dc.creator.address" content="arno&#64;mindboggle.info">
+  <meta name="dc.subject" content="Mindboggle">
+  <meta name="dc.type" content="text.homepage.academic"> 
+  <meta name="dc.format" content="text/html"> 
+  <meta name="dc.identifier" content="http://mindboggle.info">
+
+  </head>
+  <body role="document">
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+ <table>
+  <tr>
+   <td>
+
+ <a href="../../index.html">
+  <img src="http://nipy.github.io/mindboggle/shared/mindboggle_logo_small.jpg" alt="small mindboggle logo"  border="0" width="160"/></a>
+
+   </td>
+   <td>
+    <table>
+     <tr>
+ <a style="padding: 20px 20px 20px 20px; color: #b07613; text-decoration: none; font-size: 32px"
+  href="../../index.html">Mindboggle</a>
+     </tr>
+     <tr> <td height="18"></td>
+     </tr>
+     <tr>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="http://nipy.github.io/mindboggle/users/README.html">Software</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="../../data.html">Data</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="../../papers.html">Papers</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="../../people.html">People</a>
+      </td>
+     </tr>
+    </table>
+   </td>
+  </tr>
+ </table>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="mio-convert-volumes">
+<h1>mio.convert_volumes<a class="headerlink" href="#mio-convert-volumes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-mindboggle.mio.convert_volumes">
+<span id="module-mio-convert-volumes"></span><h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">mio.convert_volumes</span></code><a class="headerlink" href="#module-mindboggle.mio.convert_volumes" title="Permalink to this headline">¶</a></h2>
+<p>Functions for reading and writing nifti volume files.</p>
+<dl class="docutils">
+<dt>Authors:</dt>
+<dd><ul class="first last simple">
+<li>Arno Klein, 2012-2016  (<a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>)  <a class="reference external" href="http://binarybottle.com">http://binarybottle.com</a></li>
+</ul>
+</dd>
+</dl>
+<p>Copyright 2016,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mindboggle.mio.convert_volumes.convert2nii">
+<code class="descclassname">mindboggle.mio.convert_volumes.</code><code class="descname">convert2nii</code><span class="sig-paren">(</span><em>input_file</em>, <em>reference_file</em>, <em>output_file=''</em>, <em>interp='continuous'</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.convert_volumes.convert2nii" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert volume from the input file format to the output file format.</p>
+<p>If output_file is empty, reslice to nifti format using nibabel and
+scipy.ndimage.affine_transform, after nilearn.image.resample_img:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">nilearn.image</span> <span class="kn">import</span> <span class="n">resample_img</span>
+<span class="n">resliced</span> <span class="o">=</span> <span class="n">resample_img</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">target_affine</span><span class="o">=</span><span class="n">xfm2</span><span class="p">,</span>
+                        <span class="n">target_shape</span><span class="o">=</span><span class="n">dim2</span><span class="p">,</span>
+                        <span class="n">interpolation</span><span class="o">=</span><span class="n">interp</span><span class="p">)</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Example use: Convert FreeSurfer &#8216;unconformed&#8217; .mgz file to nifti.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>input_file</strong> : string</p>
+<blockquote>
+<div><p>input file name</p>
+</div></blockquote>
+<p><strong>reference_file</strong> : string</p>
+<blockquote>
+<div><p>target file name</p>
+</div></blockquote>
+<p><strong>output_file</strong> : string</p>
+<blockquote>
+<div><p>name of output file</p>
+</div></blockquote>
+<p><strong>interp</strong> : string</p>
+<blockquote>
+<div><p>interpolation method: &#8216;continuous&#8217; (default) or &#8216;nearest&#8217;</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>output_file</strong> : string</p>
+<blockquote class="last">
+<div><p>name of output file</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.convert_volumes</span> <span class="kn">import</span> <span class="n">convert2nii</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">reference_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;freesurfer_segmentation&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">input_file</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_file</span> <span class="o">+=</span> <span class="s1">&#39;.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">reference_file</span><span class="p">,</span> <span class="n">reference_file</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">reference_file</span> <span class="o">+=</span> <span class="s1">&#39;.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">interp</span> <span class="o">=</span> <span class="s1">&#39;nearest&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="n">convert2nii</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">reference_file</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span>
+<span class="gp">... </span>                          <span class="n">interp</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>View nifti file (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_volumes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_volumes</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span> 
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="mindboggle.mio.convert_volumes.xyz2nii">
+<code class="descclassname">mindboggle.mio.convert_volumes.</code><code class="descname">xyz2nii</code><span class="sig-paren">(</span><em>input_xyz_file</em>, <em>output_nii_file=''</em>, <em>origin=[]</em>, <em>pad=10</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.convert_volumes.xyz2nii" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert [x,y,z] coordinate file to nifti (nii.gz) volume file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>input_xyz_file</strong> : string</p>
+<blockquote>
+<div><p>input [x,y,z] coordinate text file</p>
+</div></blockquote>
+<p><strong>output_nii_file</strong> : string</p>
+<blockquote>
+<div><p>output nifti (nii.gz) volume file</p>
+</div></blockquote>
+<p><strong>origin</strong> : list of floats</p>
+<blockquote>
+<div><p>[x,y,z] coordinates for origin</p>
+</div></blockquote>
+<p><strong>pad</strong> : integer</p>
+<blockquote>
+<div><p>number of voxels to pad input coordinates in x, y, and z directions</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>output_nii_file</strong> : string</p>
+<blockquote class="last">
+<div><p>output nifti (nii.gz) volume file</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.convert_volumes</span> <span class="kn">import</span> <span class="n">xyz2nii</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_xyz_file</span> <span class="o">=</span> <span class="s1">&#39;face.xyz.txt&#39;</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">origin</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pad</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_nii_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xyz2nii</span><span class="p">(</span><span class="n">input_xyz_file</span><span class="p">)</span> 
+</pre></div>
+</div>
+<p>View nifti file (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_volumes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_volumes</span><span class="p">(</span><span class="s1">&#39;xyz.nii.gz&#39;</span><span class="p">)</span> 
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<!-- Google Analytics -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-693862-13");
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+
+  </body>
+</html>
