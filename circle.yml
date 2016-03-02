@@ -24,7 +24,6 @@ dependencies:
     #-------------------------------------------------------------------------
     - wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
     - bash miniconda.sh -b -p $MINI
-    - hash -r
     #-------------------------------------------------------------------------
     # Update conda and print info about the installation (for debugging)
     #-------------------------------------------------------------------------
@@ -43,12 +42,8 @@ dependencies:
     #-------------------------------------------------------------------------
     - pip install -I .
     #- git clone https://github.com/nipy/mindboggle.git $MB
-    #- cd $MB
-    #- python setup.py install
-    - mkdir $vtk_cpp_tools
-    - cd $vtk_cpp_tools
-    - cmake ../
-    - make
+    #- cd $MB && python setup.py install
+    - mkdir $vtk_cpp_tools && cd $vtk_cpp_tools && cmake ../ && make
     #- export vtk_cpp_tools=$vtk_cpp_tools
     #- export PATH=$vtk_cpp_tools:$PATH
     #- export PATH=$MINI/bin:$PATH
