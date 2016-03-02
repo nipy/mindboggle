@@ -95,30 +95,6 @@
 </div>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="users/index.html">User Guide</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="users/README.html">Software &#8211; NOTE: MINDBOGGLE IS STILL IN PRE-RELEASE AND IS UNDERGOING CHANGES</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="users/README.html#id2">Introduction and help</a></li>
-<li class="toctree-l3"><a class="reference internal" href="users/README.html#id3">Set up Mindboggle</a></li>
-<li class="toctree-l3"><a class="reference internal" href="users/README.html#id4">Example Mindboggle commands</a></li>
-<li class="toctree-l3"><a class="reference internal" href="users/README.html#id5">FreeSurfer and ANTs preprocessing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="users/README.html#id6">Mindboggle processing steps</a></li>
-<li class="toctree-l3"><a class="reference internal" href="users/README.html#id7">Mindboggle output files</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="users/INSTALL.html">Installation  <strong>(UNDER CONSTRUCTION)</strong></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="users/INSTALL.html#dependencies">Dependencies</a></li>
-<li class="toctree-l3"><a class="reference internal" href="users/INSTALL.html#software-to-generate-input-data-for-mindboggle">Software to generate input data for Mindboggle</a></li>
-<li class="toctree-l3"><a class="reference internal" href="users/INSTALL.html#configure-virtual-machine-with-mounted-directories">Configure virtual machine with mounted directories</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="users/LICENSE.html">License</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="users/LICENSE.html#software-license">Software License</a></li>
-<li class="toctree-l3"><a class="reference internal" href="users/LICENSE.html#documentation-license">Documentation License</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="users/THANKS.html">Thanks</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="faq/index.html">FAQ</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="faq/why_mindboggle.html">Why Mindboggle?</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="faq/why_mindboggle.html#purpose">Purpose</a></li>
@@ -131,10 +107,23 @@
 <li class="toctree-l2"><a class="reference internal" href="faq/labels.html">What labels does Mindboggle use?</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="faq/labels.html#dkt-cortical-labeling-protocol-31-labels">DKT cortical labeling protocol (31 labels)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="faq/labels.html#noncortex-label-numbers-and-names">Noncortex label numbers and names</a></li>
-<li class="toctree-l3"><a class="reference internal" href="faq/labels.html#sulcus-names-from-the-dkt-labeling-protocol">Sulcus names from the DKT labeling protocol</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq/labels.html#sulcus-names-from-the-dkt-labeling-protocol">Sulcus names from the DKT labeling protocol</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="faq/labels.html#sulcus-abbreviations">Sulcus abbreviations</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="faq/labels.html#lists-of-label-pairs-that-define-dkt-sulcus-boundaries">Lists of label pairs that define DKT sulcus boundaries</a></li>
-<li class="toctree-l3"><a class="reference internal" href="faq/labels.html#regions-bounded-by-sulcal-fundi">Regions bounded by sulcal fundi</a></li>
-<li class="toctree-l3"><a class="reference internal" href="faq/labels.html#boundaries-that-will-never-be-derived-by-fundi">Boundaries that will NEVER be derived by fundi</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq/labels.html#regions-bounded-by-sulcal-fundi">Regions bounded by sulcal fundi</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="faq/labels.html#lateral-surface">Lateral surface:</a></li>
+<li class="toctree-l4"><a class="reference internal" href="faq/labels.html#perisylvian-area-folds-within-the-sylvian-fissure">PeriSylvian area (folds within the Sylvian fissure):</a></li>
+<li class="toctree-l4"><a class="reference internal" href="faq/labels.html#medial-surface">Medial surface:</a></li>
+<li class="toctree-l4"><a class="reference internal" href="faq/labels.html#ventral-surface">Ventral surface:</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="faq/labels.html#boundaries-that-will-never-be-derived-by-fundi">Boundaries that will NEVER be derived by fundi</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="faq/labels.html#regions-bounded-by-sulcal-margins">Regions bounded by sulcal margins:</a></li>
+<li class="toctree-l4"><a class="reference internal" href="faq/labels.html#regions-with-additional-non-sulcal-boundaries-with-subcortical-regions">Regions with additional non-sulcal boundaries with subcortical regions:</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="faq/labels.html#possible-ways-to-combine-or-eliminate-regions-from-jason-tourville-s-notes">Possible ways to combine or eliminate regions (from Jason Tourville&#8217;s notes)</a></li>
 </ul>
 </li>
@@ -220,7 +209,10 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="api/generated/mindboggle.mio.labels.html">mio.labels</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="api/generated/mindboggle.mio.labels.html#module-mio-labels">Module: <code class="docutils literal"><span class="pre">mio.labels</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/generated/mindboggle.mio.labels.html#module-mio-labels">Module: <code class="docutils literal"><span class="pre">mio.labels</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/generated/mindboggle.mio.labels.html#numbers-names-and-colormaps-for-the-dkt-and-freesurfer-labeling-protocols">Numbers, names, and colormaps for the DKT and FreeSurfer labeling protocols</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="api/generated/mindboggle.mio.labels.html#class">Class</a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/generated/mindboggle.mio.labels.html#dktprotocol"><code class="docutils literal"><span class="pre">DKTprotocol</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/generated/mindboggle.mio.labels.html#functions">Functions</a></li>
@@ -268,7 +260,15 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="api/generated/mindboggle.shapes.zernike.pipelines.html">shapes.zernike.pipelines</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="api/generated/mindboggle.shapes.zernike.pipelines.html#module-shapes-zernike-pipelines">Module: <code class="docutils literal"><span class="pre">shapes.zernike.pipelines</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/generated/mindboggle.shapes.zernike.pipelines.html#classes">Classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/generated/mindboggle.shapes.zernike.pipelines.html#classes">Classes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/generated/mindboggle.shapes.zernike.pipelines.html#koehlmultiproc"><code class="docutils literal"><span class="pre">KoehlMultiproc</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/generated/mindboggle.shapes.zernike.pipelines.html#koehloptimizations"><code class="docutils literal"><span class="pre">KoehlOptimizations</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/generated/mindboggle.shapes.zernike.pipelines.html#multiprocpipeline"><code class="docutils literal"><span class="pre">MultiprocPipeline</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/generated/mindboggle.shapes.zernike.pipelines.html#numpyoptimizations"><code class="docutils literal"><span class="pre">NumpyOptimizations</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/generated/mindboggle.shapes.zernike.pipelines.html#pipeline"><code class="docutils literal"><span class="pre">Pipeline</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/generated/mindboggle.shapes.zernike.pipelines.html#serialpipeline"><code class="docutils literal"><span class="pre">SerialPipeline</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="api/generated/mindboggle.shapes.zernike.pipelines.html#function">Function</a></li>
 </ul>
 </li>
