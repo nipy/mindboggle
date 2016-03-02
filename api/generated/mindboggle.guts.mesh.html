@@ -96,11 +96,11 @@
 <dt>Authors:</dt>
 <dd><ul class="first last simple">
 <li>Forrest Bao, 2012  (<a class="reference external" href="mailto:forrest&#46;bao&#37;&#52;&#48;gmail&#46;com">forrest<span>&#46;</span>bao<span>&#64;</span>gmail<span>&#46;</span>com</a>)</li>
-<li>Arno Klein, 2012-2013  (<a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>)  <a class="reference external" href="http://binarybottle.com">http://binarybottle.com</a></li>
+<li>Arno Klein, 2012-2016  (<a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>)  <a class="reference external" href="http://binarybottle.com">http://binarybottle.com</a></li>
 </ul>
 </dd>
 </dl>
-<p>Copyright 2013,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
+<p>Copyright 2016,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
 </div>
 <div class="section" id="functions">
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
@@ -130,6 +130,19 @@
 </tr>
 </tbody>
 </table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">area_of_faces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_vtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_vtk</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_area&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span><span class="p">,</span> <span class="n">f1</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">f3</span><span class="p">,</span> <span class="n">f4</span><span class="p">,</span> <span class="n">f5</span><span class="p">,</span> <span class="n">f6</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">input_vtk</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">area</span> <span class="o">=</span> <span class="n">area_of_faces</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">area</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">],</span> <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 0.21703  0.27139  0.29033  0.1717   0.36011]</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -192,40 +205,35 @@ on a surface mesh</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Example: Twins-2-1 left postcentral pial surface, 0.75 decimation:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_vtk</span><span class="p">,</span> <span class="n">write_vtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">remove_faces</span><span class="p">,</span> <span class="n">decimate</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">label_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;lh.labels.DKT31.manual.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">scalars</span><span class="p">,</span> <span class="n">scalar_names</span><span class="p">,</span> <span class="n">npoints</span><span class="p">,</span> <span class="n">input_vtk</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">label_file</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">I22</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span><span class="o">==</span><span class="mi">14</span><span class="p">]</span> <span class="c"># postcentral</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="n">remove_faces</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">I22</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">order</span> <span class="o">=</span> <span class="mi">3</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">scale_input</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">reduction</span> <span class="o">=</span> <span class="mf">0.75</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">smooth_steps</span> <span class="o">=</span> <span class="mi">25</span>  <span class="c"># results closer to no decimation than 20 or 30</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">save_vtk</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_vtk</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">scalars</span><span class="p">,</span> <span class="n">output_vtk</span> <span class="o">=</span> <span class="n">decimate</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">reduction</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>                                              <span class="n">smooth_steps</span><span class="p">,</span> <span class="n">scalars</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>                                              <span class="n">save_vtk</span><span class="p">,</span> <span class="n">output_vtk</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1060</span>
-<span class="go">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
-<span class="go">1060</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_vtk</span> <span class="o">=</span> <span class="s">&#39;decimated.vtk&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">write_vtk</span><span class="p">(</span><span class="n">output_vtk</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="p">[],</span> <span class="p">[],</span> <span class="n">faces</span><span class="p">,</span> <span class="n">scalars</span><span class="p">)</span> 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">output_vtk</span><span class="p">)</span> 
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Example: Twins-2-1 left postcentral pial surface, 0.75 decimation:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">decimate</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_vtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_vtk</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span><span class="p">,</span> <span class="n">f1</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">scalars</span><span class="p">,</span> <span class="n">f3</span><span class="p">,</span> <span class="n">f4</span><span class="p">,</span> <span class="n">f5</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">input_vtk</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">reduction</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">smooth_steps</span> <span class="o">=</span> <span class="mi">25</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">save_vtk</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_vtk</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points2</span><span class="p">,</span> <span class="n">faces2</span><span class="p">,</span> <span class="n">scalars</span><span class="p">,</span> <span class="n">output_vtk</span> <span class="o">=</span> <span class="n">decimate</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">reduction</span><span class="p">,</span> <span class="n">smooth_steps</span><span class="p">,</span> <span class="n">scalars</span><span class="p">,</span> <span class="n">save_vtk</span><span class="p">,</span> <span class="n">output_vtk</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">points2</span><span class="p">))</span>
+<span class="go">(145069, 72535)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">faces</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">faces2</span><span class="p">))</span>
+<span class="go">(290134, 145066)</span>
+</pre></div>
+</div>
+<p>View decimated surface (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="s1">&#39;decimated.vtk&#39;</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="mindboggle.guts.mesh.decimate_file">
-<code class="descclassname">mindboggle.guts.mesh.</code><code class="descname">decimate_file</code><span class="sig-paren">(</span><em>input_vtk</em>, <em>reduction=0.5</em>, <em>smooth_steps=100</em>, <em>save_vtk=False</em>, <em>output_vtk=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.mesh.decimate_file" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.guts.mesh.</code><code class="descname">decimate_file</code><span class="sig-paren">(</span><em>input_vtk</em>, <em>reduction=0.5</em>, <em>smooth_steps=100</em>, <em>save_vtk=True</em>, <em>output_vtk=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.mesh.decimate_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Decimate vtk triangular mesh file with vtk.vtkDecimatePro.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -262,19 +270,28 @@ on a surface mesh</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">decimate_file</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_vtk</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;label22.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#input_vtk=&#39;/drop/MB/data/arno/labels/lh.labels.DKT31.manual.vtk&#39;</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">decimate_file</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_vtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_vtk</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_freesurfer_labels&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">save_vtk</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_vtk</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_vtk</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">reduction</span> <span class="o">=</span> <span class="mf">0.5</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">smooth_steps</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">decimate_file</span><span class="p">(</span><span class="n">input_vtk</span><span class="p">,</span> <span class="n">reduction</span><span class="p">,</span> <span class="n">smooth_steps</span><span class="p">,</span> <span class="n">save_vtk</span><span class="p">,</span> <span class="n">output_vtk</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="s">&#39;decimated.vtk&#39;</span><span class="p">)</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">smooth_steps</span> <span class="o">=</span> <span class="mi">25</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_vtk</span> <span class="o">=</span> <span class="n">decimate_file</span><span class="p">(</span><span class="n">input_vtk</span><span class="p">,</span> <span class="n">reduction</span><span class="p">,</span> <span class="n">smooth_steps</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">save_vtk</span><span class="p">,</span> <span class="n">output_vtk</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f1</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">f3</span><span class="p">,</span> <span class="n">faces1</span><span class="p">,</span> <span class="n">f4</span><span class="p">,</span> <span class="n">f5</span><span class="p">,</span> <span class="n">npoints1</span><span class="p">,</span> <span class="n">f6</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">input_vtk</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f1</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">f3</span><span class="p">,</span> <span class="n">faces2</span><span class="p">,</span> <span class="n">f4</span><span class="p">,</span> <span class="n">f5</span><span class="p">,</span> <span class="n">npoints2</span><span class="p">,</span> <span class="n">f6</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="s1">&#39;decimated.vtk&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">npoints1</span><span class="p">,</span> <span class="n">npoints2</span><span class="p">)</span>
+<span class="go">(145069, 72535)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">faces1</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">faces2</span><span class="p">))</span>
+<span class="go">(290134, 145066)</span>
+</pre></div>
+</div>
+<p>View decimated surface (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="s1">&#39;decimated.vtk&#39;</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -296,7 +313,7 @@ on a surface mesh</p>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>adjacent_faces: list of pairs of lists of three integers</strong> :</p>
 <blockquote class="last">
-<div><p>list 1 indexes three faces adjacent to the three face&#8217;s edges; 
+<div><p>list 1 indexes three faces adjacent to the three face&#8217;s edges;
 list 2 indexes three vertices opposite the adjacent faces:
 adjacent_faces[i]: two lists, each of length 3
 adjacent_faces[i][0] = [face0, face1, face2]:</p>
@@ -314,15 +331,12 @@ adjacent_faces[i][0] = [face0, face1, face2]:</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Simple example:</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Simple example:</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">find_adjacent_faces</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">],[</span><span class="mi">4</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">]]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">find_adjacent_faces</span><span class="p">(</span><span class="n">faces</span><span class="p">)</span>
-<span class="go">    [[[-1, 1, 3], [-1, 3, 4]],</span>
-<span class="go">     [[-1, 2, 0], [-1, 4, 1]],</span>
-<span class="go">     [[4, 3, 1], [1, 1, 2]],</span>
-<span class="go">     [[4, 2, 0], [3, 3, 2]],</span>
-<span class="go">     [[-1, 3, 2], [-1, 0, 0]]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">adjacent_faces</span> <span class="o">=</span> <span class="n">find_adjacent_faces</span><span class="p">(</span><span class="n">faces</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">adjacent_faces</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+<span class="go">[[[-1, 1, 3], [-1, 3, 4]], [[-1, 2, 0], [-1, 4, 1]]]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -354,7 +368,7 @@ adjacent_faces[i][0] = [face0, face1, face2]:</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">find_complete_faces</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">find_complete_faces</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">]]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">indices</span> <span class="o">=</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">find_complete_faces</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">faces</span><span class="p">)</span>
@@ -386,7 +400,7 @@ adjacent_faces[i][0] = [face0, face1, face2]:</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Simple example:</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Simple example:</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">find_edges</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span><span class="o">=</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">]]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">find_edges</span><span class="p">(</span><span class="n">faces</span><span class="p">)</span>
@@ -422,37 +436,49 @@ adjacent_faces[i][0] = [face0, face1, face2]:</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Extract endpoints from a track in a fold:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span><span class="p">,</span> <span class="n">rewrite_scalars</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">find_neighbors_from_file</span><span class="p">,</span> <span class="n">find_endpoints</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">find_endpoints</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">find_neighbors_from_file</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">folds_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_folds&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indices</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">neighbor_lists</span> <span class="o">=</span> <span class="n">find_neighbors_from_file</span><span class="p">(</span><span class="n">folds_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indices_endpoints</span> <span class="o">=</span> <span class="n">find_endpoints</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">neighbor_lists</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indices_endpoints</span>
+<span class="go">[848, 886, 920, 987]</span>
+</pre></div>
+</div>
+<p>More realistic example &#8211; extract endpoints from a track in a fold:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.paths</span> <span class="kn">import</span> <span class="n">track_values</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Select a single fold:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">folds_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;features&#39;</span><span class="p">,</span> <span class="s">&#39;folds.vtk&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">url2</span> <span class="o">=</span> <span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_travel_depth&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">values_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">url2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">folds</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">read_scalars</span><span class="p">(</span><span class="n">folds_file</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fold_number</span> <span class="o">=</span> <span class="mi">11</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">indices_fold</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">folds</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="n">fold_number</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Create a track from the minimum-depth vertex:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;freesurfer&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">values</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">read_scalars</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">neighbor_lists</span> <span class="o">=</span> <span class="n">find_neighbors_from_file</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">values</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">read_scalars</span><span class="p">(</span><span class="n">values_file</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">seed</span> <span class="o">=</span> <span class="n">indices_fold</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">indices_fold</span><span class="p">])]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">indices</span> <span class="o">=</span> <span class="n">track_values</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">indices_fold</span><span class="p">,</span> <span class="n">neighbor_lists</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">sink</span><span class="o">=</span><span class="p">[])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Extract endpoints:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">indices_endpoints</span> <span class="o">=</span> <span class="n">find_endpoints</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">neighbor_lists</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Write results to vtk file and view:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">IDs</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">IDs</span><span class="p">[</span><span class="n">indices_fold</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">IDs</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">IDs</span><span class="p">[</span><span class="n">indices_endpoints</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">rewrite_scalars</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="s">&#39;find_endpoints.vtk&#39;</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>                <span class="n">IDs</span><span class="p">,</span> <span class="s">&#39;endpoints&#39;</span><span class="p">,</span> <span class="n">IDs</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="s">&#39;find_endpoints.vtk&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sink</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">track</span> <span class="o">=</span> <span class="n">track_values</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">indices_fold</span><span class="p">,</span> <span class="n">neighbor_lists</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">sink</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">track</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">10</span><span class="p">]</span>
+<span class="go">[38198, 38207, 39702, 39714, 41177, 41193, 41210, 41222, 41234, 41247]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indices_endpoints</span> <span class="o">=</span> <span class="n">find_endpoints</span><span class="p">(</span><span class="n">track</span><span class="p">,</span> <span class="n">neighbor_lists</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indices_endpoints</span>
+<span class="go">[38198, 41325]</span>
+</pre></div>
+</div>
+<p>View track in fold on surface (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">rewrite_scalars</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">T</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">))</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">T</span><span class="p">[</span><span class="n">indices_fold</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">T</span><span class="p">[</span><span class="n">track</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">T</span><span class="p">[</span><span class="n">seed</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">T</span><span class="p">[</span><span class="n">indices_endpoints</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rewrite_scalars</span><span class="p">(</span><span class="n">values_file</span><span class="p">,</span> <span class="s1">&#39;find_endpoints.vtk&#39;</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s1">&#39;endpoints&#39;</span><span class="p">,</span> <span class="p">[],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="s1">&#39;find_endpoints.vtk&#39;</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -480,28 +506,14 @@ adjacent_faces[i][0] = [face0, face1, face2]:</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Simple example:</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Simple example:</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">find_faces_at_edges</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span><span class="o">=</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">]]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">find_faces_at_edges</span><span class="p">(</span><span class="n">faces</span><span class="p">)</span>
-<span class="go">    {(0, 1): [0, 1],</span>
-<span class="go">     (0, 2): [0, 3],</span>
-<span class="go">     (0, 4): [1],</span>
-<span class="go">     (0, 5): [3],</span>
-<span class="go">     (1, 0): [0, 1],</span>
-<span class="go">     (1, 2): [0, 2],</span>
-<span class="go">     (1, 3): [2],</span>
-<span class="go">     (1, 4): [1],</span>
-<span class="go">     (2, 0): [0, 3],</span>
-<span class="go">     (2, 1): [0, 2],</span>
-<span class="go">     (2, 3): [2],</span>
-<span class="go">     (2, 5): [3],</span>
-<span class="go">     (3, 1): [2],</span>
-<span class="go">     (3, 2): [2],</span>
-<span class="go">     (4, 0): [1],</span>
-<span class="go">     (4, 1): [1],</span>
-<span class="go">     (5, 0): [3],</span>
-<span class="go">     (5, 2): [3]}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">faces_at_edges</span> <span class="o">=</span> <span class="n">find_faces_at_edges</span><span class="p">(</span><span class="n">faces</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">faces_at_edges</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">)]</span>
+<span class="go">[0, 3]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">faces_at_edges</span><span class="p">[(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">)]</span>
+<span class="go">[0, 2]</span>
 </pre></div>
 </div>
 <dl class="docutils">
@@ -538,12 +550,12 @@ Note: faces do not have to be triangles.</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Simple example:</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Simple example:</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">find_faces_at_vertices</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">],[</span><span class="mi">4</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">]]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">npoints</span> <span class="o">=</span> <span class="mi">5</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">find_faces_at_vertices</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">npoints</span><span class="p">)</span>
-<span class="go">    [[0, 1, 2, 3], [0, 3, 4], [0, 1], [1, 2, 4], [2, 3, 4]]</span>
+<span class="go">[[0, 1, 2, 3], [0, 3, 4], [0, 1], [1, 2, 4], [2, 3, 4]]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -576,12 +588,12 @@ Note: faces do not have to be triangles.</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Simple example:</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Simple example:</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">find_faces_with_vertex</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">],[</span><span class="mi">4</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">]]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">index</span> <span class="o">=</span> <span class="mi">3</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">find_faces_with_vertex</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">faces</span><span class="p">)</span>
-<span class="go">    [[0, 2, 3], [0, 3, 4], [4, 3, 1]]</span>
+<span class="go">[[0, 2, 3], [0, 3, 4], [4, 3, 1]]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -619,11 +631,12 @@ vertices in the neighborhood of the vertices.</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">find_neighborhood</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">find_neighborhood</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">neighbor_lists</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">],[</span><span class="mi">2</span><span class="p">],[],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">]]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">indices</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">find_neighborhood</span><span class="p">(</span><span class="n">neighbor_lists</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-<span class="go">    [0, 2, 5]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">neighborhood</span> <span class="o">=</span> <span class="n">find_neighborhood</span><span class="p">(</span><span class="n">neighbor_lists</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">neighborhood</span>
+<span class="go">[0, 2, 5]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -656,33 +669,37 @@ for all vertices in the faces of a triangular mesh.</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Simple example:</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Simple example:</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">find_neighbors</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">],[</span><span class="mi">4</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">]]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">npoints</span> <span class="o">=</span> <span class="mi">5</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">find_neighbors</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">npoints</span><span class="p">)</span>
-<span class="go">    [[1, 2, 3, 4], [0, 2, 4, 3], [0, 1, 3], [0, 2, 4, 1], [0, 3, 1]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">neighbor_lists</span> <span class="o">=</span> <span class="n">find_neighbors</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">npoints</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">neighbor_lists</span>
+<span class="go">[[1, 2, 3, 4], [0, 2, 4, 3], [0, 1, 3], [0, 2, 4, 1], [0, 3, 1]]</span>
 </pre></div>
 </div>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Real example:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<p>Real example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">find_neighbors</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_faces_points</span><span class="p">,</span> <span class="n">rewrite_scalars</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;freesurfer&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.vtk&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_faces_points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_mean_curvature&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">npoints</span> <span class="o">=</span> <span class="n">read_faces_points</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">neighbor_lists</span> <span class="o">=</span> <span class="n">find_neighbors</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">npoints</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Write results to vtk file and view:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">IDs</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">npoints</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">IDs</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">IDs</span><span class="p">[</span><span class="n">neighbor_lists</span><span class="p">[</span><span class="n">index</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">2</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">rewrite_scalars</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="s">&#39;find_neighbors.vtk&#39;</span><span class="p">,</span> <span class="n">IDs</span><span class="p">,</span> <span class="s">&#39;neighbors&#39;</span><span class="p">,</span> <span class="n">IDs</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="s">&#39;find_neighbors.vtk&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">neighbor_lists</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">[[1, 4, 48, 49], [0, 4, 5, 49, 2], [1, 5, 6, 49, 50, 54]]</span>
+</pre></div>
+</div>
+<p>Write results to vtk file and view (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">rewrite_scalars</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">index</span> <span class="o">=</span> <span class="mi">0</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">IDs</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">npoints</span><span class="p">)</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">IDs</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">IDs</span><span class="p">[</span><span class="n">neighbor_lists</span><span class="p">[</span><span class="n">index</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">2</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rewrite_scalars</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="s1">&#39;find_neighbors.vtk&#39;</span><span class="p">,</span> <span class="n">IDs</span><span class="p">,</span> <span class="s1">&#39;neighbors&#39;</span><span class="p">,</span> <span class="n">IDs</span><span class="p">)</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="s1">&#39;find_neighbors.vtk&#39;</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -711,23 +728,25 @@ for all vertices in the faces of a triangular mesh in a VTK file.</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">find_neighbors_from_file</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">rewrite_scalars</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;freesurfer&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_mean_curvature&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">neighbor_lists</span> <span class="o">=</span> <span class="n">find_neighbors_from_file</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Write results to vtk file and view:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">IDs</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">npoints</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">IDs</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">IDs</span><span class="p">[</span><span class="n">neighbor_lists</span><span class="p">[</span><span class="n">index</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">2</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">rewrite_scalars</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="s">&#39;find_neighbors_from_file.vtk&#39;</span><span class="p">,</span> <span class="n">IDs</span><span class="p">,</span> <span class="s">&#39;neighbors&#39;</span><span class="p">,</span> <span class="n">IDs</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="s">&#39;find_neighbors_from_file.vtk&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">neighbor_lists</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">[[1, 4, 48, 49], [0, 4, 5, 49, 2], [1, 5, 6, 49, 50, 54]]</span>
+</pre></div>
+</div>
+<p>Write results to vtk file and view (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">rewrite_scalars</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">index</span> <span class="o">=</span> <span class="mi">0</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">IDs</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">npoints</span><span class="p">)</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">IDs</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">IDs</span><span class="p">[</span><span class="n">neighbor_lists</span><span class="p">[</span><span class="n">index</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">2</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rewrite_scalars</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="s1">&#39;find_neighbors_from_file.vtk&#39;</span><span class="p">,</span> <span class="n">IDs</span><span class="p">,</span> <span class="s1">&#39;neighbors&#39;</span><span class="p">,</span> <span class="n">IDs</span><span class="p">)</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="s1">&#39;find_neighbors_from_file.vtk&#39;</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -761,11 +780,48 @@ find unique indices for neighboring vertices.</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">find_neighbors_vertex</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">find_neighbors_vertex</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">]]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">index</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">find_neighbors_vertex</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
-<span class="go">    [0, 2, 4]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">neighbor_lists</span> <span class="o">=</span> <span class="n">find_neighbors_vertex</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">neighbor_lists</span>
+<span class="go">[0, 2, 4]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="mindboggle.guts.mesh.keep_faces">
+<code class="descclassname">mindboggle.guts.mesh.</code><code class="descname">keep_faces</code><span class="sig-paren">(</span><em>faces</em>, <em>indices</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.mesh.keep_faces" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove surface mesh faces whose three vertices are not all in &#8220;indices&#8221;.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>faces</strong> : list of lists of three integers</p>
+<blockquote>
+<div><p>the integers for each face are indices to vertices, starting from zero</p>
+</div></blockquote>
+<p><strong>indices</strong> : list of integers</p>
+<blockquote>
+<div><p>indices to vertices of the surface mesh that are to be retained</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>faces</strong> : list of lists of three integers</p>
+<blockquote class="last">
+<div><p>reduced number of faces</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">keep_faces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indices</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">keep_faces</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">indices</span><span class="p">)</span>
+<span class="go">[[1, 2, 3], [3, 2, 5]]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -795,7 +851,7 @@ on a surface mesh</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">reindex_faces_0to1</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">reindex_faces_0to1</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">]]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">reindex_faces_0to1</span><span class="p">(</span><span class="n">faces</span><span class="p">)</span>
 <span class="go">[[1, 3, 4], [3, 4, 8], [5, 8, 9], [4, 3, 6]]</span>
@@ -840,55 +896,47 @@ that form a face on a surface mesh</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_faces_points</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">reindex_faces_points</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Reindex faces:</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">reindex_faces_points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Reindex faces:</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">8</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">]]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">reindex_faces_points</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="p">[])</span>
-<span class="go">    ([[5, 0, 1], [0, 1, 4], [2, 4, 5], [1, 0, 3]], None)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Reindex faces of a single fold of the brain:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fold_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;features&#39;</span><span class="p">,</span> <span class="s">&#39;fold11.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">npoints</span> <span class="o">=</span> <span class="n">read_faces_points</span><span class="p">(</span><span class="n">fold_file</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">new_faces</span><span class="p">,</span> <span class="n">new_points</span><span class="p">,</span> <span class="n">original_indices</span> <span class="o">=</span> <span class="n">reindex_faces_points</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_faces</span><span class="p">,</span> <span class="n">new_points</span><span class="p">,</span> <span class="n">original_indices</span> <span class="o">=</span> <span class="n">reindex_faces_points</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">points</span><span class="o">=</span><span class="p">[])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_faces</span>
+<span class="go">[[5, 0, 1], [0, 1, 4], [2, 4, 5], [1, 0, 3]]</span>
 </pre></div>
 </div>
-</dd></dl>
-
-<dl class="function">
-<dt id="mindboggle.guts.mesh.remove_faces">
-<code class="descclassname">mindboggle.guts.mesh.</code><code class="descname">remove_faces</code><span class="sig-paren">(</span><em>faces</em>, <em>indices</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.mesh.remove_faces" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove surface mesh faces whose three vertices are not all in &#8220;indices&#8221;.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>faces</strong> : list of lists of three integers</p>
-<blockquote>
-<div><p>the integers for each face are indices to vertices, starting from zero</p>
-</div></blockquote>
-<p><strong>indices</strong> : integers</p>
-<blockquote>
-<div><p>indices to vertices of the surface mesh that are to be retained</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>faces</strong> : list of lists of three integers</p>
-<blockquote class="last">
-<div><p>reduced number of faces</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">remove_faces</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">]]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">indices</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">remove_faces</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">indices</span><span class="p">)</span>
-<span class="go">  Reduced 4 to 2 triangular faces.</span>
-<span class="go">  [[1, 2, 3], [3, 2, 5]]</span>
+<p>Reindex faces of a single fold of the brain:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_faces_points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span><span class="p">,</span> <span class="n">rewrite_scalars</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">folds_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_folds&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">folds</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">read_scalars</span><span class="p">(</span><span class="n">folds_file</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fold_number</span> <span class="o">=</span> <span class="mi">11</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indices_fold</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">folds</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="n">fold_number</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">T</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">folds</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">T</span><span class="p">[</span><span class="n">indices_fold</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rewrite_scalars</span><span class="p">(</span><span class="n">folds_file</span><span class="p">,</span> <span class="s1">&#39;fold.vtk&#39;</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="s1">&#39;fold&#39;</span><span class="p">,</span> <span class="p">[],</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">npoints</span> <span class="o">=</span> <span class="n">read_faces_points</span><span class="p">(</span><span class="s1">&#39;fold.vtk&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_faces</span><span class="p">,</span> <span class="n">new_points</span><span class="p">,</span> <span class="n">original_indices</span> <span class="o">=</span> <span class="n">reindex_faces_points</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">points</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_faces</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="go">[[0, 5, 4], [34, 33, 1], [1, 2, 3], [4, 3, 2], [1, 3, 41]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">new_points</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[-11.0823  -74.348    -8.88434]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">new_points</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ -9.37212 -73.0571   -8.68719]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">new_points</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[-10.1493 -73.262   -8.7986]</span>
+</pre></div>
+</div>
+<p>View reindexed fold on surface (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="s1">&#39;fold.vtk&#39;</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -906,7 +954,7 @@ that form a face on a surface mesh</p>
 <blockquote>
 <div><p>each list contains indices to neighboring vertices for each vertex</p>
 </div></blockquote>
-<p><strong>indices</strong> : integers</p>
+<p><strong>indices</strong> : list of integers</p>
 <blockquote>
 <div><p>indices to vertices of the surface mesh</p>
 </div></blockquote>
@@ -921,18 +969,18 @@ that form a face on a surface mesh</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">remove_neighbor_lists</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">remove_neighbor_lists</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">neighbor_lists</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span><span class="mi">43</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">]]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">indices</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">remove_neighbor_lists</span><span class="p">(</span><span class="n">neighbor_lists</span><span class="p">,</span> <span class="n">indices</span><span class="p">)</span>
-<span class="go">    [[1, 2, 3], [2, 3], [], [4], [2, 3, 5]]</span>
+<span class="go">[[1, 2, 3], [2, 3], [], [4], [2, 3, 5]]</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="mindboggle.guts.mesh.rescale_by_label">
-<code class="descclassname">mindboggle.guts.mesh.</code><code class="descname">rescale_by_label</code><span class="sig-paren">(</span><em>input_vtk</em>, <em>labels_or_file</em>, <em>save_file=False</em>, <em>output_filestring='rescaled_scalars'</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.mesh.rescale_by_label" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.guts.mesh.</code><code class="descname">rescale_by_label</code><span class="sig-paren">(</span><em>input_vtk</em>, <em>labels_or_file</em>, <em>save_file=False</em>, <em>output_filestring='rescaled_scalars'</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.mesh.rescale_by_label" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rescale scalars for each label (such as depth values within each fold).</p>
 <p>Default is to normalize the scalar values of a VTK file by
 a percentile value in each vertex&#8217;s surface mesh for each label.</p>
@@ -956,6 +1004,10 @@ a percentile value in each vertex&#8217;s surface mesh for each label.</p>
 <blockquote>
 <div><p>name of output file</p>
 </div></blockquote>
+<p><strong>verbose</strong> : Boolean</p>
+<blockquote>
+<div><p>print statements?</p>
+</div></blockquote>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>rescaled_scalars</strong> : list of floats</p>
@@ -971,27 +1023,30 @@ a percentile value in each vertex&#8217;s surface mesh for each label.</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Rescale depths by neighborhood within each label:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Rescale depths by neighborhood within each label:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">rescale_by_label</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span><span class="p">,</span> <span class="n">rewrite_scalars</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_vtk</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.travel_depth.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">labels_or_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;features&#39;</span><span class="p">,</span> <span class="s">&#39;subfolds.vtk&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_vtk</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_travel_depth&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">labels_or_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_folds&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">save_file</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_filestring</span> <span class="o">=</span> <span class="s">&#39;rescaled_scalars&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">rescaled_scalars</span><span class="p">,</span> <span class="n">rescaled_scalars_file</span> <span class="o">=</span> <span class="n">rescale_by_label</span><span class="p">(</span><span class="n">input_vtk</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">labels_or_file</span><span class="p">,</span> <span class="n">save_file</span><span class="p">,</span> <span class="n">output_filestring</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View rescaled scalar values per fold:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">folds_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;features&#39;</span><span class="p">,</span> <span class="s">&#39;folds.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">folds</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">read_scalars</span><span class="p">(</span><span class="n">folds_file</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">rewrite_scalars</span><span class="p">(</span><span class="n">rescaled_scalars_file</span><span class="p">,</span> <span class="n">rescaled_scalars_file</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>                <span class="n">rescaled_scalars</span><span class="p">,</span> <span class="s">&#39;rescaled_depths&#39;</span><span class="p">,</span> <span class="n">folds</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">rescaled_scalars_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_filestring</span> <span class="o">=</span> <span class="s1">&#39;rescaled_scalars&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rescaled</span><span class="p">,</span> <span class="n">rescaled_label_file</span> <span class="o">=</span> <span class="n">rescale_by_label</span><span class="p">(</span><span class="n">input_vtk</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">labels_or_file</span><span class="p">,</span> <span class="n">save_file</span><span class="p">,</span> <span class="n">output_filestring</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars1</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">read_scalars</span><span class="p">(</span><span class="n">input_vtk</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;{0:0.5f}, {1:0.5f}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">scalars1</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">rescaled</span><span class="p">)))</span>
+<span class="go">34.95560, 1.00000</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;{0:0.5f}, {1:0.5f}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">scalars1</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">rescaled</span><span class="p">)))</span>
+<span class="go">7.43822, 0.28389</span>
+</pre></div>
+</div>
+<p>View rescaled scalar values on surface (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">rescaled_label_file</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -1052,30 +1107,33 @@ in each vertex&#8217;s surface mesh neighborhood.</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">rescale_by_neighborhood</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span><span class="p">,</span> <span class="n">rewrite_scalars</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_vtk</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.travel_depth.vtk&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_vtk</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_travel_depth&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">indices</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">nedges</span> <span class="o">=</span> <span class="mi">10</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="mi">99</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">set_max_to_1</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">save_file</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_filestring</span> <span class="o">=</span> <span class="s">&#39;rescaled_scalars&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_filestring</span> <span class="o">=</span> <span class="s1">&#39;rescaled_scalars&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">background_value</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">rescaled_scalars</span><span class="p">,</span> <span class="n">rescaled_scalars_file</span> <span class="o">=</span> <span class="n">rescale_by_neighborhood</span><span class="p">(</span><span class="n">input_vtk</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">indices</span><span class="p">,</span> <span class="n">nedges</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">set_max_to_1</span><span class="p">,</span> <span class="n">save_file</span><span class="p">,</span> <span class="n">output_filestring</span><span class="p">,</span> <span class="n">background_value</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View rescaled scalar values per fold:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">folds_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;features&#39;</span><span class="p">,</span> <span class="s">&#39;folds.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">folds</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">read_scalars</span><span class="p">(</span><span class="n">folds_file</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">rewrite_scalars</span><span class="p">(</span><span class="n">rescaled_scalars_file</span><span class="p">,</span> <span class="n">rescaled_scalars_file</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>                <span class="n">rescaled_scalars</span><span class="p">,</span> <span class="s">&#39;rescaled_depths&#39;</span><span class="p">,</span> <span class="n">folds</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">rescaled_scalars_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rescaled</span><span class="p">,</span> <span class="n">rescaled_file</span> <span class="o">=</span> <span class="n">rescale_by_neighborhood</span><span class="p">(</span><span class="n">input_vtk</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">indices</span><span class="p">,</span> <span class="n">nedges</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">set_max_to_1</span><span class="p">,</span> <span class="n">save_file</span><span class="p">,</span> <span class="n">output_filestring</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">background_value</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars1</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">read_scalars</span><span class="p">(</span><span class="n">input_vtk</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;{0:0.5f}, {1:0.5f}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">scalars1</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">rescaled</span><span class="p">)))</span>
+<span class="go">34.95560, 1.00000</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;{0:0.5f}, {1:0.5f}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">scalars1</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">rescaled</span><span class="p">)))</span>
+<span class="go">7.43822, 0.44950</span>
+</pre></div>
+</div>
+<p>View rescaled scalar values on surface (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">rescaled_file</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>

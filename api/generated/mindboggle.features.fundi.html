@@ -93,14 +93,14 @@
 <span id="module-features-fundi"></span><h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">features.fundi</span></code><a class="headerlink" href="#module-mindboggle.features.fundi" title="Permalink to this headline">¶</a></h2>
 <p>Extract fundus curves from surface mesh patches (folds).</p>
 <p>Authors:
-Arno Klein, 2013  .  <a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>  .  www.binarybottle.com</p>
-<p>Copyright 2013,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
+Arno Klein, 2013-2016  .  <a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>  .  www.binarybottle.com</p>
+<p>Copyright 2016,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
 </div>
 <div class="section" id="functions">
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mindboggle.features.fundi.extract_fundi">
-<code class="descclassname">mindboggle.features.fundi.</code><code class="descname">extract_fundi</code><span class="sig-paren">(</span><em>folds</em>, <em>curv_file</em>, <em>depth_file</em>, <em>min_separation=10</em>, <em>erode_ratio=0.1</em>, <em>erode_min_size=1</em>, <em>save_file=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.features.fundi.extract_fundi" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.features.fundi.</code><code class="descname">extract_fundi</code><span class="sig-paren">(</span><em>folds</em>, <em>curv_file</em>, <em>depth_file</em>, <em>min_separation=10</em>, <em>erode_ratio=0.1</em>, <em>erode_min_size=1</em>, <em>save_file=False</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.features.fundi.extract_fundi" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extract fundi from folds.</p>
 <p>A fundus is a branching curve that runs along the deepest and most
 highly curved portions of a fold.</p>
@@ -147,6 +147,10 @@ in connect_points_erosion()</p>
 <blockquote>
 <div><p>save output VTK file?</p>
 </div></blockquote>
+<p><strong>verbose</strong> : Boolean</p>
+<blockquote>
+<div><p>print statements?</p>
+</div></blockquote>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>fundus_per_fold</strong> : list of integers</p>
@@ -167,36 +171,45 @@ in connect_points_erosion()</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Extract fundus from one or more folds:</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Extract fundus from one or more folds:</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">single_fold</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.features.fundi</span> <span class="kn">import</span> <span class="n">extract_fundi</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">curv_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.mean_curvature.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">depth_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;travel_depth_rescaled.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">folds_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;features&#39;</span><span class="p">,</span> <span class="s">&#39;folds.vtk&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">curv_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_mean_curvature&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">depth_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_travel_depth&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">folds_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_folds&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">folds</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">read_scalars</span><span class="p">(</span><span class="n">folds_file</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">single_fold</span><span class="p">:</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">fold_number</span> <span class="o">=</span> <span class="mi">2</span> <span class="c">#11</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">folds</span><span class="p">[</span><span class="n">folds</span> <span class="o">!=</span> <span class="n">fold_number</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="gp">... </span>    <span class="n">fold_number</span> <span class="o">=</span> <span class="mi">2</span> <span class="c1">#11</span>
+<span class="gp">... </span>    <span class="n">folds</span><span class="p">[</span><span class="n">folds</span> <span class="o">!=</span> <span class="n">fold_number</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">min_separation</span> <span class="o">=</span> <span class="mi">10</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">erode_ratio</span> <span class="o">=</span> <span class="mf">0.10</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">erode_min_size</span> <span class="o">=</span> <span class="mi">10</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">save_file</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">o1</span><span class="p">,</span> <span class="n">o2</span><span class="p">,</span> <span class="n">fundus_per_fold_file</span> <span class="o">=</span> <span class="n">extract_fundi</span><span class="p">(</span><span class="n">folds</span><span class="p">,</span> <span class="n">curv_file</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">depth_file</span><span class="p">,</span> <span class="n">min_separation</span><span class="p">,</span> <span class="n">erode_ratio</span><span class="p">,</span> <span class="n">erode_min_size</span><span class="p">,</span> <span class="n">save_file</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">fundi_file</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">depth_file</span><span class="p">,</span> <span class="n">min_separation</span><span class="p">,</span> <span class="n">erode_ratio</span><span class="p">,</span> <span class="n">erode_min_size</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">save_file</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">single_fold</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">lens</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">o1</span> <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="mi">2</span><span class="p">])]</span>
+<span class="gp">... </span><span class="k">else</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">lens</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">o1</span> <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="n">y</span><span class="p">])</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">o2</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lens</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">10</span><span class="p">]</span>
+<span class="go">[115]</span>
+</pre></div>
+</div>
+<p>View result (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">fundus_per_fold_file</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="mindboggle.features.fundi.segment_fundi">
-<code class="descclassname">mindboggle.features.fundi.</code><code class="descname">segment_fundi</code><span class="sig-paren">(</span><em>fundus_per_fold</em>, <em>sulci=[]</em>, <em>vtk_file=''</em>, <em>save_file=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.features.fundi.segment_fundi" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.features.fundi.</code><code class="descname">segment_fundi</code><span class="sig-paren">(</span><em>fundus_per_fold</em>, <em>sulci=[]</em>, <em>vtk_file=''</em>, <em>save_file=False</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.features.fundi.segment_fundi" title="Permalink to this definition">¶</a></dt>
 <dd><p>Segment fundi by sulcus definitions.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -219,6 +232,10 @@ in connect_points_erosion()</p>
 <blockquote>
 <div><p>save output VTK file?</p>
 </div></blockquote>
+<p><strong>verbose</strong> : Boolean</p>
+<blockquote>
+<div><p>print statements?</p>
+</div></blockquote>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>fundus_per_sulcus</strong> : list of integers</p>
@@ -239,31 +256,45 @@ in connect_points_erosion()</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Extract fundus from one or more sulci:</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Extract fundus from one or more sulci:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">single_fold</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.features.fundi</span> <span class="kn">import</span> <span class="n">segment_fundi</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.features.fundi</span> <span class="kn">import</span> <span class="n">extract_fundi</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.features.fundi</span> <span class="kn">import</span> <span class="n">extract_fundi</span><span class="p">,</span> <span class="n">segment_fundi</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;features&#39;</span><span class="p">,</span> <span class="s">&#39;sulci.vtk&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">curv_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_mean_curvature&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">depth_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_travel_depth&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">folds_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_folds&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_sulci&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sulci</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">read_scalars</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">curv_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.mean_curvature.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">depth_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;travel_depth_rescaled.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">folds_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;features&#39;</span><span class="p">,</span> <span class="s">&#39;folds.vtk&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">folds</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">read_scalars</span><span class="p">(</span><span class="n">folds_file</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">single_fold</span><span class="p">:</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">fold_number</span> <span class="o">=</span> <span class="mi">2</span> <span class="c">#11</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">folds</span><span class="p">[</span><span class="n">folds</span> <span class="o">!=</span> <span class="n">fold_number</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="gp">... </span>    <span class="n">fold_number</span> <span class="o">=</span> <span class="mi">2</span> <span class="c1">#11</span>
+<span class="gp">... </span>    <span class="n">folds</span><span class="p">[</span><span class="n">folds</span> <span class="o">!=</span> <span class="n">fold_number</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">min_separation</span> <span class="o">=</span> <span class="mi">10</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">erode_ratio</span> <span class="o">=</span> <span class="mf">0.10</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">erode_min_size</span> <span class="o">=</span> <span class="mi">10</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">save_file</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fundus_per_fold</span><span class="p">,</span> <span class="n">o1</span><span class="p">,</span> <span class="n">o2</span> <span class="o">=</span> <span class="n">extract_fundi</span><span class="p">(</span><span class="n">folds</span><span class="p">,</span> <span class="n">curv_file</span><span class="p">,</span> <span class="n">depth_file</span><span class="p">,</span> <span class="n">min_separation</span><span class="p">,</span> <span class="n">erode_ratio</span><span class="p">,</span> <span class="n">erode_min_size</span><span class="p">,</span> <span class="n">save_file</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">o1</span><span class="p">,</span> <span class="n">o2</span><span class="p">,</span> <span class="n">fundus_per_sulcus_file</span> <span class="o">=</span> <span class="n">segment_fundi</span><span class="p">(</span><span class="n">fundus_per_fold</span><span class="p">,</span> <span class="n">sulci</span><span class="p">,</span> <span class="n">vtk_file</span><span class="p">,</span> <span class="n">save_file</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">fundus_per_sulcus_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fundus_per_fold</span><span class="p">,</span> <span class="n">o1</span><span class="p">,</span> <span class="n">o2</span> <span class="o">=</span> <span class="n">extract_fundi</span><span class="p">(</span><span class="n">folds</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">curv_file</span><span class="p">,</span> <span class="n">depth_file</span><span class="p">,</span> <span class="n">min_separation</span><span class="p">,</span> <span class="n">erode_ratio</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">erode_min_size</span><span class="p">,</span> <span class="n">save_file</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">o1</span><span class="p">,</span> <span class="n">o2</span><span class="p">,</span> <span class="n">fundus_per_sulcus_file</span> <span class="o">=</span> <span class="n">segment_fundi</span><span class="p">(</span><span class="n">fundus_per_fold</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">sulci</span><span class="p">,</span> <span class="n">vtk_file</span><span class="p">,</span> <span class="n">save_file</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">segment_numbers</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">o1</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lens</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">single_fold</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">segment_number</span> <span class="ow">in</span> <span class="n">segment_numbers</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">lens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">o1</span> <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="n">segment_number</span><span class="p">]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lens</span>
+<span class="go">[14, 13, 88]</span>
+</pre></div>
+</div>
+<p>View result (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">fundus_per_sulcus_file</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>

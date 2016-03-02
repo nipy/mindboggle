@@ -107,7 +107,7 @@
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mindboggle.shapes.zernike.zernike.zernike_moments">
-<code class="descclassname">mindboggle.shapes.zernike.zernike.</code><code class="descname">zernike_moments</code><span class="sig-paren">(</span><em>points</em>, <em>faces</em>, <em>order=10</em>, <em>scale_input=True</em>, <em>decimate_fraction=0</em>, <em>decimate_smooth=0</em>, <em>pl_cls=None</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.zernike.zernike.zernike_moments" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.shapes.zernike.zernike.</code><code class="descname">zernike_moments</code><span class="sig-paren">(</span><em>points</em>, <em>faces</em>, <em>order=10</em>, <em>scale_input=True</em>, <em>decimate_fraction=0</em>, <em>decimate_smooth=0</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.zernike.zernike.zernike_moments" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the Zernike moments of a surface patch of points and faces.</p>
 <p>Optionally decimate the input mesh.</p>
 <dl class="docutils">
@@ -144,6 +144,10 @@
 <blockquote>
 <div><p>number of smoothing steps for decimation</p>
 </div></blockquote>
+<p><strong>verbose</strong> : Boolean</p>
+<blockquote>
+<div><p>print statements?</p>
+</div></blockquote>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>descriptors</strong> : list of floats</p>
@@ -155,125 +159,76 @@
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Example 1: simple cube (decimation results in a Segmentation Fault):</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Example 1: simple cube (decimation results in a Segmentation Fault):</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.zernike.zernike</span> <span class="kn">import</span> <span class="n">zernike_moments</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span>
+<span class="gp">... </span>          <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">7</span><span class="p">]]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">order</span> <span class="o">=</span> <span class="mi">3</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">scale_input</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">zernike_moments</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">scale_input</span><span class="p">)</span>
-<span class="go">[0.0918881492369654,</span>
-<span class="go"> 0.09357431096617608,</span>
-<span class="go"> 0.04309029164656885,</span>
-<span class="go"> 0.06466432586854755,</span>
-<span class="go"> 0.03820155248327533,</span>
-<span class="go"> 0.04138011726544602]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Example 2: simple cube (with inner diagonal plane):</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># (decimation doesn&#39;t have any effect)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_vtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.zernike.zernike</span> <span class="kn">import</span> <span class="n">zernike_moments</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;cube.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">scalars</span><span class="p">,</span> <span class="n">scalar_names</span><span class="p">,</span> <span class="n">npoints</span><span class="p">,</span> <span class="n">input_vtk</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">order</span> <span class="o">=</span> <span class="mi">3</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">scale_input</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">zernike_moments</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">scale_input</span><span class="p">)</span>
-<span class="go">[0.0,</span>
-<span class="go"> 1.5444366221695725e-21,</span>
-<span class="go"> 0.0,</span>
-<span class="go"> 2.081366518964347e-21,</span>
-<span class="go"> 5.735003646768394e-05,</span>
-<span class="go"> 2.433866250546253e-21]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">descriptors</span> <span class="o">=</span> <span class="n">zernike_moments</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">scale_input</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">verbose</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">descriptors</span><span class="p">),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 0.09189  0.09357  0.04309  0.06466  0.0382   0.04138]</span>
 </pre></div>
 </div>
-<p>Arthur Mikhno&#8217;s result:
-0
-0
-0.2831
-10.6997
-2.1352
-11.8542
-&gt;&gt;&gt; # Example 2.5: Parallelepiped.vtk:
-&gt;&gt;&gt; import os
-&gt;&gt;&gt; from mindboggle.mio.vtks import read_vtk
-&gt;&gt;&gt; from mindboggle.shapes.zernike.zernike import zernike_moments
-&gt;&gt;&gt; path = os.environ[&#8216;MINDBOGGLE_DATA&#8217;]
-&gt;&gt;&gt; vtk_file = os.path.join(path, &#8216;Parallelepiped.vtk&#8217;)
-&gt;&gt;&gt; points, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(vtk_file)
-&gt;&gt;&gt; order = 3
-&gt;&gt;&gt; scale_input = True
-&gt;&gt;&gt; zernike_moments(points, faces, order, scale_input)
-[0.2652000150907399,</p>
-<blockquote>
-<div>0.27006648207389017,
-6.902814314591948e-09,
-7.901431343883835e-09,
-0.12685697496878662,
-5.560135951999606e-09]</div></blockquote>
-<p>Arthur Mikhno&#8217;s result:
-0.0251
-0.0310
-0.0255
-0.0451
-0.0189
-0.0133
-&gt;&gt;&gt; # Example 3: Twins-2-1 left postcentral pial surface &#8211; NO decimation:
-&gt;&gt;&gt; # (zernike_moments took 142 seconds for order = 3 with no decimation)
-&gt;&gt;&gt; import os
-&gt;&gt;&gt; from mindboggle.mio.vtks import read_vtk
-&gt;&gt;&gt; from mindboggle.guts.mesh import remove_faces
-&gt;&gt;&gt; from mindboggle.shapes.zernike.zernike import zernike_moments
-&gt;&gt;&gt; path = os.environ[&#8216;MINDBOGGLE_DATA&#8217;]
-&gt;&gt;&gt; label_file = os.path.join(path, &#8216;arno&#8217;, &#8216;labels&#8217;, &#8216;lh.labels.DKT31.manual.vtk&#8217;)
-&gt;&gt;&gt; points, indices, lines, faces, labels, scalar_names, npoints, input_vtk = read_vtk(label_file)
-&gt;&gt;&gt; I22 = [i for i,x in enumerate(labels) if x==22] # postcentral
-&gt;&gt;&gt; faces = remove_faces(faces, I22)
-&gt;&gt;&gt; order = 3
-&gt;&gt;&gt; scale_input = True
-&gt;&gt;&gt; zernike_moments(points, faces, order, scale_input)</p>
-<blockquote>
-<div>[0.005558794553842859,
-0.009838755429501177,
-0.003512500896236744,
-0.00899042745665395,
-0.001672289910738449,
-0.000919469614081582]</div></blockquote>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Example 5: left postcentral + pars triangularis pial surfaces:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_vtk</span><span class="p">,</span> <span class="n">write_vtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">remove_faces</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.zernike.zernike</span> <span class="kn">import</span> <span class="n">zernike_moments</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">label_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;lh.labels.DKT31.manual.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">scalar_names</span><span class="p">,</span> <span class="n">npoints</span><span class="p">,</span> <span class="n">input_vtk</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">label_file</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">I20</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span><span class="o">==</span><span class="mi">20</span><span class="p">]</span> <span class="c"># pars triangularis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">I22</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span><span class="o">==</span><span class="mi">22</span><span class="p">]</span> <span class="c"># postcentral</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">I22</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">I20</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="n">remove_faces</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">I22</span><span class="p">)</span>
+<dl class="docutils">
+<dt>Example 2: Twins-2-1 left postcentral pial surface &#8211; NO decimation:</dt>
+<dd>(zernike_moments took 142 seconds for order = 3 with no decimation)</dd>
+</dl>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_vtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">keep_faces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">label_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span><span class="p">,</span> <span class="n">f1</span><span class="p">,</span><span class="n">f2</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">f3</span><span class="p">,</span><span class="n">f4</span><span class="p">,</span><span class="n">f5</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">label_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">I22</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span><span class="o">==</span><span class="mi">1022</span><span class="p">]</span> <span class="c1"># postcentral</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="n">keep_faces</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">I22</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">order</span> <span class="o">=</span> <span class="mi">3</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">scale_input</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">zernike_moments</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">scale_input</span><span class="p">)</span>
-<span class="go">[0.006591540793309832,</span>
-<span class="go"> 0.010749937070447451,</span>
-<span class="go"> 0.0034900573103799214,</span>
-<span class="go"> 0.008972460360983864,</span>
-<span class="go"> 0.0018220183025464518,</span>
-<span class="go"> 0.0016893113500293917]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View both segments:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">labels</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">descriptors</span> <span class="o">=</span> <span class="n">zernike_moments</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">scale_input</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">verbose</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">descriptors</span><span class="p">),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 0.00471  0.0084   0.00295  0.00762  0.0014   0.00076]</span>
+</pre></div>
+</div>
+<p>Example 3: left postcentral + pars triangularis pial surfaces:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_vtk</span><span class="p">,</span> <span class="n">write_vtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span><span class="p">,</span> <span class="n">f1</span><span class="p">,</span><span class="n">f2</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">f3</span><span class="p">,</span><span class="n">f4</span><span class="p">,</span><span class="n">f5</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">label_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">I20</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span><span class="o">==</span><span class="mi">1020</span><span class="p">]</span> <span class="c1"># pars triangularis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">I22</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span><span class="o">==</span><span class="mi">1022</span><span class="p">]</span> <span class="c1"># postcentral</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">I22</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">I20</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="n">keep_faces</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">I22</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">order</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scale_input</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">descriptors</span> <span class="o">=</span> <span class="n">zernike_moments</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">scale_input</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">verbose</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">descriptors</span><span class="p">),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 0.00586  0.00973  0.00322  0.00818  0.0013   0.00131]</span>
+</pre></div>
+</div>
+<p>View both segments (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">labels</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">scalars</span><span class="p">[</span><span class="n">I22</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="s">&#39;test_two_labels.vtk&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">write_vtk</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="p">[],[],</span> <span class="n">faces</span><span class="p">,</span> <span class="n">scalars</span><span class="p">,</span> <span class="n">scalar_names</span><span class="o">=</span><span class="s">&#39;scalars&#39;</span><span class="p">,</span> <span class="n">scalar_type</span><span class="o">=</span><span class="s">&#39;int&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="s1">&#39;test_two_labels.vtk&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Note: mismatch in the following command:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">write_vtk</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="p">[],[],</span> <span class="n">faces</span><span class="p">,</span> <span class="n">scalars</span><span class="p">,</span> <span class="s1">&#39;scalars&#39;</span><span class="p">,</span> <span class="s1">&#39;int&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="mindboggle.shapes.zernike.zernike.zernike_moments_per_label">
-<code class="descclassname">mindboggle.shapes.zernike.zernike.</code><code class="descname">zernike_moments_per_label</code><span class="sig-paren">(</span><em>vtk_file, order=10, exclude_labels=[-1], scale_input=True, decimate_fraction=0, decimate_smooth=25</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.zernike.zernike.zernike_moments_per_label" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.shapes.zernike.zernike.</code><code class="descname">zernike_moments_per_label</code><span class="sig-paren">(</span><em>vtk_file, order=10, exclude_labels=[-1], scale_input=True, decimate_fraction=0, decimate_smooth=25, verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.zernike.zernike.zernike_moments_per_label" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the Zernike moments per labeled region in a file.</p>
 <p>Optionally decimate the input mesh.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -305,6 +260,10 @@
 <blockquote>
 <div><p>number of smoothing steps for decimation</p>
 </div></blockquote>
+<p><strong>verbose</strong> : Boolean</p>
+<blockquote>
+<div><p>print statements?</p>
+</div></blockquote>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>descriptors_lists</strong> : list of lists of floats</p>
@@ -320,44 +279,39 @@
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Uncomment &quot;if label==22:&quot; below to run example:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Twins-2-1 left postcentral (22) pial surface:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Zernike moments per label of a FreeSurfer-labeled left cortex.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Uncomment &quot;if label==22:&quot; below to run example</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># for left postcentral (22) pial surface:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.zernike.zernike</span> <span class="kn">import</span> <span class="n">zernike_moments_per_label</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;HOME&#39;</span><span class="p">],</span> <span class="s">&#39;mindboggled&#39;</span><span class="p">,</span> <span class="s">&#39;OASIS-TRT-20-1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;left_surface&#39;</span><span class="p">,</span> <span class="s">&#39;relabeled_classifier.vtk&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_freesurfer_labels&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">order</span> <span class="o">=</span> <span class="mi">3</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">exclude_labels</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exclude_labels</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">scale_input</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">zernike_moments_per_label</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">exclude_labels</span><span class="p">,</span> <span class="n">scale_input</span><span class="p">)</span>
-<span class="go">([[0.00528486237819844,</span>
-<span class="go">   0.009571754617699853,</span>
-<span class="go">   0.0033489494903015944,</span>
-<span class="go">   0.00875603468268444,</span>
-<span class="go">   0.0015879536633349918,</span>
-<span class="go">   0.0008080165707033097]],</span>
-<span class="go"> [22])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">descriptors_lists</span><span class="p">,</span> <span class="n">label_list</span> <span class="o">=</span> <span class="n">zernike_moments_per_label</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">order</span><span class="p">,</span> <span class="n">exclude_labels</span><span class="p">,</span> <span class="n">scale_input</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">label_list</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">10</span><span class="p">]</span>
+<span class="go">[999, 1001, 1002, 1003, 1005, 1006, 1007, 1008, 1009, 1010]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">descriptors_lists</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+<span class="gp">... </span>                   <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 0.00587  0.01143  0.0031   0.00881  0.00107  0.00041]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">descriptors_lists</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+<span class="gp">... </span>                   <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 0.00004  0.00009  0.00003  0.00009  0.00002  0.00001]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">descriptors_lists</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
+<span class="gp">... </span>                   <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 0.00144  0.00232  0.00128  0.00304  0.00084  0.00051]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">descriptors_lists</span><span class="p">[</span><span class="mi">3</span><span class="p">]),</span>
+<span class="gp">... </span>                   <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 0.00393  0.006    0.00371  0.00852  0.00251  0.00153]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">descriptors_lists</span><span class="p">[</span><span class="mi">4</span><span class="p">]),</span>
+<span class="gp">... </span>                   <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 0.00043  0.0003   0.00095  0.00051  0.00115  0.00116]</span>
 </pre></div>
 </div>
-<dl class="docutils">
-<dt>([[0.0018758013185778298,</dt>
-<dd><blockquote class="first">
-<div>0.001757973693050823,
-0.002352403177686726,
-0.0032281044369938286,
-0.002215900343702539,
-0.0019646380916703856]],</div></blockquote>
-<p class="last">[14.0])</p>
-</dd>
-</dl>
-<p>Arthur Mikhno&#8217;s result:
-1.0e+07 *
-0.0000
-0.0179
-0.0008
-4.2547
-0.0534
-4.4043</p>
 </dd></dl>
 
 </div>

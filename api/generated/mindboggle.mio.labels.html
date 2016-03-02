@@ -178,9 +178,14 @@ integer pairs corresponding to label boundaries / sulcus / fundus</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.labels</span> <span class="kn">import</span> <span class="n">DKTprotocol</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.labels</span> <span class="kn">import</span> <span class="n">DKTprotocol</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dkt</span> <span class="o">=</span> <span class="n">DKTprotocol</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dkt</span><span class="o">.</span><span class="n">left_cerebrum_names</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dkt</span><span class="o">.</span><span class="n">left_cerebrum_names</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">[&#39;Left-Cerebral-Cortex&#39;, &#39;Left-Insula&#39;, &#39;Left-Operculum&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dkt</span><span class="o">.</span><span class="n">left_cerebrum_numbers</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">10</span><span class="p">]</span>
+<span class="go">[3, 19, 20, 1000, 1001, 1002, 1003, 1005, 1006, 1007]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dkt</span><span class="o">.</span><span class="n">left_cerebrum_colors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">[205, 62, 78]</span>
 </pre></div>
 </div>
 <dl class="method">
@@ -670,8 +675,15 @@ regions derived from FreeSurfer&#8217;s FreeSurferColorLUT.txt lookup file.</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.labels</span> <span class="kn">import</span> <span class="n">return_numbers_names_colors</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.labels</span> <span class="kn">import</span> <span class="n">return_numbers_names_colors</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">numbers</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">colors</span> <span class="o">=</span> <span class="n">return_numbers_names_colors</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">numbers</span><span class="p">))</span>
+<span class="go">1266</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">names</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">[&#39;Unknown&#39;, &#39;Left-Cerebral-Exterior&#39;, &#39;Left-Cerebral-White-Matter&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">colors</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">[[0, 0, 0], [70, 130, 180], [245, 245, 245]]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -897,7 +909,7 @@ regions from FreeSurfer&#8217;s FreeSurferColorLUT.txt lookup table file.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>FreeSurferColorLUT</strong> : string</p>
 <blockquote>
-<div><p>full path to FreeSurferColorLUT.txt file</p>
+<div><p>full path to FreeSurferColorLUT.txt file (else uses local Python file)</p>
 </div></blockquote>
 </td>
 </tr>
@@ -918,9 +930,9 @@ regions from FreeSurfer&#8217;s FreeSurferColorLUT.txt lookup table file.</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.labels</span> <span class="kn">import</span> <span class="n">extract_numbers_names_colors</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ennc</span> <span class="o">=</span> <span class="n">extract_numbers_names_colors</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">en1</span><span class="p">,</span><span class="n">en2</span><span class="p">,</span><span class="n">ec</span> <span class="o">=</span> <span class="n">ennc</span><span class="p">(</span><span class="s">&#39;/Applications/freesurfer/FreeSurferColorLUT.txt&#39;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.labels</span> <span class="kn">import</span> <span class="n">extract_numbers_names_colors</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ennc</span> <span class="o">=</span> <span class="n">extract_numbers_names_colors</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">en1</span><span class="p">,</span><span class="n">en2</span><span class="p">,</span><span class="n">ec</span> <span class="o">=</span> <span class="n">ennc</span><span class="p">(</span><span class="s1">&#39;/Applications/freesurfer/FreeSurferColorLUT.txt&#39;</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -942,10 +954,16 @@ regions from FreeSurfer&#8217;s FreeSurferColorLUT.txt lookup table file.</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.labels</span> <span class="kn">import</span> <span class="n">DKTprotocol</span><span class="p">,</span> <span class="n">print_colormap</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.labels</span> <span class="kn">import</span> <span class="n">DKTprotocol</span><span class="p">,</span> <span class="n">print_colormap</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dkt</span> <span class="o">=</span> <span class="n">DKTprotocol</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">colormap</span> <span class="o">=</span> <span class="n">dkt</span><span class="o">.</span><span class="n">colormap_normalized</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">print_colormap</span><span class="p">(</span><span class="n">colormap</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">colormap</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">[3, 1, 0.803921568627451, 0.24313725490196078, 0.3058823529411765]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">colormap</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="go">[19, 1, 0.3137254901960784, 0.7686274509803922, 0.3843137254901961]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">colormap</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+<span class="go">[20, 1, 0.23529411764705882, 0.22745098039215686, 0.8235294117647058]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_colormap</span><span class="p">(</span><span class="n">colormap</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -976,8 +994,15 @@ regions derived from FreeSurfer&#8217;s FreeSurferColorLUT.txt lookup file.</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.labels</span> <span class="kn">import</span> <span class="n">return_numbers_names_colors</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.labels</span> <span class="kn">import</span> <span class="n">return_numbers_names_colors</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">numbers</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">colors</span> <span class="o">=</span> <span class="n">return_numbers_names_colors</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">numbers</span><span class="p">))</span>
+<span class="go">1266</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">names</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">[&#39;Unknown&#39;, &#39;Left-Cerebral-Exterior&#39;, &#39;Left-Cerebral-White-Matter&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">colors</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">[[0, 0, 0], [70, 130, 180], [245, 245, 245]]</span>
 </pre></div>
 </div>
 </dd></dl>

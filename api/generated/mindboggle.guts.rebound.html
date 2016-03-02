@@ -93,12 +93,15 @@
 <h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">guts.rebound</span></code><a class="headerlink" href="#module-guts-rebound" title="Permalink to this headline">¶</a></h2>
 <p>Inheritance diagram for <code class="docutils literal"><span class="pre">mindboggle.guts.rebound</span></code>:</p>
 <span class="target" id="module-mindboggle.guts.rebound"></span><p>Python module for adjusting label borders on a surface mesh.</p>
-<p>Authors:
-Eliezer Stavsky, 2012  .  <a class="reference external" href="mailto:eli&#46;stavsky&#37;&#52;&#48;gmail&#46;com">eli<span>&#46;</span>stavsky<span>&#64;</span>gmail<span>&#46;</span>com</a>
-Arno Klein, 2012-2013  .  <a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>  .  www.binarybottle.com</p>
-<ol class="loweralpha simple" start="3">
-<li>2013  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0</li>
-</ol>
+<dl class="docutils">
+<dt>Authors:</dt>
+<dd><ul class="first last simple">
+<li>Eliezer Stavsky, 2012  (<a class="reference external" href="mailto:eli&#46;stavsky&#37;&#52;&#48;gmail&#46;com">eli<span>&#46;</span>stavsky<span>&#64;</span>gmail<span>&#46;</span>com</a>)</li>
+<li>Arno Klein, 2012-2016  (<a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>)  <a class="reference external" href="http://binarybottle.com">http://binarybottle.com</a></li>
+</ul>
+</dd>
+</dl>
+<p>Copyright 2016,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
 </div>
 <div class="section" id="bounds">
 <h2><a class="reference internal" href="#mindboggle.guts.rebound.Bounds" title="mindboggle.guts.rebound.Bounds"><code class="xref py py-class docutils literal"><span class="pre">Bounds</span></code></a><a class="headerlink" href="#bounds" title="Permalink to this headline">¶</a></h2>
@@ -118,13 +121,13 @@ Finding label boundaries</p>
 
 <dl class="method">
 <dt id="mindboggle.guts.rebound.Bounds.analyze_label_polylines_intersections">
-<code class="descname">analyze_label_polylines_intersections</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.analyze_label_polylines_intersections" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div>Find polyline vertices which intersect label boundary, and determine whether they belong to the same fundus curve.</div></blockquote>
-<p>#        NOTE:  Requires sequential vertices for fundus or label boundary
-#               WORKING?</p>
-<blockquote>
-<div>Runs functions: self.find_label_boundary_segments() - if necessary</div></blockquote>
+<code class="descname">analyze_label_polylines_intersections</code><span class="sig-paren">(</span><em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.analyze_label_polylines_intersections" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find polyline vertices which intersect label boundary, and determine whether they belong to the same fundus curve.</p>
+<dl class="docutils">
+<dt>NOTE:  Requires sequential vertices for fundus or label boundary</dt>
+<dd>WORKING?</dd>
+</dl>
+<p>Runs functions: self.find_label_boundary_segments() - if necessary</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -143,7 +146,7 @@ This list may change as the algorithm for propagation gets more sophisticated.</
 
 <dl class="method">
 <dt id="mindboggle.guts.rebound.Bounds.assign_max_prob_label">
-<code class="descname">assign_max_prob_label</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.assign_max_prob_label" title="Permalink to this definition">¶</a></dt>
+<code class="descname">assign_max_prob_label</code><span class="sig-paren">(</span><em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.assign_max_prob_label" title="Permalink to this definition">¶</a></dt>
 <dd><p>Assign hard labels to vertices by finding the highest probability label
 of self.learned_matrix. Output results to a VTK file.</p>
 <p>This method takes self.learned_matrix and determines the most
@@ -165,15 +168,13 @@ max_prob_label, which contains one label for each vertex.</p>
 
 <dl class="method">
 <dt id="mindboggle.guts.rebound.Bounds.assign_realigned_labels">
-<code class="descname">assign_realigned_labels</code><span class="sig-paren">(</span><em>filename</em>, <em>threshold=0.5</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.assign_realigned_labels" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>Reassign labels to vertices after realignment.</p>
+<code class="descname">assign_realigned_labels</code><span class="sig-paren">(</span><em>filename</em>, <em>threshold=0.5</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.assign_realigned_labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reassign labels to vertices after realignment.</p>
 <p>Take the self.learned_matrix weight matrix
 and determine which vertices should be relabeled.
 Output a separate array, self.RLabels,
 that contains one label for each vertex.</p>
-</div></blockquote>
-<p>#        NOTE: assignment tricky &#8211; based on label segments NOT labels</p>
+<p>NOTE: assignment tricky &#8211; based on label segments NOT labels</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -182,12 +183,10 @@ that contains one label for each vertex.</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>self.RLabels: array (of size num_points which contains the most</strong> :</p>
-<blockquote class="last">
-<div><blockquote>
+<blockquote>
 <div><p>probable realigned label for each vertex)</p>
 </div></blockquote>
-<p>self.RLabels_file: string (vtk file containing most probable labels)</p>
-</div></blockquote>
+<p class="last"><strong>self.RLabels_file: string (vtk file containing most probable labels)</strong> :</p>
 </td>
 </tr>
 </tbody>
@@ -224,7 +223,7 @@ that contains one label for each vertex.</p>
 
 <dl class="method">
 <dt id="mindboggle.guts.rebound.Bounds.build_label_segment_matrix">
-<code class="descname">build_label_segment_matrix</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.build_label_segment_matrix" title="Permalink to this definition">¶</a></dt>
+<code class="descname">build_label_segment_matrix</code><span class="sig-paren">(</span><em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.build_label_segment_matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a vertices x label segments array of vertex label segment assignment values.</p>
 <p>This method is analogous to build_label_matrix but contains values
 associating vertices with label pairs rather than with labels.</p>
@@ -267,7 +266,7 @@ value:  list of vertices with the assigned label</p>
 
 <dl class="method">
 <dt id="mindboggle.guts.rebound.Bounds.check_for_polylines">
-<code class="descname">check_for_polylines</code><span class="sig-paren">(</span><em>dict_of_vertices</em>, <em>threshold=15</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.check_for_polylines" title="Permalink to this definition">¶</a></dt>
+<code class="descname">check_for_polylines</code><span class="sig-paren">(</span><em>dict_of_vertices</em>, <em>threshold=15</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.check_for_polylines" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check which groups of vertices contain a sufficient number that border polylines.</p>
 <dl class="docutils">
 <dt>Problem:  A group of vertices is considered for label reassignment</dt>
@@ -304,32 +303,27 @@ value:  list of vertices to be reassigned to the label</p>
 
 <dl class="method">
 <dt id="mindboggle.guts.rebound.Bounds.determine_appropriate_segments">
-<code class="descname">determine_appropriate_segments</code><span class="sig-paren">(</span><em>proportion=1</em>, <em>dist_threshold=8</em>, <em>lb_fundus_threshold=16</em>, <em>num_good_vertices=5</em>, <em>eps=1e-07</em>, <em>spread_tol=6</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.determine_appropriate_segments" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div>Determine which label boundary segments should propagate their labels.</div></blockquote>
-<p>#       NOTE:  Face validity but not directed to do what we need at present.</p>
+<code class="descname">determine_appropriate_segments</code><span class="sig-paren">(</span><em>proportion=1</em>, <em>dist_threshold=8</em>, <em>lb_fundus_threshold=16</em>, <em>num_good_vertices=5</em>, <em>eps=1e-07</em>, <em>spread_tol=6</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.determine_appropriate_segments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine which label boundary segments should propagate their labels.</p>
+<p>NOTE:  Face validity but not directed to do what we need at present.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>proportion: float (threshold of acceptable ratio of differences between polylines-to-boundary distances)</strong> :</p>
-<blockquote>
-<div><p>dist_threshold: float (threshold of absolute distance between polylines and boundary, above which propagation is prohibited)
-num_good_vertices: int (threshold above which a label boundary segment will be preserved)
-eps: float (numerical stability - avoid division by zero)
-pickled_filename: str (pkl file storing the distance matrix. Saves time.)</p>
-</div></blockquote>
+<p><strong>dist_threshold: float (threshold of absolute distance between polylines and boundary, above which propagation is prohibited)</strong> :</p>
+<p><strong>num_good_vertices: int (threshold above which a label boundary segment will be preserved)</strong> :</p>
+<p><strong>eps: float (numerical stability - avoid division by zero)</strong> :</p>
+<p><strong>pickled_filename: str (pkl file storing the distance matrix. Saves time.)</strong> :</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>self.label_segment_matrix: np array (n x num_segments matrix of labels, with zeros in unusable columns)</strong> :</p>
-<blockquote class="last">
-<div><p>Explanation</p>
-<p>In this method, we will prune the realignment matrix which was just constructed from the label boundary segments.
-The pruning will follow the principles that we want the polylines to be not too far from a given label boundary segment,
-and that it should be significantly closer to one than another.</p>
-<p>We should also preserve the shape of the label boundary.
-And the polylines should run somewhat parallel to the label boundary.</p>
-</div></blockquote>
+<p><strong>Explanation ::</strong> :</p>
+<p><strong>In this method, we will prune the realignment matrix which was just constructed from the label boundary segments.</strong> :</p>
+<p><strong>The pruning will follow the principles that we want the polylines to be not too far from a given label boundary segment,</strong> :</p>
+<p><strong>and that it should be significantly closer to one than another.</strong> :</p>
+<p><strong>We should also preserve the shape of the label boundary.</strong> :</p>
+<p class="last"><strong>And the polylines should run somewhat parallel to the label boundary.</strong> :</p>
 </td>
 </tr>
 </tbody>
@@ -338,19 +332,16 @@ And the polylines should run somewhat parallel to the label boundary.</p>
 
 <dl class="method">
 <dt id="mindboggle.guts.rebound.Bounds.find_intersections">
-<code class="descname">find_intersections</code><span class="sig-paren">(</span><em>segment</em>, <em>endpoint</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.find_intersections" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div>Find the terminal vertices which are at the intersection
-of the polylines and label boundary.</div></blockquote>
-<p>#        NOTE: FIX &#8211; no endpoints</p>
+<code class="descname">find_intersections</code><span class="sig-paren">(</span><em>segment</em>, <em>endpoint</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.find_intersections" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the terminal vertices which are at the intersection
+of the polylines and label boundary.</p>
+<p>NOTE: FIX &#8211; no endpoints</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>segment: list (vertices comprising the label boundary segment)</strong> :</p>
-<blockquote>
-<div><p>endpoint: list (two endpoints of the label boundary segment)</p>
-</div></blockquote>
+<p><strong>endpoint: list (two endpoints of the label boundary segment)</strong> :</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>intersection: list (two outermost vertices of the label boundary segment which intersect the polylines)</strong> :</p>
@@ -365,7 +356,7 @@ of the polylines and label boundary.</div></blockquote>
 
 <dl class="method">
 <dt id="mindboggle.guts.rebound.Bounds.find_label_boundary">
-<code class="descname">find_label_boundary</code><span class="sig-paren">(</span><em>output_filename</em>, <em>realigned_labels=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.find_label_boundary" title="Permalink to this definition">¶</a></dt>
+<code class="descname">find_label_boundary</code><span class="sig-paren">(</span><em>output_filename</em>, <em>realigned_labels=False</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.find_label_boundary" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the vertices for all boundaries between different labels in a mesh.</p>
 <p>Label boundaries are the set of all vertices
 whose neighbors do not share the same label.</p>
@@ -406,7 +397,7 @@ whose neighbors do not share the same label.</p>
 
 <dl class="method">
 <dt id="mindboggle.guts.rebound.Bounds.find_label_boundary_segments">
-<code class="descname">find_label_boundary_segments</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.find_label_boundary_segments" title="Permalink to this definition">¶</a></dt>
+<code class="descname">find_label_boundary_segments</code><span class="sig-paren">(</span><em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.find_label_boundary_segments" title="Permalink to this definition">¶</a></dt>
 <dd><p>Break up the label boundaries into segments (corresponding to same-label pairs).</p>
 <p>This method will output a dictionary to store label boundary segments (and subsegments).
 The key is a tuple of the currently assigned label and the adjacent label.
@@ -444,7 +435,7 @@ so we call these &#8220;label cosegments&#8221;.</p>
 
 <dl class="method">
 <dt id="mindboggle.guts.rebound.Bounds.graph_based_learning">
-<code class="descname">graph_based_learning</code><span class="sig-paren">(</span><em>method='propagate_labels'</em>, <em>realign=False</em>, <em>kernel=&lt;function rbf_kernel&gt;</em>, <em>sigma=10</em>, <em>max_iters=200</em>, <em>tol=0.001</em>, <em>vis=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.graph_based_learning" title="Permalink to this definition">¶</a></dt>
+<code class="descname">graph_based_learning</code><span class="sig-paren">(</span><em>method='propagate_labels'</em>, <em>realign=False</em>, <em>kernel=&lt;function rbf_kernel&gt;</em>, <em>sigma=10</em>, <em>max_iters=200</em>, <em>tol=0.001</em>, <em>vis=False</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.graph_based_learning" title="Permalink to this definition">¶</a></dt>
 <dd><p>Main function to perform graph-based learning, such as label propagation.</p>
 <p>Other methods include &#8220;jacobi iteration&#8221; and &#8220;label spreading&#8221;</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -473,7 +464,7 @@ so we call these &#8220;label cosegments&#8221;.</p>
 
 <dl class="method">
 <dt id="mindboggle.guts.rebound.Bounds.initialize_seed_labels">
-<code class="descname">initialize_seed_labels</code><span class="sig-paren">(</span><em>init='lines'</em>, <em>fraction=0.05</em>, <em>output_filename=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.initialize_seed_labels" title="Permalink to this definition">¶</a></dt>
+<code class="descname">initialize_seed_labels</code><span class="sig-paren">(</span><em>init='lines'</em>, <em>fraction=0.05</em>, <em>output_filename=''</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.initialize_seed_labels" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
 <div><p>Initialize a set of seed labels for relabeling or label propagation.</p>
 <p>Options include:
@@ -488,14 +479,14 @@ so we call these &#8220;label cosegments&#8221;.</p>
 
 <dl class="method">
 <dt id="mindboggle.guts.rebound.Bounds.neighbors">
-<code class="descname">neighbors</code><span class="sig-paren">(</span><em>vertex</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.neighbors" title="Permalink to this definition">¶</a></dt>
+<code class="descname">neighbors</code><span class="sig-paren">(</span><em>vertex</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.neighbors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Take a vertex as input and return an array of the vertex&#8217;s neighbors,
 as defined by self.Faces.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="mindboggle.guts.rebound.Bounds.propagate_labels">
-<code class="descname">propagate_labels</code><span class="sig-paren">(</span><em>realign</em>, <em>max_iters</em>, <em>tol</em>, <em>vis=True</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.propagate_labels" title="Permalink to this definition">¶</a></dt>
+<code class="descname">propagate_labels</code><span class="sig-paren">(</span><em>realign</em>, <em>max_iters</em>, <em>tol</em>, <em>vis=True</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.propagate_labels" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run iterative weighted average algorithm to propagate labels to unlabeled vertices.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -524,7 +515,7 @@ as defined by self.Faces.</p>
 
 <dl class="method">
 <dt id="mindboggle.guts.rebound.Bounds.realign_label_boundary">
-<code class="descname">realign_label_boundary</code><span class="sig-paren">(</span><em>surface_file</em>, <em>polylines_file</em>, <em>label_boundary_filename</em>, <em>output_file_regions</em>, <em>output_file_boundaries</em>, <em>max_iters</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.realign_label_boundary" title="Permalink to this definition">¶</a></dt>
+<code class="descname">realign_label_boundary</code><span class="sig-paren">(</span><em>surface_file</em>, <em>polylines_file</em>, <em>label_boundary_filename</em>, <em>output_file_regions</em>, <em>output_file_boundaries</em>, <em>max_iters</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.realign_label_boundary" title="Permalink to this definition">¶</a></dt>
 <dd><p>Complete method to realign the label boundaries.
 Calls all necessary subroutines.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -554,7 +545,7 @@ Calls all necessary subroutines.</p>
 
 <dl class="method">
 <dt id="mindboggle.guts.rebound.Bounds.resolve_label_ambiguity">
-<code class="descname">resolve_label_ambiguity</code><span class="sig-paren">(</span><em>dict_of_vertices</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.resolve_label_ambiguity" title="Permalink to this definition">¶</a></dt>
+<code class="descname">resolve_label_ambiguity</code><span class="sig-paren">(</span><em>dict_of_vertices</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.resolve_label_ambiguity" title="Permalink to this definition">¶</a></dt>
 <dd><p>Resolve competing labels for two groups of vertices that have some
 vertices in common.</p>
 <dl class="docutils">
@@ -590,9 +581,8 @@ value:  list of vertices to be reassigned to the label</p>
 
 <dl class="method">
 <dt id="mindboggle.guts.rebound.Bounds.resolve_label_front">
-<code class="descname">resolve_label_front</code><span class="sig-paren">(</span><em>dict_of_vertices</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.resolve_label_front" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>Resolve which group of vertices on either side of a label boundary
+<code class="descname">resolve_label_front</code><span class="sig-paren">(</span><em>dict_of_vertices</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.guts.rebound.Bounds.resolve_label_front" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resolve which group of vertices on either side of a label boundary
 is to be relabeled.</p>
 <p>The label boundary consists of a set of vertices on the surface mesh
 two thick, following from the (&gt;=2 label neighborhood) definition,
@@ -601,10 +591,8 @@ so we call these &#8220;label cosegments&#8221;.</p>
 feature (such as a fundus) to one side of the label boundary,
 we wish to identify which cosegment should be used to relabel vertices
 between the label boundary and the feature.</p>
-</div></blockquote>
-<p>#        NOTE: face validity but does what we want it to do?</p>
-<blockquote>
-<div><dl class="docutils">
+<p>NOTE: face validity but does what we want it to do?</p>
+<dl class="docutils">
 <dt>Problem:  Two groups of vertices are considered for label reassignment,</dt>
 <dd>but they lie to either side of a label boundary.
 If both are relabeled, this can result in a &#8220;striping&#8221; artifact.
@@ -621,7 +609,6 @@ value:  list of vertices under consideration for reassignment to label</dd>
 <dt>threshold: int (minimum number of vertices that must also be part</dt>
 <dd>of a polylines boundary)</dd>
 </dl>
-</div></blockquote>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />

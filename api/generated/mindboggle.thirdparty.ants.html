@@ -93,7 +93,7 @@
 <span id="module-thirdparty-ants"></span><h2>Module: <code class="xref py py-mod docutils literal"><span class="pre">thirdparty.ants</span></code><a class="headerlink" href="#module-mindboggle.thirdparty.ants" title="Permalink to this headline">¶</a></h2>
 <p>Functions that call ANTs (UPenn&#8217;s PICSL group) commands.</p>
 <p>Mindboggle functions call the following ANTs functions</p>
-<div class="highlight-python"><div class="highlight"><pre>ImageMath:
+<div class="highlight-python"><div class="highlight"><pre><span></span>ImageMath:
     &#39;PropagateLabelsThroughMask&#39; option in PropagateLabelsThroughMask()
     if modify_surface_labels set to True:
         PropagateLabelsThroughMask() called and &#39;+&#39; option in mindboggle
@@ -102,12 +102,17 @@ ThresholdImage:
     PropagateLabelsThroughMask()
 
 antsApplyTransformsToPoints:
-    write_shape_stats(), write_vertex_measures()
+    write_shape_stats(), write_vertex_measures() in mindboggle
 </pre></div>
 </div>
-<p>Authors:
-Arno Klein, 2011-2014  .  <a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>  .  www.binarybottle.com</p>
-<p>Copyright 2014,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
+<dl class="docutils">
+<dt>Authors:</dt>
+<dd><ul class="first last simple">
+<li>Arno Klein, 2012-2016  (<a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>)  <a class="reference external" href="http://binarybottle.com">http://binarybottle.com</a></li>
+</ul>
+</dd>
+</dl>
+<p>Copyright 2016,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
 </div>
 <div class="section" id="functions">
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
@@ -115,7 +120,7 @@ Arno Klein, 2011-2014  .  <a class="reference external" href="mailto:arno&#37;&#
 <dt id="mindboggle.thirdparty.ants.ImageMath">
 <code class="descclassname">mindboggle.thirdparty.ants.</code><code class="descname">ImageMath</code><span class="sig-paren">(</span><em>volume1</em>, <em>volume2</em>, <em>operator='m'</em>, <em>output_file=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.thirdparty.ants.ImageMath" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use the ImageMath function in ANTs to perform operation on two volumes:</p>
-<div class="highlight-python"><div class="highlight"><pre>m         : Multiply ---  use vm for vector multiply
+<div class="highlight-python"><div class="highlight"><pre><span></span>m         : Multiply ---  use vm for vector multiply
 +         : Add ---  use v+ for vector add
 -         : Subtract ---  use v- for vector subtract
 /         : Divide
@@ -162,17 +167,25 @@ Neg       : Produce image negative
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Mask head with brain mask:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.thirdparty.ants</span> <span class="kn">import</span> <span class="n">ImageMath</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_volumes</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">volume1</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;mri&#39;</span><span class="p">,</span> <span class="s">&#39;t1weighted.nii.gz&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">volume2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;mri&#39;</span><span class="p">,</span> <span class="s">&#39;mask.nii.gz&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">operator</span> <span class="o">=</span> <span class="s">&#39;m&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="n">ImageMath</span><span class="p">(</span><span class="n">volume1</span><span class="p">,</span> <span class="n">volume2</span><span class="p">,</span> <span class="n">operator</span><span class="p">,</span> <span class="n">output_file</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_volumes</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">volume1</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;T1_001&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">volume2</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;ants_mask&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">volume1</span><span class="p">,</span> <span class="n">volume1</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">volume1</span> <span class="o">+=</span> <span class="s1">&#39;.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">volume2</span><span class="p">,</span> <span class="n">volume2</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">volume2</span> <span class="o">+=</span> <span class="s1">&#39;.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">operator</span> <span class="o">=</span> <span class="s1">&#39;m&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="n">ImageMath</span><span class="p">(</span><span class="n">volume1</span><span class="p">,</span> <span class="n">volume2</span><span class="p">,</span> <span class="n">operator</span><span class="p">,</span> <span class="n">output_file</span><span class="p">)</span> 
+</pre></div>
+</div>
+<p>View result (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_volumes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_volumes</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -206,15 +219,15 @@ speed/binaryimagemask.nii.gz initiallabelimage.nii.gz ...</dd>
 <blockquote>
 <div><p>mask with just voxels having this value</p>
 </div></blockquote>
-<p><strong>output_file</strong> : string</p>
+<p><strong>output_file</strong> : string (optional)</p>
 <blockquote>
 <div><p>nibabel-readable labeled image volume</p>
 </div></blockquote>
-<p><strong>binarize</strong> : Boolean</p>
+<p><strong>binarize</strong> : Boolean (optional)</p>
 <blockquote>
 <div><p>binarize mask?</p>
 </div></blockquote>
-<p><strong>stopvalue</strong> : integer</p>
+<p><strong>stopvalue</strong> : integer (optional)</p>
 <blockquote>
 <div><p>stopping value</p>
 </div></blockquote>
@@ -229,19 +242,109 @@ speed/binaryimagemask.nii.gz initiallabelimage.nii.gz ...</dd>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Propagate FreeSurfer labels through brain mask:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.thirdparty.ants</span> <span class="kn">import</span> <span class="n">PropagateLabelsThroughMask</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_volumes</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">labels</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;labels.DKT25.manual.nii.gz&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;mri&#39;</span><span class="p">,</span> <span class="s">&#39;t1weighted_brain.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">labels</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">labels</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">labels</span> <span class="o">+=</span> <span class="s1">&#39;.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;ants_mask&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">mask</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span> <span class="o">+=</span> <span class="s1">&#39;.nii.gz&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mask_index</span> <span class="o">=</span> <span class="bp">None</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">binarize</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">stopvalue</span> <span class="o">=</span> <span class="bp">None</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="n">PropagateLabelsThroughMask</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">mask_index</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span> <span class="n">binarize</span><span class="p">,</span> <span class="n">stopvalue</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_volumes</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="n">PropagateLabelsThroughMask</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">mask_index</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">output_file</span><span class="p">,</span> <span class="n">binarize</span><span class="p">,</span> <span class="n">stopvalue</span><span class="p">)</span> 
+</pre></div>
+</div>
+<p>View result (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_volumes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_volumes</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span> 
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="mindboggle.thirdparty.ants.ResampleImageBySpacing">
+<code class="descclassname">mindboggle.thirdparty.ants.</code><code class="descname">ResampleImageBySpacing</code><span class="sig-paren">(</span><em>volume</em>, <em>output_file=''</em>, <em>outxspc=1</em>, <em>outyspc=1</em>, <em>outzspc=1</em>, <em>dosmooth=0</em>, <em>addvox=0</em>, <em>nninterp=1</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.thirdparty.ants.ResampleImageBySpacing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use the ResampleImageBySpacing function in ANTs to resample image volume.</p>
+<dl class="docutils">
+<dt>Usage: ResampleImageBySpacing ImageDimension ImageIn.ext outImage.ex</dt>
+<dd>outxspc outyspc &lt;outzspc&gt; &lt;dosmooth?&gt; &lt;addvox&gt; &lt;nninterp?&gt;</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>volume</strong> : string</p>
+<blockquote>
+<div><p>nibabel-readable image volume</p>
+</div></blockquote>
+<p><strong>output_file</strong> : string</p>
+<blockquote>
+<div><p>nibabel-readable image volume</p>
+</div></blockquote>
+<p><strong>outxspc</strong> : integer</p>
+<blockquote>
+<div><p>output x-spacing</p>
+</div></blockquote>
+<p><strong>outyspc</strong> : integer</p>
+<blockquote>
+<div><p>output y-spacing</p>
+</div></blockquote>
+<p><strong>outzspc</strong> : integer</p>
+<blockquote>
+<div><p>output z-spacing</p>
+</div></blockquote>
+<p><strong>dosmooth</strong> : Boolean</p>
+<blockquote>
+<div><p>smooth?</p>
+</div></blockquote>
+<p><strong>addvox</strong> : integer</p>
+<blockquote>
+<div><p>pad each dimension by addvox</p>
+</div></blockquote>
+<p><strong>nninterp</strong> : Boolean</p>
+<blockquote>
+<div><p>nearest-neighbor interpolation?</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>output_file</strong> : string</p>
+<blockquote class="last">
+<div><p>name of output nibabel-readable image volume</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Resample image so that 1mm voxels are 0.5mm voxels:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.thirdparty.ants</span> <span class="kn">import</span> <span class="n">ResampleImageBySpacing</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">volume</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;T1_001&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">volume</span><span class="p">,</span> <span class="n">volume</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">volume</span> <span class="o">+=</span> <span class="s1">&#39;.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outxspc</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outyspc</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outzspc</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dosmooth</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">addvox</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nninterp</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="n">ResampleImageBySpacing</span><span class="p">(</span><span class="n">volume</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span> <span class="n">outxspc</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">outxspc</span><span class="p">,</span> <span class="n">outzspc</span><span class="p">,</span> <span class="n">dosmooth</span><span class="p">,</span> <span class="n">addvox</span><span class="p">,</span> <span class="n">nninterp</span><span class="p">)</span> 
+</pre></div>
+</div>
+<p>View result (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_volumes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_volumes</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -249,7 +352,7 @@ speed/binaryimagemask.nii.gz initiallabelimage.nii.gz ...</dd>
 <dl class="function">
 <dt id="mindboggle.thirdparty.ants.ThresholdImage">
 <code class="descclassname">mindboggle.thirdparty.ants.</code><code class="descname">ThresholdImage</code><span class="sig-paren">(</span><em>volume</em>, <em>output_file=''</em>, <em>threshlo=1</em>, <em>threshhi=10000</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.thirdparty.ants.ThresholdImage" title="Permalink to this definition">¶</a></dt>
-<dd><p>Use the ThresholdImage function in ANTs to threshold image volume:</p>
+<dd><p>Use the ThresholdImage function in ANTs to threshold image volume.</p>
 <dl class="docutils">
 <dt>Usage: ThresholdImage ImageDimension ImageIn.ext outImage.ext</dt>
 <dd>threshlo threshhi &lt;insideValue&gt; &lt;outsideValue&gt;</dd>
@@ -285,17 +388,22 @@ speed/binaryimagemask.nii.gz initiallabelimage.nii.gz ...</dd>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.thirdparty.ants</span> <span class="kn">import</span> <span class="n">ThresholdImage</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_volumes</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">volume</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;mri&#39;</span><span class="p">,</span> <span class="s">&#39;t1weighted.nii.gz&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">volume</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;T1_001&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">volume</span><span class="p">,</span> <span class="n">volume</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">volume</span> <span class="o">+=</span> <span class="s1">&#39;.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">threshlo</span> <span class="o">=</span> <span class="mi">500</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">threshhi</span> <span class="o">=</span> <span class="mi">10000</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="n">ThresholdImage</span><span class="p">(</span><span class="n">volume</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span> <span class="n">threshlo</span><span class="p">,</span> <span class="n">threshhi</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_volumes</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="n">ThresholdImage</span><span class="p">(</span><span class="n">volume</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span> <span class="n">threshlo</span><span class="p">,</span> <span class="n">threshhi</span><span class="p">)</span> 
+</pre></div>
+</div>
+<p>View result (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_volumes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_volumes</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -332,88 +440,30 @@ speed/binaryimagemask.nii.gz initiallabelimage.nii.gz ...</dd>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.thirdparty.ants</span> <span class="kn">import</span> <span class="n">antsApplyTransformsToPoints</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_vtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">transform_files</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;/Users/arno/Data/antsCorticalThickness/Twins-2-1/antsTemplateToSubject1GenericAffine.mat&#39;</span><span class="p">,</span><span class="s">&#39;/Users/arno/Data/antsCorticalThickness/Twins-2-1/antsTemplateToSubject0Warp.nii.gz&#39;</span><span class="p">,</span><span class="s">&#39;/Users/arno/Data/antsCorticalThickness/Twins-2-1/antsSubjectToTemplate0GenericAffine.mat&#39;</span><span class="p">,</span><span class="s">&#39;/Users/arno/Data/antsCorticalThickness/Twins-2-1/antsSubjectToTemplate1Warp.nii.gz&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">transform_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">transform_files</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">transform_files</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="s">&#39;/Users/arno/Data/mindboggle_cache/f36e3d5d99f7c4a9bb70e2494ed7340b/OASIS-30_Atropos_template_to_MNI152_affine.txt&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="s">&#39;/Users/arno/mindboggle_working/Twins-2-1/Mindboggle/_hemi_lh/Surface_to_vtk/lh.pial.vtk&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">scalars</span><span class="p">,</span> <span class="n">scalar_names</span><span class="p">,</span> <span class="n">npoints</span><span class="p">,</span> <span class="n">input_vtk</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.thirdparty.ants</span> <span class="kn">import</span> <span class="n">antsApplyTransformsToPoints</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xfm1</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;ants_affine_template2subject&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xfm2</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;ants_warp_template2subject&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xfm3</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;OASIS-30_Atropos_template_to_MNI152_affine&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">xfm2</span><span class="p">,</span> <span class="n">xfm2</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xfm2</span> <span class="o">+=</span> <span class="s1">&#39;.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">transform_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">xfm1</span><span class="p">,</span> <span class="n">xfm2</span><span class="p">,</span> <span class="n">xfm3</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_pial&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span>  <span class="o">=</span> <span class="n">read_points</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">inverse_booleans</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">transformed_points</span> <span class="o">=</span> <span class="n">antsApplyTransformsToPoints</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">transform_files</span><span class="p">,</span> <span class="n">inverse_booleans</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="mindboggle.thirdparty.ants.fill_volume_with_surface_labels">
-<code class="descclassname">mindboggle.thirdparty.ants.</code><code class="descname">fill_volume_with_surface_labels</code><span class="sig-paren">(</span><em>hemi</em>, <em>left_mask</em>, <em>right_mask</em>, <em>surface_files</em>, <em>mask_index=None</em>, <em>output_file=''</em>, <em>binarize=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.thirdparty.ants.fill_volume_with_surface_labels" title="Permalink to this definition">¶</a></dt>
-<dd><p>Use ANTs to fill a volume mask with surface mesh labels.</p>
-<p>Note</p>
-<div class="highlight-python"><div class="highlight"><pre>- This uses PropagateLabelsThroughMask in the ANTs ImageMath function.
-
-- Partial volume information is lost when mapping surface to volume.
-</pre></div>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>hemi</strong> : string</p>
-<blockquote>
-<div><p>either &#8216;lh&#8217; or &#8216;rh&#8217;, indicating brain&#8217;s left or right hemisphere</p>
-</div></blockquote>
-<p><strong>left_mask</strong> : string</p>
-<blockquote>
-<div><p>nibabel-readable left brain image mask volume</p>
-</div></blockquote>
-<p><strong>right_mask</strong> : string</p>
-<blockquote>
-<div><p>nibabel-readable left brain image mask volume</p>
-</div></blockquote>
-<p><strong>surface_files</strong> : string or list of strings</p>
-<blockquote>
-<div><p>VTK file(s) containing surface mesh(es) with labels as scalars</p>
-</div></blockquote>
-<p><strong>mask_index</strong> : integer (optional)</p>
-<blockquote>
-<div><p>mask with just voxels having this value</p>
-</div></blockquote>
-<p><strong>output_file</strong> : string</p>
-<blockquote>
-<div><p>name of output file</p>
-</div></blockquote>
-<p><strong>binarize</strong> : Boolean</p>
-<blockquote>
-<div><p>binarize mask?</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>output_file</strong> : string</p>
-<blockquote class="last">
-<div><p>name of labeled output nibabel-readable image volume</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.thirdparty.ants</span> <span class="kn">import</span> <span class="n">fill_volume_with_surface_labels</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_volumes</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">surface_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="s">&#39;lh.labels.DKT25.manual.vtk&#39;</span><span class="p">),</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="s">&#39;rh.labels.DKT25.manual.vtk&#39;</span><span class="p">)]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># For a quick test, simply mask with whole brain:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">hemi</span> <span class="o">=</span> <span class="s">&#39;rh&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">left_mask</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;mri&#39;</span><span class="p">,</span> <span class="s">&#39;t1weighted_brain.nii.gz&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">right_mask</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;mri&#39;</span><span class="p">,</span> <span class="s">&#39;t1weighted_brain.nii.gz&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mask_index</span> <span class="o">=</span> <span class="bp">None</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">binarize</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="n">fill_volume_with_surface_labels</span><span class="p">(</span><span class="n">hemi</span><span class="p">,</span> <span class="n">left_mask</span><span class="p">,</span> <span class="n">right_mask</span><span class="p">,</span> <span class="n">surface_files</span><span class="p">,</span> <span class="n">mask_index</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span> <span class="n">binarize</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_volumes</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">transformed_points</span> <span class="o">=</span> <span class="n">antsApplyTransformsToPoints</span><span class="p">(</span><span class="n">points</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">transform_files</span><span class="p">,</span> <span class="n">inverse_booleans</span><span class="p">)</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">transformed_points</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span> 
+<span class="go">[[-11.23189 -46.78223 -39.88869]</span>
+<span class="go"> [-11.71384 -46.87075 -40.13328]</span>
+<span class="go"> [-12.56237 -46.99126 -40.04564]</span>
+<span class="go"> [ -9.66693 -46.0446  -41.36334]</span>
+<span class="go"> [-10.67998 -46.45458 -40.7572 ]]</span>
 </pre></div>
 </div>
 </dd></dl>

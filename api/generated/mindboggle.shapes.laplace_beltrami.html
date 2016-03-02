@@ -95,13 +95,23 @@
 <dl class="docutils">
 <dt>We follow the definitions and steps given in Martin Reuter et al.&#8217;s 2009 paper:</dt>
 <dd><a href="#id1"><span class="problematic" id="id2">``</span></a>Discrete Laplace-Beltrami Operators for Shape Analysis and Segmentation&#8217;&#8216;</dd>
+</dl>
+<p>References (please cite when using for publication):
+Martin Reuter et al.</p>
+<blockquote>
+<div>Discrete Laplace-Beltrami Operators for Shape Analysis and Segmentation
+Computers &amp; Graphics 33(3):381-390, 2009</div></blockquote>
+<dl class="docutils">
+<dt>Martin Reuter et al.</dt>
+<dd>Laplace-Beltrami spectra as &#8220;Shape-DNA&#8221; of surfaces and solids
+Computer-Aided Design 38(4):342-366, 2006</dd>
 <dt>Dependency:</dt>
 <dd>Scipy 0.10 or later to solve the generalized eigenvalue problem.
 Information about using Scipy to solve a generalized eigenvalue problem:
 <a class="reference external" href="http://docs.scipy.org/doc/scipy/reference/tutorial/arpack.html">http://docs.scipy.org/doc/scipy/reference/tutorial/arpack.html</a></dd>
 </dl>
 <p>NOTE</p>
-<div class="highlight-python"><div class="highlight"><pre>For ``points``, only include coordinates of vertices in the 3-D structure
+<div class="highlight-python"><div class="highlight"><pre><span></span>For ``points``, only include coordinates of vertices in the 3-D structure
 whose spectrum is to be calculated. For example, do not use coordinates
 of all POINTS from a VTK file as ``points`` and use only corresponding
 faces as ``faces``. Otherwise this will cause a singular matrix error
@@ -119,14 +129,14 @@ explained how eigenvalue problems are solved numerically.</li>
 </dd>
 <dt>Authors:</dt>
 <dd><ul class="first last simple">
-<li>Martin Reuter, 2009, <a class="reference external" href="http://reuter.mit.edu/">http://reuter.mit.edu/</a> (original MATLAB code)</li>
+<li>Martin Reuter, 2009-2016, <a class="reference external" href="http://reuter.mit.edu/">http://reuter.mit.edu/</a> (original MATLAB code)</li>
 <li>Eliezer Stavsky, 2012  (<a class="reference external" href="mailto:eli&#46;stavsky&#37;&#52;&#48;gmail&#46;com">eli<span>&#46;</span>stavsky<span>&#64;</span>gmail<span>&#46;</span>com</a>)</li>
 <li>Forrest Sheng Bao, 2012-2013  (<a class="reference external" href="mailto:forrest&#46;bao&#37;&#52;&#48;gmail&#46;com">forrest<span>&#46;</span>bao<span>&#64;</span>gmail<span>&#46;</span>com</a>)  <a class="reference external" href="http://fsbao.net">http://fsbao.net</a></li>
-<li>Arno Klein, 2012-2013  (<a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>)  <a class="reference external" href="http://binarybottle.com">http://binarybottle.com</a></li>
+<li>Arno Klein, 2012-2016  (<a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>)  <a class="reference external" href="http://binarybottle.com">http://binarybottle.com</a></li>
 </ul>
 </dd>
 </dl>
-<p>Copyright 2013,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
+<p>Copyright 2016,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
 </div>
 <div class="section" id="functions">
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
@@ -160,6 +170,26 @@ explained how eigenvalue problems are solved numerically.</li>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.laplace_beltrami</span> <span class="kn">import</span> <span class="n">area_normalize</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.laplace_beltrami</span> <span class="kn">import</span> <span class="n">fem_laplacian</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Define a cube:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>          <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>         <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spectrum</span> <span class="o">=</span> <span class="n">fem_laplacian</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">spectrum_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+<span class="gp">... </span>                         <span class="n">normalization</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spectrum</span><span class="p">[</span><span class="mi">1</span><span class="p">::]),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 4.58359  4.8    ]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_spectrum</span> <span class="o">=</span> <span class="n">area_normalize</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">spectrum</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">new_spectrum</span><span class="p">[</span><span class="mi">1</span><span class="p">::]),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 27.50155  28.8    ]</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -186,52 +216,51 @@ is generated when inverting D.</dd>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>A</strong> : numpy matrix</p>
-<p class="last"><strong>B</strong> : numpy matrix</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>A</strong> : csr_matrix</p>
+<p class="last"><strong>B</strong> : csr_matrix</p>
 </td>
 </tr>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Define a cube, then compute A and B on a selection of faces.</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Define a cube, then compute A and B on a selection of faces.</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.laplace_beltrami</span> <span class="kn">import</span> <span class="n">computeAB</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span>
+<span class="gp">... </span>          <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">7</span><span class="p">]]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">faces</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="p">,</span> <span class="n">B</span> <span class="o">=</span> <span class="n">computeAB</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">toarray</span><span class="p">())</span>
-<span class="go">    [[ 1.5  -1.   -0.5   0.    0.    0.    0.    0.  ]</span>
-<span class="go">     [-1.    2.    0.    0.   -0.5   0.    0.    -0.5  ]</span>
-<span class="go">     [-0.5   0.    2.   -0.5  -1.    0.    0.    0.  ]</span>
-<span class="go">     [ 0.    0.   -0.5   2.56066017 -0.35355339 -1.20710678 -0.5   0.  ]</span>
-<span class="go">     [ 0.   -0.5  -1.   -0.35355339  1.85355339  0.    0.    0.  ]</span>
-<span class="go">     [ 0.    0.    0.   -1.20710678  0.    1.20710678    0.    0.  ]</span>
-<span class="go">     [ 0.    0.    0.   -0.5   0.    0.    0.5    0.  ]</span>
-<span class="go">     [ 0.   -0.5   0.    0.    0.    0.    0.    0.5]]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">B</span><span class="o">.</span><span class="n">toarray</span><span class="p">())</span>
-<span class="go">    [[ 0.25  0.08333333  0.04166667  0.    0.08333333  0.    0.    0.04166667]</span>
-<span class="go">     [ 0.08333333  0.16666667  0.    0.    0.04166667  0.    0.    0.04166667]</span>
-<span class="go">     [ 0.04166667  0.    0.16666667  0.04166667  0.08333333  0.    0.    0.  ]</span>
-<span class="go">     [ 0.    0.    0.04166667  0.2845178   0.10059223  0.10059223    0.04166667  0.  ]</span>
-<span class="go">     [ 0.08333333  0.04166667  0.08333333  0.10059223  0.36785113  0.05892557  0.  0.  ]</span>
-<span class="go">     [ 0.    0.    0.    0.10059223  0.05892557  0.20118446    0.04166667  0.  ]</span>
-<span class="go">     [ 0.    0.    0.    0.04166667  0.    0.04166667    0.08333333  0.  ]</span>
-<span class="go">     [ 0.04166667  0.04166667  0.    0.    0.    0.    0.     0.08333333]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">toarray</span><span class="p">(),</span> <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[[ 1.5     -1.      -0.5      0.       0.       0.       0.       0.     ]</span>
+<span class="go"> [-1.       2.       0.       0.      -0.5      0.       0.      -0.5    ]</span>
+<span class="go"> [-0.5      0.       2.      -0.5     -1.       0.       0.       0.     ]</span>
+<span class="go"> [ 0.       0.      -0.5      2.56066 -0.35355 -1.20711 -0.5      0.     ]</span>
+<span class="go"> [ 0.      -0.5     -1.      -0.35355  1.85355  0.       0.       0.     ]</span>
+<span class="go"> [ 0.       0.       0.      -1.20711  0.       1.20711  0.       0.     ]</span>
+<span class="go"> [ 0.       0.       0.      -0.5      0.       0.       0.5      0.     ]</span>
+<span class="go"> [ 0.      -0.5      0.       0.       0.       0.       0.       0.5    ]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">B</span><span class="o">.</span><span class="n">toarray</span><span class="p">(),</span> <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[[ 0.25     0.08333  0.04167  0.       0.08333  0.       0.       0.04167]</span>
+<span class="go"> [ 0.08333  0.16667  0.       0.       0.04167  0.       0.       0.04167]</span>
+<span class="go"> [ 0.04167  0.       0.16667  0.04167  0.08333  0.       0.       0.     ]</span>
+<span class="go"> [ 0.       0.       0.04167  0.28452  0.10059  0.10059  0.04167  0.     ]</span>
+<span class="go"> [ 0.08333  0.04167  0.08333  0.10059  0.36785  0.05893  0.       0.     ]</span>
+<span class="go"> [ 0.       0.       0.       0.10059  0.05893  0.20118  0.04167  0.     ]</span>
+<span class="go"> [ 0.       0.       0.       0.04167  0.       0.04167  0.08333  0.     ]</span>
+<span class="go"> [ 0.04167  0.04167  0.       0.       0.       0.       0.       0.08333]]</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="mindboggle.shapes.laplace_beltrami.fem_laplacian">
-<code class="descclassname">mindboggle.shapes.laplace_beltrami.</code><code class="descname">fem_laplacian</code><span class="sig-paren">(</span><em>points</em>, <em>faces</em>, <em>spectrum_size=10</em>, <em>normalization=None</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.fem_laplacian" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.shapes.laplace_beltrami.</code><code class="descname">fem_laplacian</code><span class="sig-paren">(</span><em>points</em>, <em>faces</em>, <em>spectrum_size=10</em>, <em>normalization=None</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.fem_laplacian" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute linear finite-element method Laplace-Beltrami spectrum
 after Martin Reuter&#8217;s MATLAB code.</p>
 <p>Note</p>
-<div class="highlight-python"><div class="highlight"><pre>Compare fem_laplacian() with Martin Reuter&#39;s Matlab eigenvalues:
+<div class="highlight-python"><div class="highlight"><pre><span></span>Compare fem_laplacian() with Martin Reuter&#39;s Matlab eigenvalues:
 
 fem_laplacian() results for Twins-2-1 left hemisphere (6 values):
 [4.829758648026221e-18,
@@ -304,6 +333,10 @@ high frequencies are not so much perturbed.&#8221;</li>
 <div><p>the method used to normalize eigenvalues (&#8216;area&#8217; or None)
 if &#8220;area&#8221;, use area of the 2D structure as in Reuter et al. 2006</p>
 </div></blockquote>
+<p><strong>verbose</strong> : Boolean</p>
+<blockquote>
+<div><p>print statements?</p>
+</div></blockquote>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>spectrum</strong> : list</p>
@@ -315,67 +348,57 @@ if &#8220;area&#8221;, use area of the 2D structure as in Reuter et al. 2006</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.laplace_beltrami</span> <span class="kn">import</span> <span class="n">fem_laplacian</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Define a cube:</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.laplace_beltrami</span> <span class="kn">import</span> <span class="n">fem_laplacian</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Define a cube:</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">points</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span>
-<span class="gp">&gt;&gt;&gt; </span>          <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]]</span>
+<span class="gp">... </span>          <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span>
-<span class="gp">&gt;&gt;&gt; </span>         <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fem_laplacian</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">spectrum_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
-<span class="go">[7.401486830834377e-17, 4.58359213500127, 4.799999999999998]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fem_laplacian</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">spectrum_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s">&quot;area&quot;</span><span class="p">)</span>
-<span class="go">[1.2335811384723967e-17, 0.76393202250021175, 0.79999999999999949]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Spectrum for entire left hemisphere of Twins-2-1:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_faces_points</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.laplace_beltrami</span> <span class="kn">import</span> <span class="n">fem_laplacian</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>                        <span class="s">&#39;lh.labels.DKT25.manual.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">npoints</span> <span class="o">=</span> <span class="n">read_faces_points</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fem_laplacian</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">spectrum_size</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
-<span class="go">[4.829758648026222e-18,</span>
-<span class="go"> 0.0001284173002467197,</span>
-<span class="go"> 0.000271518157227274,</span>
-<span class="go"> 0.00032051508471594065,</span>
-<span class="go"> 0.0004701628070486444,</span>
-<span class="go"> 0.0005768904023010318]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Spectrum for Twins-2-1 left postcentral pial surface (22):</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">... </span>         <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spectrum</span> <span class="o">=</span> <span class="n">fem_laplacian</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">spectrum_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+<span class="gp">... </span>                         <span class="n">normalization</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spectrum</span><span class="p">[</span><span class="mi">1</span><span class="p">::]),</span>
+<span class="gp">... </span>                   <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 4.58359  4.8    ]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spectrum</span> <span class="o">=</span> <span class="n">fem_laplacian</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">spectrum_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+<span class="gp">... </span>                         <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;area&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spectrum</span><span class="p">[</span><span class="mi">1</span><span class="p">::]),</span>
+<span class="gp">... </span>                   <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 27.50155  28.8    ]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Spectrum for entire left hemisphere of Twins-2-1:</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_vtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">remove_faces</span><span class="p">,</span> <span class="n">reindex_faces_points</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.laplace_beltrami</span> <span class="kn">import</span> <span class="n">fem_laplacian</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">label_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;lh.labels.DKT31.manual.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">scalar_names</span><span class="p">,</span> <span class="n">npoints</span><span class="p">,</span> <span class="n">input_vtk</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">label_file</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">I22</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span><span class="o">==</span><span class="mi">22</span><span class="p">]</span> <span class="c"># postcentral</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="n">remove_faces</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">I22</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">label_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span><span class="p">,</span> <span class="n">f1</span><span class="p">,</span><span class="n">f2</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">f3</span><span class="p">,</span><span class="n">f4</span><span class="p">,</span><span class="n">f5</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">label_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spectrum</span> <span class="o">=</span> <span class="n">fem_laplacian</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">spectrum_size</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+<span class="gp">... </span>                         <span class="n">normalization</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spectrum</span><span class="p">[</span><span class="mi">1</span><span class="p">::]),</span>
+<span class="gp">... </span>                   <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 0.00013  0.00027  0.00032  0.00047  0.00058]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Spectrum for Twins-2-1 left postcentral pial surface (22):</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">keep_faces</span><span class="p">,</span> <span class="n">reindex_faces_points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">I22</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span><span class="o">==</span><span class="mi">1022</span><span class="p">]</span> <span class="c1"># postcentral</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="n">keep_faces</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">I22</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">o1</span> <span class="o">=</span> <span class="n">reindex_faces_points</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#from mindboggle.mio.vtks import read_faces_points</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#label_file = os.path.join(path, &#39;arno&#39;, &#39;labels&#39;, &#39;label22.vtk&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#faces, points, npoints = read_faces_points(label_file)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fem_laplacian</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">spectrum_size</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
-<span class="go">[6.3469513010430304e-18,</span>
-<span class="go"> 0.0005178862383467462,</span>
-<span class="go"> 0.0017434911095630795,</span>
-<span class="go"> 0.0036675617674876856,</span>
-<span class="go"> 0.005429017880363785,</span>
-<span class="go"> 0.006309346984678933]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Area-normalized spectrum for a single label (postcentral):</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fem_laplacian</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">spectrum_size</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s">&quot;area&quot;</span><span class="p">)</span>
-<span class="go">[1.1410192787181146e-21,</span>
-<span class="go"> 9.3102680973672063e-08,</span>
-<span class="go"> 3.1343504525679647e-07,</span>
-<span class="go"> 6.5933366810380741e-07,</span>
-<span class="go"> 9.7599836081654446e-07,</span>
-<span class="go"> 1.1342589857996233e-06]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spectrum</span> <span class="o">=</span> <span class="n">fem_laplacian</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">spectrum_size</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+<span class="gp">... </span>                         <span class="n">normalization</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spectrum</span><span class="p">[</span><span class="mi">1</span><span class="p">::]),</span>
+<span class="gp">... </span>                   <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 0.00057  0.00189  0.00432  0.00691  0.00775]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Area-normalized spectrum for a single label (postcentral):</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spectrum</span> <span class="o">=</span> <span class="n">fem_laplacian</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">spectrum_size</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+<span class="gp">... </span>                         <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;area&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spectrum</span><span class="p">[</span><span class="mi">1</span><span class="p">::]),</span>
+<span class="gp">... </span>                   <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[  2.69259   8.97865  20.44857  32.74477  36.739  ]</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="mindboggle.shapes.laplace_beltrami.spectrum_from_file">
-<code class="descclassname">mindboggle.shapes.laplace_beltrami.</code><code class="descname">spectrum_from_file</code><span class="sig-paren">(</span><em>vtk_file, spectrum_size=10, exclude_labels=[-1], normalization=None, area_file=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.spectrum_from_file" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.shapes.laplace_beltrami.</code><code class="descname">spectrum_from_file</code><span class="sig-paren">(</span><em>vtk_file, spectrum_size=10, exclude_labels=[-1], normalization=None, area_file='', verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.spectrum_from_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute Laplace-Beltrami spectrum of a 3D shape in a VTK file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -402,6 +425,10 @@ if &#8220;area&#8221;, use area of the 2D structure as in Reuter et al. 2006</p>
 <blockquote>
 <div><p>name of VTK file with surface area scalar values</p>
 </div></blockquote>
+<p><strong>verbose</strong> : Boolean</p>
+<blockquote>
+<div><p>print statements?</p>
+</div></blockquote>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>spectrum</strong> : list of floats</p>
@@ -413,44 +440,24 @@ if &#8220;area&#8221;, use area of the 2D structure as in Reuter et al. 2006</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Spectrum for entire left hemisphere of Twins-2-1:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Spectrum for entire left hemisphere of Twins-2-1:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.laplace_beltrami</span> <span class="kn">import</span> <span class="n">spectrum_from_file</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;lh.labels.DKT25.manual.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">spectrum_from_file</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="n">spectrum_size</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
-<span class="go">[4.829758648026223e-18,</span>
-<span class="go"> 0.00012841730024671977,</span>
-<span class="go"> 0.0002715181572272744,</span>
-<span class="go"> 0.00032051508471594173,</span>
-<span class="go"> 0.000470162807048644,</span>
-<span class="go"> 0.0005768904023010327]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Spectrum for Twins-2-1 left postcentral pial surface (22)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># (after running explode_scalars() with reindex=True):</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.laplace_beltrami</span> <span class="kn">import</span> <span class="n">spectrum_from_file</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;label22.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">spectrum_from_file</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="n">spectrum_size</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
-<span class="go">[6.3469513010430304e-18,</span>
-<span class="go"> 0.0005178862383467463,</span>
-<span class="go"> 0.0017434911095630772,</span>
-<span class="go"> 0.003667561767487686,</span>
-<span class="go"> 0.005429017880363784,</span>
-<span class="go"> 0.006309346984678924]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Loop thru all MB 101 brains</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.laplace_beltrami</span> <span class="kn">import</span> <span class="n">spectrum_from_file</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">hemidir</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">header</span><span class="p">):</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="k">print</span> <span class="n">hemidir</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">sulci_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="n">hemidir</span><span class="p">,</span> <span class="s">&quot;sulci.vtk&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">spectrum</span> <span class="o">=</span> <span class="n">spectrum_from_file</span><span class="p">(</span><span class="n">sulci_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.laplace_beltrami</span> <span class="kn">import</span> <span class="n">spectrum_per_label</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spectrum</span> <span class="o">=</span> <span class="n">spectrum_from_file</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="n">spectrum_size</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spectrum</span><span class="p">[</span><span class="mi">1</span><span class="p">::]),</span>
+<span class="gp">... </span>                   <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 0.00013  0.00027  0.00032  0.00047  0.00058]</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="mindboggle.shapes.laplace_beltrami.spectrum_of_largest">
-<code class="descclassname">mindboggle.shapes.laplace_beltrami.</code><code class="descname">spectrum_of_largest</code><span class="sig-paren">(</span><em>points, faces, spectrum_size=10, exclude_labels=[-1], normalization=None, areas=None</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.spectrum_of_largest" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.shapes.laplace_beltrami.</code><code class="descname">spectrum_of_largest</code><span class="sig-paren">(</span><em>points, faces, spectrum_size=10, exclude_labels=[-1], normalization=None, areas=None, verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.spectrum_of_largest" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute Laplace-Beltrami spectrum on largest connected segment.</p>
 <p>In case a surface patch is fragmented, we select the largest fragment,
 remove extraneous triangular faces, and reindex indices.</p>
@@ -483,6 +490,10 @@ if &#8220;area&#8221;, use area of the 2D structure as in Reuter et al. 2006</p>
 <blockquote>
 <div><p>surface area scalar values for all vertices</p>
 </div></blockquote>
+<p><strong>verbose</strong> : Boolean</p>
+<blockquote>
+<div><p>print statements?</p>
+</div></blockquote>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>spectrum</strong> : list</p>
@@ -494,49 +505,49 @@ if &#8220;area&#8221;, use area of the 2D structure as in Reuter et al. 2006</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Spectrum for left postcentral + pars triangularis pial surfaces:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Spectrum for left postcentral + pars triangularis pial surfaces:</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span><span class="p">,</span> <span class="n">read_vtk</span><span class="p">,</span> <span class="n">write_vtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">remove_faces</span><span class="p">,</span> <span class="n">reindex_faces_points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.mesh</span> <span class="kn">import</span> <span class="n">keep_faces</span><span class="p">,</span> <span class="n">reindex_faces_points</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.laplace_beltrami</span> <span class="kn">import</span> <span class="n">spectrum_of_largest</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">label_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;lh.labels.DKT31.manual.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">area_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.area.vtk&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">label_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">area_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_area&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">spectrum_size</span> <span class="o">=</span> <span class="mi">6</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">exclude_labels</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">normalization</span> <span class="o">=</span> <span class="bp">None</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">scalar_names</span><span class="p">,</span> <span class="n">npoints</span><span class="p">,</span> <span class="n">input_vtk</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">label_file</span><span class="p">,</span> <span class="n">return_first</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">return_array</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">I20</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span><span class="o">==</span><span class="mi">20</span><span class="p">]</span> <span class="c"># pars triangularis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">I22</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span><span class="o">==</span><span class="mi">22</span><span class="p">]</span> <span class="c"># postcentral</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">f1</span><span class="p">,</span> <span class="n">npoints</span><span class="p">,</span> <span class="n">f2</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">label_file</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">return_first</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">return_array</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">I20</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span><span class="o">==</span><span class="mi">1020</span><span class="p">]</span> <span class="c1"># pars triangularis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">I22</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span><span class="o">==</span><span class="mi">1022</span><span class="p">]</span> <span class="c1"># postcentral</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">I22</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">I20</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="n">remove_faces</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">I22</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="n">keep_faces</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">I22</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">o1</span> <span class="o">=</span> <span class="n">reindex_faces_points</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">areas</span><span class="p">,</span> <span class="n">u1</span> <span class="o">=</span> <span class="n">read_scalars</span><span class="p">(</span><span class="n">area_file</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">spectrum_of_largest</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">spectrum_size</span><span class="p">,</span> <span class="n">exclude_labels</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>                    <span class="n">normalization</span><span class="p">,</span> <span class="n">areas</span><span class="p">)</span>
-<span class="go">[6.3469513010430304e-18,</span>
-<span class="go"> 0.0005178862383467463,</span>
-<span class="go"> 0.0017434911095630772,</span>
-<span class="go"> 0.003667561767487686,</span>
-<span class="go"> 0.005429017880363784,</span>
-<span class="go"> 0.006309346984678924]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View both segments:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spectrum</span> <span class="o">=</span> <span class="n">spectrum_of_largest</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">spectrum_size</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">exclude_labels</span><span class="p">,</span> <span class="n">normalization</span><span class="p">,</span> <span class="n">areas</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spectrum</span><span class="p">[</span><span class="mi">1</span><span class="p">::]),</span>
+<span class="gp">... </span>                   <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 0.00057  0.00189  0.00432  0.00691  0.00775]</span>
+</pre></div>
+</div>
+<p>View both segments (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">scalars</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">labels</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">scalars</span><span class="p">[</span><span class="n">I22</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="s">&#39;test_two_labels.vtk&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="s1">&#39;test_two_labels.vtk&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">write_vtk</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>          <span class="n">scalars</span><span class="p">,</span> <span class="n">scalar_names</span><span class="o">=</span><span class="s">&#39;scalars&#39;</span><span class="p">,</span> <span class="n">scalar_type</span><span class="o">=</span><span class="s">&#39;int&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">)</span>
+<span class="gp">... </span>          <span class="n">scalars</span><span class="p">,</span> <span class="n">scalar_names</span><span class="o">=</span><span class="s1">&#39;scalars&#39;</span><span class="p">,</span> <span class="n">scalar_type</span><span class="o">=</span><span class="s1">&#39;int&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="mindboggle.shapes.laplace_beltrami.spectrum_per_label">
-<code class="descclassname">mindboggle.shapes.laplace_beltrami.</code><code class="descname">spectrum_per_label</code><span class="sig-paren">(</span><em>vtk_file, spectrum_size=10, exclude_labels=[-1], normalization='area', area_file='', largest_segment=True</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.spectrum_per_label" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.shapes.laplace_beltrami.</code><code class="descname">spectrum_per_label</code><span class="sig-paren">(</span><em>vtk_file, spectrum_size=10, exclude_labels=[-1], normalization='area', area_file='', largest_segment=True, verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.laplace_beltrami.spectrum_per_label" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute Laplace-Beltrami spectrum per labeled region in a file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -567,6 +578,10 @@ if &#8220;area&#8221;, use area of the 2D structure as in Reuter et al. 2006</p>
 <blockquote>
 <div><p>compute spectrum only for largest segment with a given label?</p>
 </div></blockquote>
+<p><strong>verbose</strong> : Boolean</p>
+<blockquote>
+<div><p>print statements?</p>
+</div></blockquote>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>spectrum_lists</strong> : list of lists</p>
@@ -582,25 +597,26 @@ if &#8220;area&#8221;, use area of the 2D structure as in Reuter et al. 2006</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Uncomment &quot;if label==22:&quot; below to run example:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Spectrum for Twins-2-1 left postcentral (22) pial surface:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Uncomment &quot;if label==22:&quot; below to run example:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Spectrum for Twins-2-1 left postcentral (22) pial surface:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.laplace_beltrami</span> <span class="kn">import</span> <span class="n">spectrum_per_label</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;lh.labels.DKT31.manual.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">area_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.area.vtk&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">area_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_area&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">spectrum_size</span> <span class="o">=</span> <span class="mi">6</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">exclude_labels</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c">#[-1]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exclude_labels</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1">#[-1]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">largest_segment</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">spectrum_per_label</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="n">spectrum_size</span><span class="p">,</span> <span class="n">exclude_labels</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>                   <span class="n">area_file</span><span class="p">,</span> <span class="n">largest_segment</span><span class="p">)</span>
-<span class="go">([[6.3469513010430304e-18,</span>
-<span class="go">   0.0005178862383467463,</span>
-<span class="go">   0.0017434911095630772,</span>
-<span class="go">   0.003667561767487686,</span>
-<span class="go">   0.005429017880363784,</span>
-<span class="go">   0.006309346984678924]],</span>
-<span class="go"> [22])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spectrum_lists</span><span class="p">,</span> <span class="n">label_list</span> <span class="o">=</span> <span class="n">spectrum_per_label</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">spectrum_size</span><span class="p">,</span> <span class="n">exclude_labels</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">area_file</span><span class="p">,</span> <span class="n">largest_segment</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">verbose</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spectrum_lists</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">::]),</span>
+<span class="gp">... </span>                   <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 0.00054  0.00244  0.00291  0.00456  0.00575]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">label_list</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">10</span><span class="p">]</span>
+<span class="go">[1029, 1005, 1011, 1021, 1008, 1025, 999, 1013, 1007, 1022]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -636,7 +652,7 @@ It therefore doesn&#8217;t require calculation of volume.</dd>
 </div></blockquote>
 <p><strong>show_error: boolean</strong> :</p>
 <blockquote>
-<div><p>Whether display the error of WESD using Eqs.(9) and (10) in Konukoglu et al. (2012).
+<div><p>display the error of WESD using Eqs.(9) and (10) in Konukoglu (2012)?
 default: false</p>
 </div></blockquote>
 <p><strong>N</strong> : integer</p>

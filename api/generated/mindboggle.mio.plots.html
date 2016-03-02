@@ -141,14 +141,14 @@
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">boxplots_of_lists</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">boxplots_of_lists</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">columns</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">8</span><span class="p">],[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">],</span>
-<span class="gp">&gt;&gt;&gt; </span>           <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mf">2.5</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">]]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">xlabel</span> <span class="o">=</span> <span class="s">&#39;xlabel&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ylabel</span> <span class="o">=</span> <span class="s">&#39;ylabel&#39;</span>
+<span class="gp">... </span>           <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mf">2.5</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xlabel</span> <span class="o">=</span> <span class="s1">&#39;xlabel&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ylabel</span> <span class="o">=</span> <span class="s1">&#39;ylabel&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ylimit</span> <span class="o">=</span> <span class="bp">None</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">title</span> <span class="o">=</span> <span class="s">&#39;title&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">boxplots_of_lists</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabel</span><span class="p">,</span> <span class="n">ylimit</span><span class="p">,</span> <span class="n">title</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;title&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">boxplots_of_lists</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabel</span><span class="p">,</span> <span class="n">ylimit</span><span class="p">,</span> <span class="n">title</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -174,11 +174,14 @@
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">histogram_of_vtk_scalars</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.mean_curvature.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">histogram_of_vtk_scalars</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_mean_curvature&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="n">vtk_file</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">vtk_file</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">histogram_of_vtk_scalars</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -224,14 +227,15 @@
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">histograms_of_lists</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">histograms_of_lists</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">columns</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">8</span><span class="p">],[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">]]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">column_name</span> <span class="o">=</span> <span class="s">&#39;label: thickness: median (weighted)&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">column_name</span> <span class="o">=</span> <span class="s1">&#39;label: thickness: median (weighted)&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ignore_columns</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">nbins</span> <span class="o">=</span> <span class="mi">100</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">axis_limits</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">titles</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;title1&#39;</span><span class="p">,</span><span class="s">&#39;title2&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">histograms_of_lists</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">column_name</span><span class="p">,</span> <span class="n">ignore_columns</span><span class="p">,</span> <span class="n">nbins</span><span class="p">,</span> <span class="n">axis_limits</span><span class="p">,</span> <span class="n">titles</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">titles</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;title1&#39;</span><span class="p">,</span><span class="s1">&#39;title2&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">histograms_of_lists</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">column_name</span><span class="p">,</span> <span class="n">ignore_columns</span><span class="p">,</span> <span class="n">nbins</span><span class="p">,</span>
+<span class="gp">... </span>                    <span class="n">axis_limits</span><span class="p">,</span> <span class="n">titles</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -242,7 +246,7 @@
 <dd><p>Use vtkviewer or mayavi2 to visualize VTK surface mesh data.</p>
 <p>If a mask_file is provided, a temporary masked file is saved,
 and it is this file that is viewed.</p>
-<p>If using vtkviewer, can optionally provide colormap file
+<p>If using vtkviewer, optionally provide colormap file
 or set $COLORMAP environment variable.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -286,18 +290,22 @@ use_colormap==True, use file set by $COLORMAP environment variable</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_mask_surface</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;lh.labels.DKT31.manual.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mask_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;test_one_label.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">nonmask_value</span> <span class="o">=</span> <span class="mi">0</span> <span class="c">#-1</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">masked_output</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="n">vtk_file</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">vtk_file</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nonmask_value</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1">#-1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">masked_output</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">remove_nonmask</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">program</span> <span class="o">=</span> <span class="s">&#39;vtkviewer&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">program</span> <span class="o">=</span> <span class="s1">&#39;vtkviewer&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">use_colormap</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">colormap_file</span> <span class="o">=</span> <span class="s">&#39;&#39;</span> <span class="c">#&#39;/software/surface_cpp_tools/colormap.xml&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_mask_surface</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="n">mask_file</span><span class="p">,</span> <span class="n">nonmask_value</span><span class="p">,</span> <span class="n">masked_output</span><span class="p">,</span> <span class="n">remove_nonmask</span><span class="p">,</span> <span class="n">program</span><span class="p">,</span> <span class="n">use_colormap</span><span class="p">,</span> <span class="n">colormap_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">colormap_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_mask_surface</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="n">mask_file</span><span class="p">,</span> <span class="n">nonmask_value</span><span class="p">,</span> <span class="n">masked_output</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">remove_nonmask</span><span class="p">,</span> <span class="n">program</span><span class="p">,</span> <span class="n">use_colormap</span><span class="p">,</span> <span class="n">colormap_file</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -329,14 +337,16 @@ use_colormap==True, use file set by $COLORMAP environment variable</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_files</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;lh.labels.DKT31.manual.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#vtk_files = [os.path.join(path, &#39;cube.vtk&#39;), os.path.join(path, &#39;test_one_label.vtk&#39;)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">label_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">label_file</span><span class="p">,</span> <span class="n">label_file</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">label_file</span> <span class="o">=</span> <span class="n">label_file</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">use_colormap</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">colormap_file</span> <span class="o">=</span> <span class="s">&#39;/software/surface_cpp_tools/colormap.xml&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">vtk_files</span><span class="p">,</span> <span class="n">use_colormap</span><span class="p">,</span> <span class="n">colormap_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">colormap_file</span> <span class="o">=</span> <span class="s1">&#39;/software/vtk_cpp_tools/colormap.xml&#39;</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">vtk_files</span><span class="p">,</span> <span class="n">use_colormap</span><span class="p">,</span> <span class="n">colormap_file</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -362,15 +372,20 @@ use_colormap==True, use file set by $COLORMAP environment variable</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_volumes</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">volume_file1</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;Twins-2-1&#39;</span><span class="p">,</span> <span class="s">&#39;mri&#39;</span><span class="p">,</span> <span class="s">&#39;t1weighted.nii.gz&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">volume_file2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;Twins-2-1&#39;</span><span class="p">,</span> <span class="s">&#39;mri&#39;</span><span class="p">,</span> <span class="s">&#39;t1weighted_brain.nii.gz&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">volume_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">volume_file1</span><span class="p">,</span> <span class="n">volume_file2</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">command</span> <span class="o">=</span> <span class="s">&#39;fslview&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">command</span> <span class="o">=</span> <span class="s">&#39;/Applications/ITK-SNAP.app/Contents/MacOS/InsightSNAP&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_volumes</span><span class="p">(</span><span class="n">volume_files</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="n">command</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">label_file1</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">label_file1</span><span class="p">,</span> <span class="n">label_file1</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">label_file1</span> <span class="o">=</span> <span class="n">label_file1</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">label_file2</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">label_file2</span><span class="p">,</span> <span class="n">label_file2</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">label_file2</span> <span class="o">=</span> <span class="n">label_file2</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">volume_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">label_file1</span><span class="p">,</span> <span class="n">label_file2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">command</span> <span class="o">=</span> <span class="s1">&#39;fslview&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">command</span> <span class="o">=</span> <span class="s1">&#39;/Applications/ITK-SNAP.app/Contents/MacOS/InsightSNAP&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_volumes</span><span class="p">(</span><span class="n">volume_files</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="n">command</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -440,23 +455,25 @@ use_colormap==True, use file set by $COLORMAP environment variable</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">scatterplot_list_pairs</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">columns</span> <span class="o">=</span> <span class="p">[[</span><span class="s">&#39;labels&#39;</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">8</span><span class="p">],[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">7</span><span class="p">],</span>
-<span class="gp">&gt;&gt;&gt; </span>           <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">2.1</span><span class="p">,</span><span class="mf">1.8</span><span class="p">,</span><span class="mf">2.2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mf">3.1</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span>
-<span class="gp">&gt;&gt;&gt; </span>           <span class="p">[</span><span class="mf">1.2</span><span class="p">,</span><span class="mf">0.5</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mf">1.3</span><span class="p">,</span><span class="mf">1.2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">5.2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mf">4.5</span><span class="p">]]</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">scatterplot_list_pairs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">columns</span> <span class="o">=</span> <span class="p">[[</span><span class="s1">&#39;labels&#39;</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">8</span><span class="p">],[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">7</span><span class="p">],</span>
+<span class="gp">... </span>           <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">2.1</span><span class="p">,</span><span class="mf">1.8</span><span class="p">,</span><span class="mf">2.2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mf">3.1</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span>
+<span class="gp">... </span>           <span class="p">[</span><span class="mf">1.2</span><span class="p">,</span><span class="mf">0.5</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mf">1.3</span><span class="p">,</span><span class="mf">1.2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">5.2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mf">4.5</span><span class="p">]]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ignore_first_column</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">plot_line</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">connect_markers</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mstyle</span> <span class="o">=</span> <span class="s">&#39;o&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mstyle</span> <span class="o">=</span> <span class="s1">&#39;o&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">msize</span> <span class="o">=</span> <span class="mi">10</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mcolor</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">title</span> <span class="o">=</span> <span class="s">&#39;title&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">x_label</span> <span class="o">=</span> <span class="s">&#39;xlabel&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">y_label</span> <span class="o">=</span> <span class="s">&#39;ylabel&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mcolor</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;title&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x_label</span> <span class="o">=</span> <span class="s1">&#39;xlabel&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y_label</span> <span class="o">=</span> <span class="s1">&#39;ylabel&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">limit</span> <span class="o">=</span> <span class="bp">None</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">legend</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">legend_labels</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;mark1&#39;</span><span class="p">,</span><span class="s">&#39;mark2&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">scatterplot_list_pairs</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">ignore_first_column</span><span class="p">,</span> <span class="n">plot_line</span><span class="p">,</span> <span class="n">connect_markers</span><span class="p">,</span> <span class="n">mstyle</span><span class="p">,</span> <span class="n">msize</span><span class="p">,</span> <span class="n">mcolor</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">x_label</span><span class="p">,</span> <span class="n">y_label</span><span class="p">,</span> <span class="n">limit</span><span class="p">,</span> <span class="n">legend</span><span class="p">,</span> <span class="n">legend_labels</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">legend_labels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;mark1&#39;</span><span class="p">,</span><span class="s1">&#39;mark2&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scatterplot_list_pairs</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">ignore_first_column</span><span class="p">,</span> <span class="n">plot_line</span><span class="p">,</span>
+<span class="gp">... </span>                       <span class="n">connect_markers</span><span class="p">,</span> <span class="n">mstyle</span><span class="p">,</span> <span class="n">msize</span><span class="p">,</span> <span class="n">mcolor</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span>
+<span class="gp">... </span>                       <span class="n">x_label</span><span class="p">,</span> <span class="n">y_label</span><span class="p">,</span> <span class="n">limit</span><span class="p">,</span> <span class="n">legend</span><span class="p">,</span> <span class="n">legend_labels</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -522,20 +539,22 @@ use_colormap==True, use file set by $COLORMAP environment variable</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">scatterplot_lists</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">scatterplot_lists</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">y_columns</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">8</span><span class="p">],[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">7</span><span class="p">]]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x_column</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">2.1</span><span class="p">,</span><span class="mf">1.8</span><span class="p">,</span><span class="mf">2.2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mf">3.1</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">6</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ignore_columns</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">plot_line</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">connect_markers</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mstyle</span> <span class="o">=</span> <span class="s">&#39;o&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mstyle</span> <span class="o">=</span> <span class="s1">&#39;o&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">msize</span> <span class="o">=</span> <span class="mi">10</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">title</span> <span class="o">=</span> <span class="s">&#39;title&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">x_label</span> <span class="o">=</span> <span class="s">&#39;xlabel&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">y_label</span> <span class="o">=</span> <span class="s">&#39;ylabel&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;title&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x_label</span> <span class="o">=</span> <span class="s1">&#39;xlabel&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y_label</span> <span class="o">=</span> <span class="s1">&#39;ylabel&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">legend</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">legend_labels</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;mark1&#39;</span><span class="p">,</span><span class="s">&#39;mark2&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">scatterplot_lists</span><span class="p">(</span><span class="n">y_columns</span><span class="p">,</span> <span class="n">x_column</span><span class="p">,</span> <span class="n">ignore_columns</span><span class="p">,</span> <span class="n">plot_line</span><span class="p">,</span> <span class="n">connect_markers</span><span class="p">,</span> <span class="n">mstyle</span><span class="p">,</span> <span class="n">msize</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">x_label</span><span class="p">,</span> <span class="n">y_label</span><span class="p">,</span> <span class="n">legend</span><span class="p">,</span> <span class="n">legend_labels</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">legend_labels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;mark1&#39;</span><span class="p">,</span><span class="s1">&#39;mark2&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scatterplot_lists</span><span class="p">(</span><span class="n">y_columns</span><span class="p">,</span> <span class="n">x_column</span><span class="p">,</span> <span class="n">ignore_columns</span><span class="p">,</span> <span class="n">plot_line</span><span class="p">,</span>
+<span class="gp">... </span>                  <span class="n">connect_markers</span><span class="p">,</span> <span class="n">mstyle</span><span class="p">,</span> <span class="n">msize</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">x_label</span><span class="p">,</span>
+<span class="gp">... </span>                  <span class="n">y_label</span><span class="p">,</span> <span class="n">legend</span><span class="p">,</span> <span class="n">legend_labels</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>

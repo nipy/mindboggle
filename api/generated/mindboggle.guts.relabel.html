@@ -95,11 +95,11 @@
 <dl class="docutils">
 <dt>Authors:</dt>
 <dd><ul class="first last simple">
-<li>Arno Klein, 2012-2013  (<a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>)  <a class="reference external" href="http://binarybottle.com">http://binarybottle.com</a></li>
+<li>Arno Klein, 2012-2016  (<a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>)  <a class="reference external" href="http://binarybottle.com">http://binarybottle.com</a></li>
 </ul>
 </dd>
 </dl>
-<p>Copyright 2013,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
+<p>Copyright 2016,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
 </div>
 <div class="section" id="functions">
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
@@ -138,15 +138,25 @@
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Remove right hemisphere labels</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Remove right hemisphere labels</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.relabel</span> <span class="kn">import</span> <span class="n">keep_volume_labels</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;labels.DKT31.manual.nii.gz&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">second_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;labels.DKT25.manual.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.labels</span> <span class="kn">import</span> <span class="n">DKTprotocol</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">input_file</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_file</span> <span class="o">=</span> <span class="n">input_file</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">second_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">labels_to_keep</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1036</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">keep_volume_labels</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">labels_to_keep</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span> <span class="n">second_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="n">keep_volume_labels</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">labels_to_keep</span><span class="p">,</span>
+<span class="gp">... </span>                                 <span class="n">output_file</span><span class="p">,</span> <span class="n">second_file</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>View nifti file (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_volumes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_volumes</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -198,20 +208,29 @@ The source and target images must have the same volume dimensions.</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Overwrite DKT25 with DKT31 labels</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Overwrite DKT25 with DKT31 labels</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.relabel</span> <span class="kn">import</span> <span class="n">overwrite_volume_labels</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_volumes</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">source</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;labels.DKT31.manual.nii.gz&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">target</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;labels.DKT25.manual.nii.gz&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.labels</span> <span class="kn">import</span> <span class="n">DKTprotocol</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">source</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">target</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;ants_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">source</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">source</span> <span class="o">=</span> <span class="n">source</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">target</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">target</span> <span class="o">=</span> <span class="n">target</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ignore_labels</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">erase_labels</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">erase_labels</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">background_value</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="n">overwrite_volume_labels</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span> <span class="n">ignore_labels</span><span class="p">,</span> <span class="n">erase_labels</span><span class="p">,</span> <span class="n">background_value</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_volumes</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="n">overwrite_volume_labels</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">ignore_labels</span><span class="p">,</span> <span class="n">erase_labels</span><span class="p">,</span> <span class="n">background_value</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>View nifti file (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_volumes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_volumes</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -270,23 +289,29 @@ may be used in conjunction with hemi</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.relabel</span> <span class="kn">import</span> <span class="n">relabel_surface</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;lh.labels.DKT25.manual.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">hemi</span> <span class="o">=</span> <span class="s">&#39;lh&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hemi</span> <span class="o">=</span> <span class="s1">&#39;lh&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">old_labels</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1003</span><span class="p">,</span><span class="mi">1009</span><span class="p">,</span><span class="mi">1030</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">new_labels</span> <span class="o">=</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">30</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">erase_remaining</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_labels</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">500</span><span class="p">,</span><span class="mi">1000</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">erase_remaining</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">erase_labels</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">erase_value</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">relabel_surface</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="n">hemi</span><span class="p">,</span> <span class="n">old_labels</span><span class="p">,</span> <span class="n">new_labels</span><span class="p">,</span> <span class="n">erase_remaining</span><span class="p">,</span> <span class="n">erase_labels</span><span class="p">,</span> <span class="n">erase_value</span><span class="p">,</span> <span class="n">output_file</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="s">&#39;relabeled_FreeSurfer_cortex_labels.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#plot_surfaces(&#39;relabeled_rh.labels.DKT31.manual.vtk&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="n">relabel_surface</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="n">hemi</span><span class="p">,</span> <span class="n">old_labels</span><span class="p">,</span> <span class="n">new_labels</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">erase_remaining</span><span class="p">,</span> <span class="n">erase_labels</span><span class="p">,</span> <span class="n">erase_value</span><span class="p">,</span> <span class="n">output_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">labels</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">read_scalars</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+<span class="go">array([  -1, 1000, 1500, 2000])</span>
+</pre></div>
+</div>
+<p>View relabeled surface file (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -326,25 +351,28 @@ may be used in conjunction with hemi</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Convert DKT31 to DKT25 labels</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Convert DKT31 to DKT25 labels</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.relabel</span> <span class="kn">import</span> <span class="n">relabel_volume</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.labels</span> <span class="kn">import</span> <span class="n">DKTprotocol</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_volumes</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Convert DKT31 to DKT25 protocol:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#data_path = os.environ[&#39;MINDBOGGLE_DATA&#39;]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#input_file = os.path.join(data_path, &#39;arno&#39;, &#39;labels&#39;, &#39;labels.DKT31.manual.nii.gz&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#old_labels = [1010,1023,1026,1027,1019,1020,2010,2023,2026,2027,2019,2020]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#new_labels = [1002,1002,1002,1003,1018,1018,2002,2002,2002,2003,2018,2018]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Convert labels to non/cortex segmentation:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;HOME&#39;</span><span class="p">],</span> <span class="s">&#39;mindboggled/OASIS-TRT-20-1/labels/FreeSurfer_labels.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">input_file</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_file</span> <span class="o">=</span> <span class="n">input_file</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dkt</span> <span class="o">=</span> <span class="n">DKTprotocol</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">old_labels</span> <span class="o">=</span> <span class="n">dkt</span><span class="o">.</span><span class="n">cortex_numbers</span> <span class="o">+</span> <span class="n">dkt</span><span class="o">.</span><span class="n">noncortex_numbers</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">new_labels</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">dkt</span><span class="o">.</span><span class="n">cortex_numbers</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mi">3</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">dkt</span><span class="o">.</span><span class="n">noncortex_numbers</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="n">relabel_volume</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">old_labels</span><span class="p">,</span> <span class="n">new_labels</span><span class="p">,</span> <span class="n">output_file</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_volumes</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">old_labels</span> <span class="o">=</span> <span class="n">dkt</span><span class="o">.</span><span class="n">cerebrum_cortex_numbers</span> <span class="o">+</span> <span class="n">dkt</span><span class="o">.</span><span class="n">cerebrum_noncortex_numbers</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="p">[</span><span class="mi">5000</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">dkt</span><span class="o">.</span><span class="n">cerebrum_cortex_numbers</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nonctx</span> <span class="o">=</span> <span class="p">[</span><span class="mi">6000</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">dkt</span><span class="o">.</span><span class="n">cerebrum_noncortex_numbers</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_labels</span> <span class="o">=</span> <span class="n">ctx</span> <span class="o">+</span> <span class="n">nonctx</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="n">relabel_volume</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">old_labels</span><span class="p">,</span> <span class="n">new_labels</span><span class="p">,</span>
+<span class="gp">... </span>                             <span class="n">output_file</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>View nifti file (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_volumes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_volumes</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -385,17 +413,27 @@ may be used in conjunction with hemi</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Remove subcortical labels</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Remove subcortical labels</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.guts.relabel</span> <span class="kn">import</span> <span class="n">remove_volume_labels</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;labels.DKT31.manual.nii.gz&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">second_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;labels.DKT25.manual.nii.gz&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">labels_to_remove</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">300</span><span class="p">)</span> <span class="c"># Remove noncortical (+aseg) labels</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.labels</span> <span class="kn">import</span> <span class="n">DKTprotocol</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">input_file</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_file</span> <span class="o">=</span> <span class="n">input_file</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">second_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">labels_to_remove</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">300</span><span class="p">)</span> <span class="c1"># Remove noncortex (+aseg) labels</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">labels_to_remove</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1001</span><span class="p">,</span><span class="mi">2000</span><span class="p">,</span><span class="mi">2001</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">labels_to_remove</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span><span class="mi">2036</span><span class="p">))</span> <span class="c"># Remove right cortical labels</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">remove_volume_labels</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">labels_to_remove</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span> <span class="n">second_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">labels_to_remove</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span><span class="mi">2036</span><span class="p">))</span> <span class="c1"># Remove right cortex labels</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="n">remove_volume_labels</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">labels_to_remove</span><span class="p">,</span>
+<span class="gp">... </span>                                   <span class="n">output_file</span><span class="p">,</span> <span class="n">second_file</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>View nifti file (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_volumes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_volumes</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>

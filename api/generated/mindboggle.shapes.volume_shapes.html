@@ -95,20 +95,20 @@
 <dl class="docutils">
 <dt>Authors:</dt>
 <dd><ul class="first last simple">
-<li>Arno Klein, 2013-2015  (<a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>)  <a class="reference external" href="http://binarybottle.com">http://binarybottle.com</a></li>
+<li>Arno Klein, 2013-2016  (<a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>)  <a class="reference external" href="http://binarybottle.com">http://binarybottle.com</a></li>
 </ul>
 </dd>
 </dl>
-<p>Copyright 2015,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
+<p>Copyright 2016,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
 </div>
 <div class="section" id="functions">
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mindboggle.shapes.volume_shapes.thickinthehead">
-<code class="descclassname">mindboggle.shapes.volume_shapes.</code><code class="descname">thickinthehead</code><span class="sig-paren">(</span><em>segmented_file</em>, <em>labeled_file</em>, <em>cortex_value=2</em>, <em>noncortex_value=3</em>, <em>labels=[]</em>, <em>names=[]</em>, <em>resize=True</em>, <em>propagate=True</em>, <em>output_dir=''</em>, <em>save_table=False</em>, <em>output_table=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.volume_shapes.thickinthehead" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.shapes.volume_shapes.</code><code class="descname">thickinthehead</code><span class="sig-paren">(</span><em>segmented_file</em>, <em>labeled_file</em>, <em>cortex_value=2</em>, <em>noncortex_value=3</em>, <em>labels=[]</em>, <em>names=[]</em>, <em>resize=True</em>, <em>propagate=True</em>, <em>output_dir=''</em>, <em>save_table=False</em>, <em>output_table=''</em>, <em>ants_path=''</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.volume_shapes.thickinthehead" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute a simple thickness measure for each labeled cortex region volume.</p>
 <p>Note:</p>
-<div class="highlight-python"><div class="highlight"><pre>- Cortex, noncortex, &amp; label files are from the same coregistered brain.
+<div class="highlight-python"><div class="highlight"><pre><span></span>- Cortex, noncortex, &amp; label files are from the same coregistered brain.
 - Calls ANTs functions: ImageMath, Threshold, ResampleImageBySpacing
 - There may be slight discrepancies between volumes computed by
   thickinthehead() and volumes computed by volume_for_each_label();
@@ -119,7 +119,7 @@
 </pre></div>
 </div>
 <p>Example preprocessing steps</p>
-<div class="highlight-python"><div class="highlight"><pre>1. Run Freesurfer and antsCorticalThickness.sh on T1-weighted image.
+<div class="highlight-python"><div class="highlight"><pre><span></span>1. Run Freesurfer and antsCorticalThickness.sh on T1-weighted image.
 2. Convert FreeSurfer volume labels (e.g., wmparc.mgz or aparc+aseg.mgz)
    to cortex (2) and noncortex (3) segments using relabel_volume()
    function [refer to LABELS.rst or FreeSurferColorLUT labels file].
@@ -150,7 +150,7 @@
 </pre></div>
 </div>
 <p>Steps</p>
-<div class="highlight-python"><div class="highlight"><pre>1. Extract noncortex and cortex.
+<div class="highlight-python"><div class="highlight"><pre><span></span>1. Extract noncortex and cortex.
 2. Either mask labels with cortex or fill cortex with labels.
 3. Resample cortex and noncortex files from 1x1x1 to 0.5x0.5x0.5
    to better represent the contours of the boundaries of the cortex.
@@ -212,6 +212,10 @@
 <blockquote>
 <div><p>name of output table file with label volumes and thickness values</p>
 </div></blockquote>
+<p><strong>verbose</strong> : Boolean</p>
+<blockquote>
+<div><p>print statements?</p>
+</div></blockquote>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>label_volume_thickness</strong> : list of lists of integers and floats</p>
@@ -227,12 +231,21 @@
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.volume_shapes</span> <span class="kn">import</span> <span class="n">thickinthehead</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">segmented_file</span> <span class="o">=</span> <span class="s">&#39;/Users/arno/Data/antsCorticalThickness/OASIS-TRT-20-1/antsBrainSegmentation.nii.gz&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">labeled_file</span> <span class="o">=</span> <span class="s">&#39;/appsdir/freesurfer/subjects/OASIS-TRT-20-1/mri/labels.DKT31.manual.nii.gz&#39;</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Example simply using ants segmentation and labels:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.volume_shapes</span> <span class="kn">import</span> <span class="n">thickinthehead</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">segmented_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;ants_segmentation&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">segmented_file</span><span class="p">,</span> <span class="n">segmented_file</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">segmented_file</span> <span class="o">+=</span> <span class="s1">&#39;.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">labeled_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;ants_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">labeled_file</span><span class="p">,</span> <span class="n">labeled_file</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">labeled_file</span> <span class="o">+=</span> <span class="s1">&#39;.nii.gz&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cortex_value</span> <span class="o">=</span> <span class="mi">2</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">noncortex_value</span> <span class="o">=</span> <span class="mi">3</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#labels = [2]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#labels = [2]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">labels</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1002</span><span class="p">,</span><span class="mi">1036</span><span class="p">)</span> <span class="o">+</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2002</span><span class="p">,</span><span class="mi">2036</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">labels</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="mi">1004</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">labels</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="mi">2004</span><span class="p">)</span>
@@ -243,17 +256,29 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">resize</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">propagate</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_dir</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_dir</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">save_table</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_table</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">label_volume_thickness</span><span class="p">,</span> <span class="n">output_table</span> <span class="o">=</span> <span class="n">thickinthehead</span><span class="p">(</span><span class="n">segmented_file</span><span class="p">,</span> <span class="n">labeled_file</span><span class="p">,</span> <span class="n">cortex_value</span><span class="p">,</span> <span class="n">noncortex_value</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">resize</span><span class="p">,</span> <span class="n">propagate</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">save_table</span><span class="p">,</span> <span class="n">output_table</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_table</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">label_volume_thickness</span><span class="p">,</span> <span class="n">output_table</span> <span class="o">=</span> <span class="n">thickinthehead</span><span class="p">(</span><span class="n">segmented_file</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">labeled_file</span><span class="p">,</span> <span class="n">cortex_value</span><span class="p">,</span> <span class="n">noncortex_value</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">resize</span><span class="p">,</span> <span class="n">propagate</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">save_table</span><span class="p">,</span> <span class="n">output_table</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">label_volume_thickness</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">10</span><span class="p">]),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 1002.  1003.  1005.  1006.  1007.  1008.  1009.  1010.  1011.  1012.]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">label_volume_thickness</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[  3136.99383   7206.98582   3257.99359   1950.99616  12458.97549]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">label_volume_thickness</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 3.8639   3.69637  2.56334  4.09336  4.52592]</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="mindboggle.shapes.volume_shapes.volume_per_brain_region">
-<code class="descclassname">mindboggle.shapes.volume_shapes.</code><code class="descname">volume_per_brain_region</code><span class="sig-paren">(</span><em>input_file</em>, <em>include_labels=[]</em>, <em>exclude_labels=[]</em>, <em>label_names=[]</em>, <em>save_table=False</em>, <em>output_table=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.volume_shapes.volume_per_brain_region" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.shapes.volume_shapes.</code><code class="descname">volume_per_brain_region</code><span class="sig-paren">(</span><em>input_file</em>, <em>include_labels=[]</em>, <em>exclude_labels=[]</em>, <em>label_names=[]</em>, <em>save_table=False</em>, <em>output_table=''</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.volume_shapes.volume_per_brain_region" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute volume per labeled region in a nibabel-readable image.</p>
 <p>Note: Results are truncated at three decimal places because we found that
 volume label propagation led to differences in the third decimal place.</p>
@@ -286,6 +311,10 @@ volume label propagation led to differences in the third decimal place.</p>
 <blockquote>
 <div><p>name of output table file with labels and volume values</p>
 </div></blockquote>
+<p><strong>verbose</strong> : Boolean</p>
+<blockquote>
+<div><p>print statements?</p>
+</div></blockquote>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>unique_labels</strong> : list of integers</p>
@@ -305,18 +334,31 @@ volume label propagation led to differences in the third decimal place.</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.labels</span> <span class="kn">import</span> <span class="n">DKTprotocol</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.volume_shapes</span> <span class="kn">import</span> <span class="n">volume_per_brain_region</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;HOME&#39;</span><span class="p">],</span> <span class="s">&#39;mindboggled&#39;</span><span class="p">,</span> <span class="s">&#39;Twins-2-1old&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;ants_filled_labels.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">input_file</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_file</span> <span class="o">+=</span> <span class="s1">&#39;.nii.gz&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dkt</span> <span class="o">=</span> <span class="n">DKTprotocol</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">include_labels</span> <span class="o">=</span> <span class="n">dkt</span><span class="o">.</span><span class="n">label_numbers</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">exclude_labels</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">label_names</span> <span class="o">=</span> <span class="n">dkt</span><span class="o">.</span><span class="n">label_names</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">save_table</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_table</span> <span class="o">=</span> <span class="s">&#39;volumes.csv&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">unique_labels</span><span class="p">,</span> <span class="n">volumes</span><span class="p">,</span> <span class="n">output_table</span> <span class="o">=</span> <span class="n">volume_per_brain_region</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">include_labels</span><span class="p">,</span> <span class="n">exclude_labels</span><span class="p">,</span> <span class="n">label_names</span><span class="p">,</span> <span class="n">save_table</span><span class="p">,</span> <span class="n">output_table</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">volumes</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_table</span> <span class="o">=</span> <span class="s1">&#39;volumes.csv&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">unique_labels</span><span class="p">,</span> <span class="n">volumes</span><span class="p">,</span> <span class="n">table</span> <span class="o">=</span> <span class="n">volume_per_brain_region</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">include_labels</span><span class="p">,</span> <span class="n">exclude_labels</span><span class="p">,</span> <span class="n">label_names</span><span class="p">,</span> <span class="n">save_table</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">output_table</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">volumes</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[  971.99797  2413.99496  2192.99543  8328.98262  2940.99386]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">volumes</span><span class="p">[</span><span class="mi">5</span><span class="p">:</span><span class="mi">10</span><span class="p">]),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[  1997.99583  10905.97725  11318.97639  10789.97749   2700.99437]</span>
 </pre></div>
 </div>
 </dd></dl>

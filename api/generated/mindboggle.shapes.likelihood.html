@@ -126,8 +126,8 @@ Concatenate these scalar values across multiple files.</dd>
 </div></blockquote>
 <p>Authors:
 Yrjo Hame, 2012-2013  .  <a class="reference external" href="mailto:yrjo&#46;hame&#37;&#52;&#48;gmail&#46;com">yrjo<span>&#46;</span>hame<span>&#64;</span>gmail<span>&#46;</span>com</a>
-Arno Klein, 2012-2013  .  <a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>  .  www.binarybottle.com</p>
-<p>Copyright 2013,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
+Arno Klein, 2012-2016  .  <a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>  .  www.binarybottle.com</p>
+<p>Copyright 2016,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
 </div>
 <div class="section" id="functions">
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
@@ -181,23 +181,27 @@ on distributions of depth and curvature values from multiple files.</p>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Notes</p>
+<p>The depth_curv_border_nonborder_parameters.pkl file needs to be updated.</p>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span><span class="p">,</span> <span class="n">rewrite_scalars</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.likelihood</span> <span class="kn">import</span> <span class="n">compute_likelihood</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">trained_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;atlases&#39;</span><span class="p">,</span> <span class="s">&#39;depth_curv_border_nonborder_parameters.pkl&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#depth_file = os.path.join(path, &#39;arno&#39;, &#39;shapes&#39;, &#39;travel_depth_rescaled.vtk&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">depth_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.travel_depth.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">curvature_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.mean_curvature.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">folds_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;features&#39;</span><span class="p">,</span> <span class="s">&#39;folds.vtk&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">depth_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_travel_depth&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">curvature_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_mean_curvature&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">folds_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_folds&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">trained_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span>
+<span class="gp">... </span>    <span class="s1">&#39;depth_curv_border_nonborder_parameters&#39;</span><span class="p">])</span> 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">folds</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">read_scalars</span><span class="p">(</span><span class="n">folds_file</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">save_file</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">compute_likelihood</span><span class="p">(</span><span class="n">trained_file</span><span class="p">,</span> <span class="n">depth_file</span><span class="p">,</span> <span class="n">curvature_file</span><span class="p">,</span> <span class="n">folds</span><span class="p">,</span> <span class="n">save_file</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="s">&#39;likelihoods.vtk&#39;</span><span class="p">,</span> <span class="n">folds_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">likelihoods</span><span class="p">,</span> <span class="n">likelihoods_file</span> <span class="o">=</span> <span class="n">compute_likelihood</span><span class="p">(</span><span class="n">trained_file</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">depth_file</span><span class="p">,</span> <span class="n">curvature_file</span><span class="p">,</span> <span class="n">folds</span><span class="p">,</span> <span class="n">save_file</span><span class="p">)</span> 
+</pre></div>
+</div>
+<p>View result (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="s1">&#39;likelihoods.vtk&#39;</span><span class="p">,</span> <span class="n">folds_file</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -240,27 +244,35 @@ Concatenate these scalar values across multiple files.</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Concatenate (duplicate) depth scalars:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Concatenate (duplicate) depth scalars:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.likelihood</span> <span class="kn">import</span> <span class="n">concatenate_sulcus_scalars</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">depth_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;depth_rescaled.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">folds_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;features&#39;</span><span class="p">,</span> <span class="s">&#39;folds.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">labels_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;lh.labels.DKT25.manual.vtk&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">depth_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_travel_depth&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">labels_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">folds_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_folds&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">scalar_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">depth_file</span><span class="p">,</span> <span class="n">depth_file</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fold_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">folds_file</span><span class="p">,</span> <span class="n">folds_file</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">label_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">labels_file</span><span class="p">,</span> <span class="n">labels_file</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">S</span> <span class="o">=</span> <span class="n">concatenate_sulcus_scalars</span><span class="p">(</span><span class="n">scalar_files</span><span class="p">,</span> <span class="n">fold_files</span><span class="p">,</span> <span class="n">label_files</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">border</span><span class="p">,</span> <span class="n">nonborder</span> <span class="o">=</span> <span class="n">concatenate_sulcus_scalars</span><span class="p">(</span><span class="n">scalar_files</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">fold_files</span><span class="p">,</span> <span class="n">label_files</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">border</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 3.48282  2.57155  4.27596  4.56547  3.84879]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nonborder</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 2.01242  2.87204  2.89389  3.55363  2.81681]</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="mindboggle.shapes.likelihood.estimate_distribution">
-<code class="descclassname">mindboggle.shapes.likelihood.</code><code class="descname">estimate_distribution</code><span class="sig-paren">(</span><em>scalar_files</em>, <em>scalar_range</em>, <em>fold_files</em>, <em>label_files</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.likelihood.estimate_distribution" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.shapes.likelihood.</code><code class="descname">estimate_distribution</code><span class="sig-paren">(</span><em>scalar_files</em>, <em>scalar_range</em>, <em>fold_files</em>, <em>label_files</em>, <em>verbose</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.likelihood.estimate_distribution" title="Permalink to this definition">¶</a></dt>
 <dd><p>Estimate sulcus label border scalar distributions from VTK files.</p>
-<p>Estimate distribution means, sigmas (standard deviations), and weights
+<p>Learn distributions from training data (different surface meshes).
+Estimate distribution means, sigmas (standard deviations), and weights
 for VTK surface mesh scalars (e.g., depth, curvature) along and outside
 sulcus label borders within folds.</p>
 <p>Note : The number of classes, k, is currently hard-coded.</p>
@@ -284,6 +296,10 @@ sulcus label borders within folds.</p>
 <blockquote>
 <div><p>names of VTK files with label numbers for scalar values</p>
 </div></blockquote>
+<p><strong>verbose</strong> : Boolean</p>
+<blockquote>
+<div><p>print statements?</p>
+</div></blockquote>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>border_parameters</strong> : dictionary containing lists of floats</p>
@@ -299,70 +315,78 @@ sulcus label borders within folds.</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.likelihood</span> <span class="kn">import</span> <span class="n">estimate_distribution</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">do_test</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Train on a single surface mesh:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">do_test</span><span class="p">:</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="c">#depth_file = os.path.join(path, &#39;arno&#39;, &#39;shapes&#39;, &#39;travel_depth_rescaled.vtk&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">depth_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.travel_depth.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">curv_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.mean_curvature.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">folds_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;features&#39;</span><span class="p">,</span> <span class="s">&#39;folds.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">labels_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;lh.labels.DKT25.manual.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">depth_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">depth_file</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">curv_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">curv_file</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">fold_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">folds_file</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">label_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">labels_file</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Train on many Mindboggle-101 surface meshes:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">else</span><span class="p">:</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">mindboggle_path</span> <span class="o">=</span> <span class="s">&#39;../../Mindboggle101_mindboggle_results&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">label_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;SUBJECTS_DIR&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">x_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE&#39;</span><span class="p">],</span> <span class="s">&#39;x&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">atlas_list_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">x_path</span><span class="p">,</span> <span class="s">&#39;mindboggle101_atlases.txt&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">atlas_list</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">depth_files</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">curv_files</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">fold_files</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">label_files</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="k">for</span> <span class="n">atlas</span> <span class="ow">in</span> <span class="n">atlas_list</span><span class="p">:</span>
-<span class="gp">&gt;&gt;&gt; </span>     <span class="k">if</span> <span class="s">&#39;OASIS&#39;</span> <span class="ow">in</span> <span class="n">atlas</span> <span class="ow">or</span> <span class="s">&#39;NKI&#39;</span> <span class="ow">in</span> <span class="n">atlas</span> <span class="ow">or</span> <span class="s">&#39;MMRR-21&#39;</span> <span class="ow">in</span> <span class="n">atlas</span><span class="p">:</span>
-<span class="gp">&gt;&gt;&gt; </span>      <span class="k">print</span><span class="p">(</span><span class="n">atlas</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span>      <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;lh&#39;</span><span class="p">,</span><span class="s">&#39;rh&#39;</span><span class="p">]:</span>
-<span class="gp">&gt;&gt;&gt; </span>        <span class="c">#depth_file = os.path.join(mindboggle_path, &#39;shapes&#39;,</span>
-<span class="gp">&gt;&gt;&gt; </span>        <span class="c">#    &#39;_hemi_&#39;+h+&#39;_subject_&#39;+atlas, &#39;travel_depth_rescaled.vtk&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span>        <span class="n">depth_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">mindboggle_path</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>            <span class="s">&#39;_hemi_&#39;</span><span class="o">+</span><span class="n">h</span><span class="o">+</span><span class="s">&#39;_subject_&#39;</span><span class="o">+</span><span class="n">atlas</span><span class="p">,</span> <span class="n">h</span><span class="o">+</span><span class="s">&#39;.pial.travel_depth.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span>        <span class="n">curv_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">mindboggle_path</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>            <span class="s">&#39;_hemi_&#39;</span><span class="o">+</span><span class="n">h</span><span class="o">+</span><span class="s">&#39;_subject_&#39;</span><span class="o">+</span><span class="n">atlas</span><span class="p">,</span> <span class="n">h</span><span class="o">+</span><span class="s">&#39;.pial.mean_curvature.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span>        <span class="n">folds_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">mindboggle_path</span><span class="p">,</span> <span class="s">&#39;features&#39;</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>            <span class="s">&#39;_hemi_&#39;</span><span class="o">+</span><span class="n">h</span><span class="o">+</span><span class="s">&#39;_subject_&#39;</span><span class="o">+</span><span class="n">atlas</span><span class="p">,</span> <span class="s">&#39;folds.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span>        <span class="n">labels_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">label_path</span><span class="p">,</span> <span class="n">atlas</span><span class="p">,</span> <span class="s">&#39;label&#39;</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>            <span class="n">h</span><span class="o">+</span><span class="s">&#39;.labels.DKT25.manual.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span>        <span class="n">depth_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">depth_file</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span>        <span class="n">curv_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">curv_file</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span>        <span class="n">fold_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">folds_file</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span>        <span class="n">label_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">labels_file</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">scalar_range1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">51</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="c"># (0 to 1 by 0.02)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">scalar_range2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">101</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="c"># (-1 to 1 by 0.02)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">depth_border</span><span class="p">,</span> <span class="n">depth_nonborder</span> <span class="o">=</span> <span class="n">estimate_distribution</span><span class="p">(</span><span class="n">depth_files</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">scalar_range1</span><span class="p">,</span> <span class="n">fold_files</span><span class="p">,</span> <span class="n">label_files</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">curv_border</span><span class="p">,</span> <span class="n">curv_nonborder</span> <span class="o">=</span> <span class="n">estimate_distribution</span><span class="p">(</span><span class="n">curv_files</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">scalar_range2</span><span class="p">,</span> <span class="n">fold_files</span><span class="p">,</span> <span class="n">label_files</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">cPickle</span> <span class="kn">as</span> <span class="nn">pickle</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span> <span class="p">[</span><span class="n">depth_border</span><span class="p">,</span> <span class="n">curv_border</span><span class="p">,</span> <span class="n">depth_nonborder</span><span class="p">,</span> <span class="n">curv_nonborder</span><span class="p">],</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="nb">open</span><span class="p">(</span><span class="s">&quot;depth_curv_border_nonborder_parameters.pkl&quot;</span><span class="p">,</span> <span class="s">&quot;wb&quot;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.likelihood</span> <span class="kn">import</span> <span class="n">estimate_distribution</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Train on a single surface mesh (using FreeSurfer vs. manual labels):</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">depth_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_travel_depth&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">curv_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_mean_curvature&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">folds_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_folds&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">labels_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">depth_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">depth_file</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">curv_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">curv_file</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fold_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">folds_file</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">label_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">labels_file</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># # Train on many Mindboggle-101 surface meshes:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># import os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># mindboggle_path = &#39;../../Mindboggle101_mindboggle_results&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># label_path = os.environ[&#39;SUBJECTS_DIR&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># x_path = os.path.join(os.environ[&#39;MINDBOGGLE&#39;], &#39;x&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># atlas_list_file = os.path.join(x_path, &#39;mindboggle101_atlases.txt&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># depth_files = []</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># curv_files = []</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># fold_files = []</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># label_files = []</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># for atlas in atlas_list:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#  if &#39;OASIS&#39; in atlas or &#39;NKI&#39; in atlas or &#39;MMRR-21&#39; in atlas:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#   print(atlas)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#   for h in [&#39;lh&#39;,&#39;rh&#39;]:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#     depth_file = os.path.join(mindboggle_path, &#39;shapes&#39;,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#         &#39;_hemi_&#39;+h+&#39;_subject_&#39;+atlas, h+&#39;.pial.travel_depth.vtk&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#     curv_file = os.path.join(mindboggle_path, &#39;shapes&#39;,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#         &#39;_hemi_&#39;+h+&#39;_subject_&#39;+atlas, h+&#39;.pial.mean_curvature.vtk&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#     folds_file = os.path.join(mindboggle_path, &#39;features&#39;,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#         &#39;_hemi_&#39;+h+&#39;_subject_&#39;+atlas, &#39;folds.vtk&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#     labels_file = os.path.join(label_path, atlas, &#39;label&#39;,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#         h+&#39;.labels.DKT25.manual.vtk&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#     depth_files.append(depth_file)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#     curv_files.append(curv_file)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#     fold_files.append(folds_file)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#     label_files.append(labels_file)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalar_files</span> <span class="o">=</span> <span class="n">depth_files</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalar_range</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">51</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="c1"># (0 to 1 by 0.02)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">depth_border</span><span class="p">,</span> <span class="n">depth_nonborder</span> <span class="o">=</span> <span class="n">estimate_distribution</span><span class="p">(</span><span class="n">scalar_files</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">scalar_range</span><span class="p">,</span> <span class="n">fold_files</span><span class="p">,</span> <span class="n">label_files</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalar_files</span> <span class="o">=</span> <span class="n">curv_files</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalar_range</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">101</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="c1"># (-1 to 1 by 0.02)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">curv_border</span><span class="p">,</span> <span class="n">curv_nonborder</span> <span class="o">=</span> <span class="n">estimate_distribution</span><span class="p">(</span><span class="n">scalar_files</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">scalar_range</span><span class="p">,</span> <span class="n">fold_files</span><span class="p">,</span> <span class="n">label_files</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">depth_border</span><span class="p">[</span><span class="s1">&#39;means&#39;</span><span class="p">]),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[  6.29198  13.52503  18.67128]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">depth_nonborder</span><span class="p">[</span><span class="s1">&#39;means&#39;</span><span class="p">]),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[  4.42468   9.86916  16.16073]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">curv_border</span><span class="p">[</span><span class="s1">&#39;means&#39;</span><span class="p">]),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 3.33657 -0.33544 -2.04763]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">curv_nonborder</span><span class="p">[</span><span class="s1">&#39;means&#39;</span><span class="p">]),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 1.7521  -1.04979 -3.33142]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">([</span><span class="n">depth_border</span><span class="p">,</span> <span class="n">curv_border</span><span class="p">,</span> <span class="n">depth_nonborder</span><span class="p">,</span> <span class="n">curv_nonborder</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;depth_curv_border_nonborder_parameters.pkl&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">))</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="mindboggle.shapes.likelihood.fit_normals_to_histogram">
-<code class="descclassname">mindboggle.shapes.likelihood.</code><code class="descname">fit_normals_to_histogram</code><span class="sig-paren">(</span><em>data</em>, <em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.likelihood.fit_normals_to_histogram" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.shapes.likelihood.</code><code class="descname">fit_normals_to_histogram</code><span class="sig-paren">(</span><em>data</em>, <em>x</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.likelihood.fit_normals_to_histogram" title="Permalink to this definition">¶</a></dt>
 <dd><p>This Estimation-Maximization method returns estimated means, sigmas
 (standard deviations) and weights, each of length k (number of classes).</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -388,24 +412,34 @@ sulcus label borders within folds.</p>
 <div><p>estimated standard deviation for each class</p>
 </div></blockquote>
 <p><strong>weights</strong> : list of floats</p>
-<blockquote class="last">
+<blockquote>
 <div><p>weight for each class</p>
+</div></blockquote>
+<p><strong>verbose</strong> : Boolean</p>
+<blockquote class="last">
+<div><p>print statements?</p>
 </div></blockquote>
 </td>
 </tr>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.shapes.likelihood</span> <span class="kn">import</span> <span class="n">fit_normals_to_histogram</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">depth_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;depth_rescaled.vtk&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">depth_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_travel_depth&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">scalars</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">read_scalars</span><span class="p">(</span><span class="n">depth_file</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">51</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">means</span><span class="p">,</span> <span class="n">sigmas</span><span class="p">,</span> <span class="n">weights</span> <span class="o">=</span> <span class="n">fit_normals_to_histogram</span><span class="p">(</span><span class="n">scalars</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">means</span><span class="p">,</span> <span class="n">sigmas</span><span class="p">,</span> <span class="n">weights</span> <span class="o">=</span> <span class="n">fit_normals_to_histogram</span><span class="p">(</span><span class="n">scalars</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">means</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 13.36763   3.87517   0.10806]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">sigmas</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 5.80264  2.56613  0.10031]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 0.44153  0.39173  0.16674]</span>
 </pre></div>
 </div>
 </dd></dl>

@@ -164,16 +164,18 @@ with the -k argument.</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">fetch_ants_data</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">segmented_file</span> <span class="o">=</span> <span class="s">&#39;ants_subjects/OASIS-TRT-20-1/tmpBrainSegmentation.nii.gz&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fetch_ants_data</span><span class="p">(</span><span class="n">segmented_file</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">fetch_ants_data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">segmented_file</span> <span class="o">=</span> <span class="s1">&#39;ants/OASIS-TRT-20-1/tmpBrainSegmentation.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">use_ants_transforms</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">a_s2t</span><span class="p">,</span> <span class="n">w_s2t</span><span class="p">,</span> <span class="n">a_t2s</span><span class="p">,</span> <span class="n">w_t2s</span> <span class="o">=</span> <span class="n">fetch_ants_data</span><span class="p">(</span><span class="n">segmented_file</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">use_ants_transforms</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="mindboggle.mio.fetch_data.fetch_check_data">
-<code class="descclassname">mindboggle.mio.fetch_data.</code><code class="descname">fetch_check_data</code><span class="sig-paren">(</span><em>data_file</em>, <em>url=''</em>, <em>hashes={}</em>, <em>cache_env=''</em>, <em>cache=''</em>, <em>return_missing=False</em>, <em>lookup=True</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.fetch_data.fetch_check_data" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.mio.fetch_data.</code><code class="descname">fetch_check_data</code><span class="sig-paren">(</span><em>data_file</em>, <em>url=''</em>, <em>hashes={}</em>, <em>cache_env=''</em>, <em>cache=''</em>, <em>return_missing=False</em>, <em>lookup=True</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.fetch_data.fetch_check_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get data file through a URL call and check its hash.</p>
 <dl class="docutils">
 <dt>Steps ::</dt>
@@ -223,6 +225,10 @@ and verify hash.</li>
 <blockquote>
 <div><p>Simply return data_file path</p>
 </div></blockquote>
+<p><strong>verbose</strong> : Boolean</p>
+<blockquote>
+<div><p>print statements?</p>
+</div></blockquote>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>data_path</strong> : string</p>
@@ -234,12 +240,13 @@ and verify hash.</li>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">fetch_check_data</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">hashes_url</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">fetch_check_data</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">hashes</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">cache_env</span><span class="p">,</span> <span class="n">cache</span> <span class="o">=</span> <span class="n">hashes_url</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">data_file</span> <span class="o">=</span> <span class="n">hashes</span><span class="o">.</span><span class="n">keys</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fetch_check_data</span><span class="p">(</span><span class="n">data_file</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">hashes</span><span class="p">,</span> <span class="n">cache_env</span><span class="p">,</span> <span class="n">cache</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_path</span> <span class="o">=</span> <span class="n">fetch_check_data</span><span class="p">(</span><span class="n">data_file</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">hashes</span><span class="p">,</span> <span class="n">cache_env</span><span class="p">,</span> <span class="n">cache</span><span class="p">,</span>
+<span class="gp">... </span>                             <span class="n">verbose</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -271,12 +278,12 @@ and verify hash.</li>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">fetch_data</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">hashes_url</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">hashes</span><span class="p">,</span> <span class="n">url</span> <span class="o">=</span> <span class="n">hashes_url</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">data_file</span> <span class="o">=</span> <span class="n">hashes</span><span class="o">.</span><span class="n">keys</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_file</span> <span class="o">=</span> <span class="s">&#39;test_output.nii.gz&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fetch_data</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">output_file</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">fetch_data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">hashes_url</span><span class="p">,</span> <span class="n">fetch_hash</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hashes</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">cache_env</span><span class="p">,</span> <span class="n">cache</span> <span class="o">=</span> <span class="n">hashes_url</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">url</span> <span class="o">+</span> <span class="s1">&#39;atlases/OASIS-30_Atropos_template.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fetch_hash</span><span class="p">(</span><span class="n">data_file</span><span class="p">)</span>
+<span class="go">&#39;29aa74c732d09489adddf5704e413519&#39;</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -304,16 +311,15 @@ and verify hash.</li>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">hashes_url</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">fetch_hash</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cache_env</span> <span class="o">=</span> <span class="s">&#39;MINDBOGGLE_CACHE&#39;</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">fetch_hash</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">hashes_url</span><span class="p">,</span> <span class="n">fetch_data</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">hashes</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">cache_env</span><span class="p">,</span> <span class="n">cache</span> <span class="o">=</span> <span class="n">hashes_url</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">data_file</span> <span class="o">=</span> <span class="n">hashes</span><span class="o">.</span><span class="n">keys</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">cache_env</span><span class="p">],</span> <span class="n">data_file</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fetch_hash</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">url</span> <span class="o">+</span> <span class="s1">&#39;atlases/OASIS-30_Atropos_template.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fetch_hash</span><span class="p">(</span><span class="n">data_file</span><span class="p">)</span>
+<span class="go">&#39;29aa74c732d09489adddf5704e413519&#39;</span>
 </pre></div>
 </div>
+<p>NOTE: hashes[&#8216;OASIS-30_Atropos_template.nii.gz&#8217;] = &#8216;f95dbe37ab40e8ad59c1b1eabc7f230c&#8217;</p>
 </dd></dl>
 
 <dl class="function">
@@ -346,6 +352,60 @@ See fetch_hash() to create new hashes.</p>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mindboggle.mio.fetch_data.prep_tests">
+<code class="descclassname">mindboggle.mio.fetch_data.</code><code class="descname">prep_tests</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.fetch_data.prep_tests" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepare to fetch data in docstring tests.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>urls</strong> : dictionary</p>
+<blockquote>
+<div><p>dictionary of names and urls for data files</p>
+</div></blockquote>
+<p><strong>fetch_data</strong> : function</p>
+<blockquote class="last">
+<div><p>fetch_data() function</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_mean_curvature&#39;</span><span class="p">]</span>
+<span class="go">&#39;http://media.mindboggle.info/data/cache/mindboggled/shapes/left_cortical_surface/mean_curvature.vtk&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fetch_data</span> 
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="mindboggle.mio.fetch_data.test_urls">
+<code class="descclassname">mindboggle.mio.fetch_data.</code><code class="descname">test_urls</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.fetch_data.test_urls" title="Permalink to this definition">¶</a></dt>
+<dd><p>URLs corresponding to Mindboggle test (example output) data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>urls</strong> : dictionary</p>
+<blockquote class="last">
+<div><p>dictionary of names and urls for data files</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">test_urls</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span> <span class="o">=</span> <span class="n">test_urls</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_mean_curvature&#39;</span><span class="p">]</span> 
+</pre></div>
+</div>
 </dd></dl>
 
 </div>

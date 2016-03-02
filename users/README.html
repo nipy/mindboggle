@@ -108,7 +108,7 @@ reproducibility of results. Behind the scenes, open source
 Python and C++ code run within a Nipype pipeline framework.</p>
 <ul>
 <li><p class="first">For help in a terminal window (see below for inputs and outputs):</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">mindboggle</span> <span class="o">-</span><span class="n">h</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">mindboggle</span> <span class="o">-</span><span class="n">h</span>
 </pre></div>
 </div>
 </li>
@@ -135,7 +135,7 @@ type the following two commands in a terminal window,
 in the same directory as the Vagrantfile
 you generated (see <a class="reference external" href="http://mindboggle.info/users/INSTALL.html">INSTALL</a>). This will launch and log into
 the Mindboggle virtual machine (requires an active Internet connection):</p>
-<div class="highlight-python"><div class="highlight"><pre>vagrant up
+<div class="highlight-python"><div class="highlight"><pre><span></span>vagrant up
 vagrant ssh
 </pre></div>
 </div>
@@ -146,7 +146,7 @@ vagrant ssh
 The following bare-bones command runs Mindboggle (and its dependencies)
 on data processed by FreeSurfer but not ANTs
 (replace <code class="docutils literal"><span class="pre">SUBJECT</span></code> with the name of a FreeSurfer subject directory, such as <code class="docutils literal"><span class="pre">bert</span></code>):</p>
-<div class="highlight-python"><div class="highlight"><pre>mindboggle SUBJECT
+<div class="highlight-python"><div class="highlight"><pre><span></span>mindboggle SUBJECT
 </pre></div>
 </div>
 <p><strong>Example 2:</strong>
@@ -154,13 +154,13 @@ To generate only volume data (no surface labels or measures),
 this command uses ANTs output files
 (replace <code class="docutils literal"><span class="pre">SEGMENTS</span></code> with an ANTs segmented file, such as
 <code class="docutils literal"><span class="pre">ants_output/subject1/antsBrainSegmentation.nii.gz</span></code>):</p>
-<div class="highlight-python"><div class="highlight"><pre>mindboggle SUBJECT --ants SEGMENTS --no_surfaces
+<div class="highlight-python"><div class="highlight"><pre><span></span>mindboggle SUBJECT --ants SEGMENTS --no_surfaces
 </pre></div>
 </div>
 <p><strong>Example 3:</strong>
 To compute all shape measures on all labels and features using 8 processors
 (type <code class="docutils literal"><span class="pre">mindboggle</span> <span class="pre">--help</span></code> for more options):</p>
-<div class="highlight-python"><div class="highlight"><pre>mindboggle SUBJECT --ants SEGMENTS --all -p 8
+<div class="highlight-python"><div class="highlight"><pre><span></span>mindboggle SUBJECT --ants SEGMENTS --all -p 8
 </pre></div>
 </div>
 </div>
@@ -172,7 +172,7 @@ To compute all shape measures on all labels and features using 8 processors
 noncortical volumes. Run <code class="docutils literal"><span class="pre">recon-all</span></code> on a T1-weighted <code class="docutils literal"><span class="pre">IMAGE</span></code> file
 (e.g., <code class="docutils literal"><span class="pre">subject1.nii.gz</span></code>) and set the output <code class="docutils literal"><span class="pre">SUBJECT</span></code> name (e.g., to <code class="docutils literal"><span class="pre">subject1</span></code>),
 while calling the DKT40 cortical surface atlas to aid in cortical labeling:</p>
-<div class="highlight-python"><div class="highlight"><pre>recon-all -all -i IMAGE -s SUBJECT -gcs DKTatlas40.gcs
+<div class="highlight-python"><div class="highlight"><pre><span></span>recon-all -all -i IMAGE -s SUBJECT -gcs DKTatlas40.gcs
 </pre></div>
 </div>
 <p><strong>ANTs</strong> provides brain volume extraction, segmentation, and registration-based labeling.
@@ -181,7 +181,7 @@ Mindboggle, run the <code class="docutils literal"><span class="pre">antsCortica
 set an output <code class="docutils literal"><span class="pre">PREFIX</span></code>, and provide paths to the
 <a class="reference external" href="http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template.tar.gz">OASIS-30 Atropos template</a>
 files (backslash denotes a line return):</p>
-<div class="highlight-python"><div class="highlight"><pre>antsCorticalThickness.sh -d 3 -a IMAGE -o PREFIX \
+<div class="highlight-python"><div class="highlight"><pre><span></span>antsCorticalThickness.sh -d 3 -a IMAGE -o PREFIX \
   -e OASIS-30_Atropos_template/T_template0.nii.gz \
   -t OASIS-30_Atropos_template/T_template0_BrainCerebellum.nii.gz \
   -m OASIS-30_Atropos_template/T_template0_BrainCerebellumProbabilityMask.nii.gz \
@@ -209,10 +209,10 @@ files (backslash denotes a line return):</p>
 <li><p class="first">Compute surface shape measures for every cortical mesh vertex:</p>
 <blockquote>
 <div><ul class="simple">
-<li><a class="reference external" href="https://github.com/nipy/mindboggle/blob/master/surface_cpp_tools/PointAreaComputer.cpp">surface area</a></li>
-<li><a class="reference external" href="https://github.com/nipy/mindboggle/blob/master/surface_cpp_tools/TravelDepth.cpp">travel depth</a></li>
-<li><a class="reference external" href="https://github.com/nipy/mindboggle/blob/master/surface_cpp_tools/geodesic_depth/GeodesicDepthMain.cpp">geodesic depth</a></li>
-<li><a class="reference external" href="https://github.com/nipy/mindboggle/blob/master/surface_cpp_tools/curvature/CurvatureMain.cpp">mean curvature</a></li>
+<li><a class="reference external" href="https://github.com/nipy/mindboggle/blob/master/vtk_cpp_tools/PointAreaComputer.cpp">surface area</a></li>
+<li><a class="reference external" href="https://github.com/nipy/mindboggle/blob/master/vtk_cpp_tools/TravelDepth.cpp">travel depth</a></li>
+<li><a class="reference external" href="https://github.com/nipy/mindboggle/blob/master/vtk_cpp_tools/geodesic_depth/GeodesicDepthMain.cpp">geodesic depth</a></li>
+<li><a class="reference external" href="https://github.com/nipy/mindboggle/blob/master/vtk_cpp_tools/curvature/CurvatureMain.cpp">mean curvature</a></li>
 <li>convexity (from FreeSurfer)</li>
 <li>thickness (from FreeSurfer)</li>
 </ul>

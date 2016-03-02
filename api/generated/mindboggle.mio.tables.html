@@ -95,50 +95,52 @@
 <dl class="docutils">
 <dt>Authors:</dt>
 <dd><ul class="first last simple">
-<li>Arno Klein, 2012-2015  (<a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>)  <a class="reference external" href="http://binarybottle.com">http://binarybottle.com</a></li>
+<li>Arno Klein, 2012-2016  (<a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>)  <a class="reference external" href="http://binarybottle.com">http://binarybottle.com</a></li>
 </ul>
 </dd>
 </dl>
-<p>Copyright 2015,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
+<p>Copyright 2016,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
 </div>
 <div class="section" id="functions">
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mindboggle.mio.tables.explode_mindboggle_tables">
-<code class="descclassname">mindboggle.mio.tables.</code><code class="descname">explode_mindboggle_tables</code><span class="sig-paren">(</span><em>subject</em>, <em>subject_path=''</em>, <em>output_path=''</em>, <em>break_column='label ID'</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.tables.explode_mindboggle_tables" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.mio.tables.</code><code class="descname">explode_mindboggle_tables</code><span class="sig-paren">(</span><em>subject_path=''</em>, <em>output_path=''</em>, <em>break_column='label ID'</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.tables.explode_mindboggle_tables" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a subject name corresponding to Mindboggle outputs, break up each
 hemisphere&#8217;s vertices.csv file into a separate table file for each label.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>subject</strong> : string</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>subject_path</strong> : string</p>
 <blockquote>
-<div><p>name of subject run through Mindboggle</p>
-</div></blockquote>
-<p><strong>subject_path</strong> : string</p>
-<blockquote>
-<div><p>path to subject&#8217;s parent directory</p>
+<div><p>path to subject directory</p>
 </div></blockquote>
 <p><strong>output_path</strong> : string</p>
 <blockquote>
 <div><p>output path/directory</p>
 </div></blockquote>
 <p><strong>break_column</strong> : string</p>
-<blockquote class="last">
+<blockquote>
 <div><p>column header that contains the integers to break up into tables</p>
+</div></blockquote>
+<p><strong>verbose</strong> : Boolean</p>
+<blockquote class="last">
+<div><p>print statements?</p>
 </div></blockquote>
 </td>
 </tr>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.tables</span> <span class="kn">import</span> <span class="n">explode_mindboggle_tables</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">subject</span> <span class="o">=</span> <span class="s">&#39;Twins-2-1&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">subject_path</span> <span class="o">=</span> <span class="s">&#39;/Users/arno/mindboggled&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_path</span> <span class="o">=</span> <span class="s">&#39;/desk&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">break_column</span> <span class="o">=</span> <span class="s">&#39;label ID&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">explode_mindboggle_tables</span><span class="p">(</span><span class="n">subject</span><span class="p">,</span> <span class="n">subject_path</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">break_column</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.tables</span> <span class="kn">import</span> <span class="n">explode_mindboggle_tables</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subject_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_path</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">break_column</span> <span class="o">=</span> <span class="s1">&#39;label ID&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">explode_mindboggle_tables</span><span class="p">(</span><span class="n">subject_path</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">break_column</span><span class="p">,</span>
+<span class="gp">... </span>                          <span class="n">verbose</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -208,19 +210,29 @@ across a set of subjects, and make a new table.</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.tables</span> <span class="kn">import</span> <span class="n">select_column_from_mindboggle_tables</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">subjects</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Twins-2-1&#39;</span><span class="p">,</span> <span class="s">&#39;Colin27-1&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">hemi</span> <span class="o">=</span> <span class="s">&#39;left&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subject1</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subject2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subjects</span> <span class="o">=</span> <span class="p">[</span><span class="n">subject1</span><span class="p">,</span> <span class="n">subject2</span><span class="p">]</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hemi</span> <span class="o">=</span> <span class="s1">&#39;left&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">index</span> <span class="o">=</span> <span class="mi">2</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tables_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;HOME&#39;</span><span class="p">],</span> <span class="s">&#39;mindboggled&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">table_name</span> <span class="o">=</span> <span class="s">&quot;label_shapes.csv&quot;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">label_name</span> <span class="o">=</span> <span class="s">&#39;Label name&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tables_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;label_shapes.csv&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">label_name</span> <span class="o">=</span> <span class="s1">&#39;Label name&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">is_surface_table</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">write_table</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_table</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">select_column_from_mindboggle_tables</span><span class="p">(</span><span class="n">subjects</span><span class="p">,</span> <span class="n">hemi</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">tables_dir</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">table_name</span><span class="p">,</span> <span class="n">is_surface_table</span><span class="p">,</span> <span class="n">write_table</span><span class="p">,</span> <span class="n">output_table</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_table</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tables</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">output</span> <span class="o">=</span> <span class="n">select_column_from_mindboggle_tables</span><span class="p">(</span><span class="n">subjects</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">hemi</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">tables_dir</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">is_surface_table</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">write_table</span><span class="p">,</span> <span class="n">output_table</span><span class="p">)</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cols</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> 
+<span class="go">878.03969839999979</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cols</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> 
+<span class="go">3085.6236725000008</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cols</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> 
+<span class="go">1761.2330760000002</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -229,6 +241,7 @@ across a set of subjects, and make a new table.</p>
 <dt id="mindboggle.mio.tables.select_column_from_tables">
 <code class="descclassname">mindboggle.mio.tables.</code><code class="descname">select_column_from_tables</code><span class="sig-paren">(</span><em>tables</em>, <em>index=0</em>, <em>write_table=True</em>, <em>output_table=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.tables.select_column_from_tables" title="Permalink to this definition">¶</a></dt>
 <dd><p>Select column from list of tables, make a new table.</p>
+<p>Note: If more than one table, column must be of the same length.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -239,7 +252,7 @@ across a set of subjects, and make a new table.</p>
 </div></blockquote>
 <p><strong>index</strong> : integer</p>
 <blockquote>
-<div><p>index for column to select</p>
+<div><p>index for column to select (from each table)</p>
 </div></blockquote>
 <p><strong>write_table</strong> : Boolean</p>
 <blockquote>
@@ -288,21 +301,30 @@ across a set of subjects, and make a new table.</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.tables</span> <span class="kn">import</span> <span class="n">select_column_from_tables</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="s">&#39;/homedir/mindboggled&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tables</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;Twins-2-1&#39;</span><span class="p">,</span> <span class="s">&#39;tables&#39;</span><span class="p">,</span> <span class="s">&#39;thickinthehead_per_freesurfer_cortex_label.csv&#39;</span><span class="p">),</span>
-<span class="gp">&gt;&gt;&gt; </span>          <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;Twins-2-1&#39;</span><span class="p">,</span> <span class="s">&#39;tables&#39;</span><span class="p">,</span> <span class="s">&#39;thickinthehead_per_freesurfer_cortex_label.csv&#39;</span><span class="p">)]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">index</span> <span class="o">=</span> <span class="s">&#39;2&#39;</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.tables</span> <span class="kn">import</span> <span class="n">select_column_from_tables</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tables</span> <span class="o">=</span> <span class="p">[</span><span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;thickinthehead_freesurfer_labels_table&#39;</span><span class="p">]),</span>
+<span class="gp">... </span>          <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;thickinthehead_freesurfer_labels_table&#39;</span><span class="p">])]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">index</span> <span class="o">=</span> <span class="mi">2</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">write_table</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_table</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">select_column_from_tables</span><span class="p">(</span><span class="n">tables</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">write_table</span><span class="p">,</span> <span class="n">output_table</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_table</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">select_column_from_tables</span><span class="p">(</span><span class="n">tables</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">write_table</span><span class="p">,</span>
+<span class="gp">... </span>                                   <span class="n">output_table</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">columns</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">2.8010000000000002</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">columns</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="go">3.9430000000000001</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">columns</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+<span class="go">4.0280000000000005</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="mindboggle.mio.tables.write_average_face_values_per_label">
-<code class="descclassname">mindboggle.mio.tables.</code><code class="descname">write_average_face_values_per_label</code><span class="sig-paren">(</span><em>input_indices_vtk, input_values_vtk='', area_file='', output_stem='', exclude_values=[-1], background_value=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.tables.write_average_face_values_per_label" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.mio.tables.</code><code class="descname">write_average_face_values_per_label</code><span class="sig-paren">(</span><em>input_indices_vtk, input_values_vtk='', area_file='', output_stem='', exclude_values=[-1], background_value=-1, verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.tables.write_average_face_values_per_label" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write out a separate VTK file for each integer
 in (the first) scalar list of an input VTK file.
 Optionally write the values drawn from a second VTK file.</p>
@@ -331,31 +353,38 @@ Optionally write the values drawn from a second VTK file.</p>
 <div><p>background value in output VTK files</p>
 </div></blockquote>
 <p><strong>scalar_name</strong> : string</p>
-<blockquote class="last">
+<blockquote>
 <div><p>name of a lookup table of scalars values</p>
+</div></blockquote>
+<p><strong>verbose</strong> : Boolean</p>
+<blockquote class="last">
+<div><p>print statements?</p>
 </div></blockquote>
 </td>
 </tr>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.tables</span> <span class="kn">import</span> <span class="n">write_average_face_values_per_label</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="s">&#39;/homedir/mindboggled&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_indices_vtk</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;Twins-2-1&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;left_cortical_surface&#39;</span><span class="p">,</span> <span class="s">&#39;freesurfer_cortex_labels.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_values_vtk</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;Twins-2-1&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;left_cortical_surface&#39;</span><span class="p">,</span> <span class="s">&#39;freesurfer_thickness.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">area_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;Twins-2-1&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;left_cortical_surface&#39;</span><span class="p">,</span> <span class="s">&#39;area.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_stem</span> <span class="o">=</span> <span class="s">&#39;labels_thickness&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_indices_vtk</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_values_vtk</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_mean_curvature&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">area_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_area&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_stem</span> <span class="o">=</span> <span class="s1">&#39;labels_thickness&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">exclude_values</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">background_value</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">write_average_face_values_per_label</span><span class="p">(</span><span class="n">input_indices_vtk</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">input_values_vtk</span><span class="p">,</span> <span class="n">area_file</span><span class="p">,</span> <span class="n">output_stem</span><span class="p">,</span> <span class="n">exclude_values</span><span class="p">,</span> <span class="n">background_value</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#example_vtk = os.path.join(os.getcwd(), output_stem + &#39;0.vtk&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#from mindboggle.mio.plots import plot_surfaces</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#plot_surfaces(example_vtk)</span>
+<span class="gp">... </span>    <span class="n">input_values_vtk</span><span class="p">,</span> <span class="n">area_file</span><span class="p">,</span> <span class="n">output_stem</span><span class="p">,</span> <span class="n">exclude_values</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">background_value</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>View vtk file (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">example_vtk</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">output_stem</span> <span class="o">+</span> <span class="s1">&#39;0.vtk&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">example_vtk</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -392,21 +421,21 @@ Optionally write the values drawn from a second VTK file.</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.tables</span> <span class="kn">import</span> <span class="n">write_face_vertex_averages</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="s">&#39;/homedir/mindboggled&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;Twins-2-1&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;left_cortical_surface&#39;</span><span class="p">,</span> <span class="s">&#39;freesurfer_thickness.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">area_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;Twins-2-1&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;left_cortical_surface&#39;</span><span class="p">,</span> <span class="s">&#39;area.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_table</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">write_face_vertex_averages</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">output_table</span><span class="p">,</span> <span class="n">area_file</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.tables</span> <span class="kn">import</span> <span class="n">write_face_vertex_averages</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_travel_depth&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">area_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_area&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_table</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_table</span> <span class="o">=</span> <span class="n">write_face_vertex_averages</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">output_table</span><span class="p">,</span>
+<span class="gp">... </span>                                          <span class="n">area_file</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="mindboggle.mio.tables.write_shape_stats">
-<code class="descclassname">mindboggle.mio.tables.</code><code class="descname">write_shape_stats</code><span class="sig-paren">(</span><em>labels_or_file=[], sulci=[], fundi=[], affine_transform_files=[], inverse_booleans=[], transform_format='itk', area_file='', normalize_by_area=False, mean_curvature_file='', travel_depth_file='', geodesic_depth_file='', freesurfer_thickness_file='', freesurfer_curvature_file='', freesurfer_sulc_file='', labels_spectra=[], labels_spectra_IDs=[], sulci_spectra=[], sulci_spectra_IDs=[], labels_zernike=[], labels_zernike_IDs=[], sulci_zernike=[], sulci_zernike_IDs=[], exclude_labels=[-1]</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.tables.write_shape_stats" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.mio.tables.</code><code class="descname">write_shape_stats</code><span class="sig-paren">(</span><em>labels_or_file=[], sulci=[], fundi=[], affine_transform_files=[], inverse_booleans=[], transform_format='itk', area_file='', normalize_by_area=False, mean_curvature_file='', travel_depth_file='', geodesic_depth_file='', freesurfer_thickness_file='', freesurfer_curvature_file='', freesurfer_sulc_file='', labels_spectra=[], labels_spectra_IDs=[], sulci_spectra=[], sulci_spectra_IDs=[], labels_zernike=[], labels_zernike_IDs=[], sulci_zernike=[], sulci_zernike_IDs=[], exclude_labels=[-1], verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.tables.write_shape_stats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make tables of shape statistics per label, sulcus, and/or fundus.</p>
 <dl class="docutils">
 <dt>Note ::</dt>
@@ -509,6 +538,10 @@ Ex: &#8216;txt&#8217; for text, &#8216;itk&#8217; for ITK, and &#8216;mat&#8217;
 <blockquote>
 <div><p>indices to be excluded (in addition to -1)</p>
 </div></blockquote>
+<p><strong>verbose</strong> : Boolean</p>
+<blockquote>
+<div><p>print statements?</p>
+</div></blockquote>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>label_table</strong> :  string</p>
@@ -528,29 +561,27 @@ Ex: &#8216;txt&#8217; for text, &#8216;itk&#8217; for ITK, and &#8216;mat&#8217;
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.tables</span> <span class="kn">import</span> <span class="n">write_shape_stats</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.tables</span> <span class="kn">import</span> <span class="n">write_shape_stats</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="s">&#39;/homedir/mindboggled/Twins-2-1&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">labels_or_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;left_cortical_surface&#39;</span><span class="p">,</span> <span class="s">&#39;freesurfer_cortex_labels.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sulci_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;features&#39;</span><span class="p">,</span> <span class="s">&#39;left_cortical_surface&#39;</span><span class="p">,</span> <span class="s">&#39;sulci.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fundi_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;features&#39;</span><span class="p">,</span> <span class="s">&#39;left_cortical_surface&#39;</span><span class="p">,</span> <span class="s">&#39;fundus_per_sulcus.vtk&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">label_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sulci_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_sulci&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fundi_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="c1">#fetch_data(urls[&#39;left_fundi&#39;])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mean_curvature_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_mean_curvature&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">travel_depth_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_travel_depth&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">geodesic_depth_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_geodesic_depth&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">area_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_area&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">freesurfer_thickness_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">freesurfer_curvature_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">freesurfer_sulc_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sulci</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">read_scalars</span><span class="p">(</span><span class="n">sulci_file</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fundi</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">read_scalars</span><span class="p">(</span><span class="n">fundi_file</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">affine_transform_files</span> <span class="o">=</span> <span class="p">[]</span> <span class="c">#os.path.join(path, &#39;arno&#39;, &#39;mri&#39;, &#39;t1weighted_brain.MNI152Affine.txt&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fundi</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1">#fundi, name = read_scalars(fundi_file)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">affine_transform_files</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">inverse_booleans</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#transform_format = &#39;mat&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">transform_format</span> <span class="o">=</span> <span class="s">&#39;itk&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">area_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;left_cortical_surface&#39;</span><span class="p">,</span> <span class="s">&#39;area.vtk&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">transform_format</span> <span class="o">=</span> <span class="s1">&#39;itk&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">normalize_by_area</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mean_curvature_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;left_cortical_surface&#39;</span><span class="p">,</span> <span class="s">&#39;mean_curvature.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">travel_depth_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;left_cortical_surface&#39;</span><span class="p">,</span> <span class="s">&#39;travel_depth.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">geodesic_depth_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;left_cortical_surface&#39;</span><span class="p">,</span> <span class="s">&#39;geodesic_depth.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">freesurfer_thickness_file</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">freesurfer_curvature_file</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">freesurfer_sulc_file</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">labels</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">read_scalars</span><span class="p">(</span><span class="n">labels_or_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">labels</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">read_scalars</span><span class="p">(</span><span class="n">label_file</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">labels_spectra</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">labels_spectra_IDs</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sulci_spectra</span> <span class="o">=</span> <span class="p">[]</span>
@@ -560,18 +591,16 @@ Ex: &#8216;txt&#8217; for text, &#8216;itk&#8217; for ITK, and &#8216;mat&#8217;
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sulci_zernike</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sulci_zernike_IDs</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">exclude_labels</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">write_shape_stats</span><span class="p">(</span><span class="n">labels_or_file</span><span class="p">,</span> <span class="n">sulci</span><span class="p">,</span> <span class="n">fundi</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">affine_transform_files</span><span class="p">,</span> <span class="n">inverse_booleans</span><span class="p">,</span> <span class="n">transform_format</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">area_file</span><span class="p">,</span> <span class="n">normalize_by_area</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">mean_curvature_file</span><span class="p">,</span> <span class="n">travel_depth_file</span><span class="p">,</span> <span class="n">geodesic_depth_file</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">freesurfer_thickness_file</span><span class="p">,</span> <span class="n">freesurfer_curvature_file</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">freesurfer_sulc_file</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">labels_spectra</span><span class="p">,</span> <span class="n">labels_spectra_IDs</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">sulci_spectra</span><span class="p">,</span> <span class="n">sulci_spectra_IDs</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">labels_zernike</span><span class="p">,</span> <span class="n">labels_zernike_IDs</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">sulci_zernike</span><span class="p">,</span> <span class="n">sulci_zernike_IDs</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">exclude_labels</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">label_table</span><span class="p">,</span> <span class="n">sulcus_table</span><span class="p">,</span> <span class="n">fundus_table</span> <span class="o">=</span> <span class="n">write_shape_stats</span><span class="p">(</span><span class="n">label_file</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">sulci</span><span class="p">,</span> <span class="n">fundi</span><span class="p">,</span> <span class="n">affine_transform_files</span><span class="p">,</span> <span class="n">inverse_booleans</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">transform_format</span><span class="p">,</span> <span class="n">area_file</span><span class="p">,</span> <span class="n">normalize_by_area</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">mean_curvature_file</span><span class="p">,</span> <span class="n">travel_depth_file</span><span class="p">,</span> <span class="n">geodesic_depth_file</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">freesurfer_thickness_file</span><span class="p">,</span> <span class="n">freesurfer_curvature_file</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">freesurfer_sulc_file</span><span class="p">,</span> <span class="n">labels_spectra</span><span class="p">,</span> <span class="n">labels_spectra_IDs</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">sulci_spectra</span><span class="p">,</span> <span class="n">sulci_spectra_IDs</span><span class="p">,</span> <span class="n">labels_zernike</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">labels_zernike_IDs</span><span class="p">,</span> <span class="n">sulci_zernike</span><span class="p">,</span> <span class="n">sulci_zernike_IDs</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">exclude_labels</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -653,34 +682,32 @@ Ex: &#8216;txt&#8217; for text, &#8216;itk&#8217; for ITK, and &#8216;mat&#8217;
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.tables</span> <span class="kn">import</span> <span class="n">write_vertex_measures</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_table</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="c">#vertex_shapes.csv&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">labels_or_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;lh.labels.DKT25.manual.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sulci_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;features&#39;</span><span class="p">,</span> <span class="s">&#39;sulci.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fundi_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;features&#39;</span><span class="p">,</span> <span class="s">&#39;fundi.vtk&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_table</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="c1">#vertex_shapes.csv&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">labels_or_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sulci_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_sulci&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fundi_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_fundi&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mean_curvature_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_mean_curvature&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">travel_depth_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_travel_depth&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">geodesic_depth_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_geodesic_depth&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">area_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_area&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">freesurfer_thickness_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_freesurfer_thickness&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">freesurfer_curvature_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_freesurfer_curvature&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">freesurfer_sulc_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_freesurfer_sulc&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sulci</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">read_scalars</span><span class="p">(</span><span class="n">sulci_file</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fundi</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">read_scalars</span><span class="p">(</span><span class="n">fundi_file</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">affine_transform_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;mri&#39;</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="s">&#39;t1weighted_brain.MNI152Affine.txt&#39;</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">affine_transform_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;affine_mni_transform&#39;</span><span class="p">])]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">inverse_booleans</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">transform_format</span> <span class="o">=</span> <span class="s">&#39;itk&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">transform_format</span> <span class="o">=</span> <span class="s1">&#39;itk&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">swap_xy</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">area_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.area.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mean_curvature_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.mean_curvature.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">travel_depth_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.travel_depth.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">geodesic_depth_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.geodesic_depth.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">freesurfer_thickness_file</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">freesurfer_curvature_file</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">freesurfer_sulc_file</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">write_vertex_measures</span><span class="p">(</span><span class="n">output_table</span><span class="p">,</span> <span class="n">labels_or_file</span><span class="p">,</span> <span class="n">sulci</span><span class="p">,</span> <span class="n">fundi</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">affine_transform_files</span><span class="p">,</span> <span class="n">inverse_booleans</span><span class="p">,</span> <span class="n">transform_format</span><span class="p">,</span> <span class="n">area_file</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">mean_curvature_file</span><span class="p">,</span> <span class="n">travel_depth_file</span><span class="p">,</span> <span class="n">geodesic_depth_file</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">freesurfer_thickness_file</span><span class="p">,</span> <span class="n">freesurfer_curvature_file</span><span class="p">,</span> <span class="n">freesurfer_sulc_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_table</span> <span class="o">=</span> <span class="n">write_vertex_measures</span><span class="p">(</span><span class="n">output_table</span><span class="p">,</span> <span class="n">labels_or_file</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">sulci</span><span class="p">,</span> <span class="n">fundi</span><span class="p">,</span> <span class="n">affine_transform_files</span><span class="p">,</span> <span class="n">inverse_booleans</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">transform_format</span><span class="p">,</span> <span class="n">area_file</span><span class="p">,</span> <span class="n">mean_curvature_file</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">travel_depth_file</span><span class="p">,</span> <span class="n">geodesic_depth_file</span><span class="p">,</span> <span class="n">freesurfer_thickness_file</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">freesurfer_curvature_file</span><span class="p">,</span> <span class="n">freesurfer_sulc_file</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>

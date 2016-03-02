@@ -96,19 +96,19 @@
 <dt>Authors:</dt>
 <dd><ul class="first last simple">
 <li>Forrest Sheng Bao, 2012-2013  (<a class="reference external" href="mailto:forrest&#46;bao&#37;&#52;&#48;gmail&#46;com">forrest<span>&#46;</span>bao<span>&#64;</span>gmail<span>&#46;</span>com</a>)  <a class="reference external" href="http://fsbao.net">http://fsbao.net</a></li>
-<li>Arno Klein, 2012-2014  (<a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>)  <a class="reference external" href="http://binarybottle.com">http://binarybottle.com</a></li>
+<li>Arno Klein, 2012-2016  (<a class="reference external" href="mailto:arno&#37;&#52;&#48;mindboggle&#46;info">arno<span>&#64;</span>mindboggle<span>&#46;</span>info</a>)  <a class="reference external" href="http://binarybottle.com">http://binarybottle.com</a></li>
 <li>Oliver Hinds, 2013 (<a class="reference external" href="mailto:ohinds&#37;&#52;&#48;gmail&#46;com">ohinds<span>&#64;</span>gmail<span>&#46;</span>com</a>)</li>
 <li>Daniel Haehn, 2013 (<a class="reference external" href="mailto:daniel&#46;haehn&#37;&#52;&#48;childrens&#46;harvard&#46;edu">daniel<span>&#46;</span>haehn<span>&#64;</span>childrens<span>&#46;</span>harvard<span>&#46;</span>edu</a>)</li>
 </ul>
 </dd>
 </dl>
-<p>Copyright 2013,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
+<p>Copyright 2016,  Mindboggle team (<a class="reference external" href="http://mindboggle.info">http://mindboggle.info</a>), Apache v2.0 License</p>
 </div>
 <div class="section" id="functions">
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mindboggle.mio.vtks.apply_affine_transforms">
-<code class="descclassname">mindboggle.mio.vtks.</code><code class="descname">apply_affine_transforms</code><span class="sig-paren">(</span><em>transform_files</em>, <em>inverse_booleans</em>, <em>transform_format='itk'</em>, <em>vtk_or_points=[]</em>, <em>vtk_file_stem='affine_'</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.vtks.apply_affine_transforms" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.mio.vtks.</code><code class="descname">apply_affine_transforms</code><span class="sig-paren">(</span><em>transform_files</em>, <em>inverse_booleans</em>, <em>transform_format='itk'</em>, <em>vtk_or_points=[]</em>, <em>vtk_file_stem='affine_'</em>, <em>command_path=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.vtks.apply_affine_transforms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Transform coordinates using an affine matrix.</p>
 <p>For use with ANTs, x and y columns are multiplied by -1 before and after
 applying the inverse affine transform because ITK uses a different
@@ -143,6 +143,10 @@ the origin need to be taken into account</p>
 <div><p>save transformed coordinates in a vtk file with this file prepend
 (empty string if vtk_or_points is points)</p>
 </div></blockquote>
+<p><strong>command_path</strong> : string</p>
+<blockquote>
+<div><p>path to antsApplyTransformsToPoints command</p>
+</div></blockquote>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>affine_points</strong> : list of lists of floats</p>
@@ -158,23 +162,40 @@ the origin need to be taken into account</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">apply_affine_transforms</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">transform_files</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;/Users/arno/mindboggle_working/OASIS-TRT-20-1/Mindboggle/Compose_affine_transform/affine.txt&#39;</span><span class="p">]</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">apply_affine_transforms</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_or_points</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_pial&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">transform_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;ants_affine_subject2template&#39;</span><span class="p">])]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">inverse_booleans</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">transform_format</span> <span class="o">=</span> <span class="s">&#39;itk&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_or_points</span> <span class="o">=</span> <span class="s">&#39;/Users/arno/mindboggle_working/OASIS-TRT-20-1/Mindboggle/_hemi_lh/Surface_to_vtk/lh.pial.vtk&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file_stem</span> <span class="o">=</span> <span class="s">&#39;affine_&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">affine_points</span><span class="p">,</span> <span class="n">output_file</span> <span class="o">=</span> <span class="n">apply_affine_transforms</span><span class="p">(</span><span class="n">transform_files</span><span class="p">,</span> <span class="n">inverse_booleans</span><span class="p">,</span> <span class="n">transform_format</span><span class="p">,</span> <span class="n">vtk_or_points</span><span class="p">,</span> <span class="n">vtk_file_stem</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="s">&#39;affine_lh.pial.vtk&#39;</span><span class="p">,</span> <span class="n">vtk_or_points</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">transform_format</span> <span class="o">=</span> <span class="s1">&#39;itk&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file_stem</span> <span class="o">=</span> <span class="s1">&#39;affine_&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">command_path</span> <span class="o">=</span> <span class="s1">&#39;/software/install/ants/bin&#39;</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PATH&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">os</span><span class="o">.</span><span class="n">pathsep</span> <span class="o">+</span> <span class="n">command_path</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">affine_points</span><span class="p">,</span> <span class="n">output_file</span> <span class="o">=</span> <span class="n">apply_affine_transforms</span><span class="p">(</span><span class="n">transform_files</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">inverse_booleans</span><span class="p">,</span> <span class="n">transform_format</span><span class="p">,</span> <span class="n">vtk_or_points</span><span class="p">,</span> <span class="n">vtk_file_stem</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">command_path</span><span class="p">)</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">affine_points</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span> 
+<span class="go">[[-123.02735 -228.19407 -101.14381]</span>
+<span class="go"> [-123.46156 -228.39812 -101.24258]</span>
+<span class="go"> [-124.22058 -228.39971 -101.15211]</span>
+<span class="go"> [-121.66154 -228.72653 -102.39572]</span>
+<span class="go"> [-122.55212 -228.56696 -101.82275]]</span>
+</pre></div>
+</div>
+<p>View resulting vtk file (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="n">vtk_or_points</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="mindboggle.mio.vtks.explode_scalars">
-<code class="descclassname">mindboggle.mio.vtks.</code><code class="descname">explode_scalars</code><span class="sig-paren">(</span><em>input_indices_vtk, input_values_vtk='', output_stem='', exclude_values=[-1], background_value=-1, output_scalar_name='scalars', remove_background_faces=True, reindex=True</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.vtks.explode_scalars" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.mio.vtks.</code><code class="descname">explode_scalars</code><span class="sig-paren">(</span><em>input_indices_vtk, input_values_vtk='', output_stem='', exclude_values=[-1], background_value=-1, output_scalar_name='scalars', remove_background_faces=True, reindex=True, verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.vtks.explode_scalars" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write out a separate VTK file for each integer (not in exclude_values)
 in (the first) scalar list of an input VTK file.
 Optionally write the values drawn from a second VTK file,
@@ -209,57 +230,59 @@ remove background values, and reindex indices.</p>
 <div><p>remove all faces whose three vertices are not all a given index?</p>
 </div></blockquote>
 <p><strong>reindex</strong> : Boolean</p>
-<blockquote class="last">
+<blockquote>
 <div><p>reindex all indices in faces?</p>
+</div></blockquote>
+<p><strong>verbose</strong> : Boolean</p>
+<blockquote class="last">
+<div><p>print statements?</p>
 </div></blockquote>
 </td>
 </tr>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Example 1:  explode sulci with thickness values</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Example 1:  explode sulci with thickness values</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">explode_scalars</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_indices_vtk</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;features&#39;</span><span class="p">,</span> <span class="s">&#39;sulci.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_values_vtk</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.travel_depth.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_stem</span> <span class="o">=</span> <span class="s">&#39;sulci_depth&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">explode_scalars</span><span class="p">(</span><span class="n">input_indices_vtk</span><span class="p">,</span> <span class="n">input_values_vtk</span><span class="p">,</span> <span class="n">output_stem</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">example_vtk</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">output_stem</span> <span class="o">+</span> <span class="s">&#39;0.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">example_vtk</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Example 2:  explode labels</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">explode_scalars</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_values_vtk</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>                                <span class="s">&#39;lh.labels.DKT25.manual.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_indices_vtk</span> <span class="o">=</span> <span class="n">input_values_vtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_stem</span> <span class="o">=</span> <span class="s">&#39;label&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_indices_vtk</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_sulci&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_values_vtk</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_travel_depth&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_stem</span> <span class="o">=</span> <span class="s1">&#39;sulci_depth&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">exclude_values</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">background_value</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_scalar_name</span> <span class="o">=</span> <span class="s">&#39;scalars&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_scalar_name</span> <span class="o">=</span> <span class="s1">&#39;scalars&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">remove_background_faces</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">reindex</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">explode_scalars</span><span class="p">(</span><span class="n">input_indices_vtk</span><span class="p">,</span> <span class="n">input_values_vtk</span><span class="p">,</span> <span class="n">output_stem</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>                <span class="n">exclude_values</span><span class="p">,</span> <span class="n">background_value</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>                <span class="n">output_scalar_name</span><span class="p">,</span> <span class="n">remove_background_faces</span><span class="p">,</span> <span class="n">reindex</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">example_vtk</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">output_stem</span> <span class="o">+</span> <span class="s">&#39;2.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">example_vtk</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">exclude_values</span><span class="p">,</span> <span class="n">background_value</span><span class="p">,</span> <span class="n">output_scalar_name</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">remove_background_faces</span><span class="p">,</span> <span class="n">reindex</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>View Example 1 results (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">output_stem</span> <span class="o">+</span> <span class="s1">&#39;1.vtk&#39;</span><span class="p">)</span> 
+</pre></div>
+</div>
+<p>Example 2:  explode labels</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">input_indices_vtk</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_freesurfer_labels&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_stem</span> <span class="o">=</span> <span class="s1">&#39;label&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">explode_scalars</span><span class="p">(</span><span class="n">input_indices_vtk</span><span class="p">,</span> <span class="n">input_values_vtk</span><span class="p">,</span> <span class="n">output_stem</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">exclude_values</span><span class="p">,</span> <span class="n">background_value</span><span class="p">,</span> <span class="n">output_scalar_name</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">remove_background_faces</span><span class="p">,</span> <span class="n">reindex</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>View Example 2 results (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">output_stem</span> <span class="o">+</span> <span class="s1">&#39;1.vtk&#39;</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="mindboggle.mio.vtks.explode_scalars_mindboggle">
-<code class="descclassname">mindboggle.mio.vtks.</code><code class="descname">explode_scalars_mindboggle</code><span class="sig-paren">(</span><em>subject</em>, <em>subject_path=''</em>, <em>output_path=''</em>, <em>pieces='labels'</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.vtks.explode_scalars_mindboggle" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.mio.vtks.</code><code class="descname">explode_scalars_mindboggle</code><span class="sig-paren">(</span><em>subject</em>, <em>subject_path=''</em>, <em>output_path=''</em>, <em>pieces='labels'</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.vtks.explode_scalars_mindboggle" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a subject name corresponding to Mindboggle shape surface outputs,
 take each shape surface VTK file, and create a separate VTK file for each
 label index in a label surface file.</p>
@@ -280,27 +303,33 @@ label index in a label surface file.</p>
 <div><p>output path/directory</p>
 </div></blockquote>
 <p><strong>pieces</strong> : string</p>
+<blockquote>
+<div><p>name of structures to explode (e.g., &#8216;labels&#8217;, &#8216;sulci&#8217;)</p>
+</div></blockquote>
+<p><strong>verbose</strong> : Boolean</p>
 <blockquote class="last">
-<div><p>name of structures to explode {&#8216;labels&#8217;, &#8216;sulci&#8217;} #, &#8216;fundus_per_sulcus&#8217;, &#8216;folds&#8217;}</p>
+<div><p>print statements?</p>
 </div></blockquote>
 </td>
 </tr>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Explode depth surface file by label values</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Explode surface shape files by label values:</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">explode_scalars_mindboggle</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">subject</span> <span class="o">=</span> <span class="s">&#39;Twins-2-1&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">subject_path</span> <span class="o">=</span> <span class="s">&#39;/Users/arno/mindboggled&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_path</span> <span class="o">=</span> <span class="s">&#39;/desk&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">pieces</span> <span class="o">=</span> <span class="s">&#39;fundus_per_sulcus&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">explode_scalars_mindboggle</span><span class="p">(</span><span class="n">subject</span><span class="p">,</span> <span class="n">subject_path</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">pieces</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">example_vtk</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">&#39;/desk/left_exploded/travel_depth_1035.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">example_vtk</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subject</span> <span class="o">=</span> <span class="s1">&#39;Twins-2-1&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subject_path</span> <span class="o">=</span> <span class="s1">&#39;/Users/arno/mindboggled&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pieces</span> <span class="o">=</span> <span class="s1">&#39;labels&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">explode_scalars_mindboggle</span><span class="p">(</span><span class="n">subject</span><span class="p">,</span> <span class="n">subject_path</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">pieces</span><span class="p">,</span>
+<span class="gp">... </span>                           <span class="n">verbose</span><span class="p">)</span> 
+</pre></div>
+</div>
+<p>View example result (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="s1">&#39;left_exploded/travel_depth_1035.vtk&#39;</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -310,7 +339,7 @@ label index in a label surface file.</p>
 <code class="descclassname">mindboggle.mio.vtks.</code><code class="descname">freesurfer_annot_to_vtk</code><span class="sig-paren">(</span><em>annot_file</em>, <em>vtk_file</em>, <em>output_vtk=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.vtks.freesurfer_annot_to_vtk" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load a FreeSurfer .annot file and save as a VTK format file.</p>
 <p>Note regarding current pip install nibabel (fixed in github master repo):</p>
-<div class="highlight-python"><div class="highlight"><pre>The &#39;True&#39; flag in nibabel.freesurfer.read_annot(annot_file, True)
+<div class="highlight-python"><div class="highlight"><pre><span></span>The &#39;True&#39; flag in nibabel.freesurfer.read_annot(annot_file, True)
 gives the original FreeSurfer label values, not the FreeSurferColorLUT
 labels, and when set to &#39;False&#39; assigns all otherwise unlabeled
 left cortical vertices to 3, which is also assigned to the caudal
@@ -333,7 +362,7 @@ middle frontal gyrus.  To correct this ambiguity, this program assigns
 <p><strong>output_vtk</strong> : string</p>
 <blockquote>
 <div><p>name of output VTK file, where each vertex is assigned
-the corresponding shape value</p>
+the corresponding annot value</p>
 </div></blockquote>
 </td>
 </tr>
@@ -351,18 +380,23 @@ the corresponding shape value</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">freesurfer_annot_to_vtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">annot_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;freesurfer&#39;</span><span class="p">,</span> <span class="s">&#39;lh.aparc.annot&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;freesurfer&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_vtk</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">labels</span><span class="p">,</span> <span class="n">output_vtk</span> <span class="o">=</span> <span class="n">freesurfer_annot_to_vtk</span><span class="p">(</span><span class="n">annot_file</span><span class="p">,</span> <span class="n">vtk_file</span><span class="p">,</span> <span class="n">output_vtk</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">output_vtk</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">annot_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_freesurfer_aparc_annot&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_pial&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_vtk</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">labels</span><span class="p">,</span> <span class="n">output_vtk</span> <span class="o">=</span> <span class="n">freesurfer_annot_to_vtk</span><span class="p">(</span><span class="n">annot_file</span><span class="p">,</span>
+<span class="gp">... </span>                                             <span class="n">vtk_file</span><span class="p">,</span> <span class="n">output_vtk</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nlabels</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">labels</span> <span class="o">==</span> <span class="n">x</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">labels</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nlabels</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">10</span><span class="p">]</span>
+<span class="go">[8305, 1414, 1171, 4096, 2213, 633, 5002, 6524, 4852, 1823]</span>
+</pre></div>
+</div>
+<p>View output vtk file (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">output_vtk</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -399,24 +433,26 @@ the corresponding shape value</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">freesurfer_curvature_to_vtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">surface_file</span> <span class="o">=</span> <span class="s">&#39;lh.thickness&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="s">&#39;lh.pial.vtk&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_vtk</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">freesurfer_curvature_to_vtk</span><span class="p">(</span><span class="n">surface_file</span><span class="p">,</span> <span class="n">vtk_file</span><span class="p">,</span> <span class="n">output_vtk</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="s">&#39;lh.thickness.vtk&#39;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">freesurfer_curvature_to_vtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surface_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_freesurfer_thickness&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_pial&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_vtk</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_vtk</span> <span class="o">=</span> <span class="n">freesurfer_curvature_to_vtk</span><span class="p">(</span><span class="n">surface_file</span><span class="p">,</span> <span class="n">vtk_file</span><span class="p">,</span>
+<span class="gp">... </span>                                         <span class="n">output_vtk</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>View output vtk file (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">output_vtk</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="mindboggle.mio.vtks.freesurfer_surface_to_vtk">
-<code class="descclassname">mindboggle.mio.vtks.</code><code class="descname">freesurfer_surface_to_vtk</code><span class="sig-paren">(</span><em>surface_file</em>, <em>output_vtk=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.vtks.freesurfer_surface_to_vtk" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.mio.vtks.</code><code class="descname">freesurfer_surface_to_vtk</code><span class="sig-paren">(</span><em>surface_file</em>, <em>orig_file=''</em>, <em>output_vtk=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.vtks.freesurfer_surface_to_vtk" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert FreeSurfer surface file to VTK format.</p>
 <p>If a file named orig.mgz exists in &#8216;../mri&#8217;, the surface coordinates
 are transformed into scanner RAS space during format conversion
@@ -428,6 +464,10 @@ according to the vox2ras transform in that file.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>surface_file</strong> : string</p>
 <blockquote>
 <div><p>name of FreeSurfer surface file</p>
+</div></blockquote>
+<p><strong>orig_file</strong> : string</p>
+<blockquote>
+<div><p>name of FreeSurfer mri/orig.mgz file</p>
 </div></blockquote>
 <p><strong>output_vtk</strong> : string</p>
 <blockquote>
@@ -446,17 +486,20 @@ current working directory.</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">freesurfer_surface_to_vtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;SUBJECTS_DIR&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">surface_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;OASIS-TRT-20-1&#39;</span><span class="p">,</span> <span class="s">&#39;surf&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_vtk</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">freesurfer_surface_to_vtk</span><span class="p">(</span><span class="n">surface_file</span><span class="p">,</span> <span class="n">output_vtk</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="s">&#39;lh.pial.vtk&#39;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">freesurfer_surface_to_vtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surface_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_freesurfer_pial&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">orig_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;freesurfer_orig_mgz&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_vtk</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_vtk</span> <span class="o">=</span> <span class="n">freesurfer_surface_to_vtk</span><span class="p">(</span><span class="n">surface_file</span><span class="p">,</span> <span class="n">orig_file</span><span class="p">,</span>
+<span class="gp">... </span>                                       <span class="n">output_vtk</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>View output vtk file (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">output_vtk</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -493,124 +536,42 @@ on a surface mesh</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_faces_points</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">folds_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;features&#39;</span><span class="p">,</span> <span class="s">&#39;folds.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">npoints</span> <span class="o">=</span> <span class="n">read_faces_points</span><span class="p">(</span><span class="n">folds_file</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="mindboggle.mio.vtks.read_itk_transform">
-<code class="descclassname">mindboggle.mio.vtks.</code><code class="descname">read_itk_transform</code><span class="sig-paren">(</span><em>transform_file</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.vtks.read_itk_transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read ITK transform file and output transform array.</p>
-<p>Daniel Haehn&#8217;s implementation: <a class="reference external" href="https://gist.github.com/haehn/5614966">https://gist.github.com/haehn/5614966</a></p>
-<p>..ITK affine transform file format</p>
-<div class="highlight-python"><div class="highlight"><pre>#Insight Transform File V1.0
-#Transform 0
-Transform: MatrixOffsetTransformBase_double_3_3
-Parameters: 0.90768 0.043529 0.0128917 -0.0454455 0.868937 0.406098                     0.0179439 -0.430013 0.783074 -0.794889 -18.3346 -3.14767
-FixedParameters: -0.60936 21.1593 10.6148
-</pre></div>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>transform_file</strong> : string</p>
-<blockquote>
-<div><p>name of ITK affine transform file</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>transform</strong> : numpy array</p>
-<blockquote class="last">
-<div><p>4x4 affine transform matrix</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_itk_transform</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">transform_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;mri&#39;</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>                              <span class="s">&#39;t1weighted_brain.MNI152Affine.txt&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">read_itk_transform</span><span class="p">(</span><span class="n">transform_file</span><span class="p">)</span>
-<span class="go">    array([[  9.07680e-01,   4.35290e-02,   1.28917e-02,   -8.16765e-01],</span>
-<span class="go">           [ -4.54455e-02,   8.68937e-01,   4.06098e-01,   -2.31926e+01],</span>
-<span class="go">           [  1.79439e-02,  -4.30013e-01,   7.83074e-01,   3.52899e+00],</span>
-<span class="go">           [  0 0 0 1]])</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="mindboggle.mio.vtks.read_itk_transform_old">
-<code class="descclassname">mindboggle.mio.vtks.</code><code class="descname">read_itk_transform_old</code><span class="sig-paren">(</span><em>transform_file</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.vtks.read_itk_transform_old" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read ITK transform file and output transform array.</p>
-<p>..ITK affine transform file format</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c">#Insight Transform File V1.0</span>
-<span class="c">#Transform 0</span>
-</pre></div>
-</div>
-<p>Transform: MatrixOffsetTransformBase_double_3_3
-Parameters: 0.90768 0.043529 0.0128917 -0.0454455 0.868937 0.406098     0.0179439 -0.430013 0.783074 -0.794889 -18.3346 -3.14767
-FixedParameters: -0.60936 21.1593 10.6148</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>transform_file</strong> : string</p>
-<blockquote>
-<div><p>name of ITK affine transform file</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>transform</strong> : numpy array</p>
-<blockquote>
-<div><p>4x4 affine transform matrix</p>
-</div></blockquote>
-<p><strong>fixed_parameters</strong> : numpy array</p>
-<blockquote class="last">
-<div><p>FixedParameters vector</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_itk_transform</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">transform_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;mri&#39;</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>                              <span class="s">&#39;t1weighted_brain.MNI152Affine.txt&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">read_itk_transform</span><span class="p">(</span><span class="n">transform_file</span><span class="p">)</span>
-<span class="go">(array([[ 9.07680e-01, 4.35290e-02, 1.28917e-02, -7.94889e-01],</span>
-<span class="go">[ -4.54455e-02, 8.68937e-01, 4.06098e-01, -1.83346e+01],</span>
-<span class="go">[ 1.79439e-02, -4.30013e-01, 7.83074e-01, -3.14767e+00],</span>
-<span class="go">[ 0.00000e+00, 0.00000e+00, 0.00000e+00, 1.00000e+00]]),</span>
-<span class="go">[-0.60936, 21.1593, 10.6148])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">depth_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_travel_depth&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">npoints</span>  <span class="o">=</span> <span class="n">read_faces_points</span><span class="p">(</span><span class="n">depth_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">npoints</span>
+<span class="go">145069</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="go">[[0, 1, 4], [5, 4, 1], [0, 48, 49], [0, 49, 1], [0, 4, 48]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[[-13.7924  -76.0973   -2.57594]</span>
+<span class="go"> [-14.2225  -76.2362   -2.73425]</span>
+<span class="go"> [-14.9617  -76.2497   -2.62924]</span>
+<span class="go"> [-12.4807  -76.1401   -3.98634]</span>
+<span class="go"> [-13.3426  -76.1914   -3.3657 ]]</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="mindboggle.mio.vtks.read_lines">
-<code class="descclassname">mindboggle.mio.vtks.</code><code class="descname">read_lines</code><span class="sig-paren">(</span><em>Filename</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.vtks.read_lines" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.mio.vtks.</code><code class="descname">read_lines</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.vtks.read_lines" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load LINES from a VTK file, along with the scalar values.</p>
 <p>The line that extracts vertices from a VTK
 iterates from 1 to Vrts.GetSize(), rather than from 0.</p>
+<p>Not currently in use by Mindboggle.
+This was intended for use with the fundus line extraction algorithm.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>Filename</strong> : string</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>filename</strong> : string</p>
 <blockquote>
-<div><p>The path/filename of a VTK format file.</p>
+<div><p>the path/filename of a VTK format file</p>
 </div></blockquote>
 </td>
 </tr>
@@ -627,12 +588,21 @@ defined in the POINTS section of the VTK file</p>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_lines</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fundus_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_fundi&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lines</span><span class="p">,</span> <span class="n">scalars</span>  <span class="o">=</span> <span class="n">read_lines</span><span class="p">(</span><span class="n">fundus_file</span><span class="p">)</span> 
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
 <dt id="mindboggle.mio.vtks.read_points">
 <code class="descclassname">mindboggle.mio.vtks.</code><code class="descname">read_points</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.vtks.read_points" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load points of a VTK surface file.</p>
+<p>Not currently in use by Mindboggle.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -651,6 +621,22 @@ defined in the POINTS section of the VTK file</p>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">depth_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_travel_depth&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span>  <span class="o">=</span> <span class="n">read_points</span><span class="p">(</span><span class="n">depth_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[[-13.7924  -76.0973   -2.57594]</span>
+<span class="go"> [-14.2225  -76.2362   -2.73425]</span>
+<span class="go"> [-14.9617  -76.2497   -2.62924]</span>
+<span class="go"> [-12.4807  -76.1401   -3.98634]</span>
+<span class="go"> [-13.3426  -76.1914   -3.3657 ]]</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -688,24 +674,30 @@ defined in the POINTS section of the VTK file</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">curv_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.mean_curvature.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mean_curvatures</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">read_scalars</span><span class="p">(</span><span class="n">curv_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">depth_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_travel_depth&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">depths</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">read_scalars</span><span class="p">(</span><span class="n">depth_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">name</span>
+<span class="go">&#39;scalars&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">depths</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 0.02026  0.06009  0.12859  0.04564  0.00774]</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="mindboggle.mio.vtks.read_vertices">
-<code class="descclassname">mindboggle.mio.vtks.</code><code class="descname">read_vertices</code><span class="sig-paren">(</span><em>Filename</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.vtks.read_vertices" title="Permalink to this definition">¶</a></dt>
-<dd><p>Load VERTICES segment from a VTK file (actually indices to vertices)</p>
+<code class="descclassname">mindboggle.mio.vtks.</code><code class="descname">read_vertices</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.vtks.read_vertices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load VERTICES segment from a VTK file (actually indices to vertices).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>Filename</strong> : string</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>filename</strong> : string</p>
 <blockquote>
 <div><p>The path/filename of a VTK format file.</p>
 </div></blockquote>
@@ -719,7 +711,8 @@ POINTS segment of the VTK file.</p>
 </div></blockquote>
 <p><strong>Notes ::</strong> :</p>
 <blockquote class="last">
-<div><p>We assume that VERTICES segment is organized as one line,
+<div><p>&#8211; Not currently in use by Mindboggle.</p>
+<p>We assume that the VERTICES segment is organized as one line,
 the first column of which is the number of vertices.
 Vertices here are as vertices in VTK terminology.
 It may not be the vertices in your 3-D surface.</p>
@@ -728,6 +721,14 @@ It may not be the vertices in your 3-D surface.</p>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_vertices</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">depth_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_travel_depth&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indices</span> <span class="o">=</span> <span class="n">read_vertices</span><span class="p">(</span><span class="n">depth_file</span><span class="p">)</span> 
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -736,7 +737,7 @@ It may not be the vertices in your 3-D surface.</p>
 <dd><p>Load faces, lines, indices, points, #points,
 and all scalar lookup tables from a VTK file.</p>
 <p>Note</p>
-<div class="highlight-python"><div class="highlight"><pre>1. This supports copying lines, vertices (indices of points),
+<div class="highlight-python"><div class="highlight"><pre><span></span>1. This supports copying lines, vertices (indices of points),
    and triangular faces from one surface to another.
 2. We assume that all vertices are written in one line
    in the VERTICES segment.
@@ -799,11 +800,26 @@ on a surface mesh</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_vtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_vtk</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.mean_curvature.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">scalars</span><span class="p">,</span> <span class="n">scalar_names</span><span class="p">,</span> <span class="n">npoints</span><span class="p">,</span> <span class="n">input_vtk</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">input_vtk</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">depth_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_travel_depth&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">scalars</span><span class="p">,</span> <span class="n">scalar_names</span><span class="p">,</span> <span class="n">npoints</span><span class="p">,</span> <span class="n">input_vtk</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">depth_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">npoints</span>
+<span class="go">145069</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[[-13.7924  -76.0973   -2.57594]</span>
+<span class="go"> [-14.2225  -76.2362   -2.73425]</span>
+<span class="go"> [-14.9617  -76.2497   -2.62924]</span>
+<span class="go"> [-12.4807  -76.1401   -3.98634]</span>
+<span class="go"> [-13.3426  -76.1914   -3.3657 ]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">scalars</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]),</span>
+<span class="gp">... </span>      <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="go">[ 0.02026  0.06009  0.12859  0.04564  0.00774]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="go">[[0, 1, 4], [5, 4, 1], [0, 48, 49], [0, 49, 1], [0, 4, 48]]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -824,52 +840,48 @@ on a surface mesh</p>
 <blockquote>
 <div><p>output VTK file name</p>
 </div></blockquote>
-<p><strong>new_scalars</strong> : list of lists of floats (or single list or array of floats)</p>
+<p><strong>new_scalars</strong> : list of lists (or single list or numpy array) of N floats</p>
 <blockquote>
-<div><p>each list (lookup table) contains new values to assign to the vertices</p>
+<div><p>each list contains new values to assign to the vertices</p>
 </div></blockquote>
 <p><strong>new_scalar_names</strong> : string or list of strings</p>
 <blockquote>
-<div><p>each element is the new name for a lookup table</p>
+<div><p>each element is the new name for the corresponding scalars</p>
 </div></blockquote>
-<p><strong>filter_scalars</strong> : list or numpy array (optional)</p>
+<p><strong>filter_scalars</strong> : list or numpy array of N elements (optional)</p>
 <blockquote>
 <div><p>scalar values used to filter faces (foreground values retained)</p>
 </div></blockquote>
 <p><strong>background_value</strong> : integer</p>
-<blockquote>
-<div><p>background value</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>output_vtk</strong> : string</p>
 <blockquote class="last">
-<div><p>output VTK file name</p>
+<div><p>background value</p>
 </div></blockquote>
 </td>
 </tr>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Write vtk file with curvature values on sulci</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span><span class="p">,</span> <span class="n">rewrite_scalars</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_vtk</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.mean_curvature.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sulci_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;features&#39;</span><span class="p">,</span> <span class="s">&#39;sulci.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_vtk</span> <span class="o">=</span> <span class="s">&#39;rewrite_scalars.vtk&#39;</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Write vtk file with depth values on sulci</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">rewrite_scalars</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_scalars</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_vtk</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_travel_depth&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sulci_file</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_sulci&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_vtk</span> <span class="o">=</span> <span class="s1">&#39;rewrite_scalars.vtk&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">curvs</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">read_scalars</span><span class="p">(</span><span class="n">input_vtk</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span><span class="bp">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sulci</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">read_scalars</span><span class="p">(</span><span class="n">sulci_file</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">new_scalars</span> <span class="o">=</span> <span class="p">[</span><span class="n">curvs</span><span class="p">,</span> <span class="n">sulci</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">new_scalar_names</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;curvs&#39;</span><span class="p">,</span> <span class="s">&#39;sulci&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_scalar_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;curvs&#39;</span><span class="p">,</span> <span class="s1">&#39;sulci&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">filter_scalars</span> <span class="o">=</span> <span class="n">sulci</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">background_value</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">rewrite_scalars</span><span class="p">(</span><span class="n">input_vtk</span><span class="p">,</span> <span class="n">output_vtk</span><span class="p">,</span> <span class="n">new_scalars</span><span class="p">,</span> <span class="n">new_scalar_names</span><span class="p">,</span> <span class="n">filter_scalars</span><span class="p">,</span> <span class="n">background_value</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="s">&#39;rewrite_scalars.vtk&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rewrite_scalars</span><span class="p">(</span><span class="n">input_vtk</span><span class="p">,</span> <span class="n">output_vtk</span><span class="p">,</span> <span class="n">new_scalars</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">new_scalar_names</span><span class="p">,</span> <span class="n">filter_scalars</span><span class="p">,</span> <span class="n">background_value</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>View resulting vtk file (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">output_vtk</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>
@@ -897,78 +909,30 @@ If not, reformat.</p>
 <p>This function does not check all possible cases of scalars and
 scalar_names, but only those that are likely to occur when using Mindboggle.</p>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">scalars_checker</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars_checker</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]],</span> <span class="p">[</span><span class="s">&quot;list1&quot;</span><span class="p">,</span> <span class="s">&quot;list2&quot;</span><span class="p">])</span>
-<span class="go">  ([[1, 2], [3, 4]], [&#39;list1&#39;, &#39;list2&#39;])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars_checker</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]],</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
-<span class="go">  ([[1, 2], [3, 4]], [&#39;&#39;, &#39;&#39;])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars_checker</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]],</span> <span class="p">[</span><span class="s">&quot;list1&quot;</span><span class="p">,</span> <span class="s">&quot;list2&quot;</span><span class="p">,</span> <span class="s">&quot;list3&quot;</span><span class="p">])</span>
-<span class="go">  ([[1, 2], [3, 4]], [&#39;list1&#39;, &#39;list2&#39;, &#39;list3&#39;])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars_checker</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]],</span> <span class="s">&quot;list1&quot;</span><span class="p">)</span>
-<span class="go">  ([[1, 2], [3, 4]], [&#39;list1&#39;, &#39;list1&#39;])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars_checker</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="s">&quot;123&quot;</span><span class="p">])</span>
-<span class="go">  ([[1, 2, 3, 4]], [&#39;123&#39;])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars_checker</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;123&quot;</span><span class="p">])</span>
-<span class="go">  Error: scalars is neither a list nor a numpy array.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars_checker</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]),</span> <span class="p">[</span><span class="s">&quot;123&quot;</span><span class="p">])</span>
-<span class="go">  ([[1, 2, 3]], [&#39;123&#39;])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars_checker</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]]),</span> <span class="p">[</span><span class="s">&quot;123&quot;</span><span class="p">])</span>
-<span class="go">  ([[1, 2, 3]], [&#39;123&#39;])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars_checker</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],[</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">]]),</span> <span class="p">[</span><span class="s">&quot;123&quot;</span><span class="p">])</span>
-<span class="go">  ([[1, 2, 3], [4, 5, 6]], [&#39;123&#39;, &#39;123&#39;])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars_checker</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]]]),</span> <span class="p">[</span><span class="s">&quot;123&quot;</span><span class="p">])</span>
-<span class="go">  Error: Dimension of new_scalars is too high.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars_checker</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">9</span><span class="p">]),[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]]),</span> <span class="p">[</span><span class="s">&quot;123&quot;</span><span class="p">])</span>
-<span class="go">  ([[0, 7, 9], [1, 2, 3]], [&#39;123&#39;, &#39;123&#39;])</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="mindboggle.mio.vtks.transform_to_volume">
-<code class="descclassname">mindboggle.mio.vtks.</code><code class="descname">transform_to_volume</code><span class="sig-paren">(</span><em>vtk_file</em>, <em>volume_file</em>, <em>output_volume=''</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.vtks.transform_to_volume" title="Permalink to this definition">¶</a></dt>
-<dd><p>Transform vtk coordinates to voxel index coordinates in a target
-volume by using the header transformation.</p>
-<p>This function assumes that the nibabel-readable volume has LPI orientation.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>vtk_file</strong> : string</p>
-<blockquote>
-<div><p>name of VTK file containing point coordinate data</p>
-</div></blockquote>
-<p><strong>volume_file</strong> : string</p>
-<blockquote>
-<div><p>name of target nibabel-readable image volume file</p>
-</div></blockquote>
-<p><strong>output_volume</strong> : string</p>
-<blockquote>
-<div><p>name of output nibabel-readable image volume file</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>output_volume</strong> : string</p>
-<blockquote class="last">
-<div><p>name of nifti file containing transformed point data</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">transform_to_volume</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_volumes</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vtk_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.mean_curvature.vtk&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">volume_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;mri&#39;</span><span class="p">,</span> <span class="s">&#39;t1weighted_brain.nii.gz&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_volume</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">transform_to_volume</span><span class="p">(</span><span class="n">vtk_file</span><span class="p">,</span> <span class="n">volume_file</span><span class="p">,</span> <span class="n">output_volume</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_volumes</span><span class="p">([</span><span class="s">&#39;affine_lh.pial.mean_curvature.vtk.nii.gz&#39;</span><span class="p">,</span> <span class="n">volume_file</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars_checker</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]],</span> <span class="p">[</span><span class="s2">&quot;list1&quot;</span><span class="p">,</span> <span class="s2">&quot;list2&quot;</span><span class="p">])</span>
+<span class="go">([[1, 2], [3, 4]], [&#39;list1&#39;, &#39;list2&#39;])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars_checker</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]],</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="go">([[1, 2], [3, 4]], [&#39;&#39;, &#39;&#39;])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars_checker</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]],</span> <span class="p">[</span><span class="s2">&quot;list1&quot;</span><span class="p">,</span> <span class="s2">&quot;list2&quot;</span><span class="p">,</span> <span class="s2">&quot;list3&quot;</span><span class="p">])</span>
+<span class="go">([[1, 2], [3, 4]], [&#39;list1&#39;, &#39;list2&#39;, &#39;list3&#39;])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars_checker</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]],</span> <span class="s2">&quot;list1&quot;</span><span class="p">)</span>
+<span class="go">([[1, 2], [3, 4]], [&#39;list1&#39;, &#39;list1&#39;])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars_checker</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;123&quot;</span><span class="p">])</span>
+<span class="go">([[1, 2, 3, 4]], [&#39;123&#39;])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars_checker</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;123&quot;</span><span class="p">])</span> 
+<span class="go">Error: scalars is neither a list nor a numpy array. </span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars_checker</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]),</span> <span class="p">[</span><span class="s2">&quot;123&quot;</span><span class="p">])</span>
+<span class="go">([[1, 2, 3]], [&#39;123&#39;])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars_checker</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]]),</span> <span class="p">[</span><span class="s2">&quot;123&quot;</span><span class="p">])</span>
+<span class="go">([[1, 2, 3]], [&#39;123&#39;])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars_checker</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],[</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">]]),</span> <span class="p">[</span><span class="s2">&quot;123&quot;</span><span class="p">])</span>
+<span class="go">([[1, 2, 3], [4, 5, 6]], [&#39;123&#39;, &#39;123&#39;])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars_checker</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]]]),</span> <span class="p">[</span><span class="s2">&quot;123&quot;</span><span class="p">])</span> 
+<span class="go">Error: Dimension of new_scalars is too high. </span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars_checker</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">9</span><span class="p">]),[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]]),</span> <span class="p">[</span><span class="s2">&quot;123&quot;</span><span class="p">])</span>
+<span class="go">([[0, 7, 9], [1, 2, 3]], [&#39;123&#39;, &#39;123&#39;])</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -988,7 +952,7 @@ the POLYGONS section in DATASET POLYDATA section:</p>
 <dt id="mindboggle.mio.vtks.write_header">
 <code class="descclassname">mindboggle.mio.vtks.</code><code class="descname">write_header</code><span class="sig-paren">(</span><em>Fp</em>, <em>Header='# vtk DataFile Version 2.0'</em>, <em>Title='Generated by Mindboggle (www.mindboggle.info)'</em>, <em>fileType='ASCII'</em>, <em>dataType='POLYDATA'</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.vtks.write_header" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write header information for a VTK-format file:</p>
-<div class="highlight-python"><div class="highlight"><pre># vtk DataFile Version 2.0
+<div class="highlight-python"><div class="highlight"><pre><span></span># vtk DataFile Version 2.0
 Generated by Mindboggle (www.mindboggle.info)
 ASCII
 DATASET POLYDATA
@@ -1048,13 +1012,13 @@ representing the 2 vertices of the edge</p>
 <dt id="mindboggle.mio.vtks.write_points">
 <code class="descclassname">mindboggle.mio.vtks.</code><code class="descname">write_points</code><span class="sig-paren">(</span><em>Fp</em>, <em>points</em>, <em>dataType='float'</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.vtks.write_points" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write coordinates of points, the POINTS section in DATASET POLYDATA:</p>
-<div class="highlight-python"><div class="highlight"><pre>POINTS 150991 float
+<div class="highlight-python"><div class="highlight"><pre><span></span>POINTS 150991 float
 -7.62268877029 -81.2403945923 -1.44539153576
 ...
 </pre></div>
 </div>
 <p>Indices are 0-offset. Thus the first point is point id 0:</p>
-<div class="highlight-python"><div class="highlight"><pre>POINTS n dataType
+<div class="highlight-python"><div class="highlight"><pre><span></span>POINTS n dataType
 p0x p0y p0z
 ...
 p(n-1)x p(n-1)y p(n-1)z
@@ -1066,7 +1030,7 @@ p(n-1)x p(n-1)y p(n-1)z
 <dt id="mindboggle.mio.vtks.write_scalars">
 <code class="descclassname">mindboggle.mio.vtks.</code><code class="descname">write_scalars</code><span class="sig-paren">(</span><em>Fp</em>, <em>scalars</em>, <em>scalar_name</em>, <em>begin_scalars=True</em>, <em>scalar_type='float'</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.vtks.write_scalars" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write per-VERTEX values as a scalar lookup table into a VTK file:</p>
-<div class="highlight-python"><div class="highlight"><pre>POINT_DATA 150991
+<div class="highlight-python"><div class="highlight"><pre><span></span>POINT_DATA 150991
 SCALARS Max_(majority_labels) int 
 LOOKUP_TABLE default
 11 
@@ -1113,20 +1077,20 @@ LOOKUP_TABLE default
 <code class="descclassname">mindboggle.mio.vtks.</code><code class="descname">write_vertices</code><span class="sig-paren">(</span><em>Fp</em>, <em>indices</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.mio.vtks.write_vertices" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write indices to vertices, the VERTICES section
 in the DATASET POLYDATA section:</p>
-<div class="highlight-python"><div class="highlight"><pre>VERTICES 140200 420600
+<div class="highlight-python"><div class="highlight"><pre><span></span>VERTICES 140200 420600
 3 130239 2779 10523
 ...
 </pre></div>
 </div>
 <p>Indices are 0-offset. Thus the first point is point id 0:</p>
-<div class="highlight-python"><div class="highlight"><pre>VERTICES n size
+<div class="highlight-python"><div class="highlight"><pre><span></span>VERTICES n size
 numPoints0 i0 j0 k0
 ...
 numPoints_[n-1] i_[n-1] j_[n-1] k_[n-1]
 </pre></div>
 </div>
 <p>Note:</p>
-<div class="highlight-python"><div class="highlight"><pre>Currently we write all vertices in one line.
+<div class="highlight-python"><div class="highlight"><pre><span></span>Currently we write all vertices in one line.
 </pre></div>
 </div>
 </dd></dl>
@@ -1182,34 +1146,38 @@ representing the 2 vertices of the edge</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Toy example</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Toy example</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">random</span><span class="o">,</span> <span class="nn">os</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">write_vtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">points</span> <span class="o">=</span> <span class="p">[[</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">indices</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">lines</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">faces</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">]]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars</span> <span class="o">=</span> <span class="p">[[</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">scalar_names</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;curv&#39;</span><span class="p">,</span><span class="s">&#39;depth&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_vtk</span> <span class="o">=</span> <span class="s">&#39;write_vtk.vtk&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">scalar_type</span> <span class="o">=</span> <span class="s">&#39;float&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">write_vtk</span><span class="p">(</span><span class="n">output_vtk</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">scalars</span><span class="p">,</span> <span class="n">scalar_names</span><span class="p">,</span> <span class="n">scalar_type</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">output_vtk</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Write vtk file with curvature values and view:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_vtk</span><span class="p">,</span> <span class="n">write_vtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;MINDBOGGLE_DATA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_vtk</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;arno&#39;</span><span class="p">,</span> <span class="s">&#39;shapes&#39;</span><span class="p">,</span> <span class="s">&#39;lh.pial.mean_curvature.vtk&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#scalars = [[random.random() for i in range(4)] for j in [1,2]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalars</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">7</span><span class="p">],[</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">8</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalar_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;curv&#39;</span><span class="p">,</span><span class="s1">&#39;depth&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_vtk</span> <span class="o">=</span> <span class="s1">&#39;write_vtk.vtk&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalar_type</span> <span class="o">=</span> <span class="s1">&#39;float&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">write_vtk</span><span class="p">(</span><span class="n">output_vtk</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">scalars</span><span class="p">,</span>
+<span class="gp">... </span>          <span class="n">scalar_names</span><span class="p">,</span> <span class="n">scalar_type</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>View resulting vtk file (skip test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.plots</span> <span class="kn">import</span> <span class="n">plot_surfaces</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">output_vtk</span><span class="p">)</span> 
+</pre></div>
+</div>
+<p>Write vtk file with depth values and view (skip plot in test):</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.vtks</span> <span class="kn">import</span> <span class="n">read_vtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mindboggle.mio.fetch_data</span> <span class="kn">import</span> <span class="n">prep_tests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">urls</span><span class="p">,</span> <span class="n">fetch_data</span> <span class="o">=</span> <span class="n">prep_tests</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_vtk</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="s1">&#39;left_travel_depth&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">points</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">scalars</span><span class="p">,</span> <span class="n">scalar_names</span><span class="p">,</span> <span class="n">npoints</span><span class="p">,</span> <span class="n">input_vtk</span> <span class="o">=</span> <span class="n">read_vtk</span><span class="p">(</span><span class="n">input_vtk</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_vtk</span> <span class="o">=</span> <span class="s">&#39;write_vtk.vtk&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">scalar_type</span> <span class="o">=</span> <span class="s">&#39;float&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">write_vtk</span><span class="p">(</span><span class="n">output_vtk</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">scalars</span><span class="p">,</span> <span class="n">scalar_names</span><span class="p">,</span> <span class="n">scalar_type</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># View:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">output_vtk</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_vtk</span> <span class="o">=</span> <span class="s1">&#39;write_vtk.vtk&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scalar_type</span> <span class="o">=</span> <span class="s1">&#39;float&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">write_vtk</span><span class="p">(</span><span class="n">output_vtk</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">scalars</span><span class="p">,</span>
+<span class="gp">... </span>          <span class="n">scalar_names</span><span class="p">,</span> <span class="n">scalar_type</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_surfaces</span><span class="p">(</span><span class="n">output_vtk</span><span class="p">)</span> 
 </pre></div>
 </div>
 </dd></dl>

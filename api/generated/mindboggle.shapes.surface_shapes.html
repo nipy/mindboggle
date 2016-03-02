@@ -105,7 +105,7 @@
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mindboggle.shapes.surface_shapes.area">
-<code class="descclassname">mindboggle.shapes.surface_shapes.</code><code class="descname">area</code><span class="sig-paren">(</span><em>command</em>, <em>surface_file</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.surface_shapes.area" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.shapes.surface_shapes.</code><code class="descname">area</code><span class="sig-paren">(</span><em>command</em>, <em>surface_file</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.surface_shapes.area" title="Permalink to this definition">¶</a></dt>
 <dd><p>Measure area of each vertex in a surface mesh.
 (Calls Joachim Giard&#8217;s C++ code)</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -119,6 +119,10 @@
 <p><strong>surface_file</strong> : string</p>
 <blockquote>
 <div><p>vtk file with surface mesh</p>
+</div></blockquote>
+<p><strong>verbose</strong> : Boolean</p>
+<blockquote>
+<div><p>print statements?</p>
 </div></blockquote>
 </td>
 </tr>
@@ -134,7 +138,7 @@
 
 <dl class="function">
 <dt id="mindboggle.shapes.surface_shapes.curvature">
-<code class="descclassname">mindboggle.shapes.surface_shapes.</code><code class="descname">curvature</code><span class="sig-paren">(</span><em>command</em>, <em>method</em>, <em>arguments</em>, <em>surface_file</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.surface_shapes.curvature" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.shapes.surface_shapes.</code><code class="descname">curvature</code><span class="sig-paren">(</span><em>command</em>, <em>method</em>, <em>arguments</em>, <em>surface_file</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.surface_shapes.curvature" title="Permalink to this definition">¶</a></dt>
 <dd><p>Measure curvature values of each vertex in a surface mesh (-m 0).
 (Calls Joachim Giard&#8217;s C++ code)</p>
 <p>Usage: CurvatureMain [Options] InputVTKMesh MeanCurvatureOutput
@@ -167,7 +171,7 @@ Example: CurvatureMain -m 0 -n 2</p>
 <div>-i lh.min_curv.vtk -x lh.max_curv.vtk -g lh.gaussian_curv.vtk
 -d lh.min_dir.vtk lh.pial.vtk  lh.mean_curv.vtk</div></blockquote>
 <p>Note</p>
-<div class="highlight-python"><div class="highlight"><pre>-m 0 is best if you have low resolution or want local peaks,
+<div class="highlight-python"><div class="highlight"><pre><span></span>-m 0 is best if you have low resolution or want local peaks,
     but can be too sensitive to the local linear geometry of the mesh,
     unless the neighborhood parameter is set high enough (like 2).
 -m 1 is not well tested and the filtering is done using Euclidean
@@ -193,8 +197,12 @@ Example: CurvatureMain -m 0 -n 2</p>
 <div><p>additional arguments, such as neighborhood parameter</p>
 </div></blockquote>
 <p><strong>surface_file</strong> : string</p>
-<blockquote class="last">
+<blockquote>
 <div><p>name of VTK surface mesh file</p>
+</div></blockquote>
+<p><strong>verbose</strong> : Boolean</p>
+<blockquote class="last">
+<div><p>print statements?</p>
 </div></blockquote>
 </td>
 </tr>
@@ -204,7 +212,7 @@ Example: CurvatureMain -m 0 -n 2</p>
 
 <dl class="function">
 <dt id="mindboggle.shapes.surface_shapes.geodesic_depth">
-<code class="descclassname">mindboggle.shapes.surface_shapes.</code><code class="descname">geodesic_depth</code><span class="sig-paren">(</span><em>command</em>, <em>surface_file</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.surface_shapes.geodesic_depth" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.shapes.surface_shapes.</code><code class="descname">geodesic_depth</code><span class="sig-paren">(</span><em>command</em>, <em>surface_file</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.surface_shapes.geodesic_depth" title="Permalink to this definition">¶</a></dt>
 <dd><p>Measure &#8220;travel depth&#8221; of each vertex in a surface mesh.
 (Calls Joachim Giard&#8217;s C++ code)</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -213,6 +221,10 @@ Example: CurvatureMain -m 0 -n 2</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>command</strong> : travel depth C++ executable command</p>
 <p><strong>surface_file</strong> : <code class="docutils literal"><span class="pre">vtk</span> <span class="pre">file</span></code></p>
+<p><strong>verbose</strong> : Boolean</p>
+<blockquote>
+<div><p>print statements?</p>
+</div></blockquote>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>depth_file: string</strong> :</p>
@@ -227,15 +239,25 @@ Example: CurvatureMain -m 0 -n 2</p>
 
 <dl class="function">
 <dt id="mindboggle.shapes.surface_shapes.travel_depth">
-<code class="descclassname">mindboggle.shapes.surface_shapes.</code><code class="descname">travel_depth</code><span class="sig-paren">(</span><em>command</em>, <em>surface_file</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.surface_shapes.travel_depth" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">mindboggle.shapes.surface_shapes.</code><code class="descname">travel_depth</code><span class="sig-paren">(</span><em>command</em>, <em>surface_file</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mindboggle.shapes.surface_shapes.travel_depth" title="Permalink to this definition">¶</a></dt>
 <dd><p>Measure &#8220;travel depth&#8221; of each vertex in a surface mesh.
 (Calls Joachim Giard&#8217;s C++ code)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>command</strong> : travel depth C++ executable command</p>
-<p><strong>surface_file</strong> : <code class="docutils literal"><span class="pre">vtk</span> <span class="pre">file</span></code></p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>command</strong> : string</p>
+<blockquote>
+<div><p>travel depth C++ executable command</p>
+</div></blockquote>
+<p><strong>surface_file</strong> : string</p>
+<blockquote>
+<div><p>vtk file</p>
+</div></blockquote>
+<p><strong>verbose</strong> : Boolean</p>
+<blockquote>
+<div><p>print statements?</p>
+</div></blockquote>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>depth_file: string</strong> :</p>
