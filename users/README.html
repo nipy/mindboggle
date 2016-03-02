@@ -97,12 +97,12 @@ easily installed as a cross-platform virtual machine for convenience and
 reproducibility of results. Behind the scenes, open source
 Python and C++ code run within a Nipype pipeline framework.
 Keep reading!:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>| 1. `Help`_
-| 2. `Installing Mindboggle`_
-| 3. `Running Mindboggle`_
-| 4. `Preprocessing`_
-| 5. `Processing steps`_
-| 6. `Mindboggle output`_
+<div class="highlight-python"><div class="highlight"><pre><span></span>1. `Help`_
+2. `Installing Mindboggle`_
+3. `Running Mindboggle`_
+4. `Preprocessing`_
+5. `Processing steps`_
+6. `Output`_
 </pre></div>
 </div>
 <div class="section" id="id2">
@@ -133,18 +133,18 @@ we recommend using a different script,
 to perform the same installation on Linux, MacOSX, or Windows,
 but in a virtual machine (VM). Download the VM script to wherever you want
 the startup directory to be, and do the following (type commands in a
-terminal for steps 2-4):</p>
+terminal for steps 2 and 3).</p>
 <ol class="arabic">
 <li><p class="first">Install dependencies:</p>
 <blockquote>
 <div><dl class="docutils">
-<dt><a class="reference external" href="http://www.vagrantup.com/downloads.html">Vagrant</a> manages virtual machines.</dt>
+<dt><a class="reference external" href="http://www.vagrantup.com">Vagrant</a> manages virtual machines.</dt>
 <dd><p class="first last">Vagrant provides reproducible and portable work environments
 that isolate dependencies and their configuration within a single
 disposable, consistent environment that can run on
 Linux, MacOSX, or Windows.</p>
 </dd>
-<dt><a class="reference external" href="https://www.virtualbox.org/wiki/Downloads">Virtualbox</a> provides</dt>
+<dt><a class="reference external" href="https://www.virtualbox.org">Virtualbox</a> provides</dt>
 <dd><p class="first last">virtual machines used by Vagrant. Alternative backend providers
 for Vagrant include VMware and Amazon Web Services.</p>
 </dd>
@@ -159,12 +159,12 @@ file called &#8220;Vagrantfile&#8221;:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span>python configure_mindboggle_vm
 </pre></div>
 </div>
-<p>3. For help with more options, such as how to mount your local ANTs data
-directory, set the number of processors, etc., type:</p>
+<p>For help with more options, such as how to mount your local ANTs data
+directory, set the number of processors, etc., add &#8220;-h&#8221; to the above:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span>python configure_mindboggle_vm -h
 </pre></div>
 </div>
-<p>4. Henceforth, whenever running Mindboggle, first type the following
+<p>3. Henceforth, whenever running Mindboggle, first type the following
 in the same directory as the Vagrantfile:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span>vagrant up
 vagrant ssh
@@ -173,12 +173,12 @@ vagrant ssh
 </div>
 <div class="section" id="id4">
 <h2><span class="target" id="running-mindboggle">Running Mindboggle</span><a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
-<p>To run the following examples, download and uncompress
-(&#8220;tar xvfz example.tar.gz&#8221;) the
-<a class="reference external" href="http://media.mindboggle.info/data/cache/example.tar.gz">example directory</a>
-(over 500MB), which includes abridged freesurfer, ANTs, and mindboggle output
-for one person, or generate your own preprocessed data
-(see <a class="reference internal" href="#preprocessing">Preprocessing</a> below):</p>
+<p>To run Mindboggle, you must first preprocess brain MR image data
+(see <a class="reference internal" href="#preprocessing">Preprocessing</a> below). To get up and running with the following
+examples, download and uncompress (&#8220;tar xvfz example.tar.gz&#8221;) the
+<a class="reference external" href="http://media.mindboggle.info/data/cache/example.tar.gz">example.tar.gz</a>
+directory (over 500MB), which includes abridged freesurfer, ANTs, and
+mindboggle output for one person.</p>
 <p><strong>Example 1:</strong>
 The following bare-bones command runs Mindboggle
 on data processed by FreeSurfer but not ANTs:</p>
@@ -204,9 +204,8 @@ data above, Mindboggle currently takes output from
 and optionally from <a class="reference external" href="http://stnava.github.io/ANTs/">ANTs</a>
 (preferably v2.1.0rc3 or higher).</p>
 <p><strong>FreeSurfer</strong> generates labeled cortical surfaces, and labeled cortical and
-noncortical volumes. Run <code class="docutils literal"><span class="pre">recon-all</span></code> on a T1-weighted <code class="docutils literal"><span class="pre">IMAGE</span></code> file
-(e.g., <code class="docutils literal"><span class="pre">subject1.nii.gz</span></code>) and set the output <code class="docutils literal"><span class="pre">SUBJECT</span></code> name
-(e.g., to <code class="docutils literal"><span class="pre">subject1</span></code>):</p>
+noncortical volumes. Run <code class="docutils literal"><span class="pre">recon-all</span></code> on a T1-weighted IMAGE file
+(e.g., subject1.nii.gz) and set the output SUBJECT name (subject1):</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span>recon-all -all -i IMAGE -s SUBJECT
 </pre></div>
 </div>
@@ -227,8 +226,7 @@ files (backslash denotes a line return):</p>
 </div>
 <div class="section" id="id6">
 <h2><span class="target" id="processing-steps">Processing steps</span><a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div><ol class="arabic">
+<ol class="arabic">
 <li><p class="first">Create hybrid gray/white segmentation from FreeSurfer and ANTs output (<a class="reference external" href="https://github.com/nipy/mindboggle/blob/master/mindboggle/guts/segment.py">combine_2labels_in_2volumes</a>).</p>
 </li>
 <li><p class="first">Fill hybrid segmentation with FreeSurfer- or ANTs-registered labels.</p>
@@ -288,10 +286,9 @@ files (backslash denotes a line return):</p>
 </div></blockquote>
 </li>
 </ol>
-</div></blockquote>
 </div>
 <div class="section" id="id7">
-<h2><span class="target" id="mindboggle-output">Mindboggle output</span><a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<h2><span class="target" id="output">Output</span><a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
 <p>Example output data is in the example/mindboggled/ directory
 downloaded in the <a class="reference internal" href="#preprocessing">Preprocessing</a> section above.
 By default, output files are saved in $HOME/mindboggled/SUBJECT, where $HOME
@@ -346,7 +343,7 @@ The following include outputs from most, but not all, optional arguments.</p>
 <blockquote>
 <div><p><strong>freesurfer_wmparc_labels_in_hybrid_graywhite.nii.gz</strong>:  <em>hybrid segmentation filled with FS labels</em></p>
 <p><strong>ants_labels_in_hybrid_graywhite.nii.gz</strong>:  <em>hybrid segmentation filled with ANTs + FS cerebellar labels</em></p>
-<p>[left,right]_cortical_surface / <strong>freesurfer_cortex_labels.vtk</strong>:  <em>FS or</em> <a class="reference external" href="http://mindboggle.info/data/">DKT</a> <em>cortical surface labels</em></p>
+<p>[left,right]_cortical_surface / <strong>freesurfer_cortex_labels.vtk</strong>: <a class="reference external" href="http://mindboggle.info/data/">DKT</a> <em>cortical surface labels</em></p>
 </div></blockquote>
 <p><strong>features</strong> / [left,right]_cortical_surface /</p>
 <blockquote>
