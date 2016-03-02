@@ -12,12 +12,12 @@ reproducibility of results. Behind the scenes, open source
 Python and C++ code run within a Nipype pipeline framework.
 Keep reading!::
 
-| 1. `Help`_
-| 2. `Installing Mindboggle`_
-| 3. `Running Mindboggle`_
-| 4. `Preprocessing`_
-| 5. `Processing steps`_
-| 6. `Mindboggle output`_
+    1. `Help`_
+    2. `Installing Mindboggle`_
+    3. `Running Mindboggle`_
+    4. `Preprocessing`_
+    5. `Processing steps`_
+    6. `Output`_
 
 ------------------------------------------------------------------------------
 _`Help`
@@ -43,17 +43,17 @@ we recommend using a different script,
 to perform the same installation on Linux, MacOSX, or Windows,
 but in a virtual machine (VM). Download the VM script to wherever you want
 the startup directory to be, and do the following (type commands in a
-terminal for steps 2-4):
+terminal for steps 2 and 3).
 
 1. Install dependencies:
 
-    `Vagrant <http://www.vagrantup.com/downloads.html>`_ manages virtual machines.
+    `Vagrant <http://www.vagrantup.com>`_ manages virtual machines.
         Vagrant provides reproducible and portable work environments
         that isolate dependencies and their configuration within a single
         disposable, consistent environment that can run on
         Linux, MacOSX, or Windows.
 
-    `Virtualbox <https://www.virtualbox.org/wiki/Downloads>`_ provides
+    `Virtualbox <https://www.virtualbox.org>`_ provides
         virtual machines used by Vagrant. Alternative backend providers
         for Vagrant include VMware and Amazon Web Services.
 
@@ -64,12 +64,12 @@ file called "Vagrantfile"::
 
         python configure_mindboggle_vm
 
-3. For help with more options, such as how to mount your local ANTs data
-directory, set the number of processors, etc., type::
+For help with more options, such as how to mount your local ANTs data
+directory, set the number of processors, etc., add "-h" to the above::
 
         python configure_mindboggle_vm -h
 
-4. Henceforth, whenever running Mindboggle, first type the following
+3. Henceforth, whenever running Mindboggle, first type the following
 in the same directory as the Vagrantfile::
 
         vagrant up
@@ -79,12 +79,12 @@ in the same directory as the Vagrantfile::
 ------------------------------------------------------------------------------
 _`Running Mindboggle`
 ------------------------------------------------------------------------------
-To run the following examples, download and uncompress
-("tar xvfz example.tar.gz") the
-`example directory <http://media.mindboggle.info/data/cache/example.tar.gz>`_
-(over 500MB), which includes abridged freesurfer, ANTs, and mindboggle output
-for one person, or generate your own preprocessed data
-(see `Preprocessing`_ below):
+To run Mindboggle, you must first preprocess brain MR image data
+(see `Preprocessing`_ below). To get up and running with the following
+examples, download and uncompress ("tar xvfz example.tar.gz") the
+`example.tar.gz <http://media.mindboggle.info/data/cache/example.tar.gz>`_
+directory (over 500MB), which includes abridged freesurfer, ANTs, and
+mindboggle output for one person.
 
 **Example 1:**
 The following bare-bones command runs Mindboggle
@@ -112,9 +112,8 @@ and optionally from `ANTs <http://stnava.github.io/ANTs/>`_
 (preferably v2.1.0rc3 or higher).
 
 **FreeSurfer** generates labeled cortical surfaces, and labeled cortical and
-noncortical volumes. Run ``recon-all`` on a T1-weighted ``IMAGE`` file
-(e.g., ``subject1.nii.gz``) and set the output ``SUBJECT`` name
-(e.g., to ``subject1``)::
+noncortical volumes. Run ``recon-all`` on a T1-weighted IMAGE file
+(e.g., subject1.nii.gz) and set the output SUBJECT name (subject1)::
 
     recon-all -all -i IMAGE -s SUBJECT
 
@@ -135,49 +134,49 @@ files (backslash denotes a line return)::
 ------------------------------------------------------------------------------
 _`Processing steps`
 ------------------------------------------------------------------------------
-    1. Create hybrid gray/white segmentation from FreeSurfer and ANTs output (`combine_2labels_in_2volumes <https://github.com/nipy/mindboggle/blob/master/mindboggle/guts/segment.py>`_).
-    2. Fill hybrid segmentation with FreeSurfer- or ANTs-registered labels.
-    3. Compute volume shape measures for each labeled region:
+1. Create hybrid gray/white segmentation from FreeSurfer and ANTs output (`combine_2labels_in_2volumes <https://github.com/nipy/mindboggle/blob/master/mindboggle/guts/segment.py>`_).
+2. Fill hybrid segmentation with FreeSurfer- or ANTs-registered labels.
+3. Compute volume shape measures for each labeled region:
 
-        - volume (`volume_per_brain_region <https://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/volume_shapes.py>`_)
-        - thickness of cortical labels (`thickinthehead <https://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/volume_shapes.py>`_)
+    - volume (`volume_per_brain_region <https://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/volume_shapes.py>`_)
+    - thickness of cortical labels (`thickinthehead <https://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/volume_shapes.py>`_)
 
-    4. Compute surface shape measures for every cortical mesh vertex:
+4. Compute surface shape measures for every cortical mesh vertex:
 
-        - `surface area <https://github.com/nipy/mindboggle/blob/master/vtk_cpp_tools/PointAreaComputer.cpp>`_
-        - `travel depth <https://github.com/nipy/mindboggle/blob/master/vtk_cpp_tools/TravelDepth.cpp>`_
-        - `geodesic depth <https://github.com/nipy/mindboggle/blob/master/vtk_cpp_tools/geodesic_depth/GeodesicDepthMain.cpp>`_
-        - `mean curvature <https://github.com/nipy/mindboggle/blob/master/vtk_cpp_tools/curvature/CurvatureMain.cpp>`_
-        - convexity (from FreeSurfer)
-        - thickness (from FreeSurfer)
+    - `surface area <https://github.com/nipy/mindboggle/blob/master/vtk_cpp_tools/PointAreaComputer.cpp>`_
+    - `travel depth <https://github.com/nipy/mindboggle/blob/master/vtk_cpp_tools/TravelDepth.cpp>`_
+    - `geodesic depth <https://github.com/nipy/mindboggle/blob/master/vtk_cpp_tools/geodesic_depth/GeodesicDepthMain.cpp>`_
+    - `mean curvature <https://github.com/nipy/mindboggle/blob/master/vtk_cpp_tools/curvature/CurvatureMain.cpp>`_
+    - convexity (from FreeSurfer)
+    - thickness (from FreeSurfer)
 
-    5. Extract cortical surface features:
+5. Extract cortical surface features:
 
-        - `folds <https://github.com/nipy/mindboggle/blob/master/mindboggle/features/folds.py>`_
-        - `sulci <https://github.com/nipy/mindboggle/blob/master/mindboggle/features/sulci.py>`_
-        - `fundi <https://github.com/nipy/mindboggle/blob/master/mindboggle/features/fundi.py>`_
+    - `folds <https://github.com/nipy/mindboggle/blob/master/mindboggle/features/folds.py>`_
+    - `sulci <https://github.com/nipy/mindboggle/blob/master/mindboggle/features/sulci.py>`_
+    - `fundi <https://github.com/nipy/mindboggle/blob/master/mindboggle/features/fundi.py>`_
 
-    6. For each cortical surface label/sulcus, compute:
+6. For each cortical surface label/sulcus, compute:
 
-        - `area <https://github.com/nipy/mindboggle/blob/master/vtk_cpp_tools/area/PointAreaMain.cpp>`_
-        - mean coordinates: `means_per_label <https://github.com/nipy/mindboggle/blob/master/mindboggle/guts/compute.py>`_
-        - mean coordinates in MNI152 space
-        - `Laplace-Beltrami spectrum <https://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/laplace_beltrami.py>`_
-        - `Zernike moments <https://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/zernike/zernike.py>`_
+    - `area <https://github.com/nipy/mindboggle/blob/master/vtk_cpp_tools/area/PointAreaMain.cpp>`_
+    - mean coordinates: `means_per_label <https://github.com/nipy/mindboggle/blob/master/mindboggle/guts/compute.py>`_
+    - mean coordinates in MNI152 space
+    - `Laplace-Beltrami spectrum <https://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/laplace_beltrami.py>`_
+    - `Zernike moments <https://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/zernike/zernike.py>`_
 
-    7. Compute statistics (``stats_per_label`` in `compute.py <https://github.com/nipy/mindboggle/blob/master/mindboggle/guts/compute.py>`_) for each shape measure in #4 for each label/feature:
+7. Compute statistics (``stats_per_label`` in `compute.py <https://github.com/nipy/mindboggle/blob/master/mindboggle/guts/compute.py>`_) for each shape measure in #4 for each label/feature:
 
-        - median
-        - median absolute deviation
-        - mean
-        - standard deviation
-        - skew
-        - kurtosis
-        - lower quartile
-        - upper quartile
+    - median
+    - median absolute deviation
+    - mean
+    - standard deviation
+    - skew
+    - kurtosis
+    - lower quartile
+    - upper quartile
 
 ------------------------------------------------------------------------------
-_`Mindboggle output`
+_`Output`
 ------------------------------------------------------------------------------
 Example output data is in the example/mindboggled/ directory
 downloaded in the `Preprocessing`_ section above.
@@ -213,7 +212,7 @@ The following include outputs from most, but not all, optional arguments.
 
         **ants_labels_in_hybrid_graywhite.nii.gz**:  *hybrid segmentation filled with ANTs + FS cerebellar labels*
 
-        [left,right]_cortical_surface / **freesurfer_cortex_labels.vtk**:  *FS or* `DKT <http://mindboggle.info/data/>`_ *cortical surface labels*
+        [left,right]_cortical_surface / **freesurfer_cortex_labels.vtk**: `DKT <http://mindboggle.info/data/>`_ *cortical surface labels*
 
     **features** / [left,right]_cortical_surface /
 
