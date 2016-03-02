@@ -10,25 +10,24 @@ Mindboggle can be run as a single command, and can be
 easily installed as a cross-platform virtual machine for convenience and
 reproducibility of results. Behind the scenes, open source
 Python and C++ code run within a Nipype pipeline framework.
-|
+Keep reading!::
+
 | 1. `Help`_
 | 2. `Installing Mindboggle`_
 | 3. `Running Mindboggle`_
-| 4. `Dependencies`_
-| 5. `Preprocessing`_
-| 6. `Processing steps`_
-| 7. `Mindboggle output`_
+| 4. `Preprocessing`_
+| 5. `Processing steps`_
+| 6. `Mindboggle output`_
 
 ------------------------------------------------------------------------------
 _`Help`
 ------------------------------------------------------------------------------
 
-- For help, type the following in a terminal window::
+- For help after installing, type the following in a terminal window::
 
     mindboggle -h
 
 - `Documentation <http://mindboggle.info/documentation.html>`_
-- `Installation <http://mindboggle.info/users/INSTALL.html>`_
 - `GitHub <http://github.com/binarybottle/mindboggle>`_
 - `License <http://mindboggle.info/users/LICENSE.html>`_
 - `Contributors <http://mindboggle.info/users/THANKS.html>`_
@@ -36,46 +35,42 @@ _`Help`
 ------------------------------------------------------------------------------
 _`Installing Mindboggle`
 ------------------------------------------------------------------------------
-Mindboggle comes as a single installation script,
- `install_mindboggle.sh <https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle.sh>`_
-that may be called directly to install Mindboggle on a Linux machine::
-
-    source install_mindboggle.sh
-
+Mindboggle comes as a single installation script, `install_mindboggle.sh <https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle.sh>`_,
+that may be directly called to install Mindboggle on a Linux machine.
 However, for reasons of convenience and reproducibility of results,
 we recommend using a different script,
 `configure_mindboggle_vm <https://raw.githubusercontent.com/nipy/mindboggle/master/install/configure_mindboggle_vm>`_,
 to perform the same installation on Linux, MacOSX, or Windows,
 but in a virtual machine (VM). Download the VM script to wherever you want
 the startup directory to be, and do the following (type commands in a
-terminal for steps 2-4)::
+terminal for steps 2-4):
 
-  1. Install dependencies::
+1. Install dependencies:
 
-        `Vagrant <http://www.vagrantup.com/downloads.html>`_ manages virtual machines.
-            Vagrant provides reproducible and portable work environments
-            that isolate dependencies and their configuration within a single
-            disposable, consistent environment that can run on
-            Linux, MacOSX, or Windows.
+    `Vagrant <http://www.vagrantup.com/downloads.html>`_ manages virtual machines.
+        Vagrant provides reproducible and portable work environments
+        that isolate dependencies and their configuration within a single
+        disposable, consistent environment that can run on
+        Linux, MacOSX, or Windows.
 
-        `Virtualbox <https://www.virtualbox.org/wiki/Downloads>`_ provides
-            virtual machines used by Vagrant. Alternative backend providers
-            for Vagrant include VMware and Amazon Web Services.
+    `Virtualbox <https://www.virtualbox.org/wiki/Downloads>`_ provides
+        virtual machines used by Vagrant. Alternative backend providers
+        for Vagrant include VMware and Amazon Web Services.
 
-  2. Download and configure the virtual machine to access your local
-  FreeSurfer data directory by typing the following in the same directory
-  as the VM script. This generates a configuration file called
-  ``Vagrantfile``::
+2. Download and configure the virtual machine to access your local
+brain image (usually FreeSurfer output) data by typing the following
+in the same directory as the VM script. This generates a configuration
+file called "Vagrantfile"::
 
         python configure_mindboggle_vm
 
-  3. For help with more options, such as how to mount your local ANTs data
-  directory, set the number of processors, etc., type::
+3. For help with more options, such as how to mount your local ANTs data
+directory, set the number of processors, etc., type::
 
         python configure_mindboggle_vm -h
 
-  4. Henceforth, whenever running Mindboggle, first type the following
-  in the same directory::
+4. Henceforth, whenever running Mindboggle, first type the following
+in the same directory as the Vagrantfile::
 
         vagrant up
         vagrant ssh
@@ -85,11 +80,11 @@ terminal for steps 2-4)::
 _`Running Mindboggle`
 ------------------------------------------------------------------------------
 To run the following examples, download and uncompress
-("tar cvfz example.tar.gz") the
-`example directory <http://media.mindboggle.info/data/cache/example.tar.gz>`_,
-which includes abridged freesurfer, ANTs, and mindboggle output for one
-person (over 500MB), or generate your own preprocessed data
-(see `Preprocessing`_ below)::
+("tar xvfz example.tar.gz") the
+`example directory <http://media.mindboggle.info/data/cache/example.tar.gz>`_
+(over 500MB), which includes abridged freesurfer, ANTs, and mindboggle output
+for one person, or generate your own preprocessed data
+(see `Preprocessing`_ below):
 
 **Example 1:**
 The following bare-bones command runs Mindboggle
@@ -184,10 +179,11 @@ _`Processing steps`
 ------------------------------------------------------------------------------
 _`Mindboggle output`
 ------------------------------------------------------------------------------
-Example output data is in the ``mindboggled/`` directory in the example data
-used in the `Preprocessing`_ section above.
+Example output data is in the example/mindboggled/ directory
+downloaded in the `Preprocessing`_ section above.
 By default, output files are saved in $HOME/mindboggled/SUBJECT, where $HOME
-is the home directory and SUBJECT is usually the name of the subject.
+is the home directory and SUBJECT is a name representing the person's
+brain that has been scanned.
 Volume files are in `Nifti <http://nifti.nimh.nih.gov>`_ format,
 surface meshes in `VTK <http://www.vtk.org/>`_ format,
 and tables are comma-delimited.
@@ -229,7 +225,7 @@ The following include outputs from most, but not all, optional arguments.
 
             **cortex_in_MNI152_space.vtk**:  *cortical surfaces aligned to an MNI152 template*
 
-    **shapes** / [left,right]_surface /
+    **shapes** / [left,right]_cortical_surface /
 
             **area.vtk**:  *per-vertex surface area*
 
@@ -251,11 +247,11 @@ The following include outputs from most, but not all, optional arguments.
 
         **volumes_per_ants_label.csv**:  *volume per ANTs label*
 
-        **thickinthehead_per_freesurfer_cortex_label.csv**:  *thickness measure per FS cortical label*
+        **thickinthehead_per_freesurfer_cortex_label.csv**:  *FS cortex label thickness*
 
-        **thickinthehead_per_ants_cortex_label.csv**:  *thickness measure per ANTs cortical label*
+        **thickinthehead_per_ants_cortex_label.csv**:  *ANTs cortex label thickness*
 
-        [left,right]_surface /
+        [left,right]_cortical_surface /
 
             **label_shapes.csv**:  *per-label surface shape statistics*
 
