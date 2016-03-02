@@ -15,7 +15,6 @@
    :maxdepth: 5
 
    README
-   INSTALL
    LICENSE
    THANKS
 

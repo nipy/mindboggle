@@ -17,7 +17,6 @@ Documentation
    :maxdepth: 5
 
    README.rst
-   INSTALL.rst
    LICENSE.rst
 
    users/index.rst

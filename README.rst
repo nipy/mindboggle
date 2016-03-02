@@ -1,18 +1,8 @@
 .. _README:
 
 ==============================================================================
-Software -- NOTE: MINDBOGGLE IS STILL IN PRE-RELEASE AND IS UNDERGOING CHANGES
+Software -- NOTE: MINDBOGGLE IS STILL IN PRE-RELEASE
 ==============================================================================
-| 1. `Introduction and help`_
-| 2. `Set up Mindboggle`_
-| 3. `Example Mindboggle commands`_
-| 4. `FreeSurfer and ANTs preprocessing`_
-| 5. `Mindboggle processing steps`_
-| 6. `Mindboggle output files`_
-
-------------------------------------------------------------------------------
-_`Introduction and help`
-------------------------------------------------------------------------------
 The Mindboggle software package automates shape analysis of anatomical labels
 and features extracted from human brain MR image data (read the
 `story <http://mindboggle.info/faq/why_mindboggle.html>`_).
@@ -20,13 +10,23 @@ Mindboggle can be run as a single command, and can be
 easily installed as a cross-platform virtual machine for convenience and
 reproducibility of results. Behind the scenes, open source
 Python and C++ code run within a Nipype pipeline framework.
+|
+| 1. `Help`_
+| 2. `Installing Mindboggle`_
+| 3. `Running Mindboggle`_
+| 4. `Dependencies`_
+| 5. `Preprocessing`_
+| 6. `Processing steps`_
+| 7. `Mindboggle output`_
 
-- For help in a terminal window (see below for inputs and outputs)::
+------------------------------------------------------------------------------
+_`Help`
+------------------------------------------------------------------------------
+
+- For help, type the following in a terminal window::
 
     mindboggle -h
 
-- `FAQs <http://www.mindboggle.info/faq/>`_
-- `Example output data <http://media.mindboggle.info/data/examples/arno.tar.gz>`_
 - `Documentation <http://mindboggle.info/documentation.html>`_
 - `Installation <http://mindboggle.info/users/INSTALL.html>`_
 - `GitHub <http://github.com/binarybottle/mindboggle>`_
@@ -34,66 +34,102 @@ Python and C++ code run within a Nipype pipeline framework.
 - `Contributors <http://mindboggle.info/users/THANKS.html>`_
 
 ------------------------------------------------------------------------------
-_`Set up Mindboggle`
+_`Installing Mindboggle`
 ------------------------------------------------------------------------------
-If running Mindboggle in a virtual machine (recommended),
-type the following two commands in a terminal window,
-in the same directory as the Vagrantfile
-you generated (see `INSTALL <http://mindboggle.info/users/INSTALL.html>`_). This will launch and log into
-the Mindboggle virtual machine (requires an active Internet connection)::
+Mindboggle comes as a single installation script,
+ `install_mindboggle.sh <https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle.sh>`_
+that may be called directly to install Mindboggle on a Linux machine::
 
-    vagrant up
-    vagrant ssh
+    source install_mindboggle.sh
+
+However, for reasons of convenience and reproducibility of results,
+we recommend using a different script,
+`configure_mindboggle_vm <https://raw.githubusercontent.com/nipy/mindboggle/master/install/configure_mindboggle_vm>`_,
+to perform the same installation on Linux, MacOSX, or Windows,
+but in a virtual machine (VM). Download the VM script to wherever you want
+the startup directory to be, and do the following (type commands in a
+terminal for steps 2-4)::
+
+  1. Install dependencies::
+
+        `Vagrant <http://www.vagrantup.com/downloads.html>`_ manages virtual machines.
+            Vagrant provides reproducible and portable work environments
+            that isolate dependencies and their configuration within a single
+            disposable, consistent environment that can run on
+            Linux, MacOSX, or Windows.
+
+        `Virtualbox <https://www.virtualbox.org/wiki/Downloads>`_ provides
+            virtual machines used by Vagrant. Alternative backend providers
+            for Vagrant include VMware and Amazon Web Services.
+
+  2. Download and configure the virtual machine to access your local
+  FreeSurfer data directory by typing the following in the same directory
+  as the VM script. This generates a configuration file called
+  ``Vagrantfile``::
+
+        python configure_mindboggle_vm
+
+  3. For help with more options, such as how to mount your local ANTs data
+  directory, set the number of processors, etc., type::
+
+        python configure_mindboggle_vm -h
+
+  4. Henceforth, whenever running Mindboggle, first type the following
+  in the same directory::
+
+        vagrant up
+        vagrant ssh
+
 
 ------------------------------------------------------------------------------
-_`Example Mindboggle commands`
+_`Running Mindboggle`
 ------------------------------------------------------------------------------
+To run the following examples, download and uncompress
+("tar cvfz example.tar.gz") the
+`example directory <http://media.mindboggle.info/data/cache/example.tar.gz>`_,
+which includes abridged freesurfer, ANTs, and mindboggle output for one
+person (over 500MB), or generate your own preprocessed data
+(see `Preprocessing`_ below)::
+
 **Example 1:**
-The following bare-bones command runs Mindboggle (and its dependencies)
-on data processed by FreeSurfer but not ANTs
-(replace ``SUBJECT`` with the name of a FreeSurfer subject directory, such as ``bert``)::
+The following bare-bones command runs Mindboggle
+on data processed by FreeSurfer but not ANTs::
 
-    mindboggle SUBJECT
+    mindboggle /example/freesurfer_subjects/arno
 
 **Example 2:**
-To generate only volume data (no surface labels or measures),
-this command uses ANTs output files
-(replace ``SEGMENTS`` with an ANTs segmented file, such as
-``ants_output/subject1/antsBrainSegmentation.nii.gz``)::
+The same command, but takes advantage of ANTs output ("--" is two hyphens)::
 
-    mindboggle SUBJECT --ants SEGMENTS --no_surfaces
+    mindboggle $HOME/example/freesurfer_subjects/arno --ants /example/ants_subjects/arno/antsBrainSegmentation.nii.gz
 
 **Example 3:**
-To compute all shape measures on all labels and features using 8 processors
-(type ``mindboggle --help`` for more options)::
+To generate only volume (and not surface) labels and shape measures from FreeSurfer data, using 8 processors::
 
-    mindboggle SUBJECT --ants SEGMENTS --all -p 8
+    mindboggle $HOME/example/freesurfer_subjects/arno --no_surfaces -p 8
 
 ------------------------------------------------------------------------------
-_`FreeSurfer and ANTs preprocessing`
+_`Preprocessing`
 ------------------------------------------------------------------------------
-Mindboggle currently takes output from `FreeSurfer <http://surfer.nmr.mgh.harvard.edu>`_
-(preferably v5.3 and above) and the latest `ANTs <http://stnava.github.io/ANTs/>`_ software packages.
+As you may have inferred from the "Running Mindboggle" examples and example
+data above, Mindboggle currently takes output from
+`FreeSurfer <http://surfer.nmr.mgh.harvard.edu>`_ (preferably v6 or higher)
+and optionally from `ANTs <http://stnava.github.io/ANTs/>`_
+(preferably v2.1.0rc3 or higher).
 
 **FreeSurfer** generates labeled cortical surfaces, and labeled cortical and
 noncortical volumes. Run ``recon-all`` on a T1-weighted ``IMAGE`` file
-(e.g., ``subject1.nii.gz``) and set the output ``SUBJECT`` name (e.g., to ``subject1``),
-while calling the DKT40 cortical surface atlas to aid in cortical labeling::
+(e.g., ``subject1.nii.gz``) and set the output ``SUBJECT`` name
+(e.g., to ``subject1``)::
 
-    recon-all -all -i IMAGE -s SUBJECT -gcs DKTatlas40.gcs
+    recon-all -all -i IMAGE -s SUBJECT
 
-..
-    - mri/orig/001.mgz
-    - mri/[wmparc,aparc+aseg].mgz
-    - surf/[lh,rh].pial
-    - label/[lh,rh].aparc.annot
-
-**ANTs** provides brain volume extraction, segmentation, and registration-based labeling.
-To generate the ANTs transforms and segmentation files used by
-Mindboggle, run the ``antsCorticalThickness.sh`` script on the same ``IMAGE`` file,
-set an output ``PREFIX``, and provide paths to the
+**ANTs** provides brain volume extraction, segmentation, and
+registration-based labeling. To generate the ANTs transforms and segmentation
+files used by Mindboggle, run the ``antsCorticalThickness.sh`` script on the
+same ``IMAGE`` file, set an output ``PREFIX``, and provide paths to the
 `OASIS-30 Atropos template <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template.tar.gz>`_
 files (backslash denotes a line return)::
+
     antsCorticalThickness.sh -d 3 -a IMAGE -o PREFIX \
       -e OASIS-30_Atropos_template/T_template0.nii.gz \
       -t OASIS-30_Atropos_template/T_template0_BrainCerebellum.nii.gz \
@@ -102,14 +138,14 @@ files (backslash denotes a line return)::
       -p OASIS-30_Atropos_template/Priors2/priors%d.nii.gz
 
 ------------------------------------------------------------------------------
-_`Mindboggle processing steps`
+_`Processing steps`
 ------------------------------------------------------------------------------
     1. Create hybrid gray/white segmentation from FreeSurfer and ANTs output (`combine_2labels_in_2volumes <https://github.com/nipy/mindboggle/blob/master/mindboggle/guts/segment.py>`_).
     2. Fill hybrid segmentation with FreeSurfer- or ANTs-registered labels.
     3. Compute volume shape measures for each labeled region:
 
-        - volume (`volume_per_label <https://github.com/nipy/mindboggle/blob/master/mindboggle/guts/compute.py>`_)
-        - thickness of cortical labels (`thickinthehead <https://github.com/nipy/mindboggle/blob/master/mindboggle/guts/ants.py>`_)
+        - volume (`volume_per_brain_region <https://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/volume_shapes.py>`_)
+        - thickness of cortical labels (`thickinthehead <https://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/volume_shapes.py>`_)
 
     4. Compute surface shape measures for every cortical mesh vertex:
 
@@ -128,8 +164,8 @@ _`Mindboggle processing steps`
 
     6. For each cortical surface label/sulcus, compute:
 
-        - area
-        - mean coordinates
+        - `area <https://github.com/nipy/mindboggle/blob/master/vtk_cpp_tools/area/PointAreaMain.cpp>`_
+        - mean coordinates: `means_per_label <https://github.com/nipy/mindboggle/blob/master/mindboggle/guts/compute.py>`_
         - mean coordinates in MNI152 space
         - `Laplace-Beltrami spectrum <https://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/laplace_beltrami.py>`_
         - `Zernike moments <https://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/zernike/zernike.py>`_
@@ -146,18 +182,18 @@ _`Mindboggle processing steps`
         - upper quartile
 
 ------------------------------------------------------------------------------
-_`Mindboggle output files`
+_`Mindboggle output`
 ------------------------------------------------------------------------------
-Example output data can be downloaded from 
-`here <http://media.mindboggle.info/data/examples/arno.tar.gz>`_.
-By default, output files are saved in HOME/mindboggled/SUBJECT,
-where HOME is the home directory and SUBJECT is the name of the subject.
+Example output data is in the ``mindboggled/`` directory in the example data
+used in the `Preprocessing`_ section above.
+By default, output files are saved in $HOME/mindboggled/SUBJECT, where $HOME
+is the home directory and SUBJECT is usually the name of the subject.
 Volume files are in `Nifti <http://nifti.nimh.nih.gov>`_ format,
 surface meshes in `VTK <http://www.vtk.org/>`_ format,
 and tables are comma-delimited.
 Each file contains integers that correspond to anatomical
 `labels <http://mindboggle.info/faq/labels.html>`_
-or features (e.g., 0-24 for sulci).
+or features (0-24 for sulci).
 All output data are in the original subject's space.
 The following include outputs from most, but not all, optional arguments.
 
@@ -177,17 +213,21 @@ The following include outputs from most, but not all, optional arguments.
 
     **labels** /
 
-        **FreeSurfer_wmparc_filled_labels.nii.gz**:  *hybrid segmentation filled with FS labels*
+        **freesurfer_wmparc_labels_in_hybrid_graywhite.nii.gz**:  *hybrid segmentation filled with FS labels*
 
-        **ANTs_filled_labels.nii.gz**:  *hybrid segmentation filled with ANTs + FS cerebellar labels*
+        **ants_labels_in_hybrid_graywhite.nii.gz**:  *hybrid segmentation filled with ANTs + FS cerebellar labels*
 
-        [left,right]_surface / **FreeSurfer_cortex_labels.vtk**:  *FS or* `DKT <http://mindboggle.info/data/>`_ *cortical surface labels*
+        [left,right]_cortical_surface / **freesurfer_cortex_labels.vtk**:  *FS or* `DKT <http://mindboggle.info/data/>`_ *cortical surface labels*
 
-    **features** / [left,right]_surface /
+    **features** / [left,right]_cortical_surface /
+
+            **folds.vtk**:  *(unidentified) depth-based folds*
 
             **sulci.vtk**:  *sulci defined by* `DKT <http://mindboggle.info/data/>`_ *label pairs in depth-based folds*
 
             **fundus_per_sulcus.vtk**:  *fundus curve per sulcus*  **-- UNDER EVALUATION --**
+
+            **cortex_in_MNI152_space.vtk**:  *cortical surfaces aligned to an MNI152 template*
 
     **shapes** / [left,right]_surface /
 
@@ -199,19 +239,21 @@ The following include outputs from most, but not all, optional arguments.
 
             **travel_depth.vtk**:  *per-vertex travel depth*
 
-            **FreeSurfer_convexity.vtk**:  *FS sulc files converted to VTK*
+            **freesurfer_curvature.vtk**:  *FS curvature files converted to VTK*
 
-            **FreeSurfer_thickness.vtk**:  *FS thickness files converted to VTK*
+            **freesurfer_sulc.vtk**:  *FS sulc (convexity) files converted to VTK*
+
+            **freesurfer_thickness.vtk**:  *FS thickness files converted to VTK*
 
     **tables** /
 
-        **volumes_FreeSurfer_labels.csv**:  *volume per FS-filled label*
+        **volume_per_freesurfer_label.csv**:  *volume per FS label*
 
-        **volumes_ANTs_labels.csv**:  *volume per ANTs-filled label*
+        **volumes_per_ants_label.csv**:  *volume per ANTs label*
 
-        **thickinthehead_FreeSurfer_labels.csv**:  *thickness measure per FS-filled cortical label*
+        **thickinthehead_per_freesurfer_cortex_label.csv**:  *thickness measure per FS cortical label*
 
-        **thickinthehead_ANTs_labels.csv**:  *thickness measure per ANTs-filled cortical label*
+        **thickinthehead_per_ants_cortex_label.csv**:  *thickness measure per ANTs cortical label*
 
         [left,right]_surface /
 
