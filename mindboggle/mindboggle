@@ -88,7 +88,7 @@ parser.add_argument("DATA", help=("path to directory of a person's brain "
                                   "software"))
 # "optional arguments":
 parser.add_argument("-v", "--version", help="show mindboggle version number",
-                    action='version', version='%(prog)s 1.0')
+                    action='version', version='%(prog)s 1.0.0dev')
 parser.add_argument("-c", "--cpus",
                     help='number of processors to use (1)',
                     type=int, default=1, metavar='INT')
