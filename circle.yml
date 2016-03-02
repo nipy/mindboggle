@@ -62,3 +62,9 @@ dependencies:
     #- export vtk_cpp_tools=$vtk_cpp_tools
     #- export PATH=$vtk_cpp_tools:$PATH
     #- export PATH=$MINI/bin:$PATH
+
+test:
+
+  override:
+
+    - cd $MB && py.test
