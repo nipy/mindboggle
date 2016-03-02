@@ -26,13 +26,14 @@ variation and brain morphometry in Alzheimer's disease.
 In the meantime, please cite this website and relevant articles at the
 `Papers`_ link above, which includes the following:
 
-`101 labeled brain images and a consistent human cortical labeling protocol`_.
-Arno Klein, Jason Tourville. 2012. Frontiers in Brain Imaging Methods.
-6:171. DOI: 10.3389/fnins.2012.00171
+| `101 labeled brain images and a consistent human cortical labeling protocol`_.
+| Arno Klein, Jason Tourville. 2012. Frontiers in Brain Imaging Methods.
+| 6:171. DOI: 10.3389/fnins.2012.00171
 
 
 .. _`Software`: http://mindboggle.info/users/README.html
 .. _`Data`: http://mindboggle.info/data.html
+.. _`Documentation`: http://mindboggle.info/documentation.html
 .. _`Papers`: http://mindboggle.info/papers.html
 .. _`101 labeled brain images and a consistent human cortical labeling protocol`: http://www.frontiersin.org/Brain_Imaging_Methods/10.3389/fnins.2012.00171/full
 
