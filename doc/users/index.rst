@@ -12,7 +12,7 @@
    :Date: |today|
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 5
 
    README
    INSTALL
