@@ -2,7 +2,7 @@
 Mindboggle API
 ==================
 
-.. automodule:: mindboggle
+.. automodule:: mindboggle.mindboggle
    :members:
    :undoc-members:
    :show-inheritance:
