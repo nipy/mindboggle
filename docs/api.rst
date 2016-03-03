@@ -8,7 +8,7 @@ Mindboggle API
 .. automodule:: mindboggle.mindboggle.features
    :members:
 
-.. automodule:: mindboggle.mindboggle.guts
+.. automodule:: mindboggle.guts
    :members:
 
 .. automodule:: mindboggle.mio
