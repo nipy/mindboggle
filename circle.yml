@@ -11,6 +11,10 @@ machine:
     vtk_cpp_tools: $MB/vtk_cpp_tools/bin
     PATH: $MINI/bin:$vtk_cpp_tools:$PATH
 
+general:
+
+  build_dir: mindboggle
+
 dependencies:
 
   pre:
@@ -31,14 +35,14 @@ dependencies:
     - conda update -q conda
     - conda info -a
     #-------------------------------------------------------------------------
-    # Use conda and pip to set up python environment:
+    # Use conda and pip to set up python environment
     #-------------------------------------------------------------------------
     - conda install cmake pip numpy scipy matplotlib pandas networkx vtk ipython
     - pip install --upgrade pip
     - pip install pytest nose coverage  # install testing tools for circle
     - pip install nibabel nipype
     #-------------------------------------------------------------------------
-    # Fix paths to Linux libraries using symbolic links:
+    # Fix paths to Linux libraries using symbolic links
     #-------------------------------------------------------------------------
     # To avoid the following errors:
     # "No rule to make target `/usr/lib/x86_64-linux-gnu/libGLU.so'"
@@ -53,18 +57,16 @@ dependencies:
     - sudo ln -s /usr/lib/x86_64-linux-gnu/libXt.so.6 /usr/lib64/libXt.so
     - sudo ln -s /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1 /usr/lib64/libGL.so
     #-------------------------------------------------------------------------
-    # Install Mindboggle
+    # Install Mindboggle C++ code
     #-------------------------------------------------------------------------
-    - pip install -I .
-    #- git clone https://github.com/nipy/mindboggle.git $MB
-    #- cd $MB && python setup.py install
     - mkdir $vtk_cpp_tools && cd $vtk_cpp_tools && cmake ../ && make
-    #- export vtk_cpp_tools=$vtk_cpp_tools
-    #- export PATH=$vtk_cpp_tools:$PATH
-    #- export PATH=$MINI/bin:$PATH
 
 test:
 
-  override:
-
-    - cd $MB && py.test
+  pre:
+    - nosetests --with-coverage --with-doctest evaluate/
+    - nosetests --with-coverage --with-doctest features/
+    - nosetests --with-coverage --with-doctest guts/
+    - nosetests --with-coverage --with-doctest mio/
+    - nosetests --with-coverage --with-doctest shapes/
+    - nosetests --with-coverage --with-doctest thirdparty/

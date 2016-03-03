@@ -8,15 +8,16 @@ Welcome to Mindboggle's documentation!
 
 Contents:
 
+    README
+    LICENSE
+    THANKS
+
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
 
-   README
-   LICENSE
-   THANKS
-
-Indices and tables
-==================
+    README
+    LICENSE
+    THANKS
 
 * :ref:`genindex`
 * :ref:`modindex`
