@@ -2,13 +2,13 @@
 Mindboggle API
 ==================
 
-.. automodule:: mindboggle.evaluate
+.. automodule:: mindboggle.mindboggle.evaluate
    :members:
 
-.. automodule:: mindboggle.features
+.. automodule:: mindboggle.mindboggle.features
    :members:
 
-.. automodule:: mindboggle.guts
+.. automodule:: mindboggle.mindboggle.guts
    :members:
 
 .. automodule:: mindboggle.mio
