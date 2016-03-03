@@ -39,7 +39,7 @@ dependencies:
     #-------------------------------------------------------------------------
     - conda install cmake pip numpy scipy matplotlib pandas networkx vtk ipython
     - pip install --upgrade pip
-    - pip install pytest nose coverage  # install testing tools for circle
+    - pip install nose coverage  # install testing tools for circle
     - pip install nibabel nipype
     #-------------------------------------------------------------------------
     # Fix paths to Linux libraries using symbolic links
@@ -70,3 +70,4 @@ test:
     - nosetests --with-coverage --with-doctest mio/
     - nosetests --with-coverage --with-doctest shapes/
     - nosetests --with-coverage --with-doctest thirdparty/
+    - coveralls
