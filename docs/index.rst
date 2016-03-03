@@ -14,6 +14,7 @@ Contents:
     README
     LICENSE
     THANKS
+    API
 
 * :ref:`genindex`
 * :ref:`modindex`
