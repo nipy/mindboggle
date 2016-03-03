@@ -64,6 +64,7 @@ dependencies:
 test:
 
   pre:
+    - python -c "import vtk"
     - nosetests --with-coverage --with-doctest evaluate/
     - nosetests --with-coverage --with-doctest features/
     - nosetests --with-coverage --with-doctest guts/
