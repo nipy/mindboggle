@@ -2,7 +2,20 @@
 Mindboggle API
 ==================
 
-.. automodule:: mindboggle.mindboggle
+.. automodule:: mindboggle.evaluate
    :members:
-   :undoc-members:
-   :show-inheritance:
+
+.. automodule:: mindboggle.features
+   :members:
+
+.. automodule:: mindboggle.guts
+   :members:
+
+.. automodule:: mindboggle.mio
+   :members:
+
+.. automodule:: mindboggle.shapes
+   :members:
+
+.. automodule:: mindboggle.thirdparty
+   :members:
