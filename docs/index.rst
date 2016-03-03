@@ -8,10 +8,6 @@ Welcome to Mindboggle's documentation!
 
 Contents:
 
-    README
-    LICENSE
-    THANKS
-
 .. toctree::
     :maxdepth: 2
 
