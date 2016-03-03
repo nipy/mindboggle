@@ -12,7 +12,17 @@ Mindboggle API
    :undoc-members:
    :inherited-members:
 
+.. automodule:: mindboggle.features.sulci
+   :members:
+   :undoc-members:
+   :inherited-members:
+
 .. automodule:: mindboggle.guts
+   :members:
+   :undoc-members:
+   :inherited-members:
+
+.. automodule:: mindboggle.guts.
    :members:
    :undoc-members:
    :inherited-members:
