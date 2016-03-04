@@ -11,18 +11,19 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-        Software <readme.rst>
-        license.rst
-        thanks.rst
-        faq/index.rst
+Software <readme.rst>
+license.rst
+thanks.rst
+faq/index.rst
 
 .. toctree::
    :maxdepth: 1
-        api/index.rst
 
-  * :ref:`genindex`
-  * :ref:`modindex`
-  * :ref:`search`
+api/index.rst
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
 
 
 The Mindboggle project includes `Software`_, `Data`_,  and `Documentation`_

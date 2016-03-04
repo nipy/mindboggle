@@ -102,13 +102,15 @@ class VTKViewer(object):
     def LoadColorMap(file_name):
         """
         ParaView has an XML colormap format:
+
         <ColorMap space="RGB">
-          <Point x="0.0"  r="0.0"      g="0.0"      b="0.0"/>
-          <Point x="0.4"  r="0.901961" g="0.0"      b="0.0"/>
-          <Point x="0.8"  r="0.901961" g="0.901961" b="0.0"/>
-          <Point x="1.0"  r="1.0"      g="1.0"      b="1.0"/>
-          <NaN            r="0.0"      g="0.498039" b="1.0"/>
+        <Point x="0.0"  r="0.0"      g="0.0"      b="0.0"/>
+        <Point x="0.4"  r="0.901961" g="0.0"      b="0.0"/>
+        <Point x="0.8"  r="0.901961" g="0.901961" b="0.0"/>
+        <Point x="1.0"  r="1.0"      g="1.0"      b="1.0"/>
+        <NaN            r="0.0"      g="0.498039" b="1.0"/>
         </ColorMap>
+
         """
         colorMap = vtk.vtkColorTransferFunction()
         root = xml.etree.ElementTree.parse(file_name).getroot()
