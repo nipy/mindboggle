@@ -338,6 +338,7 @@ Possible ways to combine or eliminate regions (from Jason Tourville's notes)
 
 ------------
 
+------------------------------------------------------------------------------
 Footnotes
 ------------------------------------------------------------------------------
 [1] This was eliminated because it spanned the superior temporal sulcus fundus

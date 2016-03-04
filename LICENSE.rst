@@ -1,5 +1,3 @@
-.. _LICENSE:
-
 Software License
 -----------------
 

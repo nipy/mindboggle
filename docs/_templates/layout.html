@@ -46,19 +46,19 @@
      <tr>
       <td>
   <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
-   href="http://mindboggle.readthedocs.org/en/latest/README.html">Software</a>
+   href="http://mindboggle.readthedocs.org/en/latest/index.html">Software</a>
       </td>
       <td>
   <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
-   href="http://mindboggle.readthedocs.org/en/latest/data.html">Data</a>
+   href="http://mindboggle.info/data.html">Data</a>
       </td>
       <td>
   <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
-   href="http://mindboggle.readthedocs.org/en/latest/papers.html">Papers</a>
+   href="http://mindboggle.info/papers.html">Papers</a>
       </td>
       <td>
   <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
-   href="http://mindboggle.readthedocs.org/en/latest/people.html">People</a>
+   href="http://mindboggle.info/people.html">People</a>
       </td>
      </tr>
     </table>
@@ -69,52 +69,6 @@
 {% endblock %}
 
 
-
-{# This block gets put at the top of the sidebar #}
-{% block sidebarlogo %}
-
-  
-<h4> Site Navigation </h4>
-  <ul>
-    <li><a href="{{pathto('documentation')}}">Documentation</a></li>
-  </ul>
-
-<h4> Github repo </h4>
-  <ul class="simple">
-    <li><a class="reference external"
-        href="http://github.com/nipy/mindboggle/">Github repo</a></li>
-  </ul>
-
-{%- endblock %}
-
-{# I had to copy the whole search block just to change the rendered text,
-   so it doesn't mention modules or classes #}
-{%- block sidebarsearch %}
-{%- if pagename != "search" %}
-
-<div id="searchbox-site" style="display: none">
-  <h3>{{ _('Search this site') }}</h3>
-    <form class="search" action="{{ pathto('search') }}" method="get">
-      <input type="text" name="q" size="13" />
-      <input type="submit" value="{{ _('Go') }}" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox-site').show(0);</script>
-{%- endif %}
-
-{# The sidebarsearch block is the last one available in the default sidebar()
-   macro, so the only way to add something to the bottom of the sidebar is to
-   put it here, at the end of the sidebarsearch block (before it closes).
-   #}
-
-{% endblock %}
-
-
-{% block footer %}
 <!-- Google Analytics -->
 <script type="text/javascript">
 var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");

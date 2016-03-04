@@ -112,6 +112,7 @@ class VTKViewer(object):
         </ColorMap>
 
         """
+
         colorMap = vtk.vtkColorTransferFunction()
         root = xml.etree.ElementTree.parse(file_name).getroot()
         if root.tag != "ColorMap":
