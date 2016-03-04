@@ -1,6 +1,7 @@
 ==============================================================================
 What are the labels Mindboggle uses?
 ==============================================================================
+
 Mindboggle uses labels from complementary labeling protocols:
 
     - **Desikan-Killiany-Tourville cortical labeling protocol** (`DKT <http://mindboggle.info/data>`_): 31 per hemisphere

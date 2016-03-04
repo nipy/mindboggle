@@ -1,3 +1,3 @@
-.. _THANKS:
+.. _thanks:
 
 .. include:: ../THANKS.rst

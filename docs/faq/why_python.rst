@@ -1,4 +1,4 @@
-.. _PYTHON:
+.. _why_python:
 
 =============
  Why Python?

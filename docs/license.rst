@@ -1,3 +1,3 @@
-.. _LICENSE:
+.. _license:
 
 .. include:: ../LICENSE.rst

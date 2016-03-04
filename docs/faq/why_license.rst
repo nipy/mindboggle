@@ -1,4 +1,4 @@
-.. _LICENSE:
+.. _why_license:
 
 =============
  Why Apache?
