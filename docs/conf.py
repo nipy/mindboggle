@@ -34,23 +34,39 @@ extensions = [
 #    'sphinx.ext.napolean',
     'sphinx.ext.doctest',
     'sphinx.ext.coverage',
+    'sphinx.ext.autosummary',
     'sphinx.ext.viewcode',
 ]
 
+#-----------------------------------------------------------------------------
+# Accommodate numpy-style docstrings:
+#-----------------------------------------------------------------------------
 # Napoleon settings
-napoleon_google_docstring = False
-napoleon_numpy_docstring = True
-napoleon_include_private_with_doc = False
-napoleon_include_special_with_doc = True
-napoleon_use_admonition_for_examples = False
-napoleon_use_admonition_for_notes = False
-napoleon_use_admonition_for_references = False
-napoleon_use_ivar = False
-napoleon_use_param = True
-napoleon_use_rtype = True
-#import numpy_ext.numpydoc
-#extensions.append('numpy_ext.numpydoc')
-#autosummary_generate=True
+# napoleon_google_docstring = False
+# napoleon_numpy_docstring = True
+# napoleon_include_private_with_doc = False
+# napoleon_include_special_with_doc = True
+# napoleon_use_admonition_for_examples = False
+# napoleon_use_admonition_for_notes = False
+# napoleon_use_admonition_for_references = False
+# napoleon_use_ivar = False
+# napoleon_use_param = True
+# napoleon_use_rtype = True
+#
+# Current version (as of 11/2010) of numpydoc is only compatible with sphinx >
+# 1.0.  We keep copies of this version in 'numpy_ext'.  For a while we will also
+# keep a copy of the older numpydoc version to allow compatibility with sphinx
+# 0.6
+try:
+    # With older versions of sphinx, this causes a crash
+    import numpy_ext.numpydoc
+except ImportError:
+    # Older version of sphinx
+    extensions.append('numpy_ext_old.numpydoc')
+else: # probably sphinx >= 1.0
+    extensions.append('numpy_ext.numpydoc')
+    autosummary_generate=True
+#-----------------------------------------------------------------------------
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -97,11 +113,11 @@ language = None
 # non-false value, then it is used:
 #today = ''
 # Else, today_fmt is used as the format for a strftime call.
-#today_fmt = '%B %d, %Y'
+today_fmt = '%B %d, %Y'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build', 'sphinxext', 'tools']
+exclude_patterns = ['_build']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -173,7 +189,7 @@ html_static_path = ['_static']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
-html_last_updated_fmt = '%b %d, %Y'
+html_last_updated_fmt = '%B %d, %Y'
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.

@@ -2,24 +2,37 @@
 Software -- Warning: PRE-RELEASE mode
 ==============================================================================
 The Mindboggle software package automates shape analysis of anatomical labels
-and features extracted from human brain MR image data (read the
-`story <http://mindboggle.info/faq/why_mindboggle.html>`_).
-Mindboggle can be run as a single command, and can be
-easily installed as a cross-platform virtual machine for convenience and
-reproducibility of results. Behind the scenes, open source
-Python and C++ code run within a Nipype pipeline framework.
-Keep reading!
+and features extracted from human brain MR image data.
+Mindboggle can be run as a single command, and can be installed as a
+cross-platform virtual machine for convenience and reproducibility of results.
+Behind the scenes, open source Python and C++ code run within a modular Nipype
+pipeline framework.
 
 ..
-    1. `Help`_
-    2. `Installing Mindboggle`_
-    3. `Running Mindboggle`_
-    4. `Preprocessing`_
-    5. `Processing steps`_
-    6. `Output`_
+
+    :Release: |version|
+    :Date: |today|
+
+    * :ref:`genindex`
+    * :ref:`modindex`
+    * :ref:`search`
+
+    1. Help
+    2. Installing Mindboggle
+    3. Running Mindboggle
+    4. Preprocessing
+    5. Processing steps
+    6. Output
+
+.. toctree::
+    :maxdepth: 5
+
+    license
+    thanks
+
 
 ------------------------------------------------------------------------------
-_`Help`
+Help
 ------------------------------------------------------------------------------
 
 - For help after installing, type the following in a terminal window::
@@ -32,7 +45,7 @@ _`Help`
 - `Contributors <http://mindboggle.info/users/THANKS.html>`_
 
 ------------------------------------------------------------------------------
-_`Installing Mindboggle`
+Installing Mindboggle
 ------------------------------------------------------------------------------
 Mindboggle comes as a single installation script, `install_mindboggle.sh <https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle.sh>`_,
 that may be directly called to install Mindboggle on a Linux machine.
@@ -76,7 +89,7 @@ in the same directory as the Vagrantfile::
 
 
 ------------------------------------------------------------------------------
-_`Running Mindboggle`
+Running Mindboggle
 ------------------------------------------------------------------------------
 To run Mindboggle, you must first preprocess brain MR image data
 (see `Preprocessing`_ below). To get up and running with the following
@@ -102,7 +115,7 @@ To generate only volume (and not surface) labels and shape measures from FreeSur
     mindboggle $HOME/example/freesurfer_subjects/arno --no_surfaces -p 8
 
 ------------------------------------------------------------------------------
-_`Preprocessing`
+Preprocessing
 ------------------------------------------------------------------------------
 As you may have inferred from the "Running Mindboggle" examples and example
 data above, Mindboggle currently takes output from
@@ -131,7 +144,7 @@ files (backslash denotes a line return)::
       -p OASIS-30_Atropos_template/Priors2/priors%d.nii.gz
 
 ------------------------------------------------------------------------------
-_`Processing steps`
+Processing steps
 ------------------------------------------------------------------------------
 1. Create hybrid gray/white segmentation from FreeSurfer and ANTs output (`combine_2labels_in_2volumes <https://github.com/nipy/mindboggle/blob/master/mindboggle/guts/segment.py>`_).
 2. Fill hybrid segmentation with FreeSurfer- or ANTs-registered labels.
@@ -175,7 +188,7 @@ _`Processing steps`
     - upper quartile
 
 ------------------------------------------------------------------------------
-_`Output`
+Output
 ------------------------------------------------------------------------------
 Example output data is in the example/mindboggled/ directory
 downloaded in the `Preprocessing`_ section above.

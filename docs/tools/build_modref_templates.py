@@ -22,7 +22,6 @@ if __name__ == '__main__':
     #docwriter.module_skip_patterns += [r'\.label\.rebound',
     #                                    ]
     docwriter.write_api_docs(outdir)
-#    docwriter.write_index(outdir, 'gen', relative_to='api')
-    docwriter.write_index('api', 'gen', relative_to='api')
+    docwriter.write_index(outdir, 'gen', relative_to='api')
 
     print('{0} files written'.format(len(docwriter.written_modules)))
