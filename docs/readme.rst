@@ -1,9 +1,5 @@
 .. _README:
 
-#######
- README
-#######
-
 .. only:: html
 
    :Release: |version|

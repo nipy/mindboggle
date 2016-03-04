@@ -9,15 +9,13 @@ Welcome to Mindboggle's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 5
-.. toctree::
    :maxdepth: 2
 
-   readme.rst
-   license.rst
-   thanks.rst
-   faq/index.rst
-   api/index.rst
+        software <readme.rst>
+        license.rst
+        thanks.rst
+        faq/index.rst
+        api/index.rst
 
   * :ref:`genindex`
   * :ref:`modindex`

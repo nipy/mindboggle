@@ -1,15 +1,6 @@
 .. _faq-index:
 
-=====
- FAQ
-=====
-
-.. htmlonly::
-
-   :Release: |version|
-   :Date: |today|
-
-   Frequently asked questions about Mindboggle
+Frequently asked questions about Mindboggle
 
 .. toctree::
    :maxdepth: 2

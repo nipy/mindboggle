@@ -1,5 +1,5 @@
 ==============================================================================
-What labels does Mindboggle use?
+What are the labels Mindboggle uses?
 ==============================================================================
 Mindboggle uses labels from complementary labeling protocols:
 

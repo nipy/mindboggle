@@ -426,4 +426,5 @@ class ApiDocWriter(object):
         w('.. toctree::\n\n')
         for f in self.written_modules:
             w('   %s\n' % os.path.join(relpath,f))
+#            w('   %s\n' % f)
         idx.close()
