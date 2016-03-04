@@ -23,6 +23,6 @@ if __name__ == '__main__':
     #                                    ]
     docwriter.write_api_docs(outdir)
 #    docwriter.write_index(outdir, 'gen', relative_to='api')
-    docwriter.write_index(api, 'gen', relative_to='api')
+    docwriter.write_index('api', 'gen', relative_to='api')
 
     print('{0} files written'.format(len(docwriter.written_modules)))
