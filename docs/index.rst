@@ -11,7 +11,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-        software <readme.rst>
+        Software <readme.rst>
         license.rst
         thanks.rst
         faq/index.rst

@@ -60,9 +60,6 @@ templates_path = ['_templates']
 # source_suffix = ['.rst', '.md']
 source_suffix = '.rst'
 
-# Add any paths that contain templates here, relative to this directory.
-#templates_path = ['_templates']
-
 # The encoding of source files.
 #source_encoding = 'utf-8-sig'
 
@@ -172,7 +169,7 @@ html_static_path = ['_static']
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
 # directly to the root of the documentation.
-#html_extra_path = []
+html_extra_path = ['data.html', 'papers.html', 'people.html']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
