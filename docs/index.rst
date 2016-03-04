@@ -13,10 +13,9 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   ../README.rst
-   ../STORY.rst
-   ../LICENSE.rst
-   ../THANKS.rst
+   readme.rst
+   license.rst
+   thanks.rst
    faq/index.rst
    api/index.rst
 
