@@ -1,8 +1,9 @@
 .. _README:
 
-.. only:: html
+..
+    .. only:: html
 
-   :Release: |version|
-   :Date: |today|
+       :Release: |version|
+       :Date: |today|
 
 .. include:: ../README.rst

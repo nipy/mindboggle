@@ -1,6 +1,8 @@
 .. _faq-index:
 
-Frequently asked questions about Mindboggle
+==============================================================================
+ Frequently asked questions about Mindboggle
+==============================================================================
 
 .. toctree::
    :maxdepth: 2

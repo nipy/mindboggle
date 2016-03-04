@@ -20,6 +20,7 @@ import os
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #sys.path.insert(0, os.path.abspath('..'))
 sys.path.append(os.path.abspath('sphinxext'))
+#sys.path.append(os.path.abspath('sphinxext.numpy_ext'))
 
 # We load the Mindboggle release info into a dict by explicit execution
 rel = {}
@@ -39,6 +40,10 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
 ]
+
+#import numpy_ext.numpydoc
+#extensions.append('numpy_ext.numpydoc')
+#autosummary_generate=True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -139,7 +144,7 @@ html_theme = 'alabaster'
 #html_title = None
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
-html_short_title = "WOOOHOOOOOO"
+#html_short_title = None
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
@@ -148,7 +153,7 @@ html_logo = '_static/mindboggle_logo_small.jpg'
 # The name of an image file (relative to this directory) to use as a favicon of
 # the docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-html_favicon = 'favicon-32x32.png'
+html_favicon = '_static/favicon.ico'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

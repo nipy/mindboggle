@@ -1,9 +1,5 @@
 .. _LICENSE:
 
-=======
-License
-=======
-
 Software License
 -----------------
 

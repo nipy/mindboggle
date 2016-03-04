@@ -15,6 +15,9 @@ Contents:
         license.rst
         thanks.rst
         faq/index.rst
+
+.. toctree::
+   :maxdepth: 1
         api/index.rst
 
   * :ref:`genindex`

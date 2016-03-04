@@ -1,7 +1,5 @@
-.. _README:
-
 ==============================================================================
-Software -- NOTE: MINDBOGGLE IS STILL IN PRE-RELEASE
+Software -- Warning: PRE-RELEASE mode
 ==============================================================================
 The Mindboggle software package automates shape analysis of anatomical labels
 and features extracted from human brain MR image data (read the
@@ -12,12 +10,13 @@ reproducibility of results. Behind the scenes, open source
 Python and C++ code run within a Nipype pipeline framework.
 Keep reading!
 
-1. `Help`_
-2. `Installing Mindboggle`_
-3. `Running Mindboggle`_
-4. `Preprocessing`_
-5. `Processing steps`_
-6. `Output`_
+..
+    1. `Help`_
+    2. `Installing Mindboggle`_
+    3. `Running Mindboggle`_
+    4. `Preprocessing`_
+    5. `Processing steps`_
+    6. `Output`_
 
 ------------------------------------------------------------------------------
 _`Help`

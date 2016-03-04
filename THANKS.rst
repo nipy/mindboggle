@@ -1,8 +1,6 @@
-.. _THANKS:
-
-=======
-Thanks
-=======
+==============================================================================
+ Thanks
+==============================================================================
 
 | Mindboggle is an open source project for brain image analysis using Python.
 | It is a community project with a growing list of contributors (see `people <http://mindboggle.info/people.html>`_).

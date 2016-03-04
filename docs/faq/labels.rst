@@ -1,4 +1,3 @@
 .. _labels:
 
-.. include:: ../../LABELS.rst
-
+.. include:: ../labels.rst
