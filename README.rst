@@ -9,40 +9,26 @@ Behind the scenes, open source Python and C++ code run within a modular Nipype
 pipeline framework.
 
 ..
+    1. Installing Mindboggle
+    2. Running Mindboggle
+    3. Preprocessing
+    4. Processing steps
+    5. Output
 
-    :Release: |version|
-    :Date: |today|
+:Release: |version|
+:Date: |today|
 
-    * :ref:`genindex`
-    * :ref:`modindex`
-    * :ref:`search`
-
-    1. Help
-    2. Installing Mindboggle
-    3. Running Mindboggle
-    4. Preprocessing
-    5. Processing steps
-    6. Output
+- `GitHub <http://github.com/nipy/mindboggle>`_
+- `Contributors <http://mindboggle.info/people.html>`_
 
 .. toctree::
-    :maxdepth: 5
+    :maxdepth: 1
 
+    FAQs <faq/index.rst>
     license
-    thanks
 
-
-------------------------------------------------------------------------------
-Help
-------------------------------------------------------------------------------
-
-- For help after installing, type the following in a terminal window::
-
-    mindboggle -h
-
-- `Documentation <http://mindboggle.info/documentation.html>`_
-- `GitHub <http://github.com/binarybottle/mindboggle>`_
-- `License <http://mindboggle.info/users/LICENSE.html>`_
-- `Contributors <http://mindboggle.info/users/THANKS.html>`_
+* :ref:`genindex`
+* :ref:`modindex`
 
 ------------------------------------------------------------------------------
 Installing Mindboggle
@@ -97,6 +83,10 @@ examples, download and uncompress ("tar xvfz example.tar.gz") the
 `example.tar.gz <http://media.mindboggle.info/data/cache/example.tar.gz>`_
 directory (over 500MB), which includes abridged freesurfer, ANTs, and
 mindboggle output for one person.
+
+For help after installing, type the following in a terminal window::
+
+    mindboggle -h
 
 **Example 1:**
 The following bare-bones command runs Mindboggle
