@@ -589,7 +589,7 @@ def topo_test(index, values, neighbor_lists):
 
     Returns
     -------
-    sp : Boolean
+    sp : bool
         simple point or not?
     n_inside : integer
         number of neighboring vertices with a value greater than threshold

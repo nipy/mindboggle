@@ -278,7 +278,7 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None, output_file='',
         mask with just voxels having this value
     output_file : string (optional)
         nibabel-readable labeled image volume
-    binarize : Boolean (optional)
+    binarize : bool (optional)
         binarize mask?
     stopvalue : integer (optional)
         stopping value
@@ -377,11 +377,11 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
         output y-spacing
     outzspc : integer
         output z-spacing
-    dosmooth : Boolean
+    dosmooth : bool
         smooth?
     addvox : integer
         pad each dimension by addvox
-    nninterp : Boolean
+    nninterp : bool
         nearest-neighbor interpolation?
 
     Returns
@@ -459,7 +459,7 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
 #         mask with just voxels having this value
 #     output_file : string
 #         name of output file
-#     binarize : Boolean
+#     binarize : bool
 #         binarize mask?
 #
 #     Returns
@@ -626,9 +626,9 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
 #         file containing affine transform
 #     nonlinear_transform : string
 #         file containing nonlinear transform
-#     inverse : Boolean
+#     inverse : bool
 #         apply inverse transform?
-#     affine_only : Boolean
+#     affine_only : bool
 #         apply only affine transform?
 #
 #     Returns

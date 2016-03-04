@@ -320,7 +320,7 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
     new_labels : list of integers
         new labels (empty list if labels drawn from vtk scalars);
         may be used in conjunction with hemi
-    erase_remaining : Boolean
+    erase_remaining : bool
         set all values not in old_labels to erase_value?
     erase_labels : list of integers
         values to erase (set to erase_value)
@@ -442,7 +442,7 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
         labeled nibabel-readable (e.g., nifti) file
     ignore_labels : list
         list of source labels to ignore
-    erase_labels : Boolean
+    erase_labels : bool
         erase target labels (that are in source) before overwriting?
     background_value : integer
         background value (if erase_labels==True)

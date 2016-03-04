@@ -44,7 +44,7 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
         name of VTK file to transfer incremental values (if save_steps)
     background_value : integer
         background value
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Returns
@@ -286,7 +286,7 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists,
         maximum neighborhood weight (trust prior more for smoother fundi)
     background_value : integer
         background value
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Returns
@@ -607,13 +607,13 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
         fundus likelihood value for each vertex
     wN_max : float
         maximum neighborhood weight (trust prior more for smoother skeletons)
-    erode_again : Boolean
+    erode_again : bool
         smooth skeleton?
-    save_file : Boolean
+    save_file : bool
         save output VTK file?
     background_value : integer
         background value
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Returns
@@ -1036,7 +1036,7 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
         values for all vertices to threshold for initial seeds
     min_separation : integer
         minimum number of edges between anchor vertices
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Returns

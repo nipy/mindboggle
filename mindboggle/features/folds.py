@@ -47,13 +47,13 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
         surface mesh file in VTK format with faces and depth scalar values
     min_fold_size : integer
         minimum fold size (number of vertices)
-    do_fill_holes : Boolean
+    do_fill_holes : bool
         fill holes in the folds?
     min_hole_depth : float
         largest non-zero depth value that will stop a hole from being filled
-    save_file : Boolean
+    save_file : bool
         save output VTK file?
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Returns
@@ -294,9 +294,9 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
 #     tolerance : float
 #         watershed() tolerance:
 #         tolerance for detecting differences in depth between vertices
-#     save_file : Boolean
+#     save_file : bool
 #         save output VTK file?
-#     verbose : Boolean
+#     verbose : bool
 #         verbose output?
 #
 #     Returns

@@ -37,10 +37,10 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='', hemi='',
         VTK surface file with sulcus numbers for vertex scalars
     excludeIDs : list of integers
         feature/sulcus/label IDs to exclude (background set to -1)
-    output_vtk_name : Boolean
+    output_vtk_name : bool
         if not empty, output a VTK file beginning with output_vtk_name that
         contains a surface with mean distances as scalars
-    verbose : Boolean
+    verbose : bool
         print mean distances to standard output?
 
     Returns

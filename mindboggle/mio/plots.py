@@ -34,7 +34,7 @@ def plot_surfaces(vtk_files, use_colormap=False, colormap_file=''):
     ----------
     vtk_files : string or list of strings
         name of VTK surface mesh file or list of file names
-    use_colormap : Boolean
+    use_colormap : bool
         use Paraview-style XML colormap file?
     colormap_file : string
         use colormap in given file if use_colormap==True?  if empty and
@@ -103,11 +103,11 @@ def plot_mask_surface(vtk_file, mask_file='', nonmask_value=-1,
         nonmask (usually background) value
     masked_output : string
         temporary masked output file name
-    remove_nonmask : Boolean
+    remove_nonmask : bool
         remove vertices that are not in mask? (otherwise assign nonmask_value)
     program : string {'vtkviewer', 'mayavi2'}
         program to visualize VTK file
-    use_colormap : Boolean
+    use_colormap : bool
         use Paraview-style XML colormap file set by $COLORMAP env variable?
     colormap_file : string
         use colormap in given file if use_colormap==True?  if empty and
@@ -406,9 +406,9 @@ def scatterplot_lists(y_columns, x_column, ignore_columns=[], plot_line=True,
         column of numbers against which other columns are plotted
     ignore_columns : list of integers
         indices to y_columns to exclude
-    plot_line : Boolean
+    plot_line : bool
         plot identity line?
-    connect_markers : Boolean
+    connect_markers : bool
         connect markers?
     mstyle : string
         marker style
@@ -420,7 +420,7 @@ def scatterplot_lists(y_columns, x_column, ignore_columns=[], plot_line=True,
         description of x_column
     y_label : string
         description of y_columns
-    legend : Boolean
+    legend : bool
         plot legend?
     legend_labels : list of strings (length = number of y_columns)
         legend labels
@@ -522,11 +522,11 @@ def scatterplot_list_pairs(columns, ignore_first_column=False, plot_line=True,
     ----------
     columns : list of lists of numbers
         alternating columns of data (all of the same length)
-    ignore_first_column : Boolean
+    ignore_first_column : bool
         exclude first column?
-    plot_line : Boolean
+    plot_line : bool
         plot identity line?
-    connect_markers : Boolean
+    connect_markers : bool
         connect markers?
     mstyle : string
         marker style
@@ -542,7 +542,7 @@ def scatterplot_list_pairs(columns, ignore_first_column=False, plot_line=True,
         description of other columns
     limit : float
         x- and y-axis extent
-    legend : Boolean
+    legend : bool
         plot legend?
     legend_labels : list of strings (length = number of columns)
         legend labels

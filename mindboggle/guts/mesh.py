@@ -777,7 +777,7 @@ def decimate(points, faces, reduction=0.75, smooth_steps=25,
         number of smoothing steps
     scalars : list of integers or floats
         optional scalars for output VTK file
-    save_vtk : Boolean
+    save_vtk : bool
         output decimated vtk file?
     output_vtk : string
         output decimated vtk file name
@@ -951,9 +951,9 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100,
         input vtk file with triangular surface mesh
     reduction : float
         fraction of mesh faces to remove
-    do_smooth : Boolean
+    do_smooth : bool
         smooth after decimation?
-    save_vtk : Boolean
+    save_vtk : bool
         output decimated vtk file?
     output_vtk : string
         output decimated vtk file name
@@ -1023,9 +1023,9 @@ def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
         number or edges from vertex, defining the size of its neighborhood
     p : float in range of [0,100]
         percentile used to normalize each scalar
-    set_max_to_1 : Boolean
+    set_max_to_1 : bool
         set all rescaled values greater than 1 to 1.0?
-    save_file : Boolean
+    save_file : bool
         save output VTK file?
     output_filestring : string (if save_file)
         name of output file
@@ -1132,11 +1132,11 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
         name of VTK file with a scalar value for each vertex
     labels_or_file : list or string
         label number for each vertex or name of VTK file with index scalars
-    save_file : Boolean
+    save_file : bool
         save output VTK file?
     output_filestring : string (if save_file)
         name of output file
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Returns

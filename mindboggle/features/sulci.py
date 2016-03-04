@@ -40,7 +40,7 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
         minimum number of vertices for a sulcus label boundary segment
     sulcus_names : list of strings
         names of sulci
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Returns

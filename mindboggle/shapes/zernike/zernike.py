@@ -32,14 +32,14 @@ def zernike_moments(points, faces, order=10, scale_input=True,
         each list contains indices to vertices that form a triangle on a mesh
     order : integer
         order of the moments being calculated
-    scale_input : Boolean
+    scale_input : bool
         translate and scale each object so it is bounded by a unit sphere?
         (this is the expected input to zernike_moments())
     decimate_fraction : float
         fraction of mesh faces to remove for decimation (0 for no decimation)
     decimate_smooth : integer
         number of smoothing steps for decimation
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Returns
@@ -190,14 +190,14 @@ def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
         number of moments to compute
     exclude_labels : list of integers
         labels to be excluded
-    scale_input : Boolean
+    scale_input : bool
         translate and scale each object so it is bounded by a unit sphere?
         (this is the expected input to zernike_moments())
     decimate_fraction : float
         fraction of mesh faces to remove for decimation (1 for no decimation)
     decimate_smooth : integer
         number of smoothing steps for decimation
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Returns

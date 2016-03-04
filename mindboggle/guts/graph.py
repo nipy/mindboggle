@@ -83,7 +83,7 @@ def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
     add_to_graph :  boolean (add to graph?)
     G :  networkx graph
     sigma :  float (parameter for rbf_kernel)
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Returns
@@ -192,7 +192,7 @@ def graph_laplacian(W, type_of_laplacian='norm1', verbose=False):
         - norm2: normalized Laplacian (Lap = ddmi_sq * W * ddmi_sq)
         - norm3: normalized Laplacian (Lap = inv(D) * L)
         - random_walk: random walk Laplacian (Lap = inv(D) * W)
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Returns

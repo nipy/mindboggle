@@ -22,7 +22,7 @@ def area(command, surface_file, verbose=False):
         Voronoi-based surface area C++ executable command
     surface_file : string
         vtk file with surface mesh
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Returns
@@ -63,7 +63,7 @@ def travel_depth(command, surface_file, verbose=False):
         travel depth C++ executable command
     surface_file : string
         vtk file
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Returns
@@ -102,7 +102,7 @@ def geodesic_depth(command, surface_file, verbose=False):
     ----------
     command : travel depth C++ executable command
     surface_file : ``vtk file``
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Returns
@@ -179,7 +179,7 @@ def curvature(command, method, arguments, surface_file, verbose=False):
         additional arguments, such as neighborhood parameter
     surface_file : string
         name of VTK surface mesh file
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     """

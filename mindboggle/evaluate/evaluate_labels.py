@@ -32,7 +32,7 @@ def evaluate_volume_overlaps(labels, file1, file2,
         target image, consisting of index-labeled pixels/voxels
     output_file : string
         (optional) output file name
-    save_output : Boolean
+    save_output : bool
         save output file?
 
     Returns
@@ -106,7 +106,7 @@ def evaluate_surface_overlaps(labels, index, table1, table2,
         Jaccard overlap values
     output_file : string
         (optional) output file name
-    save_output : Boolean
+    save_output : bool
         save output file?
 
     Examples

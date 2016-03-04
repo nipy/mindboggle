@@ -45,7 +45,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
         Ex: 'txt' for text, 'itk' for ITK, and 'mat' for Matlab format
     area_file :  string
         name of VTK file with surface area scalar values
-    normalize_by_area : Boolean
+    normalize_by_area : bool
         normalize all shape measures by area of label/feature? (UNTESTED)
     mean_curvature_file :  string
         name of VTK file with mean curvature scalar values
@@ -77,7 +77,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
         unique sulcus IDs for sulci_zernike
     exclude_labels : list of lists of integers
         indices to be excluded (in addition to -1)
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Returns
@@ -655,7 +655,7 @@ def write_average_face_values_per_label(input_indices_vtk,
         background value in output VTK files
     scalar_name : string
         name of a lookup table of scalars values
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Examples
@@ -757,7 +757,7 @@ def select_column_from_tables(tables, index=0, write_table=True,
         table files (full paths)
     index : integer
         index for column to select (from each table)
-    write_table : Boolean
+    write_table : bool
         write output table?
     output_table : string
         output table file name
@@ -859,9 +859,9 @@ def select_column_from_mindboggle_tables(subjects, hemi, index, tables_dir,
         name of Mindboggle tables directory
     table_name : string
         name of Mindboggle table file
-    is_surface_table : Boolean
+    is_surface_table : bool
         if True, use path to surface tables
-    write_table : Boolean
+    write_table : bool
         write output table?
     output_table : string
         output table file name
@@ -941,7 +941,7 @@ def explode_mindboggle_tables(subject_path='', output_path='',
         output path/directory
     break_column : string
         column header that contains the integers to break up into tables
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Examples

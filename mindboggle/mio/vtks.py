@@ -233,9 +233,9 @@ def read_scalars(filename, return_first=True, return_array=False):
     ----------
     filename : string
         The path/filename of a VTK format file.
-    return_first : Boolean
+    return_first : bool
         Return only the first list of scalar values?
-    return_array : Boolean (only if return_first)
+    return_array : bool (only if return_first)
         Return first list of scalars as a numpy array?
 
     Returns
@@ -322,9 +322,9 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
     ----------
     input_vtk : string
         path/filename of a VTK format file
-    return_first : Boolean
+    return_first : bool
         Return only the first list of scalar values?
-    return_array : Boolean (only if return_first)
+    return_array : bool (only if return_first)
         Return first list of scalars as a numpy array?
 
     Returns
@@ -607,7 +607,7 @@ def write_scalars(Fp, scalars, scalar_name, begin_scalars=True,
         scalar values, one per vertex of mesh
     scalar_name : string
         name for scalars (use unbroken string)
-    begin_scalars : Boolean
+    begin_scalars : bool
         True if the first vertex lookup table in a VTK file
     scalar_type : string
         type of scalars ('float' or 'int')
@@ -885,11 +885,11 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
         values to exclude
     background_value : integer or float
         background value in output VTK files
-    remove_background_faces : Boolean
+    remove_background_faces : bool
         remove all faces whose three vertices are not all a given index?
-    reindex : Boolean
+    reindex : bool
         reindex all indices in faces?
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Examples
@@ -1025,7 +1025,7 @@ def explode_scalars_mindboggle(subject, subject_path='', output_path='',
         output path/directory
     pieces : string
         name of structures to explode (e.g., 'labels', 'sulci')
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Examples

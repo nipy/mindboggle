@@ -40,9 +40,9 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     erode_ratio : float
         fraction of indices to test for removal at each iteration
         in connect_points_erosion()
-    save_file : Boolean
+    save_file : bool
         save output VTK file?
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Returns
@@ -214,9 +214,9 @@ def segment_fundi(fundus_per_fold, sulci=[], vtk_file='', save_file=False,
         sulcus number for each vertex, used to filter and label fundi
     vtk_file : string (if save_file)
         VTK file with sulcus number for each vertex
-    save_file : Boolean
+    save_file : bool
         save output VTK file?
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Returns

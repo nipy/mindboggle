@@ -60,7 +60,7 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
         VTK surface mesh file with curvature values in [-1,1] for all vertices
     folds : list of integers
         fold number for all vertices (-1 for non-fold vertices)
-    save_file : Boolean
+    save_file : bool
         save output VTK file?
 
     Returns
@@ -193,7 +193,7 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files,
         names of VTK files with fold numbers for scalar values
     label_files : list of strings
         names of VTK files with label numbers for scalar values
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Returns
@@ -424,7 +424,7 @@ def fit_normals_to_histogram(data, x, verbose=False):
         estimated standard deviation for each class
     weights : list of floats
         weight for each class
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Examples

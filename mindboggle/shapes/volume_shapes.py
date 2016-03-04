@@ -31,11 +31,11 @@ def volume_per_brain_region(input_file, include_labels=[], exclude_labels=[],
         labels to be excluded
     label_names : list of strings
         label names corresponding to labels to include
-    save_table : Boolean
+    save_table : bool
         save output table file with labels and volume values?
     output_table : string
         name of output table file with labels and volume values
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Returns
@@ -204,17 +204,17 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
         label indices
     names : list of strings
         label names
-    resize : Boolean
+    resize : bool
         resize (2x) segmented_file for more accurate thickness estimates?
-    propagate : Boolean
+    propagate : bool
         propagate labels through cortex?
     output_dir : string
         output directory
-    save_table : Boolean
+    save_table : bool
         save output table file with label volumes and thickness values?
     output_table : string
         name of output table file with label volumes and thickness values
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Returns

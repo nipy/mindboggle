@@ -40,7 +40,7 @@ def propagate(points, faces, region, seeds, labels,
         gaussian kernel parameter
     background_value : integer
         background value
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Returns
@@ -191,9 +191,9 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
         minimum size of segmented set of vertices
     seed_lists : list of lists, or empty list
         each list contains indices to seed vertices to segment vertices_to_segment
-    keep_seeding : Boolean
+    keep_seeding : bool
         grow from new seeds even after all seed lists have fully grown
-    spread_within_labels : Boolean
+    spread_within_labels : bool
         grow seeds only by vertices with labels in the seed labels?
     labels : list of integers (required only if spread_within_labels)
         label numbers for all vertices
@@ -207,7 +207,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
         maximum number of segmentation steps to take for each seed list
     background_value : integer
         background value
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Returns
@@ -522,7 +522,7 @@ def segment_by_filling_borders(regions, neighbor_lists, background_value=-1,
         each list contains indices to neighboring vertices for each vertex
     background_value : integer
         background value
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Returns
@@ -808,11 +808,11 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
         watershed catchment basin (otherwise merged with the deeper basin)
     tolerance : float
         tolerance for detecting differences in depth between vertices
-    regrow : Boolean
+    regrow : bool
         regrow segments from watershed seeds?
     background_value : integer
         background value
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Returns
@@ -1147,9 +1147,9 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
         background values to exclude
     areas : numpy array or list of floats (or None)
         surface area scalar values for all vertices
-    reindex : Boolean
+    reindex : bool
         reindex indices in faces?
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Returns
@@ -1322,7 +1322,7 @@ def extract_borders(indices, labels, neighbor_lists,
         each list contains indices to neighboring vertices for each vertex
     ignore_values : list of integers
         integers to ignore (e.g., background)
-    return_label_pairs : Boolean
+    return_label_pairs : bool
         return label pairs?
 
     Returns

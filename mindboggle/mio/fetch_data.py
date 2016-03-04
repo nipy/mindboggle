@@ -327,11 +327,11 @@ def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
         environment variable name for cache path
     cache : string
         in case cache_env is not set, use as cache directory
-    return_missing : Boolean
+    return_missing : bool
         if data_file not in hash, simply download data_file and return path
-    lookup : Boolean
+    lookup : bool
         Simply return data_file path
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Returns
@@ -484,7 +484,7 @@ def fetch_ants_data(segmented_file, use_ants_transforms=True):
     ----------
     segmented_file : string
         full path to a subject's antsCorticalThickness.sh segmented file
-    use_ants_transforms : Boolean
+    use_ants_transforms : bool
         include antsCorticalThickness.sh-generated transforms?
 
     Returns

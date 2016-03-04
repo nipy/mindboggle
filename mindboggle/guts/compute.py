@@ -85,7 +85,7 @@ def vector_distance(vector1, vector2, normalize=False):
         vector of values
     vector2 : numpy array of floats
         vector of values
-    normalize : Boolean
+    normalize : bool
         normalize each element of the vectors?
 
     Returns
@@ -133,9 +133,9 @@ def pairwise_vector_distances(vectors, save_file=False, normalize=False):
     Parameters
     ----------
     vectors : array of 1-D lists or arrays of integers or floats
-    save_file : Boolean
+    save_file : bool
         save file?
-    normalize : Boolean
+    normalize : bool
         normalize each element of the vectors?
 
     Returns
@@ -953,9 +953,9 @@ def compute_overlaps(targets, list1, list2, output_file='', save_output=True,
     list2 : 1-D numpy array (or list) of numbers
     output_file : string
         (optional) output file name
-    save_output : Boolean
+    save_output : bool
         save output file?
-    verbose : Boolean
+    verbose : bool
         print statements?
 
     Returns
