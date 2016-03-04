@@ -9,16 +9,20 @@ Welcome to Mindboggle's documentation!
 Contents:
 
 .. toctree::
-    :maxdepth: 2
+   :maxdepth: 5
+.. toctree::
+   :maxdepth: 2
 
-    README
-    LICENSE
-    THANKS
-    API
+   ../README.rst
+   ../STORY.rst
+   ../LICENSE.rst
+   ../THANKS.rst
+   faq/index.rst
+   api/index.rst
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+  * :ref:`genindex`
+  * :ref:`modindex`
+  * :ref:`search`
 
 
 The Mindboggle project includes `Software`_, `Data`_,  and `Documentation`_

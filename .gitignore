@@ -1,6 +1,5 @@
-/doc/api/generated
-/doc/manual
-/doc/users/examples
+/docs/api/generated
+/docs/_build
 doctrees
 mindboggle.*.box
 mindboggle.egg-info

@@ -22,7 +22,9 @@ I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 .PHONY: help
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
-	@echo "  html       to make standalone HTML files"
+	@echo "  html       to make standalone HTML and API documents"
+	@echo "  htmlonly  	make HTML documents only"
+	@echo "  api       	make API documents only"
 	@echo "  dirhtml    to make HTML files named index.html in directories"
 	@echo "  singlehtml to make a single large HTML file"
 	@echo "  pickle     to make pickle files"
@@ -51,11 +53,21 @@ help:
 clean:
 	rm -rf $(BUILDDIR)/*
 
-.PHONY: html
-html:
+
+.PHONY: api
+api:
+	python tools/build_modref_templates.py
+	@echo "Build API docs finished."
+
+.PHONY: htmlonly
+htmlonly:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
+
+.PHONY: html
+html: api htmlonly
+	@echo "Build HTML and API finished."
 
 .PHONY: dirhtml
 dirhtml:
