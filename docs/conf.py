@@ -31,7 +31,7 @@ sys.path.append(os.path.abspath('sphinxext'))
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.napolean',
+    'sphinx.ext.numpydoc',
     'sphinx.ext.doctest',
     'sphinx.ext.coverage',
     'sphinx.ext.autosummary',
