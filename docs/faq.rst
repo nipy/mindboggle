@@ -7,7 +7,8 @@
 .. toctree::
    :maxdepth: 2
 
-   why_mindboggle
-   why_license
-   why_python
+   faq/why_mindboggle
+   faq/why_license
+   faq/why_python
    labels
+- `Who has contributed to Mindboggle? <http://mindboggle.info/people.html>`_

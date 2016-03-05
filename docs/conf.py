@@ -31,41 +31,41 @@ sys.path.append(os.path.abspath('sphinxext'))
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-#    'sphinx.ext.napolean',
+    'sphinx.ext.napolean',
     'sphinx.ext.doctest',
     'sphinx.ext.coverage',
     'sphinx.ext.autosummary',
-    'sphinx.ext.viewcode',
+    'sphinx.ext.viewcode'
 ]
 
 #-----------------------------------------------------------------------------
 # Accommodate numpy-style docstrings:
 #-----------------------------------------------------------------------------
 # Napoleon settings
-# napoleon_google_docstring = False
-# napoleon_numpy_docstring = True
-# napoleon_include_private_with_doc = False
-# napoleon_include_special_with_doc = True
-# napoleon_use_admonition_for_examples = False
-# napoleon_use_admonition_for_notes = False
-# napoleon_use_admonition_for_references = False
-# napoleon_use_ivar = False
-# napoleon_use_param = True
-# napoleon_use_rtype = True
+napoleon_google_docstring = False
+napoleon_numpy_docstring = True
+napoleon_include_private_with_doc = False
+napoleon_include_special_with_doc = True
+napoleon_use_admonition_for_examples = False
+napoleon_use_admonition_for_notes = False
+napoleon_use_admonition_for_references = False
+napoleon_use_ivar = False
+napoleon_use_param = True
+napoleon_use_rtype = True
 #
 # Current version (as of 11/2010) of numpydoc is only compatible with sphinx >
 # 1.0.  We keep copies of this version in 'numpy_ext'.  For a while we will also
 # keep a copy of the older numpydoc version to allow compatibility with sphinx
 # 0.6
-try:
-    # With older versions of sphinx, this causes a crash
-    import numpy_ext.numpydoc
-except ImportError:
-    # Older version of sphinx
-    extensions.append('numpy_ext_old.numpydoc')
-else: # probably sphinx >= 1.0
-    extensions.append('numpy_ext.numpydoc')
-    autosummary_generate=True
+# try:
+#     # With older versions of sphinx, this causes a crash
+#     import numpy_ext.numpydoc
+# except ImportError:
+#     # Older version of sphinx
+#     extensions.append('numpy_ext_old.numpydoc')
+# else: # probably sphinx >= 1.0
+#     extensions.append('numpy_ext.numpydoc')
+#     autosummary_generate=True
 #-----------------------------------------------------------------------------
 
 # Add any paths that contain templates here, relative to this directory.

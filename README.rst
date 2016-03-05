@@ -1,5 +1,5 @@
 ==============================================================================
-Software -- Warning: PRE-RELEASE mode
+Software -- PRE-RELEASE
 ==============================================================================
 The Mindboggle software package automates shape analysis of anatomical labels
 and features extracted from human brain MR image data.
@@ -24,7 +24,7 @@ pipeline framework.
 .. toctree::
     :maxdepth: 1
 
-    FAQs <faq/index.rst>
+    FAQ <faq.rst>
     license
 
 * :ref:`genindex`
@@ -188,23 +188,22 @@ brain that has been scanned.
 Volume files are in `Nifti <http://nifti.nimh.nih.gov>`_ format,
 surface meshes in `VTK <http://www.vtk.org/>`_ format,
 and tables are comma-delimited.
-Each file contains integers that correspond to anatomical
-`labels <http://mindboggle.info/faq/labels.html>`_
+Each file contains integers that correspond to anatomical :doc:`labels <labels>`
 or features (0-24 for sulci).
 All output data are in the original subject's space.
 The following include outputs from most, but not all, optional arguments.
 
-+-+---------------+----------------------------------------------------+--------------+
-| |  **Folder**   | **Contents**                                       | **Format**   |
-+-+---------------+----------------------------------------------------+--------------+
-| |   labels/     |  number-labeled surfaces and volumes               | .vtk, .nii.gz|
-+-+---------------+----------------------------------------------------+--------------+
-| |   features/   |  surfaces with features:  sulci, fundi             | .vtk         |
-+-+---------------+----------------------------------------------------+--------------+
-| |   shapes/     |  surfaces with shape measures (per vertex)         | .vtk         |
-+-+---------------+----------------------------------------------------+--------------+
-| |   tables/     |tables of shape measures (per label/feature/vertex) | .csv         |
-+-+---------------+----------------------------------------------------+--------------+
++----------------+----------------------------------------------------+--------------+
+|   **Folder**   | **Contents**                                       | **Format**   |
++----------------+----------------------------------------------------+--------------+
+|    labels/     |  number-labeled surfaces and volumes               | .vtk, .nii.gz|
++----------------+----------------------------------------------------+--------------+
+|    features/   |  surfaces with features:  sulci, fundi             | .vtk         |
++----------------+----------------------------------------------------+--------------+
+|    shapes/     |  surfaces with shape measures (per vertex)         | .vtk         |
++----------------+----------------------------------------------------+--------------+
+|    tables/     |tables of shape measures (per label/feature/vertex) | .csv         |
++----------------+----------------------------------------------------+--------------+
 
 **mindboggled** / SUBJECT /
 
@@ -214,13 +213,13 @@ The following include outputs from most, but not all, optional arguments.
 
         **ants_labels_in_hybrid_graywhite.nii.gz**:  *hybrid segmentation filled with ANTs + FS cerebellar labels*
 
-        [left,right]_cortical_surface / **freesurfer_cortex_labels.vtk**: `DKT <http://mindboggle.info/data/>`_ *cortical surface labels*
+        [left,right]_cortical_surface / **freesurfer_cortex_labels.vtk**: `DKT <http://mindboggle.info/data.html>`_ *cortical surface labels*
 
     **features** / [left,right]_cortical_surface /
 
             **folds.vtk**:  *(unidentified) depth-based folds*
 
-            **sulci.vtk**:  *sulci defined by* `DKT <http://mindboggle.info/data/>`_ *label pairs in depth-based folds*
+            **sulci.vtk**:  *sulci defined by* `DKT <http://mindboggle.info/data.html>`_ *label pairs in depth-based folds*
 
             **fundus_per_sulcus.vtk**:  *fundus curve per sulcus*  **-- UNDER EVALUATION --**
 
