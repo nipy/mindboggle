@@ -213,8 +213,8 @@ class ApiDocWriter(object):
 
         # Make a shorter version of the uri that omits the package name for
         # titles 
-        uri_short = re.sub(r'^%s\.' % self.package_name,'',uri)
-        
+        uri_short = re.sub(r'^{0}\.'.format(self.package_name), '', uri)
+
         ad = '.. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n'
 
         chap_title = uri_short
@@ -230,8 +230,8 @@ class ApiDocWriter(object):
         ad += title + '\n' + self.rst_section_levels[2] * len(title)
 
         if len(classes):
-            ad += '\nInheritance diagram for ``%s``:\n\n' % uri
-            ad += '.. inheritance-diagram:: %s \n' % uri
+            ad += '\nInheritance diagram for ``{0}``:\n\n'.format(uri)
+            ad += '.. inheritance-diagram:: {0} \n'.format(uri)
             ad += '   :parts: 3\n'
 
         ad += '\n.. automodule:: ' + uri + '\n'
@@ -425,5 +425,5 @@ class ApiDocWriter(object):
         w('.. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n')
         w('.. toctree::\n\n')
         for f in self.written_modules:
-            w('   %s\n' % os.path.join(relpath,f))
+            w('   {0}\n'.format(os.path.join(relpath, f)))
         idx.close()
