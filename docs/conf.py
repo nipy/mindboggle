@@ -57,15 +57,15 @@ napoleon_use_rtype = True
 # 1.0.  We keep copies of this version in 'numpy_ext'.  For a while we will also
 # keep a copy of the older numpydoc version to allow compatibility with sphinx
 # 0.6
-# try:
-#     # With older versions of sphinx, this causes a crash
-#     import numpy_ext.numpydoc
-# except ImportError:
-#     # Older version of sphinx
-#     extensions.append('numpy_ext_old.numpydoc')
-# else: # probably sphinx >= 1.0
-#     extensions.append('numpy_ext.numpydoc')
-#     autosummary_generate=True
+try:
+    # With older versions of sphinx, this causes a crash
+    import numpy_ext.numpydoc
+except ImportError:
+    # Older version of sphinx
+    extensions.append('numpy_ext_old.numpydoc')
+else: # probably sphinx >= 1.0
+    extensions.append('numpy_ext.numpydoc')
+    autosummary_generate=True
 #-----------------------------------------------------------------------------
 
 # Add any paths that contain templates here, relative to this directory.
