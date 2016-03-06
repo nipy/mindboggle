@@ -31,12 +31,12 @@ sys.path.append(os.path.abspath('sphinxext'))
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinxcontrib.napolean',
-    'sphinx.ext.doctest',
-    'sphinx.ext.coverage',
-    'sphinx.ext.autosummary',
-    'sphinx.ext.viewcode'
-]
+    'sphinxcontrib.napolean'
+    ]
+#    'sphinx.ext.doctest',
+#    'sphinx.ext.coverage',
+#    'sphinx.ext.autosummary',
+#    'sphinx.ext.viewcode'
 
 #-----------------------------------------------------------------------------
 # Accommodate numpy-style docstrings:
