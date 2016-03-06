@@ -1,0 +1,5 @@
+# Read the Docs requirements file
+# http://docs.readthedocs.org/en/latest/
+
+sphinxcontrib-napoleon
+#numpydoc==0.4
