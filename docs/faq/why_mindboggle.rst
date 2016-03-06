@@ -1,11 +1,11 @@
 .. _why_mindboggle:
 
-================
+------------------------------------------------------------------------------
  Why Mindboggle?
-================
+------------------------------------------------------------------------------
 
 Purpose
--------
+.......
 
 The purpose of Mindboggle is to improve the accuracy, precision, and
 consistency of labeling and morphometry of brain imaging data,
@@ -13,7 +13,7 @@ and to promote open science by making all data, software, and documentation
 freely and openly available.
 
 Motivation
-----------
+..........
 
 There is a strong tendency for neuroscientists who are not software developers
 to assume that questions of brain image "preprocessing", including registration
@@ -29,7 +29,7 @@ answering the neuroscientific and clinical questions that interest them.
    doi:10.1016/j.neuroimage.2012.07.004
 
 History
--------
+.......
 
 Back in 1998, `Arno Klein <http://binarybottle.com>`_
 left Caltech to visit Cornell Medical School for a summer,
@@ -65,6 +65,4 @@ shape analysis.  Tank Think Labs joined this effort:
     - Brian Rossa
     - Oliver Hinds
 
-Please see our updated list of
-`contributors <http://mindboggle.info/users/THANKS.html>`_
-and Mindboggle `team page <http://mindboggle.info/people.html>`_.
+Please see our updated Mindboggle `team page <http://mindboggle.info/people.html>`_.

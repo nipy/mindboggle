@@ -9,10 +9,9 @@ import os
 # local imports
 from apigen import ApiDocWriter
 
-#*****************************************************************************
 if __name__ == '__main__':
     package = 'mindboggle'
-    outdir = os.path.join('api', 'generated')
+    outdir = 'api'  #os.path.join('api', 'generated')
     docwriter = ApiDocWriter(package)
     docwriter.package_skip_patterns += [r'\.fixes$',
                                         r'\.externals$',

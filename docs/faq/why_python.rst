@@ -1,8 +1,8 @@
 .. _why_python:
 
-=============
+------------------------------------------------------------------------------
  Why Python?
-=============
+------------------------------------------------------------------------------
 
 From Nipy's documentation::
 
@@ -41,27 +41,6 @@ who will serve as the main developers of scientific analysis
 software. The fast development time of high-level programs makes it
 much easier to test new ideas with prototypes. Their interactive
 nature allows researchers flexible ways to explore their data.
-
-SPM is written in Matlab, which is a high-level language specialized
-for matrix algebra. Matlab code can be quick to develop and is
-relatively easy to read. However, Matlab is not suitable as a basis
-for a large-scale common development environment. The language is
-proprietary and the source code is not available, so researchers do
-not have access to core algorithms making bugs in the core very
-difficult to find and fix. Many scientific developers prefer to write
-code that can be freely used on any computer and avoid proprietary
-languages. Matlab has structural deficiencies for large projects: it
-lacks scalability and is poor at managing complex data structures
-needed for neuroimaging research. While it has the ability to
-integrate with other languages (e.g., C/C++ and FORTRAN) this feature
-is quite impoverished. Furthermore, its memory handling is weak and it
-lacks pointers - a major problem for dealing with the very large data
-structures that are often needed in neuroimaging. Matlab is also a
-poor choice for many applications such as system tasks, database
-programming, web interaction, and parallel computing. Finally, Matlab
-has weak GUI tools, which are crucial to researchers for productive
-interactions with their data.
-
 
 .. [boehm1981]
    Boehm, Barry W. (1981) *Software Engineering Economics*. Englewood

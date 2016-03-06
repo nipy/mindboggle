@@ -1,8 +1,8 @@
 .. _why_license:
 
-=============
+------------------------------------------------------------------------------
  Why Apache?
-=============
+------------------------------------------------------------------------------
 
 We have chosen the Apache v2.0 license because it is liberal and 
 supports broad use and modification of the software.
