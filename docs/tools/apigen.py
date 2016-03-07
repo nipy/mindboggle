@@ -51,7 +51,7 @@ class ApiDocWriter(object):
             Operates on the package path, starting at (including) the
             first dot in the package path, after *package_name* - so,
             if *package_name* is ``sphinx``, then ``sphinx.util`` will
-            result in ``.util`` being passed for earching by these
+            result in ``.util`` being passed for searching by these
             regexps.  If is None, gives default. Default is:
             ['\.tests$']
         module_skip_patterns : None or sequence
