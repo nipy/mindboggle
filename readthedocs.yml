@@ -2,5 +2,5 @@
 # http://docs.readthedocs.org/en/latest/yaml-config.html
 
 # Don't build any extra formats
-formats:
-        - none
+#formats:
+#        - none
