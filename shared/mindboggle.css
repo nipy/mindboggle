@@ -302,15 +302,8 @@ tt.descname, code.descname {
     padding-right: 0.08em;
 }
 
-img.screenshot {
-    -moz-box-shadow: 2px 2px 4px #eee;
-    -webkit-box-shadow: 2px 2px 4px #eee;
-    box-shadow: 2px 2px 4px #eee;
-}
-
 table.docutils {
     border: 0px solid #888;
-    box-shadow: 2px 2px 4px #eee;
 }
 
 table.docutils td, table.docutils th {
@@ -320,7 +313,6 @@ table.docutils td, table.docutils th {
 
 table.field-list, table.footnote {
     border: none;
-    box-shadow: none;
 }
 
 table.footnote {
