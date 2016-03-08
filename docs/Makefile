@@ -57,7 +57,6 @@ clean:
 .PHONY: api
 api:
 	bash api_build.sh
-	#python api_build.py
 	@echo "Build API docs finished."
 
 .PHONY: htmlonly

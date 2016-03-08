@@ -2,4 +2,4 @@
 # http://docs.readthedocs.org/en/latest/
 
 #sphinxcontrib-napoleon
-#numpydoc
+numpydoc

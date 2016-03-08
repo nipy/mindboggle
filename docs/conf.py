@@ -31,8 +31,8 @@ needs_sphinx = '1.3'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.napoleon',
-#    'numpydoc'
+#    'sphinx.ext.napoleon',
+    'numpydoc'
     ]
 #    'sphinx.ext.doctest',
 #    'sphinx.ext.coverage',
@@ -43,8 +43,8 @@ extensions = [
 # Accommodate numpy-style docstrings:
 #-----------------------------------------------------------------------------
 # Napoleon settings
-napoleon_google_docstring = False
-napoleon_numpy_docstring = True
+#napoleon_google_docstring = False
+#napoleon_numpy_docstring = True
 # napoleon_include_private_with_doc = False
 # napoleon_include_special_with_doc = True
 # napoleon_use_admonition_for_examples = False
