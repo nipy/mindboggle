@@ -1,4 +1,7 @@
-# Commands for building the api docs for the mindboggle website.
+# This file contains the old commands for building the api docs for the mindboggle website.
+# Now we are using readthedocs.org to automatically build and host the documentation
+# from the docs/ folder in the master branch of this repository.
+# gh-pages files still in use include [data, papers, people].html and the shared/ folder.
 
 # MASTER BRANCH:
 
