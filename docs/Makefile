@@ -57,8 +57,8 @@ clean:
 
 .PHONY: api
 api:
-	python tools/build_modref_templates.py
-	@echo "Build API docs finished."
+	python api_build.py
+	@echo "Build API docs finished. API pages are in api/."
 
 .PHONY: htmlonly
 htmlonly:

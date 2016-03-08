@@ -427,3 +427,20 @@ class ApiDocWriter(object):
         for f in self.written_modules:
             w('   {0}\n'.format(os.path.join(relpath, f)))
         idx.close()
+
+
+if __name__ == '__main__':
+
+    from api_build import ApiDocWriter
+
+    package = 'mindboggle'
+    outdir = 'api'  #os.path.join('api', 'generated')
+    docwriter = ApiDocWriter(package)
+    docwriter.package_skip_patterns += [r'\.fixes$',
+                                        r'\.externals$',
+                                        r'\.pgk_info$',
+                                        ]
+    docwriter.write_api_docs(outdir)
+    docwriter.write_index(outdir, 'gen', relative_to='api')
+
+    print('{0} files written'.format(len(docwriter.written_modules)))
