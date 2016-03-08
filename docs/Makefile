@@ -54,11 +54,11 @@ clean:
 	rm -rf $(BUILDDIR)/*
 	rm -rf api/*
 
-
 .PHONY: api
 api:
-	python api_build.py
-	@echo "Build API docs finished. API pages are in api/."
+	bash api_build.sh
+	#python api_build.py
+	@echo "Build API docs finished."
 
 .PHONY: htmlonly
 htmlonly:
