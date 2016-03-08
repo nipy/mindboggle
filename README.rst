@@ -92,15 +92,18 @@ For help after installing, type the following in a terminal window::
 The following bare-bones command runs Mindboggle
 on data processed by FreeSurfer but not ANTs::
 
-    mindboggle /example/freesurfer_subjects/arno
+    mindboggle $HOME/example/freesurfer_subjects/arno
 
 **Example 2:**
-The same command, but takes advantage of ANTs output ("--" is two hyphens)::
+The same command, but takes advantage of ANTs output
+(backslash denotes line return)::
 
-    mindboggle $HOME/example/freesurfer_subjects/arno --ants /example/ants_subjects/arno/antsBrainSegmentation.nii.gz
+    mindboggle $HOME/example/freesurfer_subjects/arno \
+    --ants $HOME/example/ants_subjects/arno/antsBrainSegmentation.nii.gz
 
 **Example 3:**
-To generate only volume (and not surface) labels and shape measures from FreeSurfer data, using 8 processors::
+To generate only volume (and not surface) labels and shape measures
+from FreeSurfer data, using 8 processors::
 
     mindboggle $HOME/example/freesurfer_subjects/arno --no_surfaces -p 8
 
@@ -122,8 +125,8 @@ noncortical volumes. Run ``recon-all`` on a T1-weighted IMAGE file
 **ANTs** provides brain volume extraction, segmentation, and
 registration-based labeling. To generate the ANTs transforms and segmentation
 files used by Mindboggle, run the ``antsCorticalThickness.sh`` script on the
-same ``IMAGE`` file, set an output ``PREFIX``, and provide paths to the
-`OASIS-30 Atropos template <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template.tar.gz>`_
+same IMAGE file, set an output PREFIX, and provide paths to the
+`OASIS-30 Atropos template <http://media.mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template.tar.gz>`_
 files (backslash denotes a line return)::
 
     antsCorticalThickness.sh -d 3 -a IMAGE -o PREFIX \
@@ -185,7 +188,7 @@ downloaded in the `Preprocessing`_ section above.
 By default, output files are saved in $HOME/mindboggled/SUBJECT, where $HOME
 is the home directory and SUBJECT is a name representing the person's
 brain that has been scanned.
-Volume files are in `Nifti <http://nifti.nimh.nih.gov>`_ format,
+Volume files are in `NIfTI <http://nifti.nimh.nih.gov>`_ format,
 surface meshes in `VTK <http://www.vtk.org/>`_ format,
 and tables are comma-delimited.
 Each file contains integers that correspond to anatomical :doc:`labels <labels>`
