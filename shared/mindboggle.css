@@ -310,8 +310,6 @@ img.screenshot {
 
 table.docutils {
     border: 0px solid #888;
-    -moz-box-shadow: 2px 2px 4px #eee;
-    -webkit-box-shadow: 2px 2px 4px #eee;
     box-shadow: 2px 2px 4px #eee;
 }
 
@@ -322,8 +320,6 @@ table.docutils td, table.docutils th {
 
 table.field-list, table.footnote {
     border: none;
-    -moz-box-shadow: none;
-    -webkit-box-shadow: none;
     box-shadow: none;
 }
 
