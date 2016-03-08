@@ -16,18 +16,6 @@ a:hover {
     color: #e0a91b;  # strong mustard
 }
 
-table {
-    border-collapse: collapse;
-    margin: 0 -0.5em 0 -0.5em;
-    border: 0;
-    width: 80%;
-}
-
-table td, table th {
-    padding: 0.2em 0.5em 0.2em 0.5em;
-    border: 0;
-}
-
 div.footer {
     color: #836e35;  # footer text  #86989B;
     padding: 3px 8px 3px 0;
@@ -321,14 +309,14 @@ img.screenshot {
 }
 
 table.docutils {
-    border: 1px solid #888;
+    border: 0px solid #888;
     -moz-box-shadow: 2px 2px 4px #eee;
     -webkit-box-shadow: 2px 2px 4px #eee;
     box-shadow: 2px 2px 4px #eee;
 }
 
 table.docutils td, table.docutils th {
-    border: 1px solid #888;
+    border: 0px solid #888;
     padding: 0.25em 0.7em;
 }
 
@@ -342,7 +330,7 @@ table.field-list, table.footnote {
 table.footnote {
     margin: 15px 0;
     width: 100%;
-    border: 1px solid #EEE;
+    border: 0px solid #EEE;
     background: #FDFDFD;
     font-size: 0.9em;
 }
