@@ -33,8 +33,10 @@ pipeline framework.
 ------------------------------------------------------------------------------
 Installing Mindboggle
 ------------------------------------------------------------------------------
-Mindboggle comes as a single installation script, `install_mindboggle.sh <https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle.sh>`_,
-that may be directly called to install Mindboggle on a Linux machine.
+Mindboggle comes as a single installation script,
+`install_mindboggle.sh <https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle.sh>`_,
+that may be directly called to install Mindboggle on a Linux machine
+($ ``source install_mindboggle.sh``).
 However, for reasons of convenience and reproducibility of results,
 we recommend using a different script,
 `configure_mindboggle_vm <https://raw.githubusercontent.com/nipy/mindboggle/master/install/configure_mindboggle_vm>`_,
@@ -43,7 +45,7 @@ but in a virtual machine (VM). Download the VM script to wherever you want
 the startup directory to be, and do the following (type commands in a
 terminal for steps 2 and 3).
 
-1. Install dependencies:
+1. Install VM dependencies:
 
     `Vagrant <http://www.vagrantup.com>`_ manages virtual machines.
         Vagrant provides reproducible and portable work environments
@@ -118,7 +120,7 @@ and optionally from `ANTs <http://stnava.github.io/ANTs/>`_
 
 **FreeSurfer** generates labeled cortical surfaces, and labeled cortical and
 noncortical volumes. Run ``recon-all`` on a T1-weighted IMAGE file
-(e.g., subject1.nii.gz) and set the output SUBJECT name (subject1)::
+(e.g., subject1.nii.gz) and set the output SUBJECT name (e.g., subject1)::
 
     recon-all -all -i IMAGE -s SUBJECT
 
