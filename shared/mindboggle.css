@@ -16,6 +16,34 @@ a:hover {
     color: #e0a91b;  # strong mustard
 }
 
+table {
+    border-collapse: collapse;
+    margin: 0 -0.5em 0 -0.5em;
+    border: 0;
+    width: 80%;
+}
+
+table td, table th {
+    padding: 0.2em 0.5em 0.2em 0.5em;
+    border: 0;
+}
+
+div.footer {
+    color: #836e35;  # footer text  #86989B;
+    padding: 3px 8px 3px 0;
+    clear: both;
+    font-size: 0.8em;
+    text-align: right;
+    text-decoration: none;
+}
+
+div.footer a {
+    color: #a06005;  # Sphinx hyperlink
+    text-decoration: none; #underline;
+}
+
+
+
 div.document {
     width: 940px;
     margin: 30px auto 0 auto;
