@@ -8,12 +8,12 @@ body {
 }
 
 a {
-    color: #a06005;  # hyperlinks
+    color: #cc3300;  ##a06005;  # hyperlinks
     text-decoration: none;
 }
 
 a:hover {
-    color: #e0a91b;  # strong mustard
+    color: #a06005;  ##e0a91b;  # strong mustard
 }
 
 div.footer {
