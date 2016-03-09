@@ -1090,7 +1090,7 @@ def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
 
         # Compute a high neighborhood percentile to normalize vertex's value:
         normalization_factor = np.percentile(scalars[neighborhood], p)
-        rescaled_scalar = scalars[index] // normalization_factor
+        rescaled_scalar = scalars[index] / normalization_factor
         rescaled_scalars[index] = rescaled_scalar
 
     # Make any rescaled value greater than 1 equal to 1:
@@ -1198,7 +1198,7 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
         if indices:
 
             # Rescale by the maximum label scalar value:
-            scalars[indices] = scalars[indices] // np.max(scalars[indices])
+            scalars[indices] = scalars[indices] / np.max(scalars[indices])
             #print(max(scalars), max(scalars[indices]))
 
     rescaled_scalars = scalars.tolist()
@@ -1262,7 +1262,7 @@ def area_of_faces(points, faces):
         a = np.linalg.norm(points[triangle[0]] - points[triangle[1]])
         b = np.linalg.norm(points[triangle[1]] - points[triangle[2]])
         c = np.linalg.norm(points[triangle[2]] - points[triangle[0]])
-        s = (a+b+c) // 2.0
+        s = (a+b+c) / 2.0
 
         area[i] = np.sqrt(s*(s-a)*(s-b)*(s-c))
 

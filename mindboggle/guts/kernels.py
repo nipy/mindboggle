@@ -39,7 +39,7 @@ def rbf_kernel(x1, x2, sigma):
     """
     import numpy as np
 
-    return np.exp(-np.linalg.norm(x1 - x2) ** 2 // (2 * sigma ** 2))
+    return np.exp(-np.linalg.norm(x1 - x2) ** 2 / (2 * sigma ** 2))
 
 
 # def cotangent_kernel(Nodes, Meshes):
@@ -121,7 +121,7 @@ def inverse_distance(x1, x2, epsilon):
     """
     import numpy as np
 
-    return 1.0//(np.linalg.norm(x1 - x2) + epsilon)
+    return 1.0/(np.linalg.norm(x1 - x2) + epsilon)
 
 
 #=============================================================================

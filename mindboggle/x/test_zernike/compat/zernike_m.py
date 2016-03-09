@@ -13,7 +13,7 @@ def zernike(cfg,G,N) :                                                          
                                                                                             #%% FOR a,b,c
                                                                                             #% Computing V
     i=cfg.sqrt(-1);                                                                         #i=sqrt(-1);
-    for a in cfg.rng(0,cfg.floor(N//2)) :                                                                    #for a=0:floor(N/2)
+    for a in cfg.rng(0,cfg.floor(N/2)) :                                                                    #for a=0:floor(N/2)
         for b in cfg.rng(0,N-2*a) :                                                                   #    for b=0:(N-2*a)
             for c in cfg.rng(0,N-2*a-b) :                                                             #        for c=0:(N-2*a-b)
                                                                                             #            % Calculation for a given a,b,c
@@ -28,7 +28,7 @@ def zernike(cfg,G,N) :                                                          
                                                                                             #
                                                                                             #% Computing W
     i=cfg.sqrt(-1)                                                                              #i=sqrt(-1);
-    for a in cfg.rng(0,cfg.floor(N//2)) :                                                                    #for a=0:floor(N/2)
+    for a in cfg.rng(0,cfg.floor(N/2)) :                                                                    #for a=0:floor(N/2)
         for b in cfg.rng(0,N-2*a) :                                                                   #    for b=0:(N-2*a)
             for c in cfg.rng(0,N-2*a-b) :                                                             #        for c=0:(N-2*a-b)
                                                                                             #            % Calculation for a given a,b,c
@@ -43,7 +43,7 @@ def zernike(cfg,G,N) :                                                          
                                                                                             # 
                                                                                             #% Computing X
     i=cfg.sqrt(-1)                                                                             #i=sqrt(-1);
-    for a in cfg.rng(0,cfg.floor(N//2)) :                                                                    #for a=0:floor(N/2)
+    for a in cfg.rng(0,cfg.floor(N/2)) :                                                                    #for a=0:floor(N/2)
         for b in cfg.rng(0,N-2*a) :                                                                   #    for b=0:(N-2*a)
             for c in cfg.rng(0,N-2*a-b) :                                                             #        for c=0:(N-2*a-b)
                                                                                             #            % Calculation for a given a,b,c
@@ -60,11 +60,11 @@ def zernike(cfg,G,N) :                                                          
                                                                                             #%% FOR n,l,m,nu
                                                                                             #% Computing Y
     for l in cfg.rng(0,N) :                                                                             #for l=0:N
-        for nu in cfg.rng(0,cfg.floor((N-l)//2)) :                                                           #    for nu=0:floor((N-l)/2)
+        for nu in cfg.rng(0,cfg.floor((N-l)/2)) :                                                           #    for nu=0:floor((N-l)/2)
             for m in cfg.rng(0,l) :                                                                     #        for m=0:l
                                                                                             #            % Calculation for a given l,nu,m
                 tmp=0                                                                       #            tmp=0;
-                for j in cfg.rng(0,cfg.floor((l-m)//2)) :                                                    #            for j=0:floor((l-m)/2)
+                for j in cfg.rng(0,cfg.floor((l-m)/2)) :                                                    #            for j=0:floor((l-m)/2)
                     tmp=tmp+cfg.Yljm(l,j,m)*X[nu+j,l-m-2*j,m] #!                            #                tmp=tmp+Yljm(l,j,m)*X(nu+j+1,l-m-2*j+1,m+1);
                                                                                             #            end
                 Y[l,nu,m]=tmp #!                                                        #            Y(l+1,nu+1,m+1)=tmp;
@@ -79,11 +79,11 @@ def zernike(cfg,G,N) :                                                          
                 for m in cfg.rng(0,l) :                                                                 #            for m=0:l
                                                                                             #                % actual computation
                     tmp=0                                                                   #                tmp=0;
-                    k=(n-l)//2                                                               #                k=(n-l)/2;
+                    k=(n-l)/2                                                               #                k=(n-l)/2;
                     for nu in cfg.rng(0,k) :                                                            #                for nu=0:k
                         tmp=tmp+cfg.Qklnu(k,l,nu)*cfg.conj(Y[l,nu,m]) #!                        #                    tmp=tmp+Qklnu(k,l,nu)*conj(Y(l+1,nu+1,m+1));
                                                                                             #                end
-                    Z[n,l,m]=(3//(4*cfg.pi))*tmp #!                                          #                Z(n+1,l+1,m+1)=(3/(4*pi))*tmp;
+                    Z[n,l,m]=(3/(4*cfg.pi))*tmp #!                                          #                Z(n+1,l+1,m+1)=(3/(4*pi))*tmp;
                                                                                             #                
                                                                                             #            end
                                                                                             #        end

@@ -1094,7 +1094,7 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
                 # basin's depth and farther away than half the basin's depth:
                 if use_depth_ratio:
                     index_neighbors = [[x, index] for x in index_neighbors
-                        if basin_depths[x] // (basin_depths[index]+tiny) < depth_ratio
+                        if basin_depths[x] / (basin_depths[index]+tiny) < depth_ratio
                         if point_distance(seed_points[x], [seed_points[index]])[0] >
                           depth_factor * max([basin_depths[x], basin_depths[index]])]
                 # Store neighbors farther away than half the basin's depth:

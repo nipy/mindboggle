@@ -117,10 +117,10 @@ def vector_distance(vector1, vector2, normalize=False):
             for i in range(len(vector1)):
                 max_v1v2 = max([vector1[i], vector2[i]])
                 if max_v1v2 > 0:
-                    vector_diff[i] = (vector1[i] - vector2[i]) // max_v1v2
+                    vector_diff[i] = (vector1[i] - vector2[i]) / max_v1v2
         else:
             vector_diff = vector1 - vector2
-        return np.sqrt(sum((vector_diff)**2)) // np.size(vector1)
+        return np.sqrt(sum((vector_diff)**2)) / np.size(vector1)
     else:
         print("Vectors have to be of equal size to compute distance.")
         return None
@@ -449,7 +449,7 @@ def median_abs_dev(X, W=[], precision=1, c=1.0):
     if np.size(W):
         X = weighted_to_repeated_values(X, W, precision)
 
-    mad = np.median(np.abs(X - np.median(X))) // c
+    mad = np.median(np.abs(X - np.median(X))) / c
 
     return mad
 
@@ -567,9 +567,9 @@ def means_per_label(values, labels, include_labels=[], exclude_labels=[], areas=
                 if sumW > 0:
                     if dim > 1:
                         W = np.transpose(np.tile(W, (dim,1)))
-                    means.append(np.sum(W * X, axis=0) // sumW)
+                    means.append(np.sum(W * X, axis=0) / sumW)
                     Xdiff = X - np.mean(X, axis=0)
-                    sdevs.append(np.sqrt(np.sum(W * Xdiff**2, axis=0) // sumW))
+                    sdevs.append(np.sqrt(np.sum(W * Xdiff**2, axis=0) / sumW))
                 else:
                     if dim > 1:
                         means.append(np.mean(X, axis=0))
@@ -792,12 +792,12 @@ def stats_per_label(values, labels, include_labels=[], exclude_labels=[],
                     # compute all statistics of the weighted values:
                     if sumW > 0:
                         Xdiff = X - np.mean(X)
-                        Xstd = np.sqrt(np.sum(W * Xdiff**2) // sumW)
-                        means.append(np.sum(W * X) // sumW)
+                        Xstd = np.sqrt(np.sum(W * Xdiff**2) / sumW)
+                        means.append(np.sum(W * X) / sumW)
                         sdevs.append(Xstd)
                         if Xstd > 0:
-                            skews.append((np.sum(W * Xdiff**3) // sumW) // Xstd**3)
-                            kurts.append((np.sum(W * Xdiff**4) // sumW) // Xstd**4 - 3)
+                            skews.append((np.sum(W * Xdiff**3) / sumW) / Xstd**3)
+                            kurts.append((np.sum(W * Xdiff**4) / sumW) / Xstd**4 - 3)
                         else:
                             skews.append(skew(X))
                             kurts.append(kurtosis(X))
@@ -1021,8 +1021,8 @@ def compute_overlaps(targets, list1, list2, output_file='', save_output=True,
         if len2 * len1 > 0:
 
             # Compute Dice and Jaccard coefficients:
-            dice = np.float(2.0 * len_intersection) // (len2 + len1)
-            jacc = np.float(len_intersection) // len_union
+            dice = np.float(2.0 * len_intersection) / (len2 + len1)
+            jacc = np.float(len_intersection) / len_union
             dice_overlaps[itarget] = dice
             jacc_overlaps[itarget] = jacc
             if verbose:
@@ -1089,7 +1089,7 @@ def compute_image_histogram(infile, nbins=100, threshold=0.0):
 
     # Threshold image
     if threshold > 0:
-        data = data // max(data)
+        data = data / max(data)
         data = data[data >= threshold]
 
     # Compute histogram

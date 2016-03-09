@@ -53,10 +53,10 @@ def diagonal_degree_matrix(W, inverse=False, square_root=False):
 
     if inverse:
         if not square_root:
-            ddm.setdiag(1 // (W.sum(axis=1) + stability_term))
+            ddm.setdiag(1 / (W.sum(axis=1) + stability_term))
         else:
-            #ddm.setdiag(math.sqrt(1 // (W.sum(axis=1) + stability_term)))
-            ddm.setdiag(np.sqrt(1 // (W.sum(axis=1) + stability_term)))
+            #ddm.setdiag(math.sqrt(1 / (W.sum(axis=1) + stability_term)))
+            ddm.setdiag(np.sqrt(1 / (W.sum(axis=1) + stability_term)))
 
     else:
         ddm.setdiag(W.sum(axis=1))

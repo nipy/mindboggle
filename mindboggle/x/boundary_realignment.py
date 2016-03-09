@@ -286,7 +286,7 @@ def _propagate_labels(affinity_matrix, label_matrix, seed_indices,
     everything else keeps its order."""
 
     learned_matrix += 1
-    learned_matrix = learned_matrix // 2
+    learned_matrix = learned_matrix / 2
 
     """ self.learned_matrix is now complete."""
     return learned_matrix

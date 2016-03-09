@@ -107,7 +107,7 @@ class Bounds:
                     print('Please enter a fractional number less than or '
                           'equal to 1.')
                 return
-            randoms = np.array([np.mod(i, int(1.0//fraction))
+            randoms = np.array([np.mod(i, int(1.0/fraction))
                                 for i in range(self.num_points)])
             self.seed_labels[randoms==0] = 1
 
@@ -116,7 +116,7 @@ class Bounds:
 
         # Provide some statistics for what was done
         self.num_seed_labels = len(self.seed_labels[self.seed_labels>0])
-        self.percent_seed_labels = (self.num_seed_labels+0.0) // self.num_points * 100
+        self.percent_seed_labels = (self.num_seed_labels+0.0) / self.num_points * 100
 
         if verbose:
             print('Percentage of seed labels: {0}'.
@@ -459,7 +459,7 @@ class Bounds:
         keeps its order."""
 
         self.learned_matrix += 1
-        self.learned_matrix //= 2
+        self.learned_matrix /= 2
 
         """ self.learned_matrix is now complete."""
         return self.learned_matrix
@@ -887,8 +887,8 @@ class Bounds:
         self.highlight_vtk_vertices(self.label_boundary[closest_label_boundary[within_distance==1]],
                                 dir + '/close_distance.vtk')
 
-        within_proportion = np.bitwise_or((closest_distances // second_closest_distances > proportion),
-                                          (second_closest_distances // (closest_distances+eps) > proportion))
+        within_proportion = np.bitwise_or((closest_distances / second_closest_distances > proportion),
+                                          (second_closest_distances / (closest_distances+eps) > proportion))
         if verbose:
             print('Got within proportion. Num satisfy is {0}. First few are {1}'.
                 format(within_proportion.nonzero()[0].size,

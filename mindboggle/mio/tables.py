@@ -613,7 +613,7 @@ def write_face_vertex_averages(input_file, output_table='', area_file=''):
         values = []
         for index in face:
             if area_file:
-                values.append(scalars[index] // area_scalars[index])
+                values.append(scalars[index] / area_scalars[index])
             else:
                 values.append(scalars[index])
         columns.append(np.mean(values))
@@ -730,7 +730,7 @@ def write_average_face_values_per_label(input_indices_vtk,
             values = []
             for index in face:
                 if area_file:
-                    values.append(scalars[index] // area_scalars[index])
+                    values.append(scalars[index] / area_scalars[index])
                 else:
                     values.append(scalars[index])
             columns.append(np.mean(values))

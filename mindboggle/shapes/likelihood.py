@@ -121,10 +121,10 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
 
     # Prep for below:
     n = 2
-    twopiexp = (2*pi)**(n//2)
+    twopiexp = (2*pi)**(n/2)
     border_sigmas = depth_border['sigmas'] * curv_border['sigmas']
     nonborder_sigmas = depth_nonborder['sigmas'] * curv_nonborder['sigmas']
-    norm_border = 1 // (twopiexp * border_sigmas + tiny)
+    norm_border = 1 / (twopiexp * border_sigmas + tiny)
     norm_nonborder = 1 / (twopiexp * nonborder_sigmas + tiny)
     I = [i for i,x in enumerate(folds) if x != -1]
 
@@ -152,7 +152,7 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
         probs_nonborder[I] = probs_nonborder[I] + \
                              norm_nonborder[j] * np.exp(expNB)
 
-    likelihoods = probs_border // (probs_nonborder + probs_border + tiny)
+    likelihoods = probs_border / (probs_nonborder + probs_border + tiny)
     likelihoods = likelihoods.tolist()
 
     #-------------------------------------------------------------------------
@@ -463,7 +463,7 @@ def fit_normals_to_histogram(data, x, verbose=False):
     # Initialize distribution means and sigmas:
     rangex = max(x) - min(x)
     for i in range(1, k + 1):
-        means[i-1] = max(x) - rangex//2 - 0.2 * rangex * (i - k//2)
+        means[i-1] = max(x) - rangex/2 - 0.2 * rangex * (i - k/2)
         sigmas[i-1] = 0.2
 
     if verbose:
@@ -475,24 +475,24 @@ def fit_normals_to_histogram(data, x, verbose=False):
         iter += 1
 
         for i in range(k):
-            m1 = 1 // (sigmas[i] * np.sqrt(2*pi) + tiny)
-            m2 = -((data-means[i])**2) // (2 *(sigmas[i]**2) + tiny)
+            m1 = 1 / (sigmas[i] * np.sqrt(2*pi) + tiny)
+            m2 = -((data-means[i])**2) / (2 *(sigmas[i]**2) + tiny)
             probs[:,i] = m1 * np.exp(m2)
 
         for i in range(k):
-            W[:,i] = probs[:,i] // (np.sum(probs, axis=1) + tiny)
+            W[:,i] = probs[:,i] / (np.sum(probs, axis=1) + tiny)
 
         for i in range(k):
             n1 = sum(W[:,i] * (data - means[i])**2)
             d1 = sum(W[:,i]) + tiny
-            sigmas[i] =  np.sqrt(n1 // d1)
-            means[i] = sum(W[:,i] * data) // d1
+            sigmas[i] =  np.sqrt(n1 / d1)
+            means[i] = sum(W[:,i] * data) / d1
 
         if verbose:
             print('    means: {0}; sigmas: {1}'.format(means, sigmas))
 
     for i in range(k):
-        weights[i] = sum(W[:,i]) // (np.sum(W) + tiny)
+        weights[i] = sum(W[:,i]) / (np.sum(W) + tiny)
 
     if verbose:
         print('    weights: {0}'.format(weights))
