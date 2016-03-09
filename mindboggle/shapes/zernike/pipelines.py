@@ -48,7 +48,7 @@ class SerialPipeline(Pipeline):
 
     def factorial_scalar(self, N):
         i, j, k = np.mgrid[0:N + 1, 0:N + 1, 0:N + 1]
-        return factorial(i) * factorial(j) * factorial(k) / (factorial(i + j + k + 2) * (i + j + k + 3))
+        return factorial(i) * factorial(j) * factorial(k) // (factorial(i + j + k + 2) * (i + j + k + 3))
 
     def monomial_precalc(self, points_array, N):
         n_points = points_array.shape[0]
@@ -95,7 +95,7 @@ class SerialPipeline(Pipeline):
         return tri_array
 
     def trinomial(self, i, j, k):
-        return factorial(i + j + k) / (factorial(i) * factorial(j) * factorial(k))
+        return factorial(i + j + k) // (factorial(i) * factorial(j) * factorial(k))
 
     def facet_volume(self, vertex_list):
         return np.linalg.det(autocat(vertex_list, axis=1))
@@ -157,7 +157,7 @@ class SerialPipeline(Pipeline):
                                  lambda _n, _l, _m: xrange((_n - _l) // 2 + 1),
                                  ):
             k = (n - l) // 2
-            Z[n, l, m] += (3 / (4 * PI_CONST)) * \
+            Z[n, l, m] += (3 // (4 * PI_CONST)) * \
                 self.Qklnu(k, l, nu) * np.conj(Y[l, nu, m])
 
         for n, l, m in nest(lambda: xrange(N + 1),
@@ -174,20 +174,20 @@ class SerialPipeline(Pipeline):
         return Z
 
     def Yljm(self, l, j, m):
-        aux_1 = np.power(-1, j) * (np.sqrt(2 * l + 1) / np.power(2, l))
+        aux_1 = np.power(-1, j) * (np.sqrt(2 * l + 1) // np.power(2, l))
         aux_2 = self.trinomial(
             m, j, l - m - 2 * j) * nchoosek(2 * (l - j), l - j)
         aux_3 = np.sqrt(self.trinomial(m, m, l - m))
-        y = (aux_1 * aux_2) / aux_3
+        y = (aux_1 * aux_2) // aux_3
         return y
 
     def Qklnu(self, k, l, nu):
-        aux_1 = np.power(-1, k + nu) / np.power(4.0, k)
-        aux_2 = np.sqrt((2 * l + 4 * k + 3) / 3.0)
+        aux_1 = np.power(-1, k + nu) // np.power(4.0, k)
+        aux_2 = np.sqrt((2 * l + 4 * k + 3) // 3.0)
         aux_3 = self.trinomial(
             nu, k - nu, l + nu + 1) * nchoosek(2 * (l + nu + 1 + k), l + nu + 1 + k)
         aux_4 = nchoosek(2.0 * (l + nu + 1), l + nu + 1)
-        return (aux_1 * aux_2 * aux_3) / aux_4
+        return (aux_1 * aux_2 * aux_3) // aux_4
 
     def feature_extraction(self, Z, N):
         F = np.zeros([N + 1, N + 1]) - 1  # +NAN_CONST
@@ -287,7 +287,7 @@ class NumpyOptimizations(Pipeline):
 
     def trinomial_precalc(self, N):
         i, k, j = np.mgrid[0:N + 1, 0:N + 1, 0:N + 1]
-        return factorial(i + j + k) / (factorial(i) * factorial(j) * factorial(k))
+        return factorial(i + j + k) // (factorial(i) * factorial(j) * factorial(k))
 
     def mon_comb(self, vertex, tri_array, N):
         i, j, k = np.mgrid[0:N + 1, 0:N + 1, 0:N + 1]

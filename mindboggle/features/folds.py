@@ -145,7 +145,7 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
     # Compute histogram of depth measures
     #-------------------------------------------------------------------------
     if npoints > min_vertices:
-        nbins = np.round(npoints / 100.0)
+        nbins = np.round(npoints // 100.0)
     else:
         raise IOError("  Expecting at least {0} vertices to create "
                       "depth histogram".format(min_vertices))
@@ -159,7 +159,7 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
     #-------------------------------------------------------------------------
     bins_smooth = gaussian_filter1d(bins.tolist(), 5)
     window = [-1, 0, 1]
-    bin_slopes = np.convolve(bins_smooth, window, mode='same') / (len(window) - 1)
+    bin_slopes = np.convolve(bins_smooth, window, mode='same') // (len(window) - 1)
     ibins0 = np.where(bin_slopes == 0)[0]
     if ibins0.shape:
         depth_threshold = bin_edges[ibins0[0]]

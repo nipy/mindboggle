@@ -345,10 +345,10 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
         img = nb.load(cortex)
         hdr = img.get_header()
         vv_orig = np.prod(hdr.get_zooms())
-        vv = np.prod([x/rescale for x in hdr.get_zooms()])
+        vv = np.prod([x//rescale for x in hdr.get_zooms()])
         cortex_data = img.get_data().ravel()
     else:
-        vv = 1/rescale
+        vv = 1//rescale
         cortex_data = nb.load(cortex).get_data().ravel()
 
     #-------------------------------------------------------------------------
@@ -356,7 +356,7 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     # to better represent the contours of the boundaries of the cortex:
     #-------------------------------------------------------------------------
     if resize:
-        dims = ' '.join([str(1/rescale), str(1/rescale), str(1/rescale)])
+        dims = ' '.join([str(1//rescale), str(1//rescale), str(1//rescale)])
         cmd = [ants_resample, '3', cortex, cortex, dims, '0 0 1']
         execute(cmd, 'os')
         cmd = [ants_resample, '3', noncortex, noncortex, dims, '0 0 1']
@@ -422,10 +422,10 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
                 label_outer_edge_volume = \
                     vv * len(np.where(outer_edge_data==label)[0])
                 label_area = (label_inner_edge_volume +
-                              label_outer_edge_volume) / 2.0
+                              label_outer_edge_volume) // 2.0
             else:
                 label_area = label_inner_edge_volume
-            thickness = label_cortex_volume / label_area
+            thickness = label_cortex_volume // label_area
             label_volume_thickness[ilabel, 1] = label_cortex_volume
             label_volume_thickness[ilabel, 2] = thickness
 

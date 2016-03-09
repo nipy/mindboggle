@@ -429,7 +429,7 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists,
 
             # Compute the cost for each vertex:
             costs = hmmfs * (1.1 - likelihoods) + \
-                    wN * np.sum(diff, axis=0) / numbers_of_neighbors
+                    wN * np.sum(diff, axis=0) // numbers_of_neighbors
         else:
             raise IOError('No HMMF neighbors to compute cost.')
 
@@ -442,7 +442,7 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists,
     # This influences surrounding vertex neighborhoods.
     # Note: 0.5 is the class boundary threshold for the HMMF values.
     H = np.zeros(len(L))
-    H_new = (L + 1.000001) / 2
+    H_new = (L + 1.000001) // 2
     H_new[L == 0.0] = 0
     H_new[H_new > 1.0] = 1
     H[H_new > 0.5] = H_new[H_new > 0.5]
@@ -529,7 +529,7 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists,
 
         # Terminate the loop if there are insufficient changes:
         if count > 0:
-            delta_cost = (costs_previous - costs) / npoints
+            delta_cost = (costs_previous - costs) // npoints
             delta_points = npoints_thr_previous - npoints_thr
             if delta_points == 0:
                 if delta_cost < min_cost_change and count > min_count:
@@ -546,7 +546,7 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists,
 
             # Increment the gradient factor and decrement the neighborhood factor
             # so that spacing is close in early iterations and far apart later:
-            factor = (count / np.round(rate_factor*max_count))**slope_exp
+            factor = (count // np.round(rate_factor*max_count))**slope_exp
             if gradient_factor < grad_max:
                 gradient_factor = factor * (grad_max - grad_min) + grad_min
             if wN > wN_min:

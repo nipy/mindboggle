@@ -4258,7 +4258,7 @@ class DKTprotocol(object):
     for i, x in enumerate(label_colors):
         colormap.append([label_numbers[i], 1, x[0], x[1], x[2]])
         colormap_normalized.append([label_numbers[i], 1,
-                                    x[0]/255.0, x[1]/255.0, x[2]/255.0])
+                                    x[0]//255.0, x[1]//255.0, x[2]//255.0])
 
     #-------------------------------------------------------------------------
     # Sulcus names from the DKT labeling protocol:

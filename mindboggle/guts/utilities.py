@@ -52,7 +52,7 @@ def execute(cmd, type='os'):
             if retcode < 0:
                 raise IOError("Child terminated by signal: retcode {0}".
                               format(retcode))
-        except OSError, e:
+        except OSError as e:
             raise OSError("Execution failed: {0}".format(e))
 
     # Use os.system:
@@ -65,7 +65,7 @@ def execute(cmd, type='os'):
             cmd = ' '.join(cmd)
         try:
             system(cmd)
-        except OSError, e:
+        except OSError as e:
             raise OSError("Execution failed: {0}".format(e))
 
     else:

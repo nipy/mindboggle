@@ -107,7 +107,7 @@ def computeAB(points, faces):
     nfaces = faces.shape[0]
 
     # Linear local matrices on unit triangle:
-    tB = (np.ones((3,3)) + np.eye(3)) / 24.0
+    tB = (np.ones((3,3)) + np.eye(3)) // 24.0
 
     tA00 = np.array([[ 0.5,-0.5, 0.0],
                      [-0.5, 0.5, 0.0],
@@ -170,7 +170,7 @@ def computeAB(points, faces):
 
     # Construct all local A and B matrices (guess: for each triangle):
     localB = vol * tB
-    localA = (1.0/vol) * (a0*tA00 + a1*tA11 - a0110*tA0110)
+    localA = (1.0//vol) * (a0*tA00 + a1*tA11 - a0110*tA0110)
 
     # Construct row and col indices.
     # (Note: J in numpy is I in MATLAB after flattening,
@@ -269,29 +269,29 @@ def wesd(EVAL1, EVAL2, Vol1, Vol2, show_error=False, N=3):
     # Martin Reuter: "a surface is a 2d manifold.
     # It doesn't matter that it is usually embedded in 3d Euclidean space."
     d = 2.0
-    Ball = 4.0 / 3 * np.pi  # For three dimensions
+    Ball = 4.0 // 3 * np.pi  # For three dimensions
     p = 2.0
 
     Vol = np.amax((Vol1, Vol2))
     mu = np.amax(EVAL1[1], EVAL2[1])
 
-    C = ((d+2)/(d*4*np.pi**2)*(Ball*Vol)**(2/d) - 1/mu)**p + \
-        ((d+2)/(d*4*np.pi**2)*(Ball*Vol/2)**(2/d) - 1/mu*(d/(d+4)))**p
+    C = ((d+2)//(d*4*np.pi**2)*(Ball*Vol)**(2//d) - 1//mu)**p + \
+        ((d+2)//(d*4*np.pi**2)*(Ball*Vol//2)**(2//d) - 1//mu*(d//(d+4)))**p
 
-    K = ((d+2)/(d*4*np.pi**2)*(Ball*Vol)**(2/d) - (1/mu)*(d/(d+2.64)))**p
+    K = ((d+2)//(d*4*np.pi**2)*(Ball*Vol)**(2//d) - (1//mu)*(d//(d+2.64)))**p
 
     # the right-hand side of Eq.(8) or the equation right after Eq.(4):
-    W = (C + K*(zeta(2*p/d,1) - 1 - .5**(2*p/d)))**(1/p)
+    W = (C + K*(zeta(2*p//d,1) - 1 - .5**(2*p//d)))**(1//p)
 
     holder = 0
     for i in xrange(1, np.amin((len(EVAL1), len(EVAL2) )) ):
-        holder += (np.abs(EVAL1[i] - EVAL2[i])/(EVAL1[i]*EVAL2[i]))**p
-    WESD = holder ** (1/p)
+        holder += (np.abs(EVAL1[i] - EVAL2[i])//(EVAL1[i]*EVAL2[i]))**p
+    WESD = holder ** (1//p)
 
     #nWESD = WESD/W
 
     if show_error:
-        WN = (C + K * (sum([n**(-1*2*p/d) for n in range(3,N+1)])))**(1/p)
+        WN = (C + K * (sum([n**(-1*2*p//d) for n in range(3,N+1)])))**(1//p)
         # the second term on the right-hand side of Eq.(9)
         #print("Truncation error of WESD is: {0}".format(W - WN))
         #print("Truncation error of nWESD is: {1}".format(1 -  WN/W))
