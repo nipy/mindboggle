@@ -241,7 +241,7 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     >>> cortex_value = 2
     >>> noncortex_value = 3
     >>> #labels = [2]
-    >>> labels = range(1002,1036) + range(2002,2036)
+    >>> labels = list(range(1002,1036)) + list(range(2002,2036))
     >>> labels.remove(1004)
     >>> labels.remove(2004)
     >>> labels.remove(1032)

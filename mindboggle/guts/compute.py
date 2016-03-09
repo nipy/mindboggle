@@ -1095,7 +1095,7 @@ def compute_image_histogram(infile, nbins=100, threshold=0.0):
     # Compute histogram
     histogram_values, bin_edges = np.histogram(data, bins=nbins)
 
-    # plot(range(len(histogram_values)), histogram_values, '-')
+    # plot(list(range(len(histogram_values))), histogram_values, '-')
     ##a,b,c = hist(data, bins=nbins)
 
     return histogram_values

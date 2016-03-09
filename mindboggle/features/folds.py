@@ -111,7 +111,8 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
     ...     pylab.show()
     ...     # Plot smoothed histogram:
     ...     bins_smooth = gaussian_filter1d(bins.tolist(), 5)
-    ...     pylab.plot(range(len(bins)), bins, '.', range(len(bins)), bins_smooth,'-')
+    ...     pylab.plot(list(range(len(bins))), bins, '.',
+    ...                list(range(len(bins))), bins_smooth,'-')
     ...     pylab.show()
     >>> vis() # doctest: +SKIP
 

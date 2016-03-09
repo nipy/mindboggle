@@ -25,9 +25,9 @@ def autocat(arrs, **dargs):
 
 def main():
 
-    def zero(): return xrange(0, 3)
-    def one(_x): return xrange(0, _x)
-    def two(_x, _y): return xrange(0, _y)
+    def zero(): return list(range(0, 3))
+    def one(_x): return list(range(0, _x))
+    def two(_x, _y): return list(range(0, _y))
 
     for i in nest(zero, one, two):
         print '#'*5, i

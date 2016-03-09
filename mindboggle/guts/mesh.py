@@ -262,7 +262,7 @@ def find_endpoints(indices, neighbor_lists):
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
     >>> folds_file = fetch_data(urls['left_folds'])
-    >>> indices = range(1000)
+    >>> indices = list(range(1000))
     >>> neighbor_lists = find_neighbors_from_file(folds_file)
     >>> indices_endpoints = find_endpoints(indices, neighbor_lists)
     >>> indices_endpoints

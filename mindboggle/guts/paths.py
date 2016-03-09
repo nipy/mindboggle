@@ -95,7 +95,7 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     [61455, 41761, 67978, 72621, 78546, 40675, 73745, 98736, 125536, 119813]
     >>> erode_ratio = 0.10
     >>> erode_min_size = 10
-    >>> save_steps = [] #range(0,500,50)
+    >>> save_steps = [] #list(range(0,500,50))
     >>> save_vtk = depth_file
     >>> skeleton = connect_points_erosion(S, neighbor_lists,
     ...     outer_anchors, inner_anchors, values, erode_ratio, erode_min_size,
@@ -941,7 +941,7 @@ def track_segments(seed, segments, neighbor_lists, values, sink,
     >>> # Extract boundary:
     >>> D = np.ones(len(values))
     >>> D[indices] = 2
-    >>> borders, f1,f2 = extract_borders(range(len(values)), D, neighbor_lists)
+    >>> borders, f1,f2 = extract_borders(list(range(len(values))), D, neighbor_lists)
     >>> track = track_segments(seed, segments, neighbor_lists, values, borders)
     >>> track[0:10]
     [28142, 28128, 29318, 29305, 28119, 28111, 28112]
@@ -1116,7 +1116,8 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     #-------------------------------------------------------------------------
     B = np.ones(len(V))
     B[indices] = 2
-    borders, foo1, foo2 = extract_borders(range(len(B)), B, neighbor_lists)
+    borders, foo1, foo2 = extract_borders(list(range(len(B))), B,
+                                          neighbor_lists)
 
     #-------------------------------------------------------------------------
     # Initialize seeds with vertices at the median-depth boundary:
@@ -1144,7 +1145,8 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     indices_high = [x for x in indices if S[x] >= thresholdS]
     B = np.ones(len(S))
     B[indices_high] = 2
-    seeds, foo1, foo2 = extract_borders(range(len(S)), B, neighbor_lists)
+    seeds, foo1, foo2 = extract_borders(list(range(len(S))), B,
+                                        neighbor_lists)
 
     #-------------------------------------------------------------------------
     # Segment the mesh from the seeds iteratively toward the boundary:

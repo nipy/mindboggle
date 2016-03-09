@@ -535,14 +535,14 @@ def close_surface_pair(faces, points1, points2, scalars, background_value=-1):
     scalars[scalars == background_value] = background_value + 1
     scalars[I] = background_value + 2
     scalars = scalars.tolist()
-    borders, u1, u2 = extract_borders(range(N), scalars, neighbor_lists)
+    borders, u1, u2 = extract_borders(list(range(N)), scalars, neighbor_lists)
     if not len(borders):
         sys.exit('There are no border vertices!')
     borders = [x for x in borders if x in I]
 
     # Reindex copy of faces and combine with original (both zero-index):
-    indices = range(N)
-    indices2 = range(N, 2 * N)
+    indices = list(range(N))
+    indices2 = list(range(N, 2 * N))
     reindex = dict([(index, indices2[i]) for i, index in enumerate(indices)])
     faces = keep_faces(faces, I)
     faces2 = [[reindex[i] for i in face] for face in faces]
@@ -641,7 +641,7 @@ def topo_test(index, values, neighbor_lists):
         # For each neighbor exceeding the threshold,
         # find its neighbors that also exceed the threshold,
         # then store these neighbors' indices in a sublist of "N":
-        labels = range(1, n_inside + 1)
+        labels = list(range(1, n_inside + 1))
         N = []
         for i_in in range(n_inside):
             new_neighbors = neighbor_lists[inside[i_in]]

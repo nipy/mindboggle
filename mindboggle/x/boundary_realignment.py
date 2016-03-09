@@ -41,7 +41,7 @@ def realign_boundaries_to_fundus_lines(
     ## read files
     points, indices, lines, faces, scalars, scalar_names, num_points, \
         input_vtk = read_vtk(surf_file, return_first=True, return_array=True)
-    indices = range(num_points)
+    indices = list(range(num_points))
 
     init_labels, _ = read_scalars(init_label_file,
                                   return_first=True, return_array=True)

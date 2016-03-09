@@ -127,9 +127,9 @@ def remove_volume_labels(input_file, labels_to_remove, output_file='',
     >>> os.rename(input_file, input_file + '.nii.gz')
     >>> input_file = input_file + '.nii.gz'
     >>> second_file = ''
-    >>> labels_to_remove = range(1,300) # Remove noncortex (+aseg) labels
+    >>> labels_to_remove = list(range(1,300)) # Remove noncortex (+aseg) labels
     >>> labels_to_remove.extend([1000,1001,2000,2001])
-    >>> labels_to_remove.extend(range(2000,2036)) # Remove right cortex labels
+    >>> labels_to_remove.extend(list(range(2000,2036))) # Remove right cortex labels
     >>> output_file = ''
     >>> output_file = remove_volume_labels(input_file, labels_to_remove,
     ...                                    output_file, second_file)
@@ -232,7 +232,7 @@ def keep_volume_labels(input_file, labels_to_keep, output_file='',
     >>> os.rename(input_file, input_file + '.nii.gz')
     >>> input_file = input_file + '.nii.gz'
     >>> second_file = ''
-    >>> labels_to_keep = range(1000, 1036)
+    >>> labels_to_keep = list(range(1000, 1036))
     >>> output_file = ''
     >>> output_file = keep_volume_labels(input_file, labels_to_keep,
     ...                                  output_file, second_file)

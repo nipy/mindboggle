@@ -3931,7 +3931,7 @@ class DKTprotocol(object):
     #-------------------------------------------------------------------------
     # Cerebral cortex label numbers (DKT31 protocol):
     #-------------------------------------------------------------------------
-    DKT31_numbers = [2, 3] + range(5, 32) + [34, 35]
+    DKT31_numbers = [2, 3] + list(range(5, 32)) + [34, 35]
     left_cerebrum_cortex_DKT31_list = [1000 + x for x in DKT31_numbers]
     right_cerebrum_cortex_DKT31_list = [2000 + x for x in DKT31_numbers]
 
@@ -3965,14 +3965,14 @@ class DKTprotocol(object):
     #-------------------------------------------------------------------------
     left_cerebrum_noncortex_list = \
         [2, 9, 10, 11, 12, 13, 17, 18, 25, 26, 27, 28, 30, 31, 78, 91, 96] + \
-        range(100, 109) + [155, 157] + range(550, 559) + [1004] + \
-        range(3000, 3036) + [5001] + left_ventricle_list
+        list(range(100, 109)) + [155, 157] + list(range(550, 559)) + [1004] + \
+        list(range(3000, 3036)) + [5001] + left_ventricle_list
     right_cerebrum_noncortex_list = \
         [41, 48, 49, 50, 51, 52, 53, 54, 57, 58, 59, 60, 62, 63, 79, 92, 97] + \
-        range(109, 118) + [156, 158] + range(500, 509) + [2004] + \
-        range(4000, 4036) + [5002] + right_ventricle_list
+        list(range(109, 118)) + [156, 158] + list(range(500, 509)) + [2004] + \
+        list(range(4000, 4036)) + [5002] + right_ventricle_list
     medial_cerebrum_noncortex_list = medial_ventricle_list + \
-                                        [192] + range(250, 256)
+                                        [192] + list(range(250, 256))
 
     #-------------------------------------------------------------------------
     # Cerebellar label numbers:
@@ -3998,7 +3998,7 @@ class DKTprotocol(object):
     #  [85, "optic chiasm"]]
     #  170-175: brain stem
     #-------------------------------------------------------------------------
-    brainstem_list = [16] + range(170, 176)
+    brainstem_list = [16] + list(range(170, 176))
     extra_list = [24, 85]
 
     #-------------------------------------------------------------------------
@@ -4289,7 +4289,7 @@ class DKTprotocol(object):
         "olfactory sulcus",
         "occipitotemporal sulcus",
         "collateral sulcus"]
-    sulcus_numbers = range(len(sulcus_names))
+    sulcus_numbers = list(range(len(sulcus_names)))
 
     sulcus_names_abbr = [
         "fms",
@@ -4488,10 +4488,10 @@ def extract_numbers_names_colors(FreeSurferColorLUT=''):
 #-------------------------------------------------------------------------
 # Region numbers:
 # DKT31 to DKT25: [[10,23,26,27,19,20], [2,2,2,3,18,18]]
-left_cerebrum_cortex_numbers_DKT25 = range(1002, 1036)
+left_cerebrum_cortex_numbers_DKT25 = list(range(1002, 1036))
 for n in [1004, 1010, 1019, 1020, 1023, 1026, 1027, 1032, 1033]:
     left_cerebrum_cortex_numbers_DKT25.remove(n)
-right_cerebrum_cortex_numbers_DKT25 = range(2002, 2036)
+right_cerebrum_cortex_numbers_DKT25 = list(range(2002, 2036))
 for n in [2004, 2010, 2019, 2020, 2023, 2026, 2027, 2032, 2033]:
     right_cerebrum_cortex_numbers_DKT25.remove(n)
 cerebrum_cortex_numbers_DKT25 = left_cerebrum_cortex_numbers_DKT25 + \

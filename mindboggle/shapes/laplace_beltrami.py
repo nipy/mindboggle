@@ -123,10 +123,10 @@ def computeAB(points, faces):
 
     # Replicate into third dimension for each triangle
     # (for tB, 1st index is the 3rd index in MATLAB):
-    tB = np.array([np.tile(tB, (1, 1)) for i in xrange(nfaces)])
-    tA00 = np.array([np.tile(tA00, (1, 1)) for i in xrange(nfaces)])
-    tA11 = np.array([np.tile(tA11, (1, 1)) for i in xrange(nfaces)])
-    tA0110 = np.array([np.tile(tA0110,(1, 1)) for i in xrange(nfaces)])
+    tB = np.array([np.tile(tB, (1, 1)) for i in range(nfaces)])
+    tA00 = np.array([np.tile(tA00, (1, 1)) for i in range(nfaces)])
+    tA11 = np.array([np.tile(tA11, (1, 1)) for i in range(nfaces)])
+    tA0110 = np.array([np.tile(tA0110,(1, 1)) for i in range(nfaces)])
 
     # Compute vertex coordinates and a difference vector for each triangle:
     v1 = points[faces[:, 0], :]
@@ -284,7 +284,7 @@ def wesd(EVAL1, EVAL2, Vol1, Vol2, show_error=False, N=3):
     W = (C + K*(zeta(2*p/d,1) - 1 - .5**(2*p/d)))**(1/p)
 
     holder = 0
-    for i in xrange(1, np.amin((len(EVAL1), len(EVAL2) )) ):
+    for i in range(1, np.amin((len(EVAL1), len(EVAL2) )) ):
         holder += (np.abs(EVAL1[i] - EVAL2[i])/(EVAL1[i]*EVAL2[i]))**p
     WESD = holder ** (1/p)
 

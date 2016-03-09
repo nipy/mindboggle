@@ -82,7 +82,7 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='', hemi='',
         segmentIDs = sulci
         sulcus_faces = keep_faces(faces, sulcus_indices)
     else:
-        sulcus_indices = range(len(labels))
+        sulcus_indices = list(range(len(labels)))
         segmentIDs = []
         sulcus_faces = faces
 

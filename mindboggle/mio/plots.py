@@ -496,7 +496,7 @@ def scatterplot_lists(y_columns, x_column, ignore_columns=[], plot_line=True,
     # Add legend and display:
     #-------------------------------------------------------------------------
     if plot_line:
-        plt.plot(range(int(min_value), int(max_value) + 2))
+        plt.plot(list(range(int(min_value), int(max_value) + 2)))
     if legend:
         fontP = FontProperties()
         fontP.set_size('small')
@@ -629,7 +629,7 @@ def scatterplot_list_pairs(columns, ignore_first_column=False, plot_line=True,
     # Add legend and display:
     #-------------------------------------------------------------------------
     if plot_line:
-        plt.plot(range(int(min_value), int(max_value) + 2))
+        plt.plot(list(range(int(min_value), int(max_value) + 2)))
     if legend:
         fontP = FontProperties()
         fontP.set_size('small')

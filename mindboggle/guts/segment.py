@@ -67,7 +67,7 @@ def propagate(points, faces, region, seeds, labels,
     >>> points, f1,f2, faces, labels, f3, npoints, f4 = read_vtk(label_file,
     ...     True, True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
-    >>> indices_borders, label_pairs, foo = extract_borders(range(npoints),
+    >>> indices_borders, label_pairs, foo = extract_borders(list(range(npoints)),
     ...     labels, neighbor_lists)
     >>> background_value = -1
     >>> # Select a single fold:
@@ -123,7 +123,7 @@ def propagate(points, faces, region, seeds, labels,
         indices_region = [i for i,x in enumerate(region) if x != background_value]
         if indices_region:
             local_indices_region = background_value * np.ones(labels.shape)
-            local_indices_region[indices_region] = range(len(indices_region))
+            local_indices_region[indices_region] = list(range(len(indices_region)))
 
             if verbose:
                 n_sets = len(np.unique([x for x in seeds
@@ -582,10 +582,10 @@ def segment_by_filling_borders(regions, neighbor_lists, background_value=-1,
     # Extract region borders (assumed to be closed contours)
     if verbose:
         print('  Extract region borders (assumed to be closed contours)')
-    indices_borders, foo1, foo2 = extract_borders(range(len(regions)),
-                                        regions, neighbor_lists)
+    indices_borders, foo1, foo2 = extract_borders(list(range(len(regions))),
+                                                  regions, neighbor_lists)
     # Extract background
-    indices_background = list(frozenset(range(len(regions))).
+    indices_background = list(frozenset(list(range(len(regions)))).
     difference(indices_borders))
 
     # Segment borders into separate, contiguous borders
@@ -698,7 +698,7 @@ def segment_rings(region, seeds, neighbor_lists, step=1, background_value=-1):
     ...     # Make sure threshold is within the maximum values of the boundary:
     ...     B = np.ones(len(values))
     ...     B[indices] = 2
-    ...     borders, foo1, foo2 = extract_borders(range(len(B)), B, neighbor_lists)
+    ...     borders, foo1, foo2 = extract_borders(list(range(len(B))), B, neighbor_lists)
     ...     borders = [x for x in borders if values[x] != background_value]
     ...     if list(frozenset(indices_high).intersection(borders)):
     ...         threshold = np.max(values[borders]) + np.std(values[borders])
@@ -706,7 +706,7 @@ def segment_rings(region, seeds, neighbor_lists, step=1, background_value=-1):
     ...     # Extract threshold boundary vertices as seeds:
     ...     B = background_value * np.ones(len(values))
     ...     B[indices_high] = 2
-    ...     seeds, foo1, foo2 = extract_borders(range(len(values)), B, neighbor_lists)
+    ...     seeds, foo1, foo2 = extract_borders(list(range(len(values))), B, neighbor_lists)
     ... # Or initialize P with the maximum value point:
     ... else:
     ...     seeds = [indices[np.argmax(values[indices])]]
@@ -894,7 +894,7 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
     #-------------------------------------------------------------------------
     D = np.ones(len(depths))
     D[indices] = 2
-    borders, foo1, foo2 = extract_borders(range(len(depths)), D,
+    borders, foo1, foo2 = extract_borders(list(range(len(depths))), D,
         neighbor_lists, ignore_values=[], return_label_pairs=False)
 
     #-------------------------------------------------------------------------
@@ -1208,7 +1208,7 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
     Write larger surface to vtk file and view (skip test):
 
     >>> vtk_file = 'test_larger_label.vtk' # doctest: +SKIP
-    >>> write_vtk(vtk_file, points2, range(len(points2)), [], faces2) # doctest: +SKIP
+    >>> write_vtk(vtk_file, points2, list(range(len(points2))), [], faces2) # doctest: +SKIP
     >>> plot_surfaces(vtk_file) # doctest: +SKIP
 
     """
@@ -1363,7 +1363,7 @@ def extract_borders(indices, labels, neighbor_lists,
     >>> f1,f2,f3, faces, labels, f4, npoints, f5 = read_vtk(label_file,
     ...                                                     True, True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
-    >>> indices_borders, label_pairs, f1 = extract_borders(range(npoints),
+    >>> indices_borders, label_pairs, f1 = extract_borders(list(range(npoints)),
     ...     labels, neighbor_lists)
     >>> indices_borders[0:10]
     [115, 116, 120, 121, 125, 126, 130, 131, 281, 286]
@@ -1487,8 +1487,8 @@ def extract_borders_2nd_surface(labels_file, values_file='',
 
     # Detect borders
     neighbor_lists = find_neighbors(faces, npoints)
-    indices_borders, foo1, foo2 = extract_borders(range(npoints),
-                                        labels, neighbor_lists)
+    indices_borders, foo1, foo2 = extract_borders(list(range(npoints)),
+                                                  labels, neighbor_lists)
 
     # Filter values with label borders
     border_values = background_value * np.ones(npoints)
