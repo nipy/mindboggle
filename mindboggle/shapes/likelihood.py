@@ -101,7 +101,7 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
     import os
     import numpy as np
     from math import pi
-    import cPickle as pickle
+    import pickle
     from io import open
 
     from mindboggle.mio.vtks import read_scalars, rewrite_scalars
@@ -208,7 +208,7 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files,
     Examples
     --------
     >>> import numpy as np
-    >>> import cPickle as pickle
+    >>> import pickle
     >>> from io import open
     >>> from mindboggle.shapes.likelihood import estimate_distribution
     >>> from mindboggle.mio.fetch_data import prep_tests
