@@ -632,7 +632,7 @@ class Bounds:
         self.highlighted_segment_file = 'highlighted_segments.vtk'
         color = 1
         colored_segments = np.zeros(self.Labels.shape)
-        for value in self.label_boundary_segments.values():
+        for value in list(self.label_boundary_segments.values()):
             colored_segments[value] = color
             color += 1
         write_vtk(self.highlighted_segment_file, self.Points,
@@ -771,7 +771,7 @@ class Bounds:
         """
         same = False
 
-        for value in self.label_boundary_segments.values():
+        for value in list(self.label_boundary_segments.values()):
             if vertex1 in value and vertex2 in value:
                 same = True
 

@@ -326,7 +326,7 @@ def _label_components(component_faces, num_points, boundary_indices,
     point_visited = num_points * [False]
     components = {}
     component_boundaries = {}
-    print "Finding connected components"
+    print("Finding connected components")
     while True:
         first_vertex = None
         try:
