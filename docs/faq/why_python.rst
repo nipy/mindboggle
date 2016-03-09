@@ -4,7 +4,7 @@
  Why Python?
 ------------------------------------------------------------------------------
 
-From Nipy's documentation::
+From Nipy's documentation:
 
 The choice of programming language has many scientific and practical
 consequences. Matlab is an example of a high-level language. Languages

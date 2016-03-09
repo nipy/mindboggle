@@ -2,16 +2,18 @@
 """
 Compute the Laplace-Beltrami spectrum using a linear finite element method.
 
-We follow the definitions and steps given in Martin Reuter et al.'s 2009 paper:
-    ``Discrete Laplace-Beltrami Operators for Shape Analysis and Segmentation''
+We follow the definitions and steps given in Reuter et al.'s 2009 paper:
+"Discrete Laplace-Beltrami Operators for Shape Analysis and Segmentation"
 
 References (please cite when using for publication):
+
 Martin Reuter et al.
-    Discrete Laplace-Beltrami Operators for Shape Analysis and Segmentation
-    Computers & Graphics 33(3):381-390, 2009
+Discrete Laplace-Beltrami Operators for Shape Analysis and Segmentation
+Computers & Graphics 33(3):381-390, 2009
+
 Martin Reuter et al.
-    Laplace-Beltrami spectra as "Shape-DNA" of surfaces and solids
-    Computer-Aided Design 38(4):342-366, 2006
+Laplace-Beltrami spectra as "Shape-DNA" of surfaces and solids
+Computer-Aided Design 38(4):342-366, 2006
 
 Dependency:
     Scipy 0.10 or later to solve the generalized eigenvalue problem.
@@ -20,10 +22,10 @@ Dependency:
 
 NOTE ::
 
-    For ``points``, only include coordinates of vertices in the 3-D structure
+    For "points," only include coordinates of vertices in the 3-D structure
     whose spectrum is to be calculated. For example, do not use coordinates
-    of all POINTS from a VTK file as ``points`` and use only corresponding
-    faces as ``faces``. Otherwise this will cause a singular matrix error
+    of all POINTS from a VTK file as "points" and use only corresponding
+    faces as "faces." Otherwise this will cause a singular matrix error
     when inverting matrices because some rows are all zeros.
 
 Acknowledgments:
@@ -303,56 +305,53 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None,
     Compute linear finite-element method Laplace-Beltrami spectrum
     after Martin Reuter's MATLAB code.
 
-    Note ::
+    Comparison of fem_laplacian() with Martin Reuter's Matlab eigenvalues:
 
-        Compare fem_laplacian() with Martin Reuter's Matlab eigenvalues:
+    fem_laplacian() results for Twins-2-1 left hemisphere (6 values):
+    [4.829758648026221e-18,
+    0.0001284173002467199,
+    0.0002715181572272745,
+    0.0003205150847159417,
+    0.0004701628070486448,
+    0.0005768904023010318]
 
-        fem_laplacian() results for Twins-2-1 left hemisphere (6 values):
-        [4.829758648026221e-18,
-         0.0001284173002467199,
-         0.0002715181572272745,
-         0.0003205150847159417,
-         0.0004701628070486448,
-         0.0005768904023010318]
+    Martin Reuter's shapeDNA-tria Matlab code:
+    {-4.7207711983791511358e-18 ;
+    0.00012841730024672144738 ;
+    0.00027151815722727096853 ;
+    0.00032051508471592313632 ;
+    0.0004701628070486902353  ;
+    0.00057689040230097490998 }
 
-        Martin Reuter's shapeDNA-tria Matlab code:
-        {-4.7207711983791511358e-18 ;
-         0.00012841730024672144738 ;
-         0.00027151815722727096853 ;
-         0.00032051508471592313632 ;
-         0.0004701628070486902353  ;
-         0.00057689040230097490998 }
+    fem_laplacian() results for Twins-2-1 left postcentral (1022):
+    [6.3469513010430304e-18,
+    0.0005178862383467463,
+    0.0017434911095630772,
+    0.003667561767487686,
+    0.005429017880363784,
+    0.006309346984678924]
 
-        fem_laplacian() results for Twins-2-1 left postcentral (1022):
-        [6.3469513010430304e-18,
-         0.0005178862383467463,
-         0.0017434911095630772,
-         0.003667561767487686,
-         0.005429017880363784,
-         0.006309346984678924]
-
-        Martin Reuter's Matlab code:
-        {-2.1954862991027e-18 ;
-         0.0005178862383468 ;
-         0.0017434911095628 ;
-         0.0036675617674875 ;
-         0.0054290178803611 ;
-         0.006309346984678 }
+    Martin Reuter's Matlab code:
+    {-2.1954862991027e-18 ;
+    0.0005178862383468 ;
+    0.0017434911095628 ;
+    0.0036675617674875 ;
+    0.0054290178803611 ;
+    0.006309346984678 }
 
     Julien Lefevre, regarding comparison with Spongy results:
     "I have done some comparisons between my Matlab codes and yours
     on python and everything sounds perfect:
-    The evaluation has been done only for one mesh (about 10000 vertices)."
+    The evaluation has been done only for one mesh (about 10000 vertices).
     - L2 error between your A and B matrices and mine are about 1e-16.
     - I have also compared eigenvalues of the generalized problem;
-      even if the error is slightly increasing, it remains on the order
-      of machine precision.
-    - Another good point: computation time for 1000 eigenvalues was 67s
-      with python versus 63s in matlab.
-      And it is quite the same behavior for lower orders.
+    even if the error is slightly increasing, it remains on the order
+    of machine precision.
+    - computation time for 1000 eigenvalues was 67s with python
+    versus 63s in matlab. And it is quite the same behavior for lower orders.
     - Since the eigenvalues are increasing with order,
-      it is also interesting to look at the relative error...
-      high frequencies are not so much perturbed."
+    it is also interesting to look at the relative error...
+    high frequencies are not so much perturbed."
 
     Parameters
     ----------

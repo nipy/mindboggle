@@ -464,11 +464,10 @@ def find_adjacent_faces(faces):
     adjacent_faces: list of pairs of lists of three integers
         list 1 indexes three faces adjacent to the three face's edges;
         list 2 indexes three vertices opposite the adjacent faces:
-        adjacent_faces[i]: two lists, each of length 3
-        adjacent_faces[i][0] = [face0, face1, face2]:
-                                face0 is the neighbor of face i facing vertex0
-        adjacent_faces[i][1] = [vertex0, vertex1, vertex2], which is face i:
-                                vertex0 is the vertex of face0 not in face i
+        adjacent_faces[i][0] = [face0, face1, face2], neighbors of face i
+        (face0 is the neighbor of face i facing vertex0)
+        adjacent_faces[i][1] = [vertex0, vertex1, vertex2] for face i
+        (vertex0 is the vertex of face0 not in face i)
 
     Examples
     --------

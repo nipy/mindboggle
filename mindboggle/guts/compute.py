@@ -673,16 +673,15 @@ def stats_per_label(values, labels, include_labels=[], exclude_labels=[],
     average value = sum(a_i * v_i) / total_surface_area,
     where *a_i* and *v_i* are the area and value for each vertex *i*.
 
+    Reference:
+        Weighted skewness and kurtosis unbiased by sample size
+        Lorenzo Rimoldini, arXiv:1304.6564 (2013)
+        http://arxiv.org/abs/1304.6564
+
     Note ::
         This function is different than means_per_label() in two ways:
             1. It computes more than simply the (weighted) mean and sdev.
             2. It only accepts 1-D arrays of values.
-
-    Reference
-    ---------
-    Weighted skewness and kurtosis unbiased by sample size
-    Lorenzo Rimoldini, arXiv:1304.6564 (2013)
-    http://arxiv.org/abs/1304.6564
 
     Parameters
     ----------

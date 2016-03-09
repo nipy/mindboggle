@@ -25,6 +25,7 @@ pipeline framework.
     :maxdepth: 1
 
     FAQ <faq.rst>
+    API <api.rst>
     license
 
 * :ref:`genindex`

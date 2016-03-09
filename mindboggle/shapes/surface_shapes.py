@@ -137,37 +137,44 @@ def curvature(command, method, arguments, surface_file, verbose=False):
     Measure curvature values of each vertex in a surface mesh (-m 0).
     (Calls Joachim Giard's C++ code)
 
-    Usage: CurvatureMain [Options] InputVTKMesh MeanCurvatureOutput
-    Options:
-       -m Method: set the method used to compute curvature(s) (default 0)
-           0 -- Use ComputePrincipalCurvatures() function to compute both
-                mean and Gaussian curvatures based on the relative direction
-                of the normal vectors in a small neighborhood
-           1 -- Use ComputeBothCurvatures() function to compute both mean
-                and Gaussian curvatures based on the local ratios between
-                a filtered surface and the original surface area
-           2 -- Use ComputeCurvature() function to compute the mean curvature
-                based on the direction of the displacement vectors during
-                a Laplacian filtering
-       -n Neighborhood: neighborhood size (default 0.7)
-       -g GaussianCurvVTK: save Gaussian curvature (for -m 0 or 1)
-       -x MaxCurvVTK: save maximum curvature (for -m 0)
-       -i MinCurvVTK: save minimum curvature (for -m 0)
-       -d DirectionVTK: save minimal curvature's direction (for -m 0)
-    Example: CurvatureMain -m 2 -n 0.7  lh.pial.vtk  lh.pial.mean_curvature.vtk
-    Example: CurvatureMain -m 0 -n 2
-                -i lh.min_curv.vtk -x lh.max_curv.vtk -g lh.gaussian_curv.vtk
-                -d lh.min_dir.vtk lh.pial.vtk  lh.mean_curv.vtk
+    Command line usage:
+    CurvatureMain [Options] InputVTKMesh MeanCurvatureOutput
 
-    Note ::
+    Command line options:
+    -m Method: set the method used to compute curvature(s) (default 0):
+    0: Use ComputePrincipalCurvatures() function to compute both
+    mean and Gaussian curvatures based on the relative direction
+    of the normal vectors in a small neighborhood
+    1: Use ComputeBothCurvatures() function to compute both mean
+    and Gaussian curvatures based on the local ratios between
+    a filtered surface and the original surface area
+    2: Use ComputeCurvature() function to compute the mean curvature
+    based on the direction of the displacement vectors during
+    a Laplacian filtering
+    -n Neighborhood: neighborhood size (default 0.7)
+    -g GaussianCurvVTK: save Gaussian curvature (for -m 0 or 1)
+    -x MaxCurvVTK: save maximum curvature (for -m 0)
+    -i MinCurvVTK: save minimum curvature (for -m 0)
+    -d DirectionVTK: save minimal curvature's direction (for -m 0)
 
-        -m 0 is best if you have low resolution or want local peaks,
-            but can be too sensitive to the local linear geometry of the mesh,
-            unless the neighborhood parameter is set high enough (like 2).
-        -m 1 is not well tested and the filtering is done using Euclidean
-            distances, so it's only good for incorrect but fast visualization.
-        -m 2 is a good approximation based on the Laplacian, but very large
-            curvatures (negative or positive) are underestimated (saturation).
+    Command line example:
+    CurvatureMain -m 2 -n 0.7  lh.pial.vtk  lh.pial.mean_curvature.vtk
+
+    Command line example:
+    CurvatureMain -m 0 -n 2
+    -i lh.min_curv.vtk -x lh.max_curv.vtk -g lh.gaussian_curv.vtk
+    -d lh.min_dir.vtk lh.pial.vtk  lh.mean_curv.vtk
+
+    Notes:
+    -m 0 is best if you have low resolution or want local peaks,
+    but can be too sensitive to the local linear geometry of the mesh,
+    unless the neighborhood parameter is set high enough (like 2).
+
+    -m 1 is not well tested and the filtering is done using Euclidean
+    distances, so it's only good for incorrect but fast visualization.
+
+    -m 2 is a good approximation based on the Laplacian, but very large
+    curvatures (negative or positive) are underestimated (saturation).
 
     Parameters
     ----------
@@ -195,7 +202,7 @@ def curvature(command, method, arguments, surface_file, verbose=False):
     basename = os.path.splitext(os.path.basename(surface_file))[0]
     mean_curvature_file = os.path.join(os.getcwd(), basename) + \
         '.mean_curvature.vtk'
-    if method in [0,1]:
+    if method in [0, 1]:
         gauss_curvature_file = stem + '.gauss_curvature.vtk'
         args.extend(['-g', gauss_curvature_file])
     if method == 0:
@@ -206,6 +213,9 @@ def curvature(command, method, arguments, surface_file, verbose=False):
                      '-i', min_curvature_file,
                      '-d', min_curvature_vector_file])
     args.extend([surface_file, mean_curvature_file])
+
+    if arguments:
+        args.extend([arguments])
 
     if verbose:
         print("{0} {1}".format(command, args))

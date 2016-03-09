@@ -5,29 +5,29 @@ portions of a surface mesh.
 
 Compute likelihood values for a VTK surface mesh:
 
-  compute_likelihood()
+compute_likelihood():
     Compute likelihood values for a given VTK surface mesh.
     This is run after training on the distributions of depth and curvature
     values across multiple VTK surface mesh files in the functions below.
 
 Learn distributions from training data (see Examples below):
 
-  estimate_depth_curvature_distributions()
+estimate_depth_curvature_distributions():
     Estimate distribution means, sigmas (standard deviations), and weights
     for VTK surface mesh depth and curvature scalars along and outside
     sulcus label borders within folds (as defined by a labeling protocol).
 
-  which calls the functions:
+estimate_depth_curvature_distributions() calls the following functions:
 
-    concatenate_sulcus_scalars()
-      Prepare data for estimating scalar distributions along and outside fundi.
-      Extract (e.g., depth, curvature) scalar values in folds, along sulcus
-      label boundaries as well as outside the sulcus label boundaries.
-      Concatenate these scalar values across multiple files.
+concatenate_sulcus_scalars():
+    Prepare data for estimating scalar distributions along and outside fundi.
+    Extract (e.g., depth, curvature) scalar values in folds, along sulcus
+    label boundaries as well as outside the sulcus label boundaries.
+    Concatenate these scalar values across multiple files.
 
-    fit_normals_to_histogram()
-      This Estimation-Maximization method returns estimated means, sigmas
-      (standard deviations) and weights from a distribution of values.
+fit_normals_to_histogram():
+    This Estimation-Maximization method returns estimated means, sigmas
+    (standard deviations) and weights from a distribution of values.
 
 
 Authors:
@@ -42,18 +42,19 @@ Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 def compute_likelihood(trained_file, depth_file, curvature_file, folds,
                        save_file=False):
     """
-    Compute likelihoods based on input values, folds, and estimated parameters.
+    Compute likelihoods based on input values, folds, estimated parameters.
 
-    Compute likelihood values for a given VTK surface mesh file, after training
-    on distributions of depth and curvature values from multiple files.
+    Compute likelihood values for a given VTK surface mesh file, after
+    training on distributions of depth and curvature values from multiple
+    files.
 
     Parameters
     ----------
     trained_file : pickle compressed file
-        contains the following dictionaries containing lists of floats
+        depth_border, curv_border, depth_nonborder, and curv_nonborder are
+        dictionaries containing lists of floats
         (estimates of depth or curvature means, sigmas, and weights
-         trained on fold vertices either on or off sulcus label borders)
-        depth_border, curv_border, depth_nonborder, curv_nonborder
+        trained on fold vertices either on or off sulcus label borders)
     depth_file : string
         VTK surface mesh file with depth values in [0,1] for all vertices
     curvature_file : string

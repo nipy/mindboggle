@@ -9,4 +9,5 @@
    faq/why_license
    faq/why_python
    labels
-- `Who has contributed to Mindboggle? <http://mindboggle.info/people.html>`_
+
+   - `Who has contributed to Mindboggle? <http://mindboggle.info/people.html>`_

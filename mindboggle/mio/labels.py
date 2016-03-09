@@ -3868,15 +3868,14 @@ def return_numbers_names_colors():
 class DKTprotocol(object):
     """Variables related to the Desikan-Killiany-Tourville labeling protocol.
 
-For more information about the Desikan-Killiany-Tourville (DKT) human brain
-cortical labeling protocol, see http://mindboggle.info/data/ and the article:
+    For more information about the Desikan-Killiany-Tourville (DKT) human
+    brain cortical labeling protocol, see http://mindboggle.info/data/
+    and the article:
 
-http://www.frontiersin.org/Brain_Imaging_Methods/10.3389/fnins.2012.00171/full
-"101 labeled brain images and a consistent human cortical labeling protocol"
-Arno Klein, Jason Tourville. Frontiers in Brain Imaging Methods. 6:171.
-DOI: 10.3389/fnins.2012.00171
-
-See http://mindboggle.info/faq/labels.html for additional information.
+    http://www.frontiersin.org/Brain_Imaging_Methods/10.3389/fnins.2012.00171/full
+    "101 labeled brain images and a consistent human cortical labeling protocol"
+    Arno Klein, Jason Tourville. Frontiers in Brain Imaging Methods. 6:171.
+    DOI: 10.3389/fnins.2012.00171
 
     Returns
     -------

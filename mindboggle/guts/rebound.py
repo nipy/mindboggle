@@ -64,12 +64,11 @@ class Bounds:
         Initialize a set of seed labels for relabeling or label propagation.
 
         Options include:
-        - lines:          vertices in polylines
-        - flanks:         vertices flanking polylines
-        - lines_flanks:   both the polylines and the flanks
-        - label_boundary: label boundary vertices
-        - random:           a <fraction> of random vertices
-#@        - consensus:  TO DO!
+          - lines: vertices in polylines
+          - flanks: vertices flanking polylines
+          - lines_flanks: both the polylines and the flanks
+          - label_boundary: label boundary vertices
+          - random: a <fraction> of random vertices
 
         """
         self.seed_labels = np.zeros(self.num_points)
@@ -131,14 +130,15 @@ class Bounds:
 
         Parameters
         ----------
-        Array of n labels. -1 corresponds to no label.
+        array of n labels; -1 corresponds to no label
 
         Returns
         -------
-        n x C array. Row corresponds to vertex, column corresponds to label.
-            1:   assigned the label corresponding to the column
-           -1:   does not have that label
-            0:   no label assigned
+        n x C : array
+            row corresponds to vertex, column corresponds to label
+            1 indicates that it is assigned the column's label
+           -1 indicates that it does not have that label
+            0 indicates that there is no label assigned
 
         """
 
@@ -1230,31 +1230,36 @@ class Bounds:
     def check_for_polylines(self, dict_of_vertices, threshold=15,
                             verbose=False):
         """
-        Check which groups of vertices contain a sufficient number that border polylines.
+        Check which groups of vertices contain a sufficient number that
+        border polylines.
 
-        Problem:  A group of vertices is considered for label reassignment
-                  but they might not be situated between a label boundary
-                  and a polyline representing a label-delimiting feature
-                  (such as a fundus in the brain cortex).
-        Solution: Here we check to see if the vertices include a sufficient
-                  number that flank polylines.  If the proposed label
-                  reassignment would not change many polyline vertices,
-                  then this is probably not a good group of vertices to change.
-                  (Remove them from the input dictionary.)
+        Problem:
+        A group of vertices is considered for label reassignment
+        but they might not be situated between a label boundary
+        and a polyline representing a label-delimiting feature
+        (such as a fundus in the brain cortex).
+
+        Solution:
+        Here we check to see if the vertices include a sufficient
+        number that flank polylines.  If the proposed label
+        reassignment would not change many polyline vertices,
+        then this is probably not a good group of vertices to change.
+        (Remove them from the input dictionary.)
+
         Parameters
         ----------
         dict_of_vertices: dict
-            key:  label index
-            value:  list of vertices under consideration for reassignment to label
+            key is the label index
+            value is the list of vertices to be reassigned to the label
 
-        threshold: int (minimum number of vertices that must also be part
-                        of a polylines boundary)
+        threshold: int
+            minimum number of vertices that must be part of polylines boundary
 
         Returns
         -------
         dict_of_vertices: dict (subset of the input dict)
-            key:  label index
-            value:  list of vertices to be reassigned to the label
+            key is the label index
+            value is the list of vertices to be reassigned to the label
 
         """
         self.find_polylines_flanks()
@@ -1297,27 +1302,31 @@ class Bounds:
         Resolve competing labels for two groups of vertices that have some
         vertices in common.
 
-        Problem:  Two groups of vertices are considered for label reassignment,
-                  each to a different label, but they share some vertices.
-                  To which label should they be reassigned?
-        Solution: Here we simply select the larger group of vertices,
-                  and remove the other group from the input dictionary.
-                  Presumably this group runs parallel to the polyline
-                  representing a label-delimiting feature (such as a fundus).
+        Problem:
+        Two groups of vertices are considered for label reassignment,
+        each to a different label, but they share some vertices.
+        To which label should they be reassigned?
+
+        Solution:
+        Here we simply select the larger group of vertices,
+        and remove the other group from the input dictionary.
+        Presumably this group runs parallel to the polyline
+        representing a label-delimiting feature (such as a fundus).
+
         Parameters
         ----------
         dict_of_vertices: dict
-            key:  label index
-            value:  list of vertices under consideration for reassignment to label
+            key is the label index
+            value is the list of vertices to be reassigned to the label
 
-        threshold: int (minimum number of vertices that must also be part
-                        of a polylines boundary)
+        threshold: int
+            minimum number of vertices that must be part of polylines boundary
 
         Returns
         -------
         dict_of_vertices: dict (subset of the input dict)
-            key:  label index
-            value:  list of vertices to be reassigned to the label
+            key is the label index
+            value is the list of vertices to be reassigned to the label
 
         """
 
@@ -1378,22 +1387,26 @@ class Bounds:
 
         NOTE: face validity but does what we want it to do?
 
-        Problem:  Two groups of vertices are considered for label reassignment,
-                  but they lie to either side of a label boundary.
-                  If both are relabeled, this can result in a "striping" artifact.
-                  Which of the two groups of vertices should be relabeled?
-        Solution: Here we simply select the larger group of vertices,
-                  and remove the other group from the input dictionary.
-                  Presumably this group runs parallel to the polyline
-                  representing a label-delimiting feature (such as a fundus).
+        Problem:
+        Two groups of vertices are considered for label reassignment,
+        but they lie to either side of a label boundary.
+        If both are relabeled, this can result in a "striping" artifact.
+        Which of the two groups of vertices should be relabeled?
+
+        Solution:
+        Here we simply select the larger group of vertices,
+        and remove the other group from the input dictionary.
+        Presumably this group runs parallel to the polyline
+        representing a label-delimiting feature (such as a fundus).
+
         Parameters
         ----------
         dict_of_vertices: dict
-            key:  label index
-            value:  list of vertices under consideration for reassignment to label
+            key is the label index
+            value is the list of vertices considered for reassignment to label
 
-        threshold: int (minimum number of vertices that must also be part
-                        of a polylines boundary)
+        threshold: int
+            minimum number of vertices that must be part of polylines boundary
 
         Returns
         -------
