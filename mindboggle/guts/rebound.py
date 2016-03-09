@@ -618,7 +618,7 @@ class Bounds:
                     self.label_boundary_segments[(Class,c)] += [vertex]
 
         # Trim results - delete any dict entry which has no vertices
-        for key, value in self.label_boundary_segments.items():
+        for key, value in list(self.label_boundary_segments.items()):
             if value == []:
                 self.label_boundary_segments.pop(key)
 
@@ -743,7 +743,7 @@ class Bounds:
 
         self.realignment_mapping = {}
         label = 0
-        for key, value in self.label_boundary_segments.items():
+        for key, value in list(self.label_boundary_segments.items()):
             self.realignment_mapping[label] = key
             self.label_segment_matrix[value,:] = -1
             self.label_segment_matrix[value,label] = 1
@@ -961,12 +961,12 @@ class Bounds:
         # Now we will see how many vertices from each label boundary segment satisfy the properties.
         # If a segment only contains a few vertices, then we won't bother propagating labels from it.
 
-        reverse_mapping = dict((v,k) for k, v in self.realignment_mapping.items())
+        reverse_mapping = dict((v,k) for k, v in list(self.realignment_mapping.items()))
 
         # Let's include some information as to which label boundaries will propagate their labels...
         vertices_to_highlight = np.zeros(self.Labels.shape)
 
-        for key, value in self.label_boundary_segments.items():
+        for key, value in list(self.label_boundary_segments.items()):
             # num_intersections = np.intersect1d(satisfy_distances, value).size + np.intersect1d(satisfy_distances, self.label_boundary_segments[key[::-1]]).size
             num_intersections = np.intersect1d(satisfy_distances, value).size
             if verbose:
@@ -1009,7 +1009,7 @@ class Bounds:
         except AttributeError:
             self.find_label_boundary_segments(completed=completed)
 
-        for key, segment in self.label_boundary_segments.items():
+        for key, segment in list(self.label_boundary_segments.items()):
             if segment:
                 endpoint = self.find_endpoints(segment)
                 intersection = self.find_intersections(segment, endpoint)
@@ -1210,14 +1210,14 @@ class Bounds:
         #     print('After resolving label front ambiguities, \
         # {} regions are to be relabeled:'.format(len(vertices_to_change))
 
-        for key, value in vertices_to_change.items():
+        for key, value in list(vertices_to_change.items()):
             if verbose:
                 print('For key {0}, the following vertices will be changed: {1}'.
                       format(self.realignment_mapping[key],value))
 
         # For vertices that have passed all checks and are to be relabeled,
         # select the second (relabel) entry in the corresponding dictionary tuple
-        for key, value in vertices_to_change.items():
+        for key, value in list(vertices_to_change.items()):
             self.RLabels[value] = self.realignment_mapping[key][1]
 
         # Write VTK file with the new labels
@@ -1267,7 +1267,7 @@ class Bounds:
         if verbose:
             print self.polylines_flanks_indices
 
-        for key, value in dict_of_vertices.items():
+        for key, value in list(dict_of_vertices.items()):
             if len(np.intersect1d(value,self.polylines_flanks_indices)) < threshold:
                 dict_of_vertices.pop(key)
 
@@ -1342,8 +1342,8 @@ class Bounds:
         num_keys = len(dict_of_vertices)
         overlap = np.zeros((num_keys, num_keys))
 
-        for key1, value1 in dict_of_vertices.items():
-            for key2, value2, in dict_of_vertices.items():
+        for key1, value1 in list(dict_of_vertices.items()):
+            for key2, value2, in list(dict_of_vertices.items()):
                 if key1 != key2:
                     overlap_problem = np.intersect1d(value1,value2).any()
                     if overlap_problem:
@@ -1416,8 +1416,8 @@ class Bounds:
 
         """
 
-        for key1, value1 in dict_of_vertices.items():
-            for key2, value2 in dict_of_vertices.items():
+        for key1, value1 in list(dict_of_vertices.items()):
+            for key2, value2 in list(dict_of_vertices.items()):
                 if key1 != key2:
                     # If thay are co-segments...
                     if len(np.intersect1d(self.realignment_mapping[key1], self.realignment_mapping[key2])) == 2:

@@ -130,7 +130,7 @@ def _build_boundary_matrix(boundary_segments, num_points):
     boundary_segment_matrix = np.zeros((num_points, len(boundary_segments)))
 
     realignment_mapping = {}
-    for label_index, (key, val) in enumerate(boundary_segments.items()):
+    for label_index, (key, val) in enumerate(list(boundary_segments.items())):
         realignment_mapping[label_index] = key
         boundary_segment_matrix[val, :] = -1
         boundary_segment_matrix[val, label_index] = 1
@@ -378,7 +378,7 @@ def _label_components(component_faces, num_points, boundary_indices,
         # assign the most likely label
         max_label = None
         max_label_likelihood = None
-        for key, val in label_likelihoods.items():
+        for key, val in list(label_likelihoods.items()):
             if max_label is None or val > max_label_likelihood:
                 max_label = key
                 max_label_likelihood = val
