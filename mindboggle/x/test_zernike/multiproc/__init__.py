@@ -51,9 +51,9 @@ class MultiprocPipeline(object) :
         print(astring)
     def zeros(self,*args,**dargs) : return numpy.zeros(args,**dargs)
     def rng(self,*args) :
-        if len(args) == 1 : return xrange(args[0]+1)
-        elif len(args) == 2 : return xrange(args[0],args[1]+1)
-        elif len(args) == 3 : return xrange(args[0],args[1]+1,args[2])
+        if len(args) == 1 : return range(args[0]+1)
+        elif len(args) == 2 : return range(args[0],args[1]+1)
+        elif len(args) == 3 : return range(args[0],args[1]+1,args[2])
         else : raise Exception()
     def rng_prod(self,*args,**dargs) :
         args = tuple([ self.rng(*a) for a in args ])

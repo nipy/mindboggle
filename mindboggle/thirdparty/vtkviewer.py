@@ -278,7 +278,7 @@ class VTKViewer(object):
         rgb_colors = tubeMesh.GetPointData().GetArray("rgb_colors")
         if rgb_colors is not None:
             if rgb_colors.GetNumberOfComponents() == 3:
-                for i in xrange(N):
+                for i in range(N):
                     rgb_colors.SetTupleValue(i, (127, 127, 127))
 
         appendFilter = vtk.vtkAppendPolyData()

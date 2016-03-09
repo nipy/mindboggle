@@ -60,7 +60,7 @@ def propagate_fundus_lines(points, faces, fundus_line_indices, thickness):
     neighbor_lists = find_neighbors(faces, num_points)
 
     # Find the boundary of the cc and call that a fundus line
-    cc_inds = [x for x in xrange(num_points) if thickness[x] < 0.001]
+    cc_inds = [x for x in range(num_points) if thickness[x] < 0.001]
     cc_boundary = [x for x in cc_inds if len([y for y in neighbor_lists[x]
                                               if y not in cc_inds])]
 

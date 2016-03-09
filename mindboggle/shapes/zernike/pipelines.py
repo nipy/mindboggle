@@ -62,9 +62,9 @@ class SerialPipeline(Pipeline):
     def mon_comb(self, vertex, tri_array, N, out=None):
         x, y, z = vertex
         c = np.zeros([N + 1, N + 1, N + 1])
-        for i, j, k in nest(lambda: xrange(N + 1),
-                            lambda _i: xrange(N - _i + 1),
-                            lambda _i, _j: xrange(N - _i - _j + 1),
+        for i, j, k in nest(lambda: range(N + 1),
+                            lambda _i: range(N - _i + 1),
+                            lambda _i, _j: range(N - _i - _j + 1),
                             ):
             c[i, j, k] = tri_array[i, j, k] * \
                 np.power(x, i) * np.power(y, j) * np.power(z, k)
@@ -74,12 +74,12 @@ class SerialPipeline(Pipeline):
         S = np.zeros([N + 1, N + 1, N + 1])
         C0, C1, C2 = Cf_list
         Dabc = self.term_Dabc(C1, C2, N)
-        for i, j, k, ii, jj, kk in nest(lambda: xrange(N + 1),
-                                        lambda _i: xrange(N - _i + 1),
-                                        lambda _i, _j: xrange(N - _i - _j + 1),
-                                        lambda _i, _j, _k: xrange(_i + 1),
-                                        lambda _i, _j, _k, _ii: xrange(_j + 1),
-                                        lambda _i, _j, _k, _ii, _jj: xrange(
+        for i, j, k, ii, jj, kk in nest(lambda: range(N + 1),
+                                        lambda _i: range(N - _i + 1),
+                                        lambda _i, _j: range(N - _i - _j + 1),
+                                        lambda _i, _j, _k: range(_i + 1),
+                                        lambda _i, _j, _k, _ii: range(_j + 1),
+                                        lambda _i, _j, _k, _ii, _jj: range(
                                             _k + 1),
                                         ):
             S[i, j, k] += C0[ii, jj, kk] * Dabc[i - ii, j - jj, k - kk]
@@ -87,9 +87,9 @@ class SerialPipeline(Pipeline):
 
     def trinomial_precalc(self, N):
         tri_array = np.zeros([N + 1, N + 1, N + 1])
-        for i, j, k in nest(lambda: xrange(N + 1),
-                            lambda _i: xrange(N - _i + 1),
-                            lambda _i, _j: xrange(N - _i - _j + 1)
+        for i, j, k in nest(lambda: range(N + 1),
+                            lambda _i: range(N - _i + 1),
+                            lambda _i, _j: range(N - _i - _j + 1)
                             ):
             tri_array[i, j, k] = self.trinomial(i, j, k)
         return tri_array
@@ -102,12 +102,12 @@ class SerialPipeline(Pipeline):
 
     def term_Dabc(self, C1, C2, N):
         D = np.zeros([N + 1, N + 1, N + 1])
-        for i, j, k, ii, jj, kk in nest(lambda: xrange(N + 1),
-                                        lambda _i: xrange(N + 1),
-                                        lambda _i, _j: xrange(N + 1),
-                                        lambda _i, _j, _k: xrange(_i + 1),
-                                        lambda _i, _j, _k, _ii: xrange(_j + 1),
-                                        lambda _i, _j, _k, _ii, _jj: xrange(
+        for i, j, k, ii, jj, kk in nest(lambda: range(N + 1),
+                                        lambda _i: range(N + 1),
+                                        lambda _i, _j: range(N + 1),
+                                        lambda _i, _j, _k: range(_i + 1),
+                                        lambda _i, _j, _k, _ii: range(_j + 1),
+                                        lambda _i, _j, _k, _ii, _jj: range(
                                             _k + 1)
                                         ):
             D[i, j, k] += C1[ii, jj, kk] * C2[i - ii, j - jj, k - kk]
@@ -115,54 +115,54 @@ class SerialPipeline(Pipeline):
 
     def zernike(self, G, N):
         V = np.zeros([N + 1, N + 1, N + 1], dtype=complex)
-        for a, b, c, alpha in nest(lambda: xrange(N / 2 + 1),
-                                   lambda _a: xrange(N - 2 * _a + 1),
-                                   lambda _a, _b: xrange(N - 2 * _a - _b + 1),
-                                   lambda _a, _b, _c: xrange(_a + _c + 1),
+        for a, b, c, alpha in nest(lambda: range(N / 2 + 1),
+                                   lambda _a: range(N - 2 * _a + 1),
+                                   lambda _a, _b: range(N - 2 * _a - _b + 1),
+                                   lambda _a, _b, _c: range(_a + _c + 1),
                                    ):
             V[a, b, c] += np.power(IMAG_CONST, alpha) * \
                 nchoosek(a + c, alpha) * G[2 * a + c - alpha, alpha, b]
 
         W = np.zeros([N + 1, N + 1, N + 1], dtype=complex)
-        for a, b, c, alpha in nest(lambda: xrange(N / 2 + 1),
-                                   lambda _a: xrange(N - 2 * _a + 1),
-                                   lambda _a, _b: xrange(N - 2 * _a - _b + 1),
-                                   lambda _a, _b, _c: xrange(_a + 1),
+        for a, b, c, alpha in nest(lambda: range(N / 2 + 1),
+                                   lambda _a: range(N - 2 * _a + 1),
+                                   lambda _a, _b: range(N - 2 * _a - _b + 1),
+                                   lambda _a, _b, _c: range(_a + 1),
                                    ):
             W[a, b, c] += np.power(-1, alpha) * np.power(2, a - alpha) * \
                 nchoosek(a, alpha) * V[a - alpha, b, c + 2 * alpha]
 
         X = np.zeros([N + 1, N + 1, N + 1], dtype=complex)
-        for a, b, c, alpha in nest(lambda: xrange(N / 2 + 1),
-                                   lambda _a: xrange(N - 2 * _a + 1),
-                                   lambda _a, _b: xrange(N - 2 * _a - _b + 1),
-                                   lambda _a, _b, _c: xrange(_a + 1),
+        for a, b, c, alpha in nest(lambda: range(N / 2 + 1),
+                                   lambda _a: range(N - 2 * _a + 1),
+                                   lambda _a, _b: range(N - 2 * _a - _b + 1),
+                                   lambda _a, _b, _c: range(_a + 1),
                                    ):
             X[a, b, c] += nchoosek(a, alpha) * W[a - alpha, b + 2 * alpha, c]
 
         Y = np.zeros([N + 1, N + 1, N + 1], dtype=complex)
-        for l, nu, m, j in nest(lambda: xrange(N + 1),
-                                lambda _l: xrange((N - _l) / 2 + 1),
-                                lambda _l, _nu: xrange(_l + 1),
-                                lambda _l, _nu, _m: xrange((_l - _m) / 2 + 1),
+        for l, nu, m, j in nest(lambda: range(N + 1),
+                                lambda _l: range((N - _l) / 2 + 1),
+                                lambda _l, _nu: range(_l + 1),
+                                lambda _l, _nu, _m: range((_l - _m) / 2 + 1),
                                 ):
             Y[l, nu, m] += self.Yljm(l, j, m) * X[nu + j, l - m - 2 * j, m]
 
         Z = np.zeros([N + 1, N + 1, N + 1], dtype=complex)
-        for n, l, m, nu, in nest(lambda: xrange(N + 1),
-                                 lambda _n: xrange(_n + 1),
+        for n, l, m, nu, in nest(lambda: range(N + 1),
+                                 lambda _n: range(_n + 1),
                                  # there's an if...mod missing in this but it
                                  # still works?
-                                 lambda _n, _l: xrange(_l + 1),
-                                 lambda _n, _l, _m: xrange((_n - _l) / 2 + 1),
+                                 lambda _n, _l: range(_l + 1),
+                                 lambda _n, _l, _m: range((_n - _l) / 2 + 1),
                                  ):
             k = (n - l) / 2
             Z[n, l, m] += (3 / (4 * PI_CONST)) * \
                 self.Qklnu(k, l, nu) * np.conj(Y[l, nu, m])
 
-        for n, l, m in nest(lambda: xrange(N + 1),
-                            lambda _n: xrange(n + 1),
-                            lambda _n, _l: xrange(l + 1),
+        for n, l, m in nest(lambda: range(N + 1),
+                            lambda _n: range(n + 1),
+                            lambda _n, _l: range(l + 1),
                             ):
             if np.mod(np.sum([n, l, m]), 2) == 0:
                 Z[n, l, m] = np.real(
@@ -191,14 +191,14 @@ class SerialPipeline(Pipeline):
 
     def feature_extraction(self, Z, N):
         F = np.zeros([N + 1, N + 1]) - 1  # +NAN_CONST
-        for n in xrange(N + 1):
-            for l in xrange(n + 1):
+        for n in range(N + 1):
+            for l in range(n + 1):
                 if np.mod(n - l, 2) != 0:
                     continue
                 aux_1 = Z[n, l, 0:(l + 1)]
                 if l > 0:
                     aux_2 = np.conj(aux_1[1:(l + 1)])
-                    for m in xrange(0, l):
+                    for m in range(0, l):
                         aux_2[m] = aux_2[m] * np.power(-1, m + 1)
                     aux_2 = np.flipud(aux_2)
                     aux_1 = np.concatenate([aux_2, aux_1])
@@ -266,7 +266,7 @@ class NumpyOptimizations(Pipeline):
 
     def term_Dabc(self, C1, C2, N):
         D = np.zeros_like(C1)
-        for a, b, c in it.product(xrange(N + 1), repeat=3):
+        for a, b, c in it.product(range(N + 1), repeat=3):
             c1 = C1[:a + 1, :b + 1, :c + 1]
             c2 = threeD_reversed(C2[:a + 1, :b + 1, :c + 1])
             D[a, b, c] = np.sum(c1 * c2)
@@ -276,9 +276,9 @@ class NumpyOptimizations(Pipeline):
         S = np.zeros([N + 1, N + 1, N + 1])
         C0, C1, C2 = Cf_list
         Dabc = self.term_Dabc(C1, C2, N)
-        for i, j, k in nest(lambda: xrange(N + 1),
-                            lambda _i: xrange(N - _i + 1),
-                            lambda _i, _j: xrange(N - _i - _j + 1),
+        for i, j, k in nest(lambda: range(N + 1),
+                            lambda _i: range(N - _i + 1),
+                            lambda _i, _j: range(N - _i - _j + 1),
                             ):
             C_ijk = C0[:i + 1, :j + 1, :k + 1]
             D_ijk = threeD_reversed(Dabc[:i + 1, :j + 1, :k + 1])
@@ -332,7 +332,7 @@ class KoehlOptimizations(Pipeline):
                                                      np.roll(_X, 1, axis=2)[mask]*z
         i, j, k = np.mgrid[:N+1, :N+1, :N+1]
         order = (i+j+k)
-        for n in xrange(N):
+        for n in range(N):
             mask = (order==n+1)
             _Q = recursion_term(Q, vertex, mask)
             Q[mask] = _Q + R[mask]
