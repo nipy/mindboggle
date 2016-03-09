@@ -696,7 +696,6 @@ class Bounds:
             write_vtk('debug_intersections.vtk',self.Points,
                       self.Vertices, [], self.Faces, [labels],
                       scalar_type='int')
-            #raw_input("Check this out...")
 
         return intersection
 
