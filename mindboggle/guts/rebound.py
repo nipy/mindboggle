@@ -961,7 +961,7 @@ class Bounds:
         # Now we will see how many vertices from each label boundary segment satisfy the properties.
         # If a segment only contains a few vertices, then we won't bother propagating labels from it.
 
-        reverse_mapping = dict((v,k) for k, v in self.realignment_mapping.iteritems())
+        reverse_mapping = dict((v,k) for k, v in self.realignment_mapping.items())
 
         # Let's include some information as to which label boundaries will propagate their labels...
         vertices_to_highlight = np.zeros(self.Labels.shape)

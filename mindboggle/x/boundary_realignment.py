@@ -377,7 +377,7 @@ def _label_components(component_faces, num_points, boundary_indices,
         # assign the most likely label
         max_label = None
         max_label_likelihood = None
-        for key, val in label_likelihoods.iteritems():
+        for key, val in label_likelihoods.items():
             if max_label is None or val > max_label_likelihood:
                 max_label = key
                 max_label_likelihood = val
