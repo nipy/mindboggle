@@ -704,7 +704,7 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     if isinstance(points, np.ndarray):
         points = points.tolist()
 
-    output_vtk = os.path.join(os.getcwd(), output_vtk)
+    output_vtk = os.path.join(os.getcwdb(), output_vtk)
 
     Fp = open(output_vtk,'w')
     write_header(Fp)
@@ -799,7 +799,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
         filter_scalars = filter_scalars.tolist()
 
     # Output VTK file to current working directory
-    output_vtk = os.path.join(os.getcwd(), output_vtk)
+    output_vtk = os.path.join(os.getcwdb(), output_vtk)
 
     # Load VTK file
     points, indices, lines, faces, scalars, scalar_names, npoints, \
@@ -1003,7 +1003,7 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
             else:
                 if verbose:
                     print("Undefined scalar type!")
-            output_vtk = os.path.join(os.getcwd(),
+            output_vtk = os.path.join(os.getcwdb(),
                                       output_stem + str(scalar) + '.vtk')
             write_vtk(output_vtk, select_points, indices, lines, scalar_faces,
                       select_values.tolist(), output_scalar_name,
@@ -1037,7 +1037,7 @@ def explode_scalars_mindboggle(subject, subject_path='', output_path='',
     >>> from mindboggle.mio.vtks import explode_scalars_mindboggle
     >>> subject = 'Twins-2-1'
     >>> subject_path = '/Users/arno/mindboggled'
-    >>> output_path = os.getcwd()
+    >>> output_path = os.getcwdb()
     >>> pieces = 'labels'
     >>> verbose = False
     >>> explode_scalars_mindboggle(subject, subject_path, output_path, pieces,
@@ -1472,7 +1472,7 @@ def apply_affine_transforms(transform_files, inverse_booleans,
 
     # Write transformed VTK file:
     if vtk_file_stem and isinstance(vtk_or_points, str):
-        output_file = os.path.join(os.getcwd(), vtk_file_stem +
+        output_file = os.path.join(os.getcwdb(), vtk_file_stem +
                                    os.path.basename(vtk_or_points))
         if np.size(scalars):
             if np.ndim(scalars) == 1:
@@ -1571,7 +1571,7 @@ def apply_affine_transforms(transform_files, inverse_booleans,
 #
 #     # Write output image volume:
 #     if not output_volume:
-#         output_volume = os.path.join(os.getcwd(),
+#         output_volume = os.path.join(os.getcwdb(),
 #                                      os.path.basename(vtk_file) +
 #                                      '_to_volume.nii.gz')
 #
@@ -1660,7 +1660,7 @@ def freesurfer_surface_to_vtk(surface_file, orig_file='', output_vtk=''):
                       "subjects directory.")
 
     if not output_vtk:
-        output_vtk = os.path.join(os.getcwd(),
+        output_vtk = os.path.join(os.getcwdb(),
                                   os.path.basename(surface_file + '.vtk'))
     Fp = open(output_vtk, 'w')
     write_header(Fp, Title='vtk output from ' + surface_file)
@@ -1719,7 +1719,7 @@ def freesurfer_curvature_to_vtk(surface_file, vtk_file, output_vtk=''):
     scalar_names = os.path.basename(surface_file)
 
     if not output_vtk:
-        output_vtk = os.path.join(os.getcwd(),
+        output_vtk = os.path.join(os.getcwdb(),
                                   os.path.basename(surface_file)+'.vtk')
     rewrite_scalars(vtk_file, output_vtk, curvature_values, scalar_names)
     if not os.path.exists(output_vtk):
@@ -1797,7 +1797,7 @@ def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk=''):
     #labels[np.where(labels==3)[0]]=1000
 
     if not output_vtk:
-        output_vtk = os.path.join(os.getcwd(),
+        output_vtk = os.path.join(os.getcwdb(),
             os.path.basename(annot_file).split('.annot', 1)[0] + '.vtk')
 
     rewrite_scalars(vtk_file, output_vtk, labels, 'Labels')

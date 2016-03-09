@@ -188,7 +188,7 @@ def pairwise_vector_distances(vectors, save_file=False, normalize=False):
                 vector_distances[ihist1, ihist2] = d
 
     if save_file:
-        outfile = os.path.join(os.getcwd(), 'vector_distances.txt')
+        outfile = os.path.join(os.getcwdb(), 'vector_distances.txt')
         np.savetxt(outfile, vector_distances,
                    fmt=len(vectors) * '%.4f ', delimiter='\t', newline='\n')
         if not os.path.exists(outfile):
@@ -1002,7 +1002,7 @@ def compute_overlaps(targets, list1, list2, output_file='', save_output=True,
     dice_overlaps = np.zeros(len(targets))
     jacc_overlaps = np.zeros(len(targets))
     if save_output and not output_file:
-        output_file = os.path.join(os.getcwd(), 'ID_dice_jaccard.csv')
+        output_file = os.path.join(os.getcwdb(), 'ID_dice_jaccard.csv')
 
     # Loop through targets:
     for itarget, target in enumerate(targets):

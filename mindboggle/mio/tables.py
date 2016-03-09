@@ -369,7 +369,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
             # Write labels/IDs and values to table:
             #-----------------------------------------------------------------
             # Write labels/IDs to table:
-            output_table = os.path.join(os.getcwd(), table_names[itable])
+            output_table = os.path.join(os.getcwdb(), table_names[itable])
 
             if columns:
                 df1 = pd.DataFrame({'ID': label_numbers})
@@ -552,7 +552,7 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
 
     # Prepend with column of indices and write table
     if not output_table:
-        output_table = os.path.join(os.getcwd(), 'vertices.csv')
+        output_table = os.path.join(os.getcwdb(), 'vertices.csv')
 
     df = pd.DataFrame(np.transpose(columns), columns = column_names)
     df.to_csv(output_table, index=False)
@@ -622,7 +622,7 @@ def write_face_vertex_averages(input_file, output_table='', area_file=''):
     # Write to table:
     #-----------------------------------------------------------------
     if not output_table:
-        output_table = os.path.join(os.getcwd(), 'average_face_values.csv')
+        output_table = os.path.join(os.getcwdb(), 'average_face_values.csv')
 
     df = pd.DataFrame({'': columns})
     df.to_csv(output_table, index=False)
@@ -678,7 +678,7 @@ def write_average_face_values_per_label(input_indices_vtk,
     View vtk file (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces
-    >>> example_vtk = os.path.join(os.getcwd(), output_stem + '0.vtk')
+    >>> example_vtk = os.path.join(os.getcwdb(), output_stem + '0.vtk')
     >>> plot_surfaces(example_vtk) # doctest: +SKIP
 
     """
@@ -723,7 +723,7 @@ def write_average_face_values_per_label(input_indices_vtk,
         #---------------------------------------------------------------------
         # For each face, average vertex values:
         #---------------------------------------------------------------------
-        output_table = os.path.join(os.getcwd(),
+        output_table = os.path.join(os.getcwdb(),
                                     output_stem+str(scalar)+'.csv')
         columns = []
         for face in new_faces:
@@ -826,7 +826,7 @@ def select_column_from_tables(tables, index=0, write_table=True,
     if write_table and columns:
         if all([len(x) == len(columns[0]) for x in columns]):
             if not output_table:
-                output_table = os.path.join(os.getcwd(),
+                output_table = os.path.join(os.getcwdb(),
                                             'select_column_from_tables.csv')
             df = pd.DataFrame({'': columns})
             df.to_csv(output_table, index=False)

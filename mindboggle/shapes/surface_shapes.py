@@ -35,7 +35,7 @@ def area(command, surface_file, verbose=False):
     from nipype.interfaces.base import CommandLine
 
     basename = os.path.splitext(os.path.basename(surface_file))[0]
-    area_file = os.path.join(os.getcwd(), basename + '.area.vtk')
+    area_file = os.path.join(os.getcwdb(), basename + '.area.vtk')
     args = ' '.join([surface_file, area_file])
 
     if verbose:
@@ -76,7 +76,7 @@ def travel_depth(command, surface_file, verbose=False):
     from nipype.interfaces.base import CommandLine
 
     basename = os.path.splitext(os.path.basename(surface_file))[0]
-    depth_file = os.path.join(os.getcwd(), basename + '.travel_depth.vtk')
+    depth_file = os.path.join(os.getcwdb(), basename + '.travel_depth.vtk')
     args = ' '.join([surface_file, depth_file])
 
     if verbose:
@@ -115,7 +115,7 @@ def geodesic_depth(command, surface_file, verbose=False):
     from nipype.interfaces.base import CommandLine
 
     basename = os.path.splitext(os.path.basename(surface_file))[0]
-    depth_file = os.path.join(os.getcwd(), basename + '.geodesic_depth.vtk')
+    depth_file = os.path.join(os.getcwdb(), basename + '.geodesic_depth.vtk')
     args = ' '.join([surface_file, depth_file])
 
     if verbose:
@@ -200,7 +200,7 @@ def curvature(command, method, arguments, surface_file, verbose=False):
     min_curvature_vector_file = None
 
     basename = os.path.splitext(os.path.basename(surface_file))[0]
-    mean_curvature_file = os.path.join(os.getcwd(), basename) + \
+    mean_curvature_file = os.path.join(os.getcwdb(), basename) + \
         '.mean_curvature.vtk'
     if method in [0, 1]:
         gauss_curvature_file = stem + '.gauss_curvature.vtk'

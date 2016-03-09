@@ -236,7 +236,7 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
     #-------------------------------------------------------------------------
     if save_file:
 
-        folds_file = os.path.join(os.getcwd(), 'folds.vtk')
+        folds_file = os.path.join(os.getcwdb(), 'folds.vtk')
         rewrite_scalars(depth_file, folds_file, folds, 'folds', folds)
 
         if not os.path.exists(folds_file):
@@ -386,7 +386,7 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
 #     # Return subfolds, number of subfolds, file name
 #     #-------------------------------------------------------------------------
 #     if save_file:
-#         subfolds_file = os.path.join(os.getcwd(), 'subfolds.vtk')
+#         subfolds_file = os.path.join(os.getcwdb(), 'subfolds.vtk')
 #         rewrite_scalars(depth_file, subfolds_file,
 #                         subfolds, 'subfolds', subfolds)
 #

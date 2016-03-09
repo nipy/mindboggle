@@ -840,7 +840,7 @@ class Bounds:
                   'First few values are {1}'.format(
                   closest_label_boundary.shape, closest_label_boundary[:10]))
 
-        dir = os.getcwd()
+        dir = os.getcwdb()
         self.highlight_vtk_vertices(self.label_boundary[closest_label_boundary],
                                     dir + '/close_vertices.vtk')
 

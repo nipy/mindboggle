@@ -1499,7 +1499,7 @@ def extract_borders_2nd_surface(labels_file, values_file='',
         border_values[indices_borders] = 1
 
     # Write out label boundary vtk file
-    border_file = os.path.join(os.getcwd(), 'borders_' + os.path.basename(labels_file))
+    border_file = os.path.join(os.getcwdb(), 'borders_' + os.path.basename(labels_file))
     rewrite_scalars(labels_file, border_file, border_values, \
                     'label_borders_in_mask')
 
@@ -1617,7 +1617,7 @@ def combine_2labels_in_2volumes(file1, file2, label1=3, label2=2,
     # Save relabeled file:
     #-------------------------------------------------------------------------
     if not output_file:
-        output_file = os.path.join(os.getcwd(),
+        output_file = os.path.join(os.getcwdb(),
                                    'combined_segmentations.nii.gz')
     img = nb.Nifti1Image(new_data, xfm)
     img.to_filename(output_file)
@@ -1681,9 +1681,9 @@ def split_brain(image_file, label_file, left_labels, right_labels):
 
     from mindboggle.guts.relabel import keep_volume_labels
 
-    left_brain = os.path.join(os.getcwd(),
+    left_brain = os.path.join(os.getcwdb(),
                               'left_' + os.path.basename(image_file))
-    right_brain = os.path.join(os.getcwd(),
+    right_brain = os.path.join(os.getcwdb(),
                                'right_' + os.path.basename(image_file))
     #-------------------------------------------------------------------------
     # Split brain labels by masking with left or right labels:

@@ -96,9 +96,9 @@ def volume_per_brain_region(input_file, include_labels=[], exclude_labels=[],
     # Output table:
     if save_table:
         if output_table:
-            output_table = os.path.join(os.getcwd(), output_table)
+            output_table = os.path.join(os.getcwdb(), output_table)
         else:
-            output_table = os.path.join(os.getcwd(),
+            output_table = os.path.join(os.getcwdb(),
                                         'volume_for_each_label.csv')
         fid = open(output_table, 'w')
         if len(label_names) == len(unique_labels):
@@ -284,7 +284,7 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
         if not os.path.exists(output_dir):
             os.mkdir(output_dir)
     else:
-        output_dir = os.getcwd()
+        output_dir = os.getcwdb()
     cortex = os.path.join(output_dir, 'cortex.nii.gz')
     noncortex = os.path.join(output_dir, 'noncortex.nii.gz')
     temp = os.path.join(output_dir, 'temp.nii.gz')
@@ -295,9 +295,9 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
 
     if save_table:
         if output_table:
-            output_table = os.path.join(os.getcwd(), output_table)
+            output_table = os.path.join(os.getcwdb(), output_table)
         else:
-            output_table = os.path.join(os.getcwd(),
+            output_table = os.path.join(os.getcwdb(),
                                         'thickinthehead_for_each_label.csv')
         fid = open(output_table, 'w')
         if names:

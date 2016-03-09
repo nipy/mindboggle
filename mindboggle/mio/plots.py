@@ -148,7 +148,7 @@ def plot_mask_surface(vtk_file, mask_file='', nonmask_value=-1,
     if mask_file:
         mask, name = read_scalars(mask_file, True, True)
         if not masked_output:
-            masked_output = os.path.join(os.getcwd(), 'temp.vtk')
+            masked_output = os.path.join(os.getcwdb(), 'temp.vtk')
         file_to_plot = masked_output
 
         #---------------------------------------------------------------------

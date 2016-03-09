@@ -83,7 +83,7 @@ def relabel_volume(input_file, old_labels, new_labels, output_file=''):
 
     # Save relabeled file
     if not output_file:
-        output_file = os.path.join(os.getcwd(), os.path.basename(input_file))
+        output_file = os.path.join(os.getcwdb(), os.path.basename(input_file))
     img = nb.Nifti1Image(new_data, xfm)
     img.to_filename(output_file)
 
@@ -161,7 +161,7 @@ def remove_volume_labels(input_file, labels_to_remove, output_file='',
         xfm = vol.get_affine()
         new_data = vol.get_data().ravel()
         if not output_file:
-            output_file = os.path.join(os.getcwd(),
+            output_file = os.path.join(os.getcwdb(),
                                        os.path.basename(second_file))
     #-------------------------------------------------------------------------
     # If second file not specified, remove labels in labels_to_remove:
@@ -169,7 +169,7 @@ def remove_volume_labels(input_file, labels_to_remove, output_file='',
     else:
         new_data = data.copy()
         if not output_file:
-            output_file = os.path.join(os.getcwd(),
+            output_file = os.path.join(os.getcwdb(),
                                        os.path.basename(input_file))
 
     #-------------------------------------------------------------------------
@@ -264,7 +264,7 @@ def keep_volume_labels(input_file, labels_to_keep, output_file='',
         xfm = vol.get_affine()
         new_data = vol.get_data().ravel()
         if not output_file:
-            output_file = os.path.join(os.getcwd(),
+            output_file = os.path.join(os.getcwdb(),
                                        os.path.basename(second_file))
     #-------------------------------------------------------------------------
     # If second file not specified, remove labels not in labels_to_keep:
@@ -272,7 +272,7 @@ def keep_volume_labels(input_file, labels_to_keep, output_file='',
     else:
         new_data = data.copy()
         if not output_file:
-            output_file = os.path.join(os.getcwd(),
+            output_file = os.path.join(os.getcwdb(),
                                        os.path.basename(input_file))
 
     #-------------------------------------------------------------------------
@@ -413,7 +413,7 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
 
     # Write output VTK file:
     if not output_file:
-        output_file = os.path.join(os.getcwd(),
+        output_file = os.path.join(os.getcwdb(),
                                    'relabeled_' + os.path.basename(vtk_file))
     write_vtk(output_file, points, indices, lines, faces,
               [new_scalars], ['Labels'], scalar_type='int')
@@ -484,7 +484,7 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
     import nibabel as nb
 
     if not output_file:
-        output_file = os.path.join(os.getcwd(), os.path.basename(source) +
+        output_file = os.path.join(os.getcwdb(), os.path.basename(source) +
                                    '_to_' + os.path.basename(target))
     # Load labeled image volumes:
     vol_source = nb.load(source)

@@ -189,7 +189,7 @@ def evaluate_surface_overlaps_cpp(command, labels_file1, labels_file2,
     if not output_file:
         output_file = os.path.basename(labels_file1) + '_and_' + \
                            os.path.basename(labels_file2) + '.txt'
-    output_file = os.path.join(os.getcwd(), output_file)
+    output_file = os.path.join(os.getcwdb(), output_file)
     cli = CommandLine(command = command)
     cli.inputs.args = ' '.join([labels_file1, labels_file2, output_file])
     cli.cmdline
