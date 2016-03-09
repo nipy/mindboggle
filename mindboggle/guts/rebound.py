@@ -624,7 +624,7 @@ class Bounds:
 
         # Print results
         if verbose:
-            for key in self.label_boundary_segments.keys():
+            for key in list(self.label_boundary_segments): #.keys():
                 print('For labels: {0} {1}'.
                       format(key, self.label_boundary_segments[key]))
 

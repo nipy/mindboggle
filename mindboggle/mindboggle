@@ -309,7 +309,7 @@ do_smooth_fundi = False
 hashes, url, cache_env, cache = hashes_url()
 if args.cache:
     cache = args.cache
-elif cache_env in os.environ.keys():
+elif cache_env in list(os.environ):  #os.environ.keys():
     cache = os.environ[cache_env]
 if args.working:
     working = os.path.join(args.working, subject)

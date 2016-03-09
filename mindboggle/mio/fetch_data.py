@@ -344,7 +344,7 @@ def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
     >>> from mindboggle.mio.fetch_data import fetch_check_data
     >>> from mindboggle.mio.fetch_data import hashes_url
     >>> hashes, url, cache_env, cache = hashes_url()
-    >>> data_file = hashes.keys()[0]
+    >>> data_file = list(hashes)[0] #hashes.keys()[0]
     >>> verbose = False
     >>> data_path = fetch_check_data(data_file, url, hashes, cache_env, cache,
     ...                              verbose)
@@ -370,7 +370,7 @@ def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
             #-----------------------------------------------------------------
             # Check hash table for file:
             #-----------------------------------------------------------------
-            if data_file not in hashes.keys():
+            if data_file not in list(hashes):  #.keys():
                 if return_missing:
                     data_path = data_file
                     if verbose:
@@ -386,7 +386,7 @@ def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
                 #-------------------------------------------------------------
                 # Create missing cache and hash directories:
                 #-------------------------------------------------------------
-                if cache_env in os.environ.keys():
+                if cache_env in list(os.environ)  #.keys():
                     cache = os.environ[cache_env]
                 if not os.path.exists(cache):
                     if verbose:

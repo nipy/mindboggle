@@ -357,8 +357,9 @@ def _label_components(component_faces, num_points, boundary_indices,
     # Note: Here we assume that components and component_boundaries
     # have the same keys.
     used_labels = []
-    print "Computing most probable labels"
-    for component in sorted(components.keys(), None, None, True):
+    print("Computing most probable labels")
+    #for component in sorted(components.keys(), None, None, True):
+    for component in sorted(list(components), None, None, True):
         label_likelihoods = {}
         for vertex in component_boundaries[component]:
             for index, boundary_prob in \
