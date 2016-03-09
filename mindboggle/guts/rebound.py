@@ -813,8 +813,8 @@ class Bounds:
         t0 = time()
 
         if verbose:
-            print self.polyline_elements.shape
-            print self.label_boundary.shape
+            print(self.polyline_elements.shape)
+            print(self.label_boundary.shape)
 
         distance_matrix = np.asarray([np.linalg.norm(self.Points[x1] -
                                                      self.Points[x2])
@@ -1264,7 +1264,7 @@ class Bounds:
         self.find_polylines_flanks()
 
         if verbose:
-            print self.polylines_flanks_indices
+            print(self.polylines_flanks_indices)
 
         for key, value in list(dict_of_vertices.items()):
             if len(np.intersect1d(value,self.polylines_flanks_indices)) < threshold:

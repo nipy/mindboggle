@@ -30,7 +30,7 @@ def main():
     def two(_x, _y): return list(range(0, _y))
 
     for i in nest(zero, one, two):
-        print '#'*5, i
+        print('{0} {1}'.format('#'*5, i))
 
 if __name__ == '__main__':
     main()

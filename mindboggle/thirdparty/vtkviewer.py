@@ -83,7 +83,7 @@ class VTKViewer(object):
             if vtkStereoType is not None:
                 self.renWin.SetStereoType(vtkStereoType)
             else:
-                print '?%s?' % stereoType
+                print('vtkStereoType is None') #.format(stereoType)
 
     def Start(self):
         self.renWin.Render()
@@ -235,8 +235,8 @@ class VTKViewer(object):
             polyData = VTKViewer.readDataSet(
                 file_name, vtk.vtkXMLRectilinearGridReader)
         else:
-            print file_name, ": BAD FILE NAME.  Should end",
-            print "in VTK, VTP, PLY, OBJ, STL, VTU, or PDB."
+            print('{0}: BAD FILE NAME.  Should end in VTK, VTP, PLY, OBJ, '
+                  'STL, VTU, or PDB.'.format(file_name))
             raise Exception()
         self.AddPolyData(polyData, colorMap)
         return

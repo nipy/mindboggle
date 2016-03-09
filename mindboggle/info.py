@@ -10,13 +10,13 @@ In setup.py we execute this file, so it cannot import mindboggle.
 _version_major = 1
 _version_minor = 0
 _version_micro = 0
-_version_extra = '.dev'
+_version_extra = 'dev'
 
 # Format expected by setup.py and doc/source/conf.py: string of form "X.Y.Z"
-__version__ = "%s.%s.%s%s".format(_version_major,
-                                  _version_minor,
-                                  _version_micro,
-                                  _version_extra)
+__version__ = "{0}.{1}.{2}{3}".format(_version_major,
+                                      _version_minor,
+                                      _version_micro,
+                                      _version_extra)
 
 CLASSIFIERS = ["Development Status :: 3 - Alpha",
                "Environment :: Console",

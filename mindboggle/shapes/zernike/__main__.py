@@ -22,7 +22,7 @@ def example1():
     #     0.03820155248327533,
     #     0.04138011726544602]
 
-    print "Example 1: Simple cube"
+    print("Example 1: Simple cube")
     points = np.array([[0,0,0], [1,0,0], [0,0,1], [0,1,1], [1,0,1], [0,1,0], [1,1,1], [1,1,0]])
     faces = np.array([[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]])
     result = zernike(points, faces, order=3, scale_input=True)
@@ -56,7 +56,7 @@ def main():
     if ns.vtk_file is not None:
         points, indices, lines, faces, depths, scalar_names, npoints, \
             input_vtk = read_vtk(ns.vtk_file)
-        print(len(faces), len(points))
+        print('{0} {1}'.format(len(faces), len(points)))
         X = zernike_fn(points, faces, order=ns.order, scale_input=True)
         if ns.validate:
             Y = zernike_fn(points, faces, order=ns.order, scale_input=True, pl_cls=MultiprocPipeline)

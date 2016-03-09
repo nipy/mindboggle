@@ -388,7 +388,7 @@ def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
                 #-------------------------------------------------------------
                 # Create missing cache and hash directories:
                 #-------------------------------------------------------------
-                if cache_env in list(os.environ)  #.keys():
+                if cache_env in list(os.environ):  #.keys():
                     cache = os.environ[cache_env]
                 if not os.path.exists(cache):
                     if verbose:

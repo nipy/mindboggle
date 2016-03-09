@@ -327,9 +327,11 @@ class KoehlOptimizations(Pipeline):
         Q = np.zeros([N+1, N+1, N+1])
         Q[0, 0, 0] = 1.0
 
-        recursion_term = lambda _X, (x, y, z), mask: np.roll(_X, 1, axis=0)[mask]*x + \
-                                                     np.roll(_X, 1, axis=1)[mask]*y + \
-                                                     np.roll(_X, 1, axis=2)[mask]*z
+        #recursion_term = lambda _X, (x, y, z), mask: \
+        recursion_term = lambda _X, x, y, z, mask: \
+            np.roll(_X, 1, axis=0)[mask]*x + \
+            np.roll(_X, 1, axis=1)[mask]*y + \
+            np.roll(_X, 1, axis=2)[mask]*z
         i, j, k = np.mgrid[:N+1, :N+1, :N+1]
         order = (i+j+k)
         for n in range(N):
