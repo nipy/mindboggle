@@ -1,8 +1,8 @@
 #!/bin/bash
 #=============================================================================
 # This script provides directions for installing Mindboggle and dependencies
-# (http://mindboggle.info) on a Linux machine (tested on Ubuntu 12.04, 14.04).
-# Running it requires a good Internet connection.
+# (http://mindboggle.info) on a Linux machine (tested on Ubuntu 12.04, 14.04)
+# with Python 3. Running it requires a good Internet connection.
 #
 # This script assumes that if it isn't installing ANTs, the global environment
 # file .bash_profile already includes the path to the ANTs bin directory.
@@ -105,9 +105,9 @@ fi
 # Install Anaconda's latest miniconda Python distribution:
 #-----------------------------------------------------------------------------
 CONDA_URL="http://repo.continuum.io/miniconda"
-CONDA_FILE="Miniconda-latest-$OS-x86_64.sh"
+CONDA_FILE="Miniconda3-latest-$OS-x86_64.sh"
 CONDA_DL="$DOWNLOAD/$CONDA_FILE"
-CONDA_PATH="$INSTALL/miniconda2"
+CONDA_PATH="$INSTALL/miniconda3"
 if [ $OS = "Linux" ]; then
     wget -O $CONDA_DL $CONDA_URL/$CONDA_FILE
 else
@@ -117,7 +117,6 @@ bash $CONDA_DL -b -p $CONDA_PATH
 
 # Set environment variables:
 echo "# Conda" >> $ENV
-#echo "export PATH=\$INSTALL/bin:\$PATH" >> $ENV
 echo "export PATH=$CONDA_PATH/bin:\$PATH" >> $ENV
 source $ENV
 
@@ -168,10 +167,10 @@ pip install --upgrade https://github.com/nipy/nipype/archive/master.zip
 vtk_cpp_tools=$INSTALL/mindboggle/vtk_cpp_tools/bin
 git clone https://github.com/nipy/mindboggle.git $INSTALL/mindboggle
 cd $INSTALL/mindboggle
-python setup.py install  #--prefix=$INSTALL
+python setup.py install
 mkdir $vtk_cpp_tools
 cd $vtk_cpp_tools
-cmake ../  # -DVTK_DIR:STRING=$VTK_DIR
+cmake ../
 make
 
 # Set environment variables:
