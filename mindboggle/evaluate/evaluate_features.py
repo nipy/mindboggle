@@ -162,7 +162,7 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='', hemi='',
 
         # Write resulting feature-label border distances to VTK file:
         if output_vtk_name:
-            feature_to_border_distances_vtk = os.path.join(os.getcwdb(),
+            feature_to_border_distances_vtk = os.path.join(os.getcwd(),
                 output_vtk_name + '_feature_to_border_mean_distances.vtk')
             print('Write feature-to-border distances to {0}...'.
                   format(feature_to_border_distances_vtk))
@@ -198,7 +198,7 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='', hemi='',
 
         # Write resulting feature-label border distances to VTK file:
         if output_vtk_name:
-            border_to_feature_distances_vtk = os.path.join(os.getcwdb(),
+            border_to_feature_distances_vtk = os.path.join(os.getcwd(),
                 output_vtk_name + '_border_to_feature_mean_distances.vtk')
             print('Write border-to-feature distances to {0}...'.
                   format(border_to_feature_distances_vtk))

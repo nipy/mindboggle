@@ -781,7 +781,7 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
     smooth_skeletons = smooth_skeletons.tolist()
 
     if save_file:
-        skeletons_file = os.path.join(os.getcwdb(), 'smooth_skeletons.vtk')
+        skeletons_file = os.path.join(os.getcwd(), 'smooth_skeletons.vtk')
         rewrite_scalars(vtk_file, skeletons_file, smooth_skeletons,
                         'smooth_skeletons', bounds)
     else:

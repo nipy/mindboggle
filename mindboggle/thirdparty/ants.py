@@ -51,10 +51,10 @@ def antsApplyTransformsToPoints(points, transform_files,
     >>> from mindboggle.mio.vtks import read_points
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> xfm1 = fetch_data(urls['ants_affine_template2subject'])
-    >>> xfm2 = fetch_data(urls['ants_warp_template2subject'])
-    >>> xfm3 = fetch_data(urls['OASIS-30_Atropos_template_to_MNI152_affine'])
-    >>> os.rename(xfm2, xfm2 + '.nii.gz')
+    >>> xfm1 = fetch_data(urls['ants_affine_template2subject'], '', '')
+    >>> xfm2 = fetch_data(urls['ants_warp_template2subject'], '', '.nii.gz')
+    >>> xfm3 = fetch_data(urls['OASIS-30_Atropos_template_to_MNI152_affine'],
+    ...                   '', '')
     >>> xfm2 += '.nii.gz'
     >>> transform_files = [xfm1, xfm2, xfm3]
     >>> vtk_file = fetch_data(urls['left_pial'])
@@ -79,7 +79,7 @@ def antsApplyTransformsToPoints(points, transform_files,
     #-------------------------------------------------------------------------
     # Write points (x,y,z,1) to a .csv file:
     #-------------------------------------------------------------------------
-    points_file = os.path.join(os.getcwdb(), 'points.csv')
+    points_file = os.path.join(os.getcwd(), 'points.csv')
     fid = open(points_file, 'wa')
     fid.write('x,y,z,t\n')
     for point in points:
@@ -90,7 +90,7 @@ def antsApplyTransformsToPoints(points, transform_files,
     #-------------------------------------------------------------------------
     # Apply transforms to points in .csv file:
     #-------------------------------------------------------------------------
-    transformed_points_file = os.path.join(os.getcwdb(),
+    transformed_points_file = os.path.join(os.getcwd(),
                                            'transformed_points.csv')
     transform_string = ''
     for ixfm, transform_file in enumerate(transform_files):
@@ -165,11 +165,9 @@ def ImageMath(volume1, volume2, operator='m', output_file=''):
     >>> from mindboggle.thirdparty.ants import ImageMath
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> volume1 = fetch_data(urls['T1_001'])
-    >>> volume2 = fetch_data(urls['ants_mask'])
-    >>> os.rename(volume1, volume1 + '.nii.gz')
+    >>> volume1 = fetch_data(urls['T1_001'], '', '.nii.gz')
+    >>> volume2 = fetch_data(urls['ants_mask'], '', '.nii.gz')
     >>> volume1 += '.nii.gz'
-    >>> os.rename(volume2, volume2 + '.nii.gz')
     >>> volume2 += '.nii.gz'
     >>> operator = 'm'
     >>> output_file = ''
@@ -185,7 +183,7 @@ def ImageMath(volume1, volume2, operator='m', output_file=''):
     from mindboggle.guts.utilities import execute
 
     if not output_file:
-        output_file = os.path.join(os.getcwdb(),
+        output_file = os.path.join(os.getcwd(),
                                    os.path.basename(volume1) + '_' +
                                    os.path.basename(volume2))
     cmd = ['ImageMath', '3', output_file, operator, volume1, volume2]
@@ -243,7 +241,7 @@ def ThresholdImage(volume, output_file='', threshlo=1, threshhi=10000):
     from mindboggle.guts.utilities import execute
 
     if not output_file:
-        output_file = os.path.join(os.getcwdb(),
+        output_file = os.path.join(os.getcwd(),
                                    'threshold_' + os.path.basename(volume))
     cmd = ['ThresholdImage', '3', volume, output_file,
            str(threshlo), str(threshhi)]
@@ -296,11 +294,9 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None, output_file='',
     >>> from mindboggle.thirdparty.ants import PropagateLabelsThroughMask
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> labels = fetch_data(urls['freesurfer_labels'])
-    >>> os.rename(labels, labels + '.nii.gz')
+    >>> labels = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
     >>> labels += '.nii.gz'
-    >>> mask = fetch_data(urls['ants_mask'])
-    >>> os.rename(mask, mask + '.nii.gz')
+    >>> mask = fetch_data(urls['ants_mask'], '', '.nii.gz')
     >>> mask += '.nii.gz'
     >>> mask_index = None
     >>> output_file = ''
@@ -319,9 +315,9 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None, output_file='',
     from mindboggle.guts.utilities import execute
 
     if not output_file:
-        #output_file = os.path.join(os.getcwdb(),
+        #output_file = os.path.join(os.getcwd(),
         #                           'PropagateLabelsThroughMask.nii.gz')
-        output_file = os.path.join(os.getcwdb(),
+        output_file = os.path.join(os.getcwd(),
                                    os.path.basename(labels) + '_through_' +
                                    os.path.basename(mask))
 
@@ -329,7 +325,7 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None, output_file='',
 
     # Binarize image volume:
     if binarize:
-        temp_file = os.path.join(os.getcwdb(),
+        temp_file = os.path.join(os.getcwd(),
                                  'PropagateLabelsThroughMask.nii.gz')
         cmd = ['ThresholdImage', '3', mask, temp_file, '0 1 0 1']
         execute(cmd, 'os')
@@ -337,7 +333,7 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None, output_file='',
 
     # Mask with just voxels having mask_index value:
     if mask_index:
-        mask2 = os.path.join(os.getcwdb(), 'temp.nii.gz')
+        mask2 = os.path.join(os.getcwd(), 'temp.nii.gz')
 
         cmd = ['ThresholdImage', '3', mask, mask2,
                str(mask_index), str(mask_index)]
@@ -420,7 +416,7 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
     from mindboggle.guts.utilities import execute
 
     if not output_file:
-        output_file = os.path.join(os.getcwdb(),
+        output_file = os.path.join(os.getcwd(),
                                    'resampled_' + os.path.basename(volume))
     cmd = ['ResampleImageBySpacing', '3', volume, output_file,
            str(outxspc), str(outyspc), str(outzspc)]
@@ -476,12 +472,10 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
 #     >>> labels_left = fetch_data(urls['left_freesurfer_labels'])
 #     >>> labels_right = fetch_data(urls['right_freesurfer_labels'])
 #     >>> surface_files = [labels_left, labels_left]
-#     >>> left_mask = fetch_data(urls['T1_001'])
-#     >>> right_mask = fetch_data(urls['T1_001'])
-#     >>> os.rename(left_mask, left_mask + '.nii.gz')
-#     >>> left_mask = left_mask + '.nii.gz'
-#     >>> os.rename(right_mask, right_mask + '.nii.gz')
-#     >>> right_mask = right_mask + '.nii.gz'
+#     >>> left_mask = fetch_data(urls['T1_001'], '', '.nii.gz')
+#     >>> right_mask = fetch_data(urls['T1_001'], '', '.nii.gz')
+#     >>> left_mask += '.nii.gz'
+#     >>> right_mask += '.nii.gz'
 #     >>> # For a quick test, simply mask with whole brain:
 #     >>> hemi = 'rh'
 #     >>> mask_index = None
@@ -515,7 +509,7 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
 #
 #     # Do the same for additional vtk surfaces:
 #     if len(surface_files) == 2:
-#         surfaces_in_volume = os.path.join(os.getcwdb(), 'surfaces.nii.gz')
+#         surfaces_in_volume = os.path.join(os.getcwd(), 'surfaces.nii.gz')
 #         surface_in_volume2 = transform_to_volume(surface_files[1], mask)
 #
 #         overwrite_volume_labels(surface_in_volume, surface_in_volume2,
@@ -579,7 +573,7 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
 #     if not output_stem:
 #         src = os.path.basename(source).split('.')[0]
 #         tgt = os.path.basename(target).split('.')[0]
-#         output_stem = os.path.join(os.getcwdb(), src+'_to_'+tgt)
+#         output_stem = os.path.join(os.getcwd(), src+'_to_'+tgt)
 #
 #     cmd = ['ANTS', '3', '-m CC[' + target + ',' + source + ',1,2]',
 #             '-r Gauss[2,0]', '-t SyN[0.5] -i', iterations,
@@ -653,7 +647,7 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
 #                  'nonlinear_transform.')
 #
 #     if not output:
-#         output = os.path.join(os.getcwdb(), 'WarpImageMultiTransform.nii.gz')
+#         output = os.path.join(os.getcwd(), 'WarpImageMultiTransform.nii.gz')
 #
 #     if not os.path.exists(nonlinear_transform):
 #         affine_only = True
@@ -722,7 +716,7 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
 #     from mindboggle.guts.utilities import execute
 #
 #     if not output_transform_file:
-#         output_transform_file = os.path.join(os.getcwdb(), 'affine' + ext)
+#         output_transform_file = os.path.join(os.getcwd(), 'affine' + ext)
 #
 #     xfms = []
 #     for ixfm, xfm in enumerate(transform_files):

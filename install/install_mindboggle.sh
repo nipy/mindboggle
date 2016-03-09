@@ -160,6 +160,7 @@ conda install --yes cmake pip
 #-----------------------------------------------------------------------------
 conda install --yes numpy scipy matplotlib pandas networkx vtk ipython
 pip install nibabel nipype
+pip install --upgrade https://github.com/nipy/nipype/archive/master.zip
 
 #-----------------------------------------------------------------------------
 # Install the latest Mindboggle:

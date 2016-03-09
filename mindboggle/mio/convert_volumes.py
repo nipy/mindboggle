@@ -47,11 +47,9 @@ def convert2nii(input_file, reference_file, output_file='', interp='continuous')
     >>> from mindboggle.mio.convert_volumes import convert2nii
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> input_file = fetch_data(urls['freesurfer_labels'])
-    >>> reference_file = fetch_data(urls['freesurfer_segmentation'])
-    >>> os.rename(input_file, input_file + '.nii.gz')
+    >>> input_file = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
+    >>> reference_file = fetch_data(urls['freesurfer_segmentation'], '', '.nii.gz')
     >>> input_file += '.nii.gz'
-    >>> os.rename(reference_file, reference_file + '.nii.gz')
     >>> reference_file += '.nii.gz'
     >>> output_file = ''
     >>> interp = 'nearest'
@@ -74,7 +72,7 @@ def convert2nii(input_file, reference_file, output_file='', interp='continuous')
     if not os.path.exists(reference_file):
         raise IOError("Reference file " + reference_file + " not found.")
     if not output_file:
-        output_file = os.path.join(os.getcwdb(),
+        output_file = os.path.join(os.getcwd(),
                                    os.path.basename(input_file) + '.nii.gz')
     #-------------------------------------------------------------------------
     # Load reference image:
@@ -178,7 +176,7 @@ def xyz2nii(input_xyz_file, output_nii_file='', origin=[], pad=10):
 
     # Write output image volume:
     if not output_nii_file:
-        output_nii_file = os.path.join(os.getcwdb(), 'xyz.nii.gz')
+        output_nii_file = os.path.join(os.getcwd(), 'xyz.nii.gz')
     img = nb.Nifti1Image(data, affine=np.eye(4,4))
     img.to_filename(output_nii_file)
 

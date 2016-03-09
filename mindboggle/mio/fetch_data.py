@@ -3,9 +3,9 @@
 Functions for fetching data from a URL or from third party software.
 
 Authors:
-    - Arno Klein, 2013-2015  (arno@mindboggle.info)  http://binarybottle.com
+    - Arno Klein, 2013-2016  (arno@mindboggle.info)  http://binarybottle.com
 
-Copyright 2015,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -265,9 +265,9 @@ def fetch_hash(data_file):
     return hash
 
 
-def fetch_data(url, output_file=''):
+def fetch_data(url, output_file='', append=''):
     """
-    Get data from URL.
+    Download file from a URL to a specified or a temporary file.
 
     Parameters
     ----------
@@ -275,6 +275,8 @@ def fetch_data(url, output_file=''):
         URL for data file
     output_file : string
         name of output file (full path)
+    append : string
+        append to output file (ex: '.nii.gz')
 
     Returns
     -------
@@ -286,19 +288,22 @@ def fetch_data(url, output_file=''):
     >>> from mindboggle.mio.fetch_data import fetch_data
     >>> from mindboggle.mio.fetch_data import hashes_url, fetch_hash
     >>> hashes, url, cache_env, cache = hashes_url()
-    >>> data_file = fetch_data(url + 'atlases/OASIS-30_Atropos_template.nii.gz')
+    >>> output_file = ''
+    >>> append = '.nii.gz'
+    >>> data_file = fetch_data(url + 'OASIS-30_Atropos_template.nii.gz',
+    ...                        output_file, append)
     >>> fetch_hash(data_file)
-    '29aa74c732d09489adddf5704e413519'
+    'f95dbe37ab40e8ad59c1b1eabc7f230c'
 
     """
-    import urllib
+    import os
+    import urllib.request
 
-    # Download file to specified output:
-    if output_file:
-        output_file, foo = urllib.urlretrieve(url, output_file)
-    # Download file as a temporary file:
-    else:
-        output_file, foo = urllib.urlretrieve(url)
+    output_file, foo = urllib.request.urlretrieve(url, output_file)
+
+    if append:
+        os.rename(output_file, output_file + append)
+        output_file += append
 
     return output_file
 

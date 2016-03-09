@@ -55,8 +55,7 @@ def volume_per_brain_region(input_file, include_labels=[], exclude_labels=[],
     >>> from mindboggle.shapes.volume_shapes import volume_per_brain_region
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> input_file = fetch_data(urls['freesurfer_labels'])
-    >>> os.rename(input_file, input_file + '.nii.gz')
+    >>> input_file = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
     >>> input_file += '.nii.gz'
     >>> dkt = DKTprotocol()
     >>> include_labels = dkt.label_numbers
@@ -96,9 +95,9 @@ def volume_per_brain_region(input_file, include_labels=[], exclude_labels=[],
     # Output table:
     if save_table:
         if output_table:
-            output_table = os.path.join(os.getcwdb(), output_table)
+            output_table = os.path.join(os.getcwd(), output_table)
         else:
-            output_table = os.path.join(os.getcwdb(),
+            output_table = os.path.join(os.getcwd(),
                                         'volume_for_each_label.csv')
         fid = open(output_table, 'w')
         if len(label_names) == len(unique_labels):
@@ -233,11 +232,9 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     >>> from mindboggle.shapes.volume_shapes import thickinthehead
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> segmented_file = fetch_data(urls['ants_segmentation'])
-    >>> os.rename(segmented_file, segmented_file + '.nii.gz')
+    >>> segmented_file = fetch_data(urls['ants_segmentation'], '', '.nii.gz')
     >>> segmented_file += '.nii.gz'
-    >>> labeled_file = fetch_data(urls['ants_labels'])
-    >>> os.rename(labeled_file, labeled_file + '.nii.gz')
+    >>> labeled_file = fetch_data(urls['ants_labels'], '', '.nii.gz')
     >>> labeled_file += '.nii.gz'
     >>> cortex_value = 2
     >>> noncortex_value = 3
@@ -284,7 +281,7 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
         if not os.path.exists(output_dir):
             os.mkdir(output_dir)
     else:
-        output_dir = os.getcwdb()
+        output_dir = os.getcwd()
     cortex = os.path.join(output_dir, 'cortex.nii.gz')
     noncortex = os.path.join(output_dir, 'noncortex.nii.gz')
     temp = os.path.join(output_dir, 'temp.nii.gz')
@@ -295,9 +292,9 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
 
     if save_table:
         if output_table:
-            output_table = os.path.join(os.getcwdb(), output_table)
+            output_table = os.path.join(os.getcwd(), output_table)
         else:
-            output_table = os.path.join(os.getcwdb(),
+            output_table = os.path.join(os.getcwd(),
                                         'thickinthehead_for_each_label.csv')
         fid = open(output_table, 'w')
         if names:

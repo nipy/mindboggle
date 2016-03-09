@@ -188,7 +188,7 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     if n_fundi_in_folds > 0:
         fundus_per_fold = [int(x) for x in fundus_per_fold]
         if save_file:
-            fundus_per_fold_file = os.path.join(os.getcwdb(),
+            fundus_per_fold_file = os.path.join(os.getcwd(),
                                                 'fundus_per_fold.vtk')
             rewrite_scalars(curv_file, fundus_per_fold_file, fundus_per_fold,
                             'fundi', folds)
@@ -309,7 +309,7 @@ def segment_fundi(fundus_per_fold, sulci=[], vtk_file='', save_file=False,
     if n_fundi > 0:
         fundus_per_sulcus = [int(x) for x in fundus_per_sulcus]
         if save_file and os.path.exists(vtk_file):
-            fundus_per_sulcus_file = os.path.join(os.getcwdb(),
+            fundus_per_sulcus_file = os.path.join(os.getcwd(),
                                                   'fundus_per_sulcus.vtk')
             # Do not filter faces/points by scalars when saving file:
             rewrite_scalars(vtk_file, fundus_per_sulcus_file,

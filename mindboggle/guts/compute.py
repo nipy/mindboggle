@@ -188,7 +188,7 @@ def pairwise_vector_distances(vectors, save_file=False, normalize=False):
                 vector_distances[ihist1, ihist2] = d
 
     if save_file:
-        outfile = os.path.join(os.getcwdb(), 'vector_distances.txt')
+        outfile = os.path.join(os.getcwd(), 'vector_distances.txt')
         np.savetxt(outfile, vector_distances,
                    fmt=len(vectors) * '%.4f ', delimiter='\t', newline='\n')
         if not os.path.exists(outfile):
@@ -1002,7 +1002,7 @@ def compute_overlaps(targets, list1, list2, output_file='', save_output=True,
     dice_overlaps = np.zeros(len(targets))
     jacc_overlaps = np.zeros(len(targets))
     if save_output and not output_file:
-        output_file = os.path.join(os.getcwdb(), 'ID_dice_jaccard.csv')
+        output_file = os.path.join(os.getcwd(), 'ID_dice_jaccard.csv')
 
     # Loop through targets:
     for itarget, target in enumerate(targets):
@@ -1066,9 +1066,8 @@ def compute_image_histogram(infile, nbins=100, threshold=0.0):
     >>> from mindboggle.guts.compute import compute_image_histogram
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> labels_file = fetch_data(urls['freesurfer_labels'])
-    >>> os.rename(labels_file, labels_file + '.nii.gz')
-    >>> labels_file = labels_file + '.nii.gz'
+    >>> labels_file = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
+    >>> labels_file += '.nii.gz'
     >>> nbins = 100
     >>> threshold = 0.5
     >>> histogram_values = compute_image_histogram(labels_file, nbins,

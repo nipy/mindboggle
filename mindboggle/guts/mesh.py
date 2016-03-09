@@ -877,7 +877,7 @@ def decimate(points, faces, reduction=0.75, smooth_steps=25,
     #-------------------------------------------------------------------------
     if save_vtk:
         if not output_vtk:
-            output_vtk = os.path.join(os.getcwdb(), 'decimated.vtk')
+            output_vtk = os.path.join(os.getcwd(), 'decimated.vtk')
         exporter = vtk.vtkPolyDataWriter()
     else:
         output_vtk = None
@@ -1104,7 +1104,7 @@ def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
     #-------------------------------------------------------------------------
     if save_file:
 
-        rescaled_scalars_file = os.path.join(os.getcwdb(), output_filestring + '.vtk')
+        rescaled_scalars_file = os.path.join(os.getcwd(), output_filestring + '.vtk')
         rewrite_scalars(input_vtk, rescaled_scalars_file,
                         rescaled_scalars, 'rescaled_scalars')
         if not os.path.exists(rescaled_scalars_file):
@@ -1208,7 +1208,7 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
     #-------------------------------------------------------------------------
     if save_file:
 
-        rescaled_scalars_file = os.path.join(os.getcwdb(),
+        rescaled_scalars_file = os.path.join(os.getcwd(),
                                              output_filestring + '.vtk')
         rewrite_scalars(input_vtk, rescaled_scalars_file,
                         rescaled_scalars, 'rescaled_scalars', labels)

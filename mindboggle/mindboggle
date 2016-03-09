@@ -130,14 +130,11 @@ out_args.add_argument("--no_sulci", action='store_true',
 out_args.add_argument("--no_points", action='store_true',
                       help="no table of per-vertex surface shape measures")
 out_args.add_argument("--no_moments", action='store_true',
-                      help="no Zernike moments per surface label or sulcus "
-                           "[FYI: requires 2GB RAM -- possible memory leak?]")
+                      help="no Zernike moments per surface label or sulcus")
 out_args.add_argument("--no_spectra", action='store_true',
                       help="no Laplace-Beltrami per surface label or sulcus")
 out_args.add_argument("--no_thickness", action='store_true',
                       help="no volume-based cortical label thicknesses")
-out_args.add_argument("--no_surfaces_in_mni", action='store_true',
-                      help="no cortical surfaces in MNI152 space")
 
 adv_args.add_argument("--fundi", action='store_true',
                       help="extract, measure fundi (under evaluation)")
@@ -256,10 +253,6 @@ if args.no_points:
     do_points = False
 else:
     do_points = True
-if args.no_surfaces_in_mni:
-    do_surfaces_in_mni = False
-else:
-    do_surfaces_in_mni = True
 if args.no_thickness:
     do_thickinthehead = False
 else:
@@ -302,6 +295,7 @@ if atlases:
 ccode_path = os.environ['vtk_cpp_tools']  # Mindboggle C++ code directory
 overwrite_cerebrum_with_cerebellum = True
 fill_noncortex_with_ants_labels = False
+do_surfaces_in_mni = True
 do_smooth_fundi = False
 # ----------------------------------------------------------------------------
 # Hashes to verify retrieved data, and output, working, and cache directories:

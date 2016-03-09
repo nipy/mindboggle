@@ -46,9 +46,8 @@ def plot_surfaces(vtk_files, use_colormap=False, colormap_file=''):
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> label_file = fetch_data(urls['freesurfer_labels'])
-    >>> os.rename(label_file, label_file + '.nii.gz')
-    >>> label_file = label_file + '.nii.gz'
+    >>> label_file = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
+    >>> label_file += '.nii.gz'
     >>> use_colormap = True
     >>> colormap_file = '/software/vtk_cpp_tools/colormap.xml' # doctest: +SKIP
     >>> plot_surfaces(vtk_files, use_colormap, colormap_file) # doctest: +SKIP
@@ -148,7 +147,7 @@ def plot_mask_surface(vtk_file, mask_file='', nonmask_value=-1,
     if mask_file:
         mask, name = read_scalars(mask_file, True, True)
         if not masked_output:
-            masked_output = os.path.join(os.getcwdb(), 'temp.vtk')
+            masked_output = os.path.join(os.getcwd(), 'temp.vtk')
         file_to_plot = masked_output
 
         #---------------------------------------------------------------------
@@ -217,12 +216,10 @@ def plot_volumes(volume_files, command='fslview'):
     >>> from mindboggle.mio.plots import plot_volumes
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> label_file1 = fetch_data(urls['freesurfer_labels'])
-    >>> os.rename(label_file1, label_file1 + '.nii.gz')
-    >>> label_file1 = label_file1 + '.nii.gz'
-    >>> label_file2 = fetch_data(urls['freesurfer_labels'])
-    >>> os.rename(label_file2, label_file2 + '.nii.gz')
-    >>> label_file2 = label_file2 + '.nii.gz'
+    >>> label_file1 = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
+    >>> label_file1 += '.nii.gz'
+    >>> label_file2 = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
+    >>> label_file2 += '.nii.gz'
     >>> volume_files = [label_file1, label_file2]
     >>> command = 'fslview'
     >>> command = '/Applications/ITK-SNAP.app/Contents/MacOS/InsightSNAP'

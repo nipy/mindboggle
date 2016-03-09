@@ -52,11 +52,9 @@ def evaluate_volume_overlaps(labels, file1, file2,
     >>> from mindboggle.mio.labels import DKTprotocol
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> file1 = fetch_data(urls['freesurfer_labels'])
-    >>> file2 = fetch_data(urls['ants_labels'])
-    >>> os.rename(file1, file1 + '.nii.gz')
+    >>> file1 = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
+    >>> file2 = fetch_data(urls['ants_labels'], '', '.nii.gz')
     >>> file1 += '.nii.gz'
-    >>> os.rename(file2, file2 + '.nii.gz')
     >>> file2 += '.nii.gz'
     >>> dkt = DKTprotocol()
     >>> labels = dkt.cerebrum_cortex_DKT31_numbers
@@ -189,7 +187,7 @@ def evaluate_surface_overlaps_cpp(command, labels_file1, labels_file2,
     if not output_file:
         output_file = os.path.basename(labels_file1) + '_and_' + \
                            os.path.basename(labels_file2) + '.txt'
-    output_file = os.path.join(os.getcwdb(), output_file)
+    output_file = os.path.join(os.getcwd(), output_file)
     cli = CommandLine(command = command)
     cli.inputs.args = ' '.join([labels_file1, labels_file2, output_file])
     cli.cmdline

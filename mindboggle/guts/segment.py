@@ -1499,7 +1499,7 @@ def extract_borders_2nd_surface(labels_file, values_file='',
         border_values[indices_borders] = 1
 
     # Write out label boundary vtk file
-    border_file = os.path.join(os.getcwdb(), 'borders_' + os.path.basename(labels_file))
+    border_file = os.path.join(os.getcwd(), 'borders_' + os.path.basename(labels_file))
     rewrite_scalars(labels_file, border_file, border_values, \
                     'label_borders_in_mask')
 
@@ -1565,11 +1565,9 @@ def combine_2labels_in_2volumes(file1, file2, label1=3, label2=2,
     >>> from mindboggle.guts.segment import combine_2labels_in_2volumes
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> file1 = fetch_data(urls['freesurfer_segmentation'])
-    >>> file2 = fetch_data(urls['ants_segmentation'])
-    >>> os.rename(file1, file1 + '.nii.gz')
+    >>> file1 = fetch_data(urls['freesurfer_segmentation'], '', '.nii.gz')
+    >>> file2 = fetch_data(urls['ants_segmentation'], '', '.nii.gz')
     >>> file1 += '.nii.gz'
-    >>> os.rename(file2, file2 + '.nii.gz')
     >>> file2 += '.nii.gz'
     >>> label1 = 3
     >>> label2 = 2
@@ -1617,7 +1615,7 @@ def combine_2labels_in_2volumes(file1, file2, label1=3, label2=2,
     # Save relabeled file:
     #-------------------------------------------------------------------------
     if not output_file:
-        output_file = os.path.join(os.getcwdb(),
+        output_file = os.path.join(os.getcwd(),
                                    'combined_segmentations.nii.gz')
     img = nb.Nifti1Image(new_data, xfm)
     img.to_filename(output_file)
@@ -1657,11 +1655,9 @@ def split_brain(image_file, label_file, left_labels, right_labels):
     >>> from mindboggle.mio.labels import DKTprotocol
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> image_file = fetch_data(urls['freesurfer_segmentation'])
-    >>> label_file = fetch_data(urls['freesurfer_labels'])
-    >>> os.rename(image_file, image_file + '.nii.gz')
+    >>> image_file = fetch_data(urls['freesurfer_segmentation'], '', '.nii.gz')
+    >>> label_file = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
     >>> image_file += '.nii.gz'
-    >>> os.rename(label_file, label_file + '.nii.gz')
     >>> label_file += '.nii.gz'
     >>> dkt = DKTprotocol()
     >>> left_labels = dkt.left_cerebrum_numbers
@@ -1681,9 +1677,9 @@ def split_brain(image_file, label_file, left_labels, right_labels):
 
     from mindboggle.guts.relabel import keep_volume_labels
 
-    left_brain = os.path.join(os.getcwdb(),
+    left_brain = os.path.join(os.getcwd(),
                               'left_' + os.path.basename(image_file))
-    right_brain = os.path.join(os.getcwdb(),
+    right_brain = os.path.join(os.getcwd(),
                                'right_' + os.path.basename(image_file))
     #-------------------------------------------------------------------------
     # Split brain labels by masking with left or right labels:
