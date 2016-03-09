@@ -4447,6 +4447,7 @@ def extract_numbers_names_colors(FreeSurferColorLUT=''):
 
     """
     import os
+    from io import open
 
     from mindboggle.thirdparty.FreeSurferColorLUT import lut_text
 
@@ -4462,7 +4463,7 @@ def extract_numbers_names_colors(FreeSurferColorLUT=''):
     #              os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')
 
     if FreeSurferColorLUT and os.path.exists(FreeSurferColorLUT):
-        f = open(FreeSurferColorLUT, 'r')
+        f = open(FreeSurferColorLUT, 'rb')
         lines = f.readlines()
     else:
         lut = lut_text()

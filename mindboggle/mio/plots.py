@@ -662,6 +662,7 @@ if __name__ == "__main__":
 #
 #     import os
 #     import numpy as np
+#     from io import open
 #     from mindboggle.mio.plots import scatterplot_list_pairs
 #     from mindboggle.mio.plots import boxplots_of_lists
 #     from mindboggle.mio.plots import histograms_of_lists

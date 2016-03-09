@@ -693,6 +693,7 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     """
     import os
     import numpy as np
+    from io import open
 
     from mindboggle.mio.vtks import write_header, write_points, \
         write_vertices, write_faces, write_scalars, scalars_checker
@@ -785,6 +786,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     """
     import os
     import numpy as np
+    from io import open
 
     from mindboggle.guts.mesh import keep_faces, reindex_faces_points
     from mindboggle.mio.vtks import write_header, write_points, \
@@ -1245,6 +1247,7 @@ def scalars_checker(scalars, scalar_names):
 #
 #     """
 #     import numpy as np
+#     from io import open
 #
 #     transform = np.eye(4)
 #
@@ -1306,6 +1309,7 @@ def scalars_checker(scalars, scalar_names):
 #            [  0 0 0 1]])
 #     """
 #     import numpy as np
+#     from io import open
 #
 #     # Read the transform:
 #     transform = None
@@ -1624,7 +1628,7 @@ def freesurfer_surface_to_vtk(surface_file, orig_file='', output_vtk=''):
     """
     import os
     import nibabel as nb
-    from mindboggle.mio.fetch_data import prep_tests
+    from io import open
 
     from mindboggle.mio.vtks import write_header, write_points, write_faces
 

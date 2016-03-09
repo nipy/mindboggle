@@ -72,6 +72,7 @@ def antsApplyTransformsToPoints(points, transform_files,
 
     """
     import os
+    from io import open
 
     from mindboggle.guts.utilities import execute
 
@@ -109,7 +110,7 @@ def antsApplyTransformsToPoints(points, transform_files,
     #-------------------------------------------------------------------------
     # Return transformed points:
     #-------------------------------------------------------------------------
-    fid = open(transformed_points_file, 'r')
+    fid = open(transformed_points_file, 'rb')
     lines = fid.readlines()
     fid.close()
     transformed_points = []

@@ -255,6 +255,8 @@ def fetch_hash(data_file):
     NOTE: hashes['OASIS-30_Atropos_template.nii.gz'] = 'f95dbe37ab40e8ad59c1b1eabc7f230c'
 
     """
+    from io import open
+
     import hashlib
 
     # Compute the file's hash:

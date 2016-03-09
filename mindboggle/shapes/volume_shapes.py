@@ -79,6 +79,7 @@ def volume_per_brain_region(input_file, include_labels=[], exclude_labels=[],
     import os
     import numpy as np
     import nibabel as nb
+    from io import open
 
     from mindboggle.guts.compute import count_per_label
 
@@ -272,6 +273,7 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     import os
     import numpy as np
     import nibabel as nb
+    from io import open
 
     from mindboggle.guts.utilities import execute
 

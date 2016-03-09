@@ -102,6 +102,7 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
     import numpy as np
     from math import pi
     import cPickle as pickle
+    from io import open
 
     from mindboggle.mio.vtks import read_scalars, rewrite_scalars
 
@@ -113,7 +114,7 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
 
     # Load estimated depth and curvature distribution parameters:
     depth_border, curv_border, depth_nonborder, \
-        curv_nonborder = pickle.load(open(trained_file, "r"))
+        curv_nonborder = pickle.load(open(trained_file, "rb"))
 
     # Load depths, curvatures:
     depths, name = read_scalars(depth_file, True, True)
@@ -208,6 +209,7 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files,
     --------
     >>> import numpy as np
     >>> import cPickle as pickle
+    >>> from io import open
     >>> from mindboggle.shapes.likelihood import estimate_distribution
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> # Train on a single surface mesh (using FreeSurfer vs. manual labels):
