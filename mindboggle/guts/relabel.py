@@ -39,8 +39,7 @@ def relabel_volume(input_file, old_labels, new_labels, output_file=''):
     >>> from mindboggle.mio.labels import DKTprotocol
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> input_file = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
-    >>> input_file += '.nii.gz'
+    >>> input_file = fetch_data(urls['freesurfer_labels'])
     >>> dkt = DKTprotocol()
     >>> old_labels = dkt.cerebrum_cortex_numbers + dkt.cerebrum_noncortex_numbers
     >>> ctx = [5000 for x in dkt.cerebrum_cortex_numbers]
@@ -227,8 +226,7 @@ def keep_volume_labels(input_file, labels_to_keep, output_file='',
     >>> from mindboggle.mio.labels import DKTprotocol
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> input_file = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
-    >>> input_file += '.nii.gz'
+    >>> input_file = fetch_data(urls['freesurfer_labels'])
     >>> second_file = ''
     >>> labels_to_keep = list(range(1000, 1036))
     >>> output_file = ''
@@ -458,10 +456,8 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
     >>> from mindboggle.mio.labels import DKTprotocol
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> source = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
-    >>> target = fetch_data(urls['ants_labels'], '', '.nii.gz')
-    >>> source += '.nii.gz'
-    >>> target += '.nii.gz'
+    >>> source = fetch_data(urls['freesurfer_labels'])
+    >>> target = fetch_data(urls['ants_labels'])
     >>> output_file = ''
     >>> ignore_labels = [0]
     >>> erase_labels = False

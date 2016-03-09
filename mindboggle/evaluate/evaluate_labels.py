@@ -52,10 +52,8 @@ def evaluate_volume_overlaps(labels, file1, file2,
     >>> from mindboggle.mio.labels import DKTprotocol
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> file1 = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
-    >>> file2 = fetch_data(urls['ants_labels'], '', '.nii.gz')
-    >>> file1 += '.nii.gz'
-    >>> file2 += '.nii.gz'
+    >>> file1 = fetch_data(urls['freesurfer_labels'])
+    >>> file2 = fetch_data(urls['ants_labels'])
     >>> dkt = DKTprotocol()
     >>> labels = dkt.cerebrum_cortex_DKT31_numbers
     >>> output_file = ''

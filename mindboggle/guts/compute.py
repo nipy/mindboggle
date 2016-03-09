@@ -886,25 +886,22 @@ def count_per_label(labels, include_labels=[], exclude_labels=[]):
     >>> counts
     [0, 3, 4, 5]
 
-    Skip the following when testing on https://travis-ci.org/nipy/mindboggle
-    because the travis.yml file doesn't install nibabel (requires sudo):
-
     >>> import nibabel as nb  # doctest: +SKIP
     >>> from mindboggle.mio.vtks import read_scalars  # doctest: +SKIP
     >>> from mindboggle.mio.labels import DKTprotocol  # doctest: +SKIP
     >>> from mindboggle.guts.compute import count_per_label  # doctest: +SKIP
     >>> from mindboggle.mio.fetch_data import prep_tests  # doctest: +SKIP
-    >>> urls, fetch_data = prep_tests()  # doctest: +SKIP
-    >>> labels_file = fetch_data(urls['freesurfer_labels'], 'test.nii.gz')  # doctest: +SKIP
-    >>> img = nb.load(labels_file)  # doctest: +SKIP
-    >>> hdr = img.get_header()  # doctest: +SKIP
-    >>> labels = img.get_data().ravel()  # doctest: +SKIP
-    >>> dkt = DKTprotocol()  # doctest: +SKIP
-    >>> include_labels = dkt.label_numbers  # doctest: +SKIP
-    >>> exclude_labels = []  # doctest: +SKIP
+    >>> urls, fetch_data = prep_tests()
+    >>> labels_file = fetch_data(urls['freesurfer_labels'])
+    >>> img = nb.load(labels_file)
+    >>> hdr = img.get_header()
+    >>> labels = img.get_data().ravel()
+    >>> dkt = DKTprotocol()
+    >>> include_labels = dkt.label_numbers
+    >>> exclude_labels = []
     >>> unique_labels, counts = count_per_label(labels,
-    ...     include_labels, exclude_labels)  # doctest: +SKIP
-    >>> counts[0:5]  # doctest: +SKIP
+    ...     include_labels, exclude_labels)
+    >>> counts[0:5]
     [972, 2414, 2193, 8329, 2941]
 
     """
@@ -1066,8 +1063,7 @@ def compute_image_histogram(infile, nbins=100, threshold=0.0):
     >>> from mindboggle.guts.compute import compute_image_histogram
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> labels_file = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
-    >>> labels_file += '.nii.gz'
+    >>> labels_file = fetch_data(urls['freesurfer_labels'])
     >>> nbins = 100
     >>> threshold = 0.5
     >>> histogram_values = compute_image_histogram(labels_file, nbins,

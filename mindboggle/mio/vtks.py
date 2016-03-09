@@ -1524,8 +1524,7 @@ def apply_affine_transforms(transform_files, inverse_booleans,
 #     >>> from mindboggle.mio.fetch_data import prep_tests
 #     >>> urls, fetch_data = prep_tests()
 #     >>> vtk_file = fetch_data(urls['left_pial'])
-#     >>> volume_file = fetch_data(urls['T1_001'], '', '.nii.gz')
-#     >>> volume_file += '.nii.gz'
+#     >>> volume_file = fetch_data(urls['T1_001'])
 #     >>> points  = read_points(vtk_file)
 #     >>> output_volume = ''
 #     >>> output_volume = transform_to_volume(vtk_file, points, volume_file,

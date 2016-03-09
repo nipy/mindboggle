@@ -51,11 +51,9 @@ def antsApplyTransformsToPoints(points, transform_files,
     >>> from mindboggle.mio.vtks import read_points
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> xfm1 = fetch_data(urls['ants_affine_template2subject'], '', '')
-    >>> xfm2 = fetch_data(urls['ants_warp_template2subject'], '', '.nii.gz')
-    >>> xfm3 = fetch_data(urls['OASIS-30_Atropos_template_to_MNI152_affine'],
-    ...                   '', '')
-    >>> xfm2 += '.nii.gz'
+    >>> xfm1 = fetch_data(urls['ants_affine_template2subject'])
+    >>> xfm2 = fetch_data(urls['ants_warp_template2subject'])
+    >>> xfm3 = fetch_data(urls['OASIS-30_Atropos_template_to_MNI152_affine'])
     >>> transform_files = [xfm1, xfm2, xfm3]
     >>> vtk_file = fetch_data(urls['left_pial'])
     >>> points  = read_points(vtk_file)
@@ -165,10 +163,8 @@ def ImageMath(volume1, volume2, operator='m', output_file=''):
     >>> from mindboggle.thirdparty.ants import ImageMath
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> volume1 = fetch_data(urls['T1_001'], '', '.nii.gz')
-    >>> volume2 = fetch_data(urls['ants_mask'], '', '.nii.gz')
-    >>> volume1 += '.nii.gz'
-    >>> volume2 += '.nii.gz'
+    >>> volume1 = fetch_data(urls['T1_001'])
+    >>> volume2 = fetch_data(urls['ants_mask'])
     >>> operator = 'm'
     >>> output_file = ''
     >>> output_file = ImageMath(volume1, volume2, operator, output_file) # doctest: +SKIP
@@ -294,10 +290,8 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None, output_file='',
     >>> from mindboggle.thirdparty.ants import PropagateLabelsThroughMask
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> labels = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
-    >>> labels += '.nii.gz'
-    >>> mask = fetch_data(urls['ants_mask'], '', '.nii.gz')
-    >>> mask += '.nii.gz'
+    >>> labels = fetch_data(urls['freesurfer_labels'])
+    >>> mask = fetch_data(urls['ants_mask'])
     >>> mask_index = None
     >>> output_file = ''
     >>> binarize = True
@@ -472,10 +466,8 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
 #     >>> labels_left = fetch_data(urls['left_freesurfer_labels'])
 #     >>> labels_right = fetch_data(urls['right_freesurfer_labels'])
 #     >>> surface_files = [labels_left, labels_left]
-#     >>> left_mask = fetch_data(urls['T1_001'], '', '.nii.gz')
-#     >>> right_mask = fetch_data(urls['T1_001'], '', '.nii.gz')
-#     >>> left_mask += '.nii.gz'
-#     >>> right_mask += '.nii.gz'
+#     >>> left_mask = fetch_data(urls['T1_001'])
+#     >>> right_mask = fetch_data(urls['T1_001'])
 #     >>> # For a quick test, simply mask with whole brain:
 #     >>> hemi = 'rh'
 #     >>> mask_index = None

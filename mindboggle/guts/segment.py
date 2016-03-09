@@ -1565,10 +1565,8 @@ def combine_2labels_in_2volumes(file1, file2, label1=3, label2=2,
     >>> from mindboggle.guts.segment import combine_2labels_in_2volumes
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> file1 = fetch_data(urls['freesurfer_segmentation'], '', '.nii.gz')
-    >>> file2 = fetch_data(urls['ants_segmentation'], '', '.nii.gz')
-    >>> file1 += '.nii.gz'
-    >>> file2 += '.nii.gz'
+    >>> file1 = fetch_data(urls['freesurfer_segmentation'])
+    >>> file2 = fetch_data(urls['ants_segmentation'])
     >>> label1 = 3
     >>> label2 = 2
     >>> output_file = ''
@@ -1655,10 +1653,8 @@ def split_brain(image_file, label_file, left_labels, right_labels):
     >>> from mindboggle.mio.labels import DKTprotocol
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> image_file = fetch_data(urls['freesurfer_segmentation'], '', '.nii.gz')
-    >>> label_file = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
-    >>> image_file += '.nii.gz'
-    >>> label_file += '.nii.gz'
+    >>> image_file = fetch_data(urls['freesurfer_segmentation'])
+    >>> label_file = fetch_data(urls['freesurfer_labels'])
     >>> dkt = DKTprotocol()
     >>> left_labels = dkt.left_cerebrum_numbers
     >>> right_labels = dkt.right_cerebrum_numbers
