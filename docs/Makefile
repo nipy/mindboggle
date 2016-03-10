@@ -66,7 +66,7 @@ htmlonly:
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 
 .PHONY: html
-html: htmlonly api
+html: api htmlonly
 	@echo "Build HTML and API finished."
 
 .PHONY: dirhtml
