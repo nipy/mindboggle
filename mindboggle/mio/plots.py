@@ -13,17 +13,6 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 
-# # Example Pysurfer plot of FreeSurfer surface + VTK scalars
-# ipython
-# %gui qt
-# import numpy as np
-# import surfer
-# from mindboggle.mio.vtks import read_scalars as rs
-# d,n=rs('/drop/MB/data/arno/shapes/travel_depth_rescaled.vtk')
-# br = surfer.Brain('Twins-2-1', 'lh', 'inflated')
-# br.add_data(np.array(d), min=0, max=1, alpha=0.5)
-
-
 def plot_surfaces(vtk_files, use_colormap=False, colormap_file=''):
     """
     Use vtkviewer to visualize one or more VTK surface files.
