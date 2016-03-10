@@ -3,10 +3,10 @@
 machine:
 
   python:
-    version: 2.7.10
+    version: 3.5
 
   environment:
-    MINI: $HOME/miniconda2
+    MINI: $HOME/miniconda3
     MB: $HOME/mindboggle
     vtk_cpp_tools: $MB/vtk_cpp_tools/bin
     PATH: $MINI/bin:$vtk_cpp_tools:$PATH
@@ -26,7 +26,7 @@ dependencies:
     #-------------------------------------------------------------------------
     # Install conda and add it to PATH
     #-------------------------------------------------------------------------
-    - wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
+    - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
     - bash miniconda.sh -b -p $MINI
     #-------------------------------------------------------------------------
     # Update conda and print info about the installation (for debugging)
@@ -41,6 +41,7 @@ dependencies:
     - pip install --upgrade pip
     - pip install nose coverage  # install testing tools for circle
     - pip install nibabel nipype
+    - pip install --upgrade https://github.com/nipy/nipype/archive/master.zip
     #-------------------------------------------------------------------------
     # Fix paths to Linux libraries using symbolic links
     #-------------------------------------------------------------------------

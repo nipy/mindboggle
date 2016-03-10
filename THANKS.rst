@@ -15,7 +15,7 @@
 +-------------------------+-------------------------------------+-------------------------------------------+
 | `Forrest Bao`_          |   forrest.bao [at] gmail.com        | VTK i/o, spectra port [1], MST fundi      |
 +-------------------------+-------------------------------------+-------------------------------------------+
-| `Joachim Giard`_        |   joachimgiard [at] gmail.com       | C++ surface shapes (depth, curvature)     |
+| Joachim Giard           |   joachimgiard [at] gmail.com       | C++ surface shapes (depth, curvature)     |
 +-------------------------+-------------------------------------+-------------------------------------------+
 | Yrjo Hame               |   yrjo.hame [at] gmail.com          | HMMF fundi                                |
 +-------------------------+-------------------------------------+-------------------------------------------+
@@ -45,7 +45,7 @@
 +-------------------------+-------------------------------------+-------------------------------------------+
 | Arthur Mikhno           |  arthur.mikhno [at] gmail.com       | [2] Zernike moments (Matlab)              |
 +-------------------------+-------------------------------------+-------------------------------------------+
-| `Hal Canary`_           |  hal [at] cs.unc.edu                | vtkviewer_ (Python VTK viewer)            |
+| Hal Canary              |  hal [at] cs.unc.edu                | vtkviewer_ (Python VTK viewer)            |
 +-------------------------+-------------------------------------+-------------------------------------------+
 |                         |                                     |                                           |
 +-------------------------+-------------------------------------+-------------------------------------------+
@@ -53,9 +53,6 @@
 .. _`Arno Klein`: http://binarybottle.com
 .. _`Satrajit Ghosh`: http://mit.edu/~satra
 .. _`Forrest Bao`: https://sites.google.com/site/forrestbao/
-.. _`Joachim Giard`: https://sites.google.com/site/joachimgiard/home
 .. _`Nolan Nichols`: http://www.linkedin.com/in/nolannichols
 .. _`Martin Reuter`: http://reuter.mit.edu/
-.. _`Hal Canary`: http://cs.unc.edu/~hal/
-
 .. _vtkviewer: https://github.com/HalCanary/vtkviewer
