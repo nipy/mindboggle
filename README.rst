@@ -18,15 +18,17 @@ pipeline framework.
 :Release: |version|
 :Date: |today|
 
-- `GitHub <http://github.com/nipy/mindboggle>`_
-- `Contributors <http://mindboggle.info/people.html>`_
+Contents:
 
 .. toctree::
     :maxdepth: 1
 
     FAQ <faq.rst>
-    API <api.rst>
     license
+    API <api/mindboggle.rst>
+
+- `GitHub <http://github.com/nipy/mindboggle>`_
+- `Contributors <http://mindboggle.info/people.html>`_
 
 * :ref:`genindex`
 * :ref:`modindex`
