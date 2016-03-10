@@ -23,14 +23,8 @@ if len(set(('develop', 'bdist_egg', 'bdist_rpm', 'bdist', 'bdist_dumb',
     pass
 from distutils.core import setup
 
-# Python 2 to 3 build
-#from nisext.py3builder import build_py
-## Commit hash writing, and dependency checking
-#from nisext.sexts import get_comrec_build, package_check
-#cmdclass = {'build_py': get_comrec_build('mindboggle', build_py)}
-
-# Get version and release info, which is all stored in mindboggle/info.py
-ver_file = 'info.py'  # os.path.join('mindboggle', 'info.py')
+# Get version and release info, which is all stored in info.py
+ver_file = pjoin(os.getcwd(), '../info.py')
 exec(open(ver_file).read())
 
 # Do dependency checking
