@@ -25,8 +25,6 @@ Contents:
 
     FAQ <faq.rst>
     license
-    API <api/mindboggle.rst>
-    mods <api/modules.rst>
 
 - `GitHub <http://github.com/nipy/mindboggle>`_
 - `Contributors <http://mindboggle.info/people.html>`_
