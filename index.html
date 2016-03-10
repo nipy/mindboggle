@@ -1,149 +1,120 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-
 <html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
+<head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-language" content="en">
+    <meta name="description" content="Mindboggle">
+    <meta name="keywords" content="Mindboggle, neuroimaging, brain imaging, python, neuroscience, labeling, parcellation, morphometry, shape analysis, MRI">
+    <meta name="author" content="mailto:arno&#64;mindboggle.info">
+    <meta name="dc.title" content="Mindboggle"> 
+    <meta name="dc.creator.address" content="arno&#64;mindboggle.info">
+    <meta name="dc.subject" content="Mindboggle">
+    <meta name="dc.type" content="text.homepage.academic"> 
+    <meta name="dc.format" content="text/html"> 
+    <meta name="dc.identifier" content="http://mindboggle.info">
     
-    <title>Mindboggle &mdash; Mindboggle</title>
+    <title>Mindboggle</title>
     
+    <link rel="top" title="Mindboggle" href="#" />
+    <link rel="icon" type="image/png" sizes="96x96" href="http://mindboggle.info/shared/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="http://mindboggle.info/shared/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="http://mindboggle.info/shared/favicon-16x16.png">
     <link rel="stylesheet" href="shared/mindboggle.css" type="text/css" />
     <link rel="stylesheet" href="shared/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '%s.%s.%s%s',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
+
     <script type="text/javascript" src="shared/jquery.js"></script>
     <script type="text/javascript" src="shared/underscore.js"></script>
     <script type="text/javascript" src="shared/doctools.js"></script>
-    <link rel="top" title="Mindboggle" href="#" />
-  <HTML><head><title>Mindboggle</title>
-  <link rel="icon" type="image/png" sizes="96x96" href="http://mindboggle.info/shared/favicon-96x96.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="http://mindboggle.info/shared/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="http://mindboggle.info/shared/favicon-16x16.png">
-  <meta http-equiv="Content-language" content="en">
-  <meta name="description" content="Mindboggle">
-  <meta name="keywords" content="Mindboggle, neuroimaging, brain imaging, python, neuroscience, labeling, parcellation, morphometry, shape analysis, MRI">
-  <meta name="author" content="mailto:arno&#64;mindboggle.info">
-  <meta name="dc.title" content="Mindboggle"> 
-  <meta name="dc.creator.address" content="arno&#64;mindboggle.info">
-  <meta name="dc.subject" content="Mindboggle">
-  <meta name="dc.type" content="text.homepage.academic"> 
-  <meta name="dc.format" content="text/html"> 
-  <meta name="dc.identifier" content="http://mindboggle.info">
+</head>
+<body role="document">
 
-  </head>
-  <body role="document">
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
- <table>
-  <tr>
-   <td>
-
- <a href="#">
-  <img src="http://nipy.github.io/mindboggle/shared/mindboggle_logo_small.jpg" alt="small mindboggle logo"  border="0" width="160"/></a>
-
-   </td>
-   <td>
-    <table>
-     <tr>
- <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 32px"
-  href="#">Mindboggle</a>
-     </tr>
-     <tr> <td height="18"></td>
-     </tr>
-     <tr>
-      <td>
-  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
-   href="http://mindboggle.readthedocs.org/en/latest/">Software</a>
-      </td>
-      <td>
-  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
-   href="data.html">Data</a>
-      </td>
-      <td>
-  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
-   href="papers.html">Papers</a>
-      </td>
-      <td>
-  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
-   href="people.html">People</a>
-      </td>
-     </tr>
-    </table>
-   </td>
-  </tr>
- </table>
+   <table>
+      <tr>
+       <td>
+         <a href="#"><img src="http://nipy.github.io/mindboggle/shared/mindboggle_logo_small.jpg" alt="small mindboggle logo"  border="0" width="160"/></a>
+       </td>
+       <td>
+        <table>
+         <tr>
+           <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 32px" href="#">Mindboggle</a>
+         </tr>
+         <tr> 
+            <td height="18"></td>
+         </tr>
+         <tr>
+            <td>
+              <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px" href="http://mindboggle.readthedocs.org/en/latest/">Software</a>
+            </td>
+            <td>
+              <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px" href="data.html">Data</a>
+            </td>
+            <td>
+              <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px" href="papers.html">Papers</a>
+            </td>
+            <td>
+              <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px" href="people.html">People</a>
+            </td>
+         </tr>
+        </table>
+       </td>
+      </tr>
+   </table>
 </div>
   
-
-    <div class="document">
-      <div class="documentwrapper">
-          <div class="body" role="main">
-            
-<div class="section" id="welcome-to-mindboggle">
-<h1>Welcome to Mindboggle!</h1>
-
-<p>The Mindboggle project&apos;s mission is to improve the accuracy, precision, and consistency of 
+<div class="document">
+    <div class="section" id="welcome-to-mindboggle">
+      <h1>Welcome to Mindboggle!</h1>
+      <p>The Mindboggle project&apos;s mission is to improve the accuracy, precision, and consistency of 
 automated labeling and shape analysis of human brain image data.
 We promote open science by making all software, data, and documentation freely and openly available.</p>
-
-<br />
-
-<ul>
- <li>
-   <a class="reference external" href="http://mindboggle.readthedocs.org/en/latest/">Software</a>: 
-label, extract features, and analyze shapes of human brain image data
- </li>
- <li>
-   <a class="reference external" href="http://mindboggle.info/data.html">Data</a>: 
-atlases, templates, and the largest collection of publicly available, manually labeled human brains!
- </li>
- <li>
-   <a class="reference external" href="http://mindboggle.info/papers.html">Papers</a>: 
-articles and conference proceedings related to Mindboggle
- </li>
- <li>
-   <a class="reference external" href="http://mindboggle.info/people.html">People</a>: 
-core contributors to Mindboggle
- </li>
-</ul>
-</div>
-
-<div class="line-block"><div class="line"><br /></div></div>
-
-<img alt="http://media.mindboggle.info/images/data/DKT_sulci_width400px.png" src="http://media.mindboggle.info/images/data/DKT_sulci_width400px.png" />
-
-<div class="section" id="citing-mindboggle">
-<h2>Citing Mindboggle</h2>
-<p>We are preparing an article for publication that documents the Mindboggle
-software and its application to public data to characterize human brain shape
-variation and brain morphometry in Alzheimer&#8217;s disease.
-In the meantime, please cite this website and relevant articles at the
-<a class="reference external" href="http://mindboggle.info/papers.html">Papers</a> link above, which includes the following:</p>
-<div class="line-block">
-<div class="line"><a class="reference external" href="http://www.frontiersin.org/Brain_Imaging_Methods/10.3389/fnins.2012.00171/full">101 labeled brain images and a consistent human cortical labeling protocol</a>.</div>
-<div class="line">Arno Klein, Jason Tourville. 2012. Frontiers in Brain Imaging Methods.</div>
-<div class="line">6:171. DOI: 10.3389/fnins.2012.00171</div>
-</div>
-
-<div class="line-block"><div class="line"><br /></div></div>
-
-<p><em>The Mindboggle team</em></p>
-</div>
-</div>
-
-
-          </div>
-      </div>
-      <div class="clearer"></div>
+      <br />
+      <ul>
+         <li>
+           <a class="reference external" href="http://mindboggle.readthedocs.org/en/latest/">Software</a>: 
+        label, extract features, and analyze shapes of human brain image data
+         </li>
+         <li>
+           <a class="reference external" href="http://mindboggle.info/data.html">Data</a>: 
+        atlases, templates, and the largest collection of publicly available, manually labeled human brains!
+         </li>
+         <li>
+           <a class="reference external" href="http://mindboggle.info/papers.html">Papers</a>: 
+        articles and conference proceedings related to Mindboggle
+         </li>
+         <li>
+           <a class="reference external" href="http://mindboggle.info/people.html">People</a>: 
+        core contributors to Mindboggle
+         </li>
+      </ul>
     </div>
+
+    <!--div class="line-block"><div class="line"><br /></div></div-->
+    
+    <img alt="http://media.mindboggle.info/images/data/DKT_sulci_width400px.png" src="http://media.mindboggle.info/images/data/DKT_sulci_width400px.png" />
+
+    <div class="section" id="citing-mindboggle">
+      <h2>Citing Mindboggle</h2>
+      <p>We are preparing an article for publication that documents the Mindboggle
+      software and its application to public data to characterize human brain shape
+      variation and brain morphometry in Alzheimer&#8217;s disease.
+      In the meantime, please cite this website and relevant articles at the
+      <a class="reference external" href="http://mindboggle.info/papers.html">Papers</a> link above, which includes the following:</p>
+      <div class="line-block">
+      <div class="line"><a class="reference external" href="http://www.frontiersin.org/Brain_Imaging_Methods/10.3389/fnins.2012.00171/full">101 labeled brain images and a consistent human cortical labeling protocol</a>.</div>
+      <div class="line">Arno Klein, Jason Tourville. 2012. Frontiers in Brain Imaging Methods.</div>
+      <div class="line">6:171. DOI: 10.3389/fnins.2012.00171</div>
+    </div>
+    
+    <div class="line-block"><div class="line"><br /></div></div>
+    
+    <p><em>The Mindboggle team</em></p>
+
+</div>
+
+
 <!-- Google Analytics -->
 <script type="text/javascript">
 var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
