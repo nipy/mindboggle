@@ -269,3 +269,5 @@ The following include outputs from most, but not all, optional arguments.
             **fundus_shapes.csv**:  *per-fundus surface shape statistics*  **-- UNDER EVALUATION --**
 
             **vertices.csv**:  *per-vertex surface shape statistics*
+
+.. role:: red
