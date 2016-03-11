@@ -37,7 +37,8 @@ dependencies:
     #-------------------------------------------------------------------------
     # Use conda and pip to set up python environment
     #-------------------------------------------------------------------------
-    - conda install cmake pip numpy scipy matplotlib pandas networkx vtk ipython
+    - conda install cmake pip numpy scipy matplotlib pandas networkx
+    # Python 2.7: pip vtk ipython
     - pip install --upgrade pip
     - pip install nose coverage  # install testing tools for circle
     - pip install nibabel nipype

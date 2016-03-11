@@ -153,6 +153,7 @@ fi
 # Use conda to install additional resources for installing packages:
 #-----------------------------------------------------------------------------
 conda install --yes cmake pip
+pip install --upgrade pip
 
 #-----------------------------------------------------------------------------
 # Use conda and pip to install the latest Python packages:
