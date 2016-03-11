@@ -16,6 +16,10 @@ a:hover {
     color: #ff0000;  ##e0a91b;  # strong mustard
 }
 
+.red {
+    color:red;
+}
+
 div.footer {
     color: #836e35;  # footer text  #86989B;
     padding: 3px 8px 3px 0;
