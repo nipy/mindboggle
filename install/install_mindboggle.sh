@@ -79,7 +79,7 @@ if [ ! -w "$ENV" ] ; then
     exit 1
 fi
 if [ -z "$ANTS" ]; then
-    ANTS="yes"
+    ANTS="no"
 fi
 #if [ -z "$OS" ]; then
 #    OS="Linux"
@@ -158,8 +158,12 @@ pip install --upgrade pip
 #-----------------------------------------------------------------------------
 # Use conda and pip to install the latest Python packages:
 #-----------------------------------------------------------------------------
-conda install --yes numpy scipy matplotlib pandas networkx vtk ipython
-pip install nibabel nipype
+conda install --yes numpy scipy matplotlib pandas networkx ipython
+pip install nibabel
+# pip won't install all nipype's dependencies, so use conda
+# or you will have to do it manually. prov requires lxml which requires libxml
+pip install nipype
+conda install lxml
 pip install --upgrade https://github.com/nipy/nipype/archive/master.zip
 
 #-----------------------------------------------------------------------------
