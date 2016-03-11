@@ -8,12 +8,16 @@ body {
 }
 
 a {
-    color: #a06005;  # hyperlinks
+    color: #cc3300;  ##a06005;  # hyperlinks
     text-decoration: none;
 }
 
 a:hover {
-    color: #e0a91b;  # strong mustard
+    color: #ff0000;  ##e0a91b;  # strong mustard
+}
+
+.red {
+    color:red;
 }
 
 div.footer {
@@ -83,13 +87,15 @@ div.relations {
 
 
 div.sphinxsidebar a {
-    color: #444;
+    color: #cc3300;
     text-decoration: none;
-    border-bottom: 1px dotted #999;
+    border-bottom: None;  #1px dotted #999;
 }
 
 div.sphinxsidebar a:hover {
-    border-bottom: 1px solid #999;
+    color: #ff0000;
+    text-decoration: none;
+    border-bottom: None;  #1px solid #999;
 }
 
 div.sphinxsidebar {
