@@ -1,7 +1,9 @@
 ==============================================================================
 Software -- PRE-RELEASE
 ==============================================================================
-:red:`NOTE: MOVING CODEBASE TO PYTHON 3`
+.. role:: red
+
+    :red:`NOTE: MOVING CODEBASE TO PYTHON 3`
 
 The Mindboggle software package automates shape analysis of anatomical labels
 and features extracted from human brain MR image data.
@@ -270,4 +272,3 @@ The following include outputs from most, but not all, optional arguments.
 
             **vertices.csv**:  *per-vertex surface shape statistics*
 
-.. role:: red
