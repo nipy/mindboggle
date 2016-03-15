@@ -104,7 +104,7 @@ fi
 #-----------------------------------------------------------------------------
 # Install Anaconda's latest miniconda Python distribution:
 #-----------------------------------------------------------------------------
-CONDA_URL="http://repo.continuum.io/miniconda"
+CONDA_URL="https://repo.continuum.io/miniconda"
 CONDA_FILE="Miniconda3-latest-$OS-x86_64.sh"
 CONDA_DL="$DOWNLOAD/$CONDA_FILE"
 CONDA_PATH="$INSTALL/miniconda3"
@@ -156,15 +156,44 @@ conda install --yes cmake pip
 pip install --upgrade pip
 
 #-----------------------------------------------------------------------------
+# Install VTK:
+# http://www.vtk.org/Wiki/VTK/Configure_and_Build
+#-----------------------------------------------------------------------------
+# Dependency:
+# http://stackoverflow.com/questions/31170869/cmake-cant-find-open-gl-for-vtk-in-ubuntu
+sudo apt-get install freeglut3-dev
+# Download the source code:
+cd $DOWNLOAD
+git clone git://vtk.org/VTK.git
+cd VTK
+# Update the code:
+#git fetch origin
+#git rebase origin/master
+# Configure VTK with CMake:
+mkdir $INSTALL/VTK
+cd $INSTALL/VTK
+cmake $DOWNLOAD/VTK
+make
+
+#-----------------------------------------------------------------------------
 # Use conda and pip to install the latest Python packages:
 #-----------------------------------------------------------------------------
 conda install --yes numpy scipy matplotlib pandas networkx ipython
 pip install nibabel
+
+#-----------------------------------------------------------------------------
+# Install nipype:
+#-----------------------------------------------------------------------------
+conda install lxml
+pip install prov
+git clone https://github.com/nipy/nipype.git $INSTALL/nipype
+cd $INSTALL/nipype
+python setup.py install
+
 # pip won't install all nipype's dependencies, so use conda
 # or you will have to do it manually. prov requires lxml which requires libxml
-pip install nipype
-conda install lxml
-pip install --upgrade https://github.com/nipy/nipype/archive/master.zip
+#pip install nipype
+#pip install --upgrade https://github.com/nipy/nipype/archive/master.zip
 
 #-----------------------------------------------------------------------------
 # Install the latest Mindboggle:
