@@ -183,9 +183,10 @@ pip install nibabel
 
 #-----------------------------------------------------------------------------
 # Install nipype:
+# prov requires lxml which requires libxml
 #-----------------------------------------------------------------------------
 conda install lxml
-pip install prov
+pip install prov traits
 git clone https://github.com/nipy/nipype.git $INSTALL/nipype
 cd $INSTALL/nipype
 python setup.py install
