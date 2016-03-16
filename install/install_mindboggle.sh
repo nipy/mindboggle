@@ -174,7 +174,6 @@ mkdir $INSTALL/VTK
 cd $INSTALL/VTK
 cmake $DOWNLOAD/VTK
 make
-#VTK_DIR =
 
 #-----------------------------------------------------------------------------
 # Use conda and pip to install the latest Python packages:

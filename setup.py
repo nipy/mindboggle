@@ -24,7 +24,7 @@ if len(set(('develop', 'bdist_egg', 'bdist_rpm', 'bdist', 'bdist_dumb',
 from distutils.core import setup
 
 # Get version and release info, which is all stored in info.py
-ver_file = pjoin(os.getcwd(), '../info.py')
+ver_file = pjoin(os.getcwd(), 'info.py')
 exec(open(ver_file).read())
 
 # Do dependency checking
