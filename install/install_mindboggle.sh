@@ -41,6 +41,7 @@ INSTALL=$2
 ENV=$3
 HOME=$4
 ANTS=$5
+VTK_DIR=$6
 
 #-----------------------------------------------------------------------------
 # OS and sudo:
@@ -205,7 +206,12 @@ cd $INSTALL/mindboggle
 python setup.py install
 mkdir $vtk_cpp_tools
 cd $vtk_cpp_tools
-cmake ../ #-DVTK_DIR:STRING=$VTK_DIR
+if [ -z "$VTK_DIR" ]; then
+    VTK_DIR="$INSTALL/lib/cmake/vtk-7.1/Modules/"
+    cmake ../ -DVTK_DIR:STRING=$VTK_DIR
+else
+    cmake ../
+fi
 make
 
 # Set environment variables:
