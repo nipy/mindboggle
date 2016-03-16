@@ -174,6 +174,7 @@ mkdir $INSTALL/VTK
 cd $INSTALL/VTK
 cmake $DOWNLOAD/VTK
 make
+#VTK_DIR =
 
 #-----------------------------------------------------------------------------
 # Use conda and pip to install the latest Python packages:
@@ -186,7 +187,7 @@ pip install nibabel
 # prov requires lxml which requires libxml
 #-----------------------------------------------------------------------------
 conda install lxml
-pip install prov traits nose future
+pip install prov traits nose future simplejson
 git clone https://github.com/nipy/nipype.git $INSTALL/nipype
 cd $INSTALL/nipype
 python setup.py install
@@ -205,7 +206,7 @@ cd $INSTALL/mindboggle
 python setup.py install
 mkdir $vtk_cpp_tools
 cd $vtk_cpp_tools
-cmake ../
+cmake ../ #-DVTK_DIR:STRING=$VTK_DIR
 make
 
 # Set environment variables:
