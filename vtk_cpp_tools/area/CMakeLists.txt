@@ -1,32 +1,21 @@
-# This is the root ITK CMakeLists file.
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
-IF(COMMAND CMAKE_POLICY)
-  CMAKE_POLICY(SET CMP0003 NEW)
-ENDIF(COMMAND CMAKE_POLICY)
+cmake_minimum_required(VERSION 3.0)
 
+# Find VTK:
+find_package(VTK REQUIRED NO_MODULE)
+include(${VTK_USE_FILE})
 
-# This project is designed to be built outside the Insight source tree.
-PROJECT(point_area)
+# This project is designed to be built outside the Insight source tree:
+project(point_area)
 
-# Find VTK.
-FIND_PACKAGE(VTK REQUIRED NO_MODULE)
-INCLUDE(${VTK_USE_FILE})
-
-ADD_EXECUTABLE(
+add_executable(
 PointAreaMain PointAreaMain.cpp
 )
-INSTALL(TARGETS PointAreaMain
+install(TARGETS PointAreaMain
     RUNTIME DESTINATION /bin)
 
-TARGET_LINK_LIBRARIES(
+target_link_libraries(
 PointAreaMain
 MeshAnalyser
 PointAreaComputer
 ${VTK_LIBRARIES}
 )
-
-# VTK6 migration: www.vtk.org/Wiki/VTK/Build_System_Migration
-# Not in VTK6:
-#vtkCommon
-#vtkRendering
-#vtkHybrid

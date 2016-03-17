@@ -1,95 +1,86 @@
-# This is the root ITK CMakeLists file.
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
-IF(COMMAND CMAKE_POLICY)
-  CMAKE_POLICY(SET CMP0003 NEW)
-ENDIF(COMMAND CMAKE_POLICY)
+# http://www.vtk.org/Wiki/VTK/Tutorials/CMakeListsFile
+cmake_minimum_required(VERSION 3.0)
+project(mindboggle_surfaces)
+#set(VTK_DIR "/Users/arno/anaconda/lib/cmake/vtk-7.0")
+#find_package(VTK REQUIRED)
+find_package(VTK REQUIRED NO_MODULE)
+include(${VTK_USE_FILE})
+#target_link_libraries(mindboggle_surfaces ${VTK_LIBRARIES})
+
+#if(COMMAND CMAKE_POLICY)
+#  CMAKE_POLICY(SET CMP0003 NEW)
+#endif(COMMAND CMAKE_POLICY)
 
 # David Gobbi on vtkusers mailing list:
 # For building a binary package to share with others,
 # set to a reasonably old deployment target (e.g. 10.7) and SDK (e.g. 10.9):
-#SET(CMAKE_OSX_DEPLOYMENT_TARGET "10.7")
-#SET(CMAKE_OSX_SYSROOT "macosx10.9")
-#SET(CMAKE_OSX_DEPLOYMENT_TARGET "10.11")
-#SET(CMAKE_OSX_SYSROOT "macosx10.11")
+#set(CMAKE_OSX_DEPLOYMENT_TARGET "10.7")
+#set(CMAKE_OSX_SYSROOT "macosx10.9")
 
-PROJECT(mindboggle_surface)
-
-# Find VTK.
-FIND_PACKAGE(VTK REQUIRED)
-INCLUDE(${VTK_USE_FILE})
-
-ADD_SUBDIRECTORY(
+add_subdirectory(
 travel_depth
 )
 
-ADD_SUBDIRECTORY(
+add_subdirectory(
 curvature
 )
 
-ADD_SUBDIRECTORY(
+add_subdirectory(
 surface_overlap
 )
 
-ADD_SUBDIRECTORY(
+add_subdirectory(
 area
 )
 
-ADD_SUBDIRECTORY(
+add_subdirectory(
 gradient
 )
 
-ADD_SUBDIRECTORY(
+add_subdirectory(
 geodesic_depth
 )
 
-#ADD_SUBDIRECTORY(
+#add_subdirectory(
 #medial_surfaces
 #)
 
-ADD_LIBRARY(
+add_library(
 MeshAnalyser MeshAnalyser.cpp
 )
-INSTALL(TARGETS MeshAnalyser
+install(TARGETS MeshAnalyser
         LIBRARY DESTINATION /lib
         ARCHIVE DESTINATION /lib)
 
-ADD_LIBRARY(
+add_library(
 FsSurfaceReader FsSurfaceReader.cpp
 )
 
-ADD_LIBRARY(
+add_library(
 VtkFileEditor VtkFileEditor.cpp
 )
 
-ADD_LIBRARY(
+add_library(
 TravelDepth TravelDepth.cpp
 )
 
-ADD_LIBRARY(
+add_library(
 Overlap Overlap.cpp
 )
 
-ADD_LIBRARY(
+add_library(
 GradientComputer GradientComputer.cpp
 )
 
-ADD_LIBRARY(
+add_library(
 PointAreaComputer PointAreaComputer.cpp
 )
 
-TARGET_LINK_LIBRARIES(
+target_link_libraries(
 MeshAnalyser
-)
-
-TARGET_LINK_LIBRARIES(
 TravelDepth
-)
-
-TARGET_LINK_LIBRARIES(
 GradientComputer
-)
-
-TARGET_LINK_LIBRARIES(
 Overlap
 PointAreaComputer
+${VTK_LIBRARIES}
 )
