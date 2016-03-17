@@ -1,11 +1,11 @@
 # http://www.vtk.org/Wiki/VTK/Tutorials/CMakeListsFile
 cmake_minimum_required(VERSION 3.0)
 project(mindboggle_surfaces)
+## Rather than set the VTK_DIR, compile with
+## "cmake .. -DVTK_DIR:STRING=/Users/arno/anaconda/lib/cmake/vtk-7.0"
 #set(VTK_DIR "/Users/arno/anaconda/lib/cmake/vtk-7.0")
-#find_package(VTK REQUIRED)
 find_package(VTK REQUIRED NO_MODULE)
 include(${VTK_USE_FILE})
-#target_link_libraries(mindboggle_surfaces ${VTK_LIBRARIES})
 
 #if(COMMAND CMAKE_POLICY)
 #  CMAKE_POLICY(SET CMP0003 NEW)
