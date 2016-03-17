@@ -160,17 +160,20 @@ pip install --upgrade pip
 # Install VTK:
 # http://www.vtk.org/Wiki/VTK/Configure_and_Build
 #-----------------------------------------------------------------------------
-# OpenGL dependency:
-# http://stackoverflow.com/questions/31170869/cmake-cant-find-open-gl-for-vtk-in-ubuntu
-sudo apt-get install freeglut3-dev
-# Download the source code:
-cd $DOWNLOAD
-git clone git://vtk.org/VTK.git
-# Configure VTK with CMake:
-mkdir $INSTALL/VTK
-cd $INSTALL/VTK
-cmake $DOWNLOAD/VTK
-make
+
+conda install -c https://conda.anaconda.org/satra vtk
+
+## OpenGL dependency:
+## http://stackoverflow.com/questions/31170869/cmake-cant-find-open-gl-for-vtk-in-ubuntu
+#sudo apt-get install freeglut3-dev
+## Download the source code:
+#cd $DOWNLOAD
+#git clone git://vtk.org/VTK.git
+## Configure VTK with CMake:
+#mkdir $INSTALL/VTK
+#cd $INSTALL/VTK
+#cmake $DOWNLOAD/VTK
+#make
 
 #-----------------------------------------------------------------------------
 # Use conda and pip to install the latest Python packages:
@@ -203,7 +206,8 @@ python setup.py install
 mkdir $vtk_cpp_tools
 cd $vtk_cpp_tools
 if [ -z "$VTK_DIR" ]; then
-    VTK_DIR="$INSTALL/VTK"
+    #VTK_DIR="$INSTALL/VTK"
+    VTK_DIR="$INSTALL/lib/cmake/vtk-7.1/Modules"
     cmake ../ -DVTK_DIR:STRING=$VTK_DIR
 else
     cmake ../
