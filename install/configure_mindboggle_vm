@@ -15,13 +15,13 @@ via local mounted directories, and set the number of processors, the memory,
 and the percent cpu.  All arguments are optional, since the script assumes
 a default --out of $HOME/mindboggled and --freesurfer of $SUBJECTS_DIR
 and no --ants data. Here we set the number of CPUs, percent CPU, and RAM,
-as well as the version of Mindboggle::
+as well as the version of Mindboggle (VERSION)::
 
     python configure_mindboggle_vm \
                 --out $HOME/mindboggled \
                 --freesurfer $SUBJECTS_DIR \
                 --ants /data/antsCorticalThickness/subjects \
-                --cpus 6 --cpumax 80 --mem 4096 --version 1.0
+                --cpus 6 --cpumax 80 --mem 4096 --version VERSION
 
 RUN MINDBOGGLE
 --------------
@@ -50,6 +50,7 @@ Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 import os
 import argparse
 
+mindboggle_version = "1.0.0"
 #=============================================================================
 # Command-line arguments
 #=============================================================================
@@ -70,7 +71,8 @@ Example (default settings except --ants): python configure_mindboggle_vm
     --cache $HOME/mindboggle_cache
     --freesurfer $SUBJECTS_DIR
     --ants $HOME/antsCorticalThickness/subjects
-    --cpus 1 --cpumax 80 --mem 4096""",
+    --cpus 1 --cpumax 80 --mem 4096 --version {0}""".
+                                 format(mindboggle_version),
                                  formatter_class = lambda prog:
                                  argparse.HelpFormatter(prog,
                                                         max_help_position=40))
@@ -107,12 +109,16 @@ parser.add_argument("--cpumax",
 parser.add_argument("--mem",
                     help='Maximum memory (MB): "--mem 4096" (default)',
                     type=int, default=4096, metavar='INT')
+parser.add_argument("--version",
+                    help='Mindboggle version: "--version {0}" (default)'.
+                    format(mindboggle_version),
+                    type=str, default='{0}'.format(mindboggle_version),
+                    metavar='STR')
 args = parser.parse_args()
 
 #=============================================================================
 # Configure mount directories
 #=============================================================================
-mindboggle_version = "1.0"
 home = os.environ['HOME']
 guest = "/home/vagrant"
 
@@ -146,6 +152,10 @@ if args.atlases:
         format(args.atlases, guest)
 else:
     atlases_str = ''
+if args.version:
+    version = args.version
+else:
+    version = mindboggle_version
 
 #=============================================================================
 # Create Vagrantfile
@@ -161,7 +171,8 @@ Vagrant.configure("2") do |config|
 
     # Fetch the mindboggle Vagrant virtual box if not already cached:
     config.vm.box = "mindboggle"
-    config.vm.box_url = "http://media.mindboggle.info/vm/mindboggle.{0}.box"
+    config.vm.box_url = "mindboggle.{0}.box"
+    #config.vm.box_url = "http://media.mindboggle.info/vm/mindboggle.{0}.box"
     config.vm.hostname = "mindboggler"
 
     # Share additional folders to the guest VM,
@@ -191,7 +202,7 @@ Vagrant.configure("2") do |config|
     config.ssh.password = "vagrant"
 
 end
-""".format(mindboggle_version, out_str, work_str, cache_str, freesurfer_str,
+""".format(version, out_str, work_str, cache_str, freesurfer_str,
            ants_str, atlases_str, args.cpus, args.cpumax, args.mem)
 
 #=============================================================================
