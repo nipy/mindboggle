@@ -4,7 +4,8 @@ project(mindboggle_surfaces)
 ## Rather than set the VTK_DIR, compile with
 ## "cmake .. -DVTK_DIR:STRING=/Users/arno/anaconda/lib/cmake/vtk-7.0"
 #set(VTK_DIR "/Users/arno/anaconda/lib/cmake/vtk-7.0")
-find_package(VTK REQUIRED NO_MODULE)
+#find_package(VTK REQUIRED NO_MODULE)
+find_package(VTK 7.0 COMPONENTS vtkInteractionStyle vtkRenderingFreeType vtkRenderingOpenGL2 vtkRenderingVolumeOpenGL2 NO_MODULE)
 include(${VTK_USE_FILE})
 
 #if(COMMAND CMAKE_POLICY)
