@@ -78,9 +78,17 @@ PointAreaComputer PointAreaComputer.cpp
 
 target_link_libraries(
 MeshAnalyser
+)
+
+target_link_libraries(
 TravelDepth
+)
+
+target_link_libraries(
 GradientComputer
+)
+
+target_link_libraries(
 Overlap
 PointAreaComputer
-${VTK_LIBRARIES}
 )
