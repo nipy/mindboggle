@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 
 # Find VTK:
 find_package(VTK REQUIRED NO_MODULE)
+#find_package(VTK 7.0 COMPONENTS vtkInteractionStyle vtkRenderingFreeType vtkRenderingOpenGL2 vtkRenderingVolumeOpenGL2 NO_MODULE)
 include(${VTK_USE_FILE})
 
 # This project is designed to be built outside the Insight source tree:
