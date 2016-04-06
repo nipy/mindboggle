@@ -158,21 +158,11 @@ pip install --upgrade pip
 
 #-----------------------------------------------------------------------------
 # Install VTK:
-# http://www.vtk.org/Wiki/VTK/Configure_and_Build
 #-----------------------------------------------------------------------------
-#conda install -c https://conda.anaconda.org/satra vtk
-#
 # OpenGL dependency:
 # http://stackoverflow.com/questions/31170869/cmake-cant-find-open-gl-for-vtk-in-ubuntu
-sudo apt-get install freeglut3-dev
-# Download the source code:
-cd $DOWNLOAD
-git clone git://vtk.org/VTK.git
-# Configure VTK with CMake:
-mkdir $INSTALL/VTK
-cd $INSTALL/VTK
-cmake $DOWNLOAD/VTK
-make
+#sudo apt-get install freeglut3-dev
+conda install -c https://conda.anaconda.org/clinicalgraphics vtk
 
 #-----------------------------------------------------------------------------
 # Use conda and pip to install the latest Python packages:
