@@ -118,8 +118,9 @@ bash $CONDA_DL -b -p $CONDA_PATH
 
 # Set environment variables:
 echo "# Conda" >> $ENV
-echo "export PATH=$CONDA_PATH/bin:\$PATH" >> $ENV
-source $ENV
+export PATH=$CONDA_PATH/bin:$PATH
+#echo "export PATH=$CONDA_PATH/bin:\$PATH" >> $ENV
+#source $ENV
 
 #-----------------------------------------------------------------------------
 # Fix paths to Linux libraries using symbolic links:
