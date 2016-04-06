@@ -161,7 +161,7 @@ pip install --upgrade pip
 #-----------------------------------------------------------------------------
 # OpenGL dependency:
 # http://stackoverflow.com/questions/31170869/cmake-cant-find-open-gl-for-vtk-in-ubuntu
-#sudo apt-get install freeglut3-dev
+sudo apt-get install freeglut3-dev
 conda install -c https://conda.anaconda.org/clinicalgraphics vtk
 
 #-----------------------------------------------------------------------------
