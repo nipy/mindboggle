@@ -10,7 +10,7 @@ In setup.py we execute this file, so it cannot import mindboggle.
 _version_major = 1
 _version_minor = 0
 _version_micro = 0
-_version_extra = 'dev'
+_version_extra = ''
 
 # Format expected by setup.py and doc/source/conf.py: string of form "X.Y.Z"
 __version__ = "{0}.{1}.{2}{3}".format(_version_major,
@@ -23,7 +23,7 @@ CLASSIFIERS = ["Development Status :: 3 - Alpha",
                "Intended Audience :: Science/Research",
                "License :: OSI Approved :: Apache v2.0",
                "Operating System :: Linux",
-               "Programming Language :: Python",
+               "Programming Language :: Python 3",
                "Topic :: Scientific/Engineering"]
 
 description  = "Automated human brain image feature extraction, labeling, and shape analysis"
@@ -36,39 +36,14 @@ long_description = """
 Mindboggle
 ==========
 
-Mindboggle is a package for automated feature extraction, anatomical labeling, and morphometry
-of human brain magnetic resonance images.
-
-Website
-=======
-
-Current information can always be found at the Mindboggle website::
-
-    http://mindboggle.info
-
-Code
-====
-
-You can find our sources and single-click downloads:
-
-* `Main repository`_ on Github.
-* Documentation_ for all releases and current development tree.
-* Download as a tar/zip file the `current trunk`_.
-* Downloads of all `available releases`_.
-
-.. _Documentation: http://mindboggle.info/documentation.html
-.. _main repository: http://github.com/binarybottle/mindboggle
-.. _available releases: http://github.com/binarybottle/mindboggle/downloads
-
-License
-=======
-
-Mindboggle is licensed under the terms of the Apache v2.0 license.
+Mindboggle is a software package for automated feature extraction, anatomical
+labeling, and morphometry of human brain magnetic resonance images,
+licensed under the terms of the Apache v2.0 license.
+Current information can always be found at the Mindboggle website,
+http://mindboggle.info, and on the Github main repository,
+http://github.com/nipy/mindboggle
 
 """
-
-# versions for dependencies
-NUMPY_MIN_VERSION='1.2'
 
 # Main setup parameters
 NAME                = 'Mindboggle'
@@ -89,5 +64,5 @@ MICRO               = _version_micro
 ISRELEASE           = _version_extra
 VERSION             = __version__
 PROVIDES            = ["mindboggle"]
-REQUIRES            = ["numpy (>={0})".format(NUMPY_MIN_VERSION)]
+#REQUIRES            = ["numpy (>={0})".format(NUMPY_MIN_VERSION)]
 

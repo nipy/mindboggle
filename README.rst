@@ -6,7 +6,7 @@ Software -- PRE-RELEASE
 NOTE: :red:`CURRENTLY MOVING CODE FROM PYTHON 2 TO PYTHON 3...`
 
 The Mindboggle software package automates shape analysis of anatomical labels
-and features extracted from human brain MR image data.
+and features extracted from human brain magnetic resonance image data.
 Mindboggle can be run as a single command, and can be installed as a
 cross-platform virtual machine for convenience and reproducibility of results.
 Behind the scenes, open source Python and C++ code run within a modular Nipype
@@ -22,7 +22,7 @@ pipeline framework.
 :Release: |version|
 :Date: |today|
 
-Contents:
+Links:
 
 .. toctree::
     :maxdepth: 1
@@ -45,10 +45,10 @@ that may be directly called to install Mindboggle on a Linux machine
 ($ ``source install_mindboggle.sh``).
 However, for reasons of convenience and reproducibility of results,
 we recommend using a different script,
-`configure_mindboggle_vm <https://raw.githubusercontent.com/nipy/mindboggle/master/install/configure_mindboggle_vm>`_,
+`install_mindboggle_vm <https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle_vm>`_,
 to perform the same installation on Linux, MacOSX, or Windows,
-but in a virtual machine (VM). Download the VM script to wherever you want
-the startup directory to be, and do the following (type commands in a
+but in a virtual machine (VM). Download this script to wherever you want
+the VM startup directory to be, and do the following (type commands in a
 terminal for steps 2 and 3).
 
 1. Install VM dependencies:
@@ -60,20 +60,19 @@ terminal for steps 2 and 3).
         Linux, MacOSX, or Windows.
 
     `Virtualbox <https://www.virtualbox.org>`_ provides
-        virtual machines used by Vagrant. Alternative backend providers
-        for Vagrant include VMware and Amazon Web Services.
+        virtual machines used by Vagrant.
 
 2. Download and configure the virtual machine to access your local
 brain image (usually FreeSurfer output) data by typing the following
 in the same directory as the VM script. This generates a configuration
 file called "Vagrantfile"::
 
-        python configure_mindboggle_vm
+        python install_mindboggle_vm
 
 For help with more options, such as how to mount your local ANTs data
 directory, set the number of processors, etc., add "-h" to the above::
 
-        python configure_mindboggle_vm -h
+        python install_mindboggle_vm -h
 
 3. Henceforth, whenever running Mindboggle, first type the following
 in the same directory as the Vagrantfile::
@@ -89,8 +88,8 @@ To run Mindboggle, you must first preprocess brain MR image data
 (see `Preprocessing`_ below). To get up and running with the following
 examples, download and uncompress ("tar xvfz example.tar.gz") the
 `example.tar.gz <http://media.mindboggle.info/data/cache/example.tar.gz>`_
-directory (over 500MB), which includes abridged freesurfer, ANTs, and
-mindboggle output for one person.
+directory (over 500MB), which includes abridged FreeSurfer, ANTs, and
+Mindboggle output for one person.
 
 For help after installing, type the following in a terminal window::
 
@@ -147,6 +146,8 @@ files (backslash denotes a line return)::
 ------------------------------------------------------------------------------
 Processing steps
 ------------------------------------------------------------------------------
+The following steps are performed by Mindboggle:
+
 1. Create hybrid gray/white segmentation from FreeSurfer and ANTs output (`combine_2labels_in_2volumes <https://github.com/nipy/mindboggle/blob/master/mindboggle/guts/segment.py>`_).
 2. Fill hybrid segmentation with FreeSurfer- or ANTs-registered labels.
 3. Compute volume shape measures for each labeled region:
