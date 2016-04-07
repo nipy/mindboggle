@@ -117,7 +117,6 @@ fi
 bash $CONDA_DL -b -p $CONDA_PATH
 
 # Set environment variables:
-#export PATH=$CONDA_PATH/bin:$PATH
 echo "# Conda" >> $ENV
 echo "export PATH=$CONDA_PATH/bin:\$PATH" >> $ENV
 source $ENV
