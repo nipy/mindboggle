@@ -1,0 +1,13 @@
+{
+  "name": "mindboggle",
+  "description": "This box contains Mindboggle and dependencies installed on Ubuntu 14.04 LTS 64-bit with Anaconda's Python 3.",
+  "versions": [{
+    "version": "1.0.0",
+    "providers": [{
+      "name": "virtualbox",
+      "url": "http://media.mindboggle.info/vm/mindboggle.1.0.0.box",
+      "checksum_type": "sha1",
+      "checksum": "foo"
+    }]
+  }]
+}

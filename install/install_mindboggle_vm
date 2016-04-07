@@ -14,17 +14,20 @@ Here we configure access to FreeSurfer and ANTs data and an output directory
 via local mounted directories, and set the number of processors, the memory,
 and the percent cpu.  All arguments are optional, since the script assumes
 a default --out of $HOME/mindboggled and --freesurfer of $SUBJECTS_DIR
-and no --ants data. Here we set the number of CPUs, percent CPU, and RAM,
-as well as the version of Mindboggle (VERSION)::
+and no --ants data. In this example, we override default settings with the
+number of CPUs, percent CPU, RAM, and version of Mindboggle::
 
-    python configure_mindboggle_vm \
+    python install_mindboggle_vm \
                 --out $HOME/mindboggled \
                 --freesurfer $SUBJECTS_DIR \
                 --ants /data/antsCorticalThickness/subjects \
-                --cpus 6 --cpumax 80 --mem 4096 --version VERSION
+                --cpus 6 --cpumax 80 --mem 4096 --version 1.0.0
 
 RUN MINDBOGGLE
 --------------
+Once the virtual machine has been installed and configured, log in to the vm
+to run mindboggle (the vm's username and password are both "vagrant":
+
     vagrant up
     vagrant ssh
 
@@ -32,7 +35,7 @@ HELP
 ----
 For help, type the following in a terminal window::
 
-    python configure_mindboggle_vm --help
+    python install_mindboggle_vm --help
 
 Miscellaneous Vagrant commands::
 
@@ -51,6 +54,7 @@ import os
 import argparse
 
 mindboggle_version = "1.0.0"
+
 #=============================================================================
 # Command-line arguments
 #=============================================================================
@@ -61,11 +65,13 @@ with mounted directories to access FreeSurfer recon-all subject data
 or additional atlases (--atlases) and an output directory (--out).
 All arguments are optional, since the script assumes a default --out of
 $HOME/mindboggled and --freesurfer of $SUBJECTS_DIR and no --ants data.
-This script should be placed in its own directory and will generate a
-Vagrantfile. You must have Vagrant (vagrantup.com) and VirtualBox
-(virtualbox.org) installed, as well as a good Internet connection.
+This script will generate a Vagrantfile. You must have Vagrant (vagrantup.com)
+and VirtualBox (virtualbox.org) installed, and a good Internet connection.
+Once the virtual machine has been installed and configured as in the
+following Example, log in to the vm to run mindboggle with
+"vagrant up; vagrant ssh" (the vm's username and password are both "vagrant":
 
-Example (default settings except --ants): python configure_mindboggle_vm
+Example (default settings except --ants): python install_mindboggle_vm
     --out $HOME/mindboggled
     --work $HOME/mindboggle_working
     --cache $HOME/mindboggle_cache
