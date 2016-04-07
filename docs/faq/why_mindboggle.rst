@@ -81,10 +81,10 @@ were healthy, and to try and estimate a cognitive measure
 
 In 2016, Arno prepared Mindboggle for broader public use:
 
-    - moved its GitHub repository to nipy's (see nipy.org)
+    - moved its GitHub repository to the nipy.org community's GitHub account
     - ported Mindboggle from Python 2 to Python 3
     - moved its documentation to readthedocs.org (generated every time a commit is made to the GitHub repository)
     - wrote docstring tests for almost every function
-    - set up continuous testing on circle.io (also with a GitHub webhook)
+    - set up continuous testing on circleci.com (also with a GitHub webhook)
 
 Please see our updated Mindboggle `team page <http://mindboggle.info/people.html>`_.
