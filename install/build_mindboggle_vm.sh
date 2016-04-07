@@ -8,7 +8,7 @@
 # and there needs to be a good Internet connection.
 #
 # Usage:
-#     bash build_mindboggle_vm.sh <Mindboggle version>
+#     bash build_mindboggle_vm.sh <Mindboggle version, such as 1.0.0>
 #
 # Upload the box to a website for others to download:
 #     rsync -avz --sparse -e /usr/bin/ssh mindboggle.<version>.box
