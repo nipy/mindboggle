@@ -48,7 +48,7 @@ to continue its development, whereupon he started writing proposals.
 
 In 2009, with generous funding from the National Institute of Mental Health
 (3-year NIMH R01 #MH084029), he assembled a team to tackle the problem anew.
-People who have contributed to the codebase during this period include:
+People who contributed to the codebase during this period include:
 
     - `Forrest Bao <https://sites.google.com/site/forrestbao/>`_
     - `Satrajit Ghosh <http://mit.edu/~satra>`_
@@ -56,13 +56,35 @@ People who have contributed to the codebase during this period include:
     - Yrjö Häme
     - Eliezer Stavsky
 
-In 2012, the NIMH funded a 1-year U01 supplement to expand this work to
-integrate multiple imaging modalities (fMRI and dMRI) with the structural MRI
-shape analysis.  Tank Think Labs joined this effort:
+In 2012, the NIMH funded a 1-year U01 supplement to expand Mindboggle's
+capabilities, and to apply Mindboggle's structural shape analysis to multiple
+imaging modalities such as fMRI, dMRI, and genetic data.
+Tank Think Labs joined this U01 effort:
 
     - `Satrajit Ghosh <http://mit.edu/~satra>`_
     - `Nolan Nichols <http://www.linkedin.com/in/nolannichols>`_
     - Brian Rossa
     - Oliver Hinds
+
+In 2013, Arno, Rich Stoner, and Jason Bohland teamed up at the Human Brain
+Mapping conference to win a hackathon challenge, having coded up an online
+interactive visualization of Allen Brain Institute human brain data
+in two days. Pointing to a cortical region displaying Mindboggle shape
+information revealed corresponding genetic expression data.
+
+In 2015, Mindboggle was used to process ADNI and AddNeuroMed data for
+an international `Alzheimer's disease challenge <https://www.synapse.org/#!Synapse:syn2290704/wiki/60828>`_.
+Teams performed statistical analyses on Mindboggle shape measures to
+try and determine which brains had Alzheimer's, mild cognitive impairment, or
+were healthy, and to try and estimate a cognitive measure
+(mini-mental state exam score).
+
+In 2016, Arno prepared Mindboggle for broader public use:
+
+    - moved its GitHub repository to nipy's (see nipy.org)
+    - ported Mindboggle from Python 2 to Python 3
+    - moved its documentation to readthedocs.org (generated every time a commit is made to the GitHub repository)
+    - wrote docstring tests for almost every function
+    - set up continuous testing on circle.io (also with a GitHub webhook)
 
 Please see our updated Mindboggle `team page <http://mindboggle.info/people.html>`_.

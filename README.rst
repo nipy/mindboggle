@@ -59,8 +59,7 @@ terminal for steps 2 and 3).
         disposable, consistent environment that can run on
         Linux, MacOSX, or Windows.
 
-    `Virtualbox <https://www.virtualbox.org>`_ provides
-        virtual machines used by Vagrant.
+    `Virtualbox <https://www.virtualbox.org>`_ provides virtual machines used by Vagrant.
 
 2. Download and configure the virtual machine to access your local
 brain image (usually FreeSurfer output) data by typing the following
