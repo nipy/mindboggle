@@ -12,10 +12,15 @@ CONFIGURE MINDBOGGLE (ONE-TIME INSTALLATION)
 One-time installation for a given configuration (generates a Vagrantfile):
 Here we configure access to FreeSurfer and ANTs data and an output directory
 via local mounted directories, and set the number of processors, the memory,
-and the percent cpu.  All arguments are optional, since the script assumes
-a default --out of $HOME/mindboggled and --freesurfer of $SUBJECTS_DIR
-and no --ants data. In this example, we override default settings with the
-number of CPUs, percent CPU, RAM, and version of Mindboggle::
+and the percent cpu.  You could simply type::
+
+    python install_mindboggle_vm
+
+but this wouldn't enable use of ANTs data or tailor configuration to your
+local setup.  In the following example using all arguments, all arguments
+are optional, since the script assumes a default --out of $HOME/mindboggled
+and --freesurfer of $SUBJECTS_DIR and no --ants data; we override default
+settings with number of CPUs, percent CPU, RAM, and version of Mindboggle::
 
     python install_mindboggle_vm \
                 --out $HOME/mindboggled \
@@ -23,10 +28,9 @@ number of CPUs, percent CPU, RAM, and version of Mindboggle::
                 --ants /data/antsCorticalThickness/subjects \
                 --cpus 6 --cpumax 80 --mem 4096 --version 1.0.0
 
-RUN MINDBOGGLE
---------------
-Once the virtual machine has been installed and configured, log in to the vm
-to run mindboggle (the vm's username and password are both "vagrant":
+The above command generates a "Vagrantfile" file.
+To actually download, install and configure the VM, and log in to the VM
+to run mindboggle (the VM's username and password are both "vagrant"), type::
 
     vagrant up
     vagrant ssh
@@ -177,8 +181,8 @@ Vagrant.configure("2") do |config|
 
     # Fetch the mindboggle Vagrant virtual box if not already cached:
     config.vm.box = "mindboggle"
-    config.vm.box_url = "mindboggle.{0}.box"
-    #config.vm.box_url = "http://media.mindboggle.info/vm/mindboggle.{0}.box"
+    #config.vm.box_url = "mindboggle.{0}.box"
+    config.vm.box_url = "http://media.mindboggle.info/vm/mindboggle.{0}.box"
     config.vm.hostname = "mindboggler"
 
     # Share additional folders to the guest VM,
