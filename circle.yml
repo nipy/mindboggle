@@ -52,14 +52,14 @@ dependencies:
     #-------------------------------------------------------------------------
     - conda install lxml
     - pip install prov traits future simplejson # nose
-    - git clone https://github.com/nipy/nipype.git $HOME/nipype
-    - cd $HOME/nipype
-    - python setup.py install
+    #- git clone https://github.com/nipy/nipype.git $HOME/nipype
+    #- cd $HOME/nipype
+    #- python setup.py install
 
     # pip won't install all nipype's dependencies, so use conda
     # or you will have to do it manually. prov requires lxml which requires libxml
-    #pip install nipype
-    #pip install --upgrade https://github.com/nipy/nipype/archive/master.zip
+    - pip install nipype
+    - pip install --upgrade https://github.com/nipy/nipype/archive/master.zip
 
     #-------------------------------------------------------------------------
     # Fix paths to Linux libraries using symbolic links
