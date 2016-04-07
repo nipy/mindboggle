@@ -82,12 +82,12 @@ fi
 if [ -z "$ANTS" ]; then
     ANTS="no"
 fi
-#if [ -z "$OS" ]; then
-#    OS="Linux"
-#fi
-#if [ -z "$SUDO" ]; then
-#    SUDO=1
-#fi
+if [ -z "$OS" ]; then
+    OS="Linux"
+fi
+if [ -z "$SUDO" ]; then
+    SUDO=1
+fi
 
 #-----------------------------------------------------------------------------
 # Install system-wide dependencies in linux:
@@ -117,10 +117,10 @@ fi
 bash $CONDA_DL -b -p $CONDA_PATH
 
 # Set environment variables:
-export PATH=$CONDA_PATH/bin:$PATH
-#echo "# Conda" >> $ENV
-#echo "export PATH=$CONDA_PATH/bin:\$PATH" >> $ENV
-#source $ENV
+#export PATH=$CONDA_PATH/bin:$PATH
+echo "# Conda" >> $ENV
+echo "export PATH=$CONDA_PATH/bin:\$PATH" >> $ENV
+source $ENV
 
 #-----------------------------------------------------------------------------
 # Fix paths to Linux libraries using symbolic links:
@@ -160,9 +160,6 @@ pip install --upgrade pip
 #-----------------------------------------------------------------------------
 # Install VTK:
 #-----------------------------------------------------------------------------
-# OpenGL dependency:
-# http://stackoverflow.com/questions/31170869/cmake-cant-find-open-gl-for-vtk-in-ubuntu
-sudo apt-get install freeglut3-dev
 conda install -c https://conda.anaconda.org/clinicalgraphics vtk
 
 #-----------------------------------------------------------------------------
