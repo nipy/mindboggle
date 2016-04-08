@@ -153,9 +153,12 @@ source $ENV
 conda config --set always_yes yes
 
 #-------------------------------------------------------------------------
-# Install VTK:
+# Install VTK 7.0:
 #-------------------------------------------------------------------------
 conda install -c https://conda.anaconda.org/clinicalgraphics vtk
+if [ -z "$VTK_DIR" ]; then
+    VTK_DIR="$CONDA_PATH/lib/cmake/vtk-7.0/Modules"
+fi
 
 #-------------------------------------------------------------------------
 # Install nipype:
@@ -181,13 +184,7 @@ cd $INSTALL/mindboggle
 python setup.py install
 mkdir $vtk_cpp_tools
 cd $vtk_cpp_tools
-if [ -z "$VTK_DIR" ]; then
-    #VTK_DIR="$INSTALL/VTK"
-    VTK_DIR="$INSTALL/lib/cmake/vtk-7.1/Modules"
-    cmake ../ -DVTK_DIR:STRING=$VTK_DIR
-else
-    cmake ../
-fi
+cmake ../ -DVTK_DIR:STRING=$VTK_DIR
 make
 
 # Set environment variables:
