@@ -115,7 +115,7 @@ class SerialPipeline(Pipeline):
 
     def zernike(self, G, N):
         V = np.zeros([N + 1, N + 1, N + 1], dtype=complex)
-        for a, b, c, alpha in nest(lambda: range(N / 2 + 1),
+        for a, b, c, alpha in nest(lambda: range(int(N / 2) + 1),
                                    lambda _a: range(N - 2 * _a + 1),
                                    lambda _a, _b: range(N - 2 * _a - _b + 1),
                                    lambda _a, _b, _c: range(_a + _c + 1),
@@ -124,7 +124,7 @@ class SerialPipeline(Pipeline):
                 nchoosek(a + c, alpha) * G[2 * a + c - alpha, alpha, b]
 
         W = np.zeros([N + 1, N + 1, N + 1], dtype=complex)
-        for a, b, c, alpha in nest(lambda: range(N / 2 + 1),
+        for a, b, c, alpha in nest(lambda: range(int(N / 2) + 1),
                                    lambda _a: range(N - 2 * _a + 1),
                                    lambda _a, _b: range(N - 2 * _a - _b + 1),
                                    lambda _a, _b, _c: range(_a + 1),
@@ -133,7 +133,7 @@ class SerialPipeline(Pipeline):
                 nchoosek(a, alpha) * V[a - alpha, b, c + 2 * alpha]
 
         X = np.zeros([N + 1, N + 1, N + 1], dtype=complex)
-        for a, b, c, alpha in nest(lambda: range(N / 2 + 1),
+        for a, b, c, alpha in nest(lambda: range(int(N / 2) + 1),
                                    lambda _a: range(N - 2 * _a + 1),
                                    lambda _a, _b: range(N - 2 * _a - _b + 1),
                                    lambda _a, _b, _c: range(_a + 1),
@@ -142,9 +142,9 @@ class SerialPipeline(Pipeline):
 
         Y = np.zeros([N + 1, N + 1, N + 1], dtype=complex)
         for l, nu, m, j in nest(lambda: range(N + 1),
-                                lambda _l: range((N - _l) / 2 + 1),
+                                lambda _l: range(int((N - _l) / 2) + 1),
                                 lambda _l, _nu: range(_l + 1),
-                                lambda _l, _nu, _m: range((_l - _m) / 2 + 1),
+                                lambda _l, _nu, _m: range(int((_l - _m) / 2) + 1),
                                 ):
             Y[l, nu, m] += self.Yljm(l, j, m) * X[nu + j, l - m - 2 * j, m]
 
@@ -154,7 +154,7 @@ class SerialPipeline(Pipeline):
                                  # there's an if...mod missing in this but it
                                  # still works?
                                  lambda _n, _l: range(_l + 1),
-                                 lambda _n, _l, _m: range((_n - _l) / 2 + 1),
+                                 lambda _n, _l, _m: range(int((_n - _l) / 2) + 1),
                                  ):
             k = (n - l) / 2
             Z[n, l, m] += (3 / (4 * PI_CONST)) * \
