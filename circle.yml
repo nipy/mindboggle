@@ -23,7 +23,7 @@ dependencies:
     # Install system-wide dependencies in Linux:
     #-------------------------------------------------------------------------
 #    - sudo apt-get update
-    - sudo apt-get install g++ git make xorg
+#    - sudo apt-get install g++ git make xorg
     #-------------------------------------------------------------------------
     # Fix paths to Linux libraries using symbolic links
     #-------------------------------------------------------------------------
@@ -58,8 +58,7 @@ dependencies:
     #-------------------------------------------------------------------------
     # Install testing tools for circleci.com:
     #-------------------------------------------------------------------------
-    - pip install nose
-    - pip install coverage  # nose
+#    - pip install coverage  # nose
     #-------------------------------------------------------------------------
     # Install Mindboggle's remaining dependencies and C++ code
     #-------------------------------------------------------------------------
