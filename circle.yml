@@ -20,49 +20,10 @@ dependencies:
   pre:
 
     #-------------------------------------------------------------------------
-    # Install system-wide dependencies in linux
+    # Install system-wide dependencies in Linux:
     #-------------------------------------------------------------------------
 #    - sudo apt-get update
     - sudo apt-get install g++ git make xorg
-    #-------------------------------------------------------------------------
-    # Install conda and add it to PATH
-    #-------------------------------------------------------------------------
-    - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-    - bash miniconda.sh -b -p $MINI
-    #-------------------------------------------------------------------------
-    # Update conda and print info about the installation (for debugging)
-    #-------------------------------------------------------------------------
-    - conda config --set always_yes yes
-    - conda update -q conda
-    - conda info -a
-    #-------------------------------------------------------------------------
-    # Use conda and pip to set up python environment
-    #-------------------------------------------------------------------------
-    - conda install cmake pip
-#   - conda install numpy scipy matplotlib pandas networkx
-    # Python 2.7: pip vtk ipython
-#    - pip install --upgrade pip
-    - pip install nose coverage  # install testing tools for circle
-#    - pip install nibabel
-    #-------------------------------------------------------------------------
-    # Install VTK:
-    #-------------------------------------------------------------------------
-    - conda install -c https://conda.anaconda.org/clinicalgraphics vtk
-    #-------------------------------------------------------------------------
-    # Install nipype:
-    # prov requires lxml which requires libxml
-    #-------------------------------------------------------------------------
-    #- conda install lxml
-    #- pip install prov traits future simplejson # nose
-    #- git clone https://github.com/nipy/nipype.git $HOME/nipype
-    #- cd $HOME/nipype
-    #- python setup.py install
-
-#    - conda install lxml
-#    - pip install prov traits future simplejson # nose
-#    - pip install nipype
-#    - pip install --upgrade https://github.com/nipy/nipype/archive/master.zip
-
     #-------------------------------------------------------------------------
     # Fix paths to Linux libraries using symbolic links
     #-------------------------------------------------------------------------
@@ -79,8 +40,30 @@ dependencies:
     - sudo ln -s /usr/lib/x86_64-linux-gnu/libXt.so.6 /usr/lib64/libXt.so
     - sudo ln -s /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1 /usr/lib64/libGL.so
     #-------------------------------------------------------------------------
-    # Install Mindboggle C++ code
+    # Install conda and add it to PATH:
     #-------------------------------------------------------------------------
+    - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    - bash miniconda.sh -b -p $MINI
+    - conda config --set always_yes yes
+    #-------------------------------------------------------------------------
+    # Install VTK:
+    #-------------------------------------------------------------------------
+    - conda install -c https://conda.anaconda.org/clinicalgraphics vtk
+    #-------------------------------------------------------------------------
+    # Install nipype:
+    #-------------------------------------------------------------------------
+#    - conda install pip scipy nose networkx lxml future simplejson
+#    - pip install nibabel prov xvfbwrapper traits
+#    - pip install https://github.com/nipy/nipype/archive/master.zip
+    #-------------------------------------------------------------------------
+    # Install testing tools for circleci.com:
+    #-------------------------------------------------------------------------
+    - pip install nose
+    - pip install coverage  # nose
+    #-------------------------------------------------------------------------
+    # Install Mindboggle's remaining dependencies and C++ code
+    #-------------------------------------------------------------------------
+#    - conda install cmake matplotlib numpy pandas
 #    - mkdir $vtk_cpp_tools && cd $vtk_cpp_tools && cmake ../ && make
 
 test:

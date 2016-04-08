@@ -103,25 +103,6 @@ if [ $OS = "Linux" ]; then
 fi
 
 #-----------------------------------------------------------------------------
-# Install Anaconda's latest miniconda Python distribution:
-#-----------------------------------------------------------------------------
-CONDA_URL="https://repo.continuum.io/miniconda"
-CONDA_FILE="Miniconda3-latest-$OS-x86_64.sh"
-CONDA_DL="$DOWNLOAD/$CONDA_FILE"
-CONDA_PATH="$INSTALL/miniconda3"
-if [ $OS = "Linux" ]; then
-    wget -O $CONDA_DL $CONDA_URL/$CONDA_FILE
-else
-    curl -o $CONDA_DL $CONDA_URL/$CONDA_FILE
-fi
-bash $CONDA_DL -b -p $CONDA_PATH
-
-# Set environment variables:
-echo "# Conda" >> $ENV
-echo "export PATH=$CONDA_PATH/bin:\$PATH" >> $ENV
-source $ENV
-
-#-----------------------------------------------------------------------------
 # Fix paths to Linux libraries using symbolic links:
 #-----------------------------------------------------------------------------
 # To avoid the following errors:
@@ -151,40 +132,49 @@ if [ $OS = "Linux" ]; then
 fi
 
 #-----------------------------------------------------------------------------
-# Use conda to install additional resources for installing packages:
+# Install Anaconda's latest miniconda Python 3 distribution:
 #-----------------------------------------------------------------------------
-conda install --yes cmake pip
-pip install --upgrade pip
+CONDA_URL="https://repo.continuum.io/miniconda"
+CONDA_FILE="Miniconda3-latest-$OS-x86_64.sh"
+CONDA_DL="$DOWNLOAD/$CONDA_FILE"
+CONDA_PATH="$INSTALL/miniconda3"
+if [ $OS = "Linux" ]; then
+    wget -O $CONDA_DL $CONDA_URL/$CONDA_FILE
+else
+    curl -o $CONDA_DL $CONDA_URL/$CONDA_FILE
+fi
+bash $CONDA_DL -b -p $CONDA_PATH
 
-#-----------------------------------------------------------------------------
+# Set environment variables:
+echo "# Conda" >> $ENV
+echo "export PATH=$CONDA_PATH/bin:\$PATH" >> $ENV
+source $ENV
+
+conda config --set always_yes yes
+
+#-------------------------------------------------------------------------
 # Install VTK:
-#-----------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 conda install -c https://conda.anaconda.org/clinicalgraphics vtk
 
-#-----------------------------------------------------------------------------
-# Use conda and pip to install the latest Python packages:
-#-----------------------------------------------------------------------------
-conda install --yes numpy scipy matplotlib pandas networkx ipython
-pip install nibabel
-
-#-----------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 # Install nipype:
-# prov requires lxml which requires libxml
-#-----------------------------------------------------------------------------
-conda install lxml
-pip install prov traits nose future simplejson
-git clone https://github.com/nipy/nipype.git $INSTALL/nipype
-cd $INSTALL/nipype
-python setup.py install
+#-------------------------------------------------------------------------
+conda install pip scipy nose networkx lxml future simplejson
+pip install nibabel prov xvfbwrapper traits
+pip install https://github.com/nipy/nipype/archive/master.zip
 
-# pip won't install all nipype's dependencies, so use conda
-# or you will have to do it manually. prov requires lxml which requires libxml
-#pip install nipype
-#pip install --upgrade https://github.com/nipy/nipype/archive/master.zip
+#-------------------------------------------------------------------------
+# Install additional testing tools:
+#-------------------------------------------------------------------------
+pip install nose
+pip install coverage  # nose
 
-#-----------------------------------------------------------------------------
-# Install the latest Mindboggle:
-#-----------------------------------------------------------------------------
+#-------------------------------------------------------------------------
+# Install Mindboggle's remaining dependencies and C++ code
+#-------------------------------------------------------------------------
+conda install cmake matplotlib numpy pandas
+
 vtk_cpp_tools=$INSTALL/mindboggle/vtk_cpp_tools/bin
 git clone https://github.com/nipy/mindboggle.git $INSTALL/mindboggle
 cd $INSTALL/mindboggle
