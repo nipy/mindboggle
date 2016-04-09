@@ -41,7 +41,6 @@ INSTALL=$2
 ENV=$3
 HOME=$4
 ANTS=$5
-VTK_DIR=$6
 
 #-----------------------------------------------------------------------------
 # OS and sudo:
@@ -156,9 +155,7 @@ conda config --set always_yes yes
 # Install VTK 7.0:
 #-------------------------------------------------------------------------
 conda install -c https://conda.anaconda.org/clinicalgraphics vtk
-if [ -z "$VTK_DIR" ]; then
-    VTK_DIR="$CONDA_PATH/lib/cmake/vtk-7.0/Modules"
-fi
+VTK_DIR="$CONDA_PATH/lib/cmake/vtk-7.0"
 
 #-------------------------------------------------------------------------
 # Install nipype:
