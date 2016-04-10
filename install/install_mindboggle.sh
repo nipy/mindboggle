@@ -16,15 +16,15 @@
 #
 #     Or with arguments:
 #     source ./install_mindboggle.sh
+#               <install ants: yes or no? (default is yes)>
 #               <absolute path to download directory (create if empty)>
 #               <absolute path to install directory (create if empty)>
 #               <absolute path to environment file (or create .bash_profile)>
 #               <absolute path to home directory (default is /home/vagrant)>
-#               <install ants: yes or no? (default is yes)>
 #
 #     Example:
-#     source ./install_mindboggle.sh /home/vagrant/downloads \
-#            /home/vagrant/install /home/vagrant/.bash_profile yes
+#     source yes ./install_mindboggle.sh /home/vagrant/downloads \
+#                /home/vagrant/install /home/vagrant/.bash_profile
 #
 # Authors:
 #     - Daniel Clark, 2014
@@ -36,11 +36,11 @@
 #-----------------------------------------------------------------------------
 # Path arguments:
 #-----------------------------------------------------------------------------
-DOWNLOAD=$1
-INSTALL=$2
-ENV=$3
-HOME=$4
-ANTS=$5
+ANTS=$1
+DOWNLOAD=$2
+INSTALL=$3
+ENV=$4
+HOME=$5
 
 #-----------------------------------------------------------------------------
 # OS and sudo:
