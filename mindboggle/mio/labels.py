@@ -4463,7 +4463,7 @@ def extract_numbers_names_colors(FreeSurferColorLUT=''):
     #              os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')
 
     if FreeSurferColorLUT and os.path.exists(FreeSurferColorLUT):
-        f = open(FreeSurferColorLUT, 'rb')
+        f = open(FreeSurferColorLUT, 'r')
         lines = f.readlines()
     else:
         lut = lut_text()

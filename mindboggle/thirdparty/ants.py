@@ -45,7 +45,6 @@ def antsApplyTransformsToPoints(points, transform_files,
 
     Examples
     --------
-    >>> import os
     >>> import numpy as np
     >>> from mindboggle.thirdparty.ants import antsApplyTransformsToPoints
     >>> from mindboggle.mio.vtks import read_points
@@ -110,7 +109,7 @@ def antsApplyTransformsToPoints(points, transform_files,
     #-------------------------------------------------------------------------
     # Return transformed points:
     #-------------------------------------------------------------------------
-    fid = open(transformed_points_file, 'rb')
+    fid = open(transformed_points_file, 'r')
     lines = fid.readlines()
     fid.close()
     transformed_points = []
