@@ -173,8 +173,8 @@ if [ $OS = "Linux" ]; then
     else
         apt-get install graphviz libgraphviz-dev
     fi
+    pip install --upgrade pygraphviz graphviz
 fi
-pip install --upgrade pygraphviz graphviz
 
 #-------------------------------------------------------------------------
 # Install additional testing tools:
