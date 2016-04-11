@@ -165,6 +165,18 @@ pip install nibabel prov xvfbwrapper traits
 pip install https://github.com/nipy/nipype/archive/master.zip
 
 #-------------------------------------------------------------------------
+# Install optional graphviz and pygraphviz for generating nipype graphs:
+#-------------------------------------------------------------------------
+if [ $OS = "Linux" ]; then
+    if [ $SUDO -eq 1 ]; then
+        sudo apt-get install graphviz libgraphviz-dev
+    else
+        apt-get install graphviz libgraphviz-dev
+    fi
+fi
+pip install --upgrade pygraphviz graphviz
+
+#-------------------------------------------------------------------------
 # Install additional testing tools:
 #-------------------------------------------------------------------------
 pip install nose

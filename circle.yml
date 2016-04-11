@@ -56,6 +56,12 @@ dependencies:
 #    - pip install nibabel prov xvfbwrapper traits
 #    - pip install https://github.com/nipy/nipype/archive/master.zip
     #-------------------------------------------------------------------------
+    # Install optional graphviz and pygraphviz for generating nipype graphs:
+    #-------------------------------------------------------------------------
+#    - sudo apt-get install graphviz libgraphviz-dev
+#    - pip install --upgrade pygraphviz graphviz
+
+    #-------------------------------------------------------------------------
     # Install testing tools for circleci.com:
     #-------------------------------------------------------------------------
 #    - pip install coverage  # nose
@@ -68,6 +74,7 @@ dependencies:
 test:
 
   pre:
+    - conda --version
     - python -c "import vtk"
 #    - nosetests --with-coverage --with-doctest evaluate/
 #    - nosetests --with-coverage --with-doctest features/
