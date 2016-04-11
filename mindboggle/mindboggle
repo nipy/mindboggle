@@ -115,8 +115,7 @@ out_args.add_argument("--cache",
                                            'mindboggle_cache'), metavar='STR')
 out_args.add_argument("--graph",
                       help='plot workflow graph: "hier", "flat", "exec"',
-                      choices=['hier', 'flat', 'exec'],
-                      metavar='STR') #, default='hier') # Error Re: 'dot'
+                      choices=['hier', 'flat', 'exec'], metavar='STR')
 out_args.add_argument("--no_volumes", action='store_true',
                       help="no volume labels, features, or shape tables")
 out_args.add_argument("--no_surfaces", action='store_true',
