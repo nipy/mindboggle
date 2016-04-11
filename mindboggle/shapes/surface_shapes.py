@@ -30,6 +30,24 @@ def area(command, surface_file, verbose=False):
     area_file: string
         vtk file with surface area per vertex of mesh
 
+    Examples
+    --------
+    >>> import os
+    >>> import numpy as np
+    >>> from mindboggle.shapes.surface_shapes import area
+    >>> from mindboggle.mio.vtks import read_scalars
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> surface_file = fetch_data(urls['left_pial'])
+    >>> verbose = False
+    >>> ccode_path = os.environ['vtk_cpp_tools']
+    >>> command = os.path.join(ccode_path, 'area', 'PointAreaMain')
+    >>> area_file = area(command, surface_file, verbose)
+    >>> scalars, name = read_scalars(area_file)
+    >>> print(np.array_str(np.array(scalars[0:8]), precision=5,
+    ...     suppress_small=True))
+    [ 0.4827   0.39661  0.57813  0.70574  0.84318  0.57643  0.66942  0.7063 ]
+
     """
     import os
     from nipype.interfaces.base import CommandLine
@@ -71,6 +89,24 @@ def travel_depth(command, surface_file, verbose=False):
     depth_file: string
         vtk file with travel depth per vertex of mesh
 
+    Examples
+    --------
+    >>> import os
+    >>> import numpy as np
+    >>> from mindboggle.shapes.surface_shapes import travel_depth
+    >>> from mindboggle.mio.vtks import read_scalars
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> surface_file = fetch_data(urls['left_pial'])
+    >>> verbose = False
+    >>> ccode_path = os.environ['vtk_cpp_tools']
+    >>> command = os.path.join(ccode_path, 'travel_depth', 'TravelDepthMain')
+    >>> depth_file = travel_depth(command, surface_file, verbose)
+    >>> scalars, name = read_scalars(depth_file)
+    >>> print(np.array_str(np.array(scalars[0:8]), precision=5,
+    ...     suppress_small=True))
+    [ 0.02026  0.06009  0.12859  0.04564  0.00774  0.05284  0.05354  0.01316]
+
     """
     import os
     from nipype.interfaces.base import CommandLine
@@ -109,6 +145,24 @@ def geodesic_depth(command, surface_file, verbose=False):
     -------
     depth_file: string
         vtk file with geodesic depth per vertex of mesh
+
+    Examples
+    --------
+    >>> import os
+    >>> import numpy as np
+    >>> from mindboggle.shapes.surface_shapes import geodesic_depth
+    >>> from mindboggle.mio.vtks import read_scalars
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> surface_file = fetch_data(urls['left_pial'])
+    >>> verbose = False
+    >>> ccode_path = os.environ['vtk_cpp_tools']
+    >>> command = os.path.join(ccode_path, 'geodesic_depth', 'GeodesicDepthMain')
+    >>> depth_file = geodesic_depth(command, surface_file, verbose)
+    >>> scalars, name = read_scalars(depth_file)
+    >>> print(np.array_str(np.array(scalars[0:8]), precision=5,
+    ...     suppress_small=True))
+    [ 0.02026  0.06009  0.12859  0.04564  0.00774  0.05284  0.05354  0.01316]
 
     """
     import os
@@ -189,6 +243,40 @@ def curvature(command, method, arguments, surface_file, verbose=False):
     verbose : bool
         print statements?
 
+    Returns
+    -------
+    mean_curvature_file : string
+        mean curvature file
+    gauss_curvature_file : string
+        gauss curvature file
+    max_curvature_file : string
+        max curvature file
+    min_curvature_file : string
+        min curvature file
+    min_curvature_vector_file : string
+        min curvature vector file
+
+    Examples
+    --------
+    >>> import os
+    >>> import numpy as np
+    >>> from mindboggle.shapes.surface_shapes import curvature
+    >>> from mindboggle.mio.vtks import read_scalars
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> surface_file = fetch_data(urls['left_pial'])
+    >>> method = 2
+    >>> arguments = '-n 0.7'
+    >>> verbose = False
+    >>> ccode_path = os.environ['vtk_cpp_tools']
+    >>> command = os.path.join(ccode_path, 'curvature', 'CurvatureMain')
+    >>> mean_curvature_file, f1,f2,f3,f4 = curvature(command, method,
+    ...     arguments, surface_file, verbose)
+    >>> scalars, name = read_scalars(mean_curvature_file)
+    >>> print(np.array_str(np.array(scalars[0:8]), precision=5,
+    ...     suppress_small=True))
+    [-5.81361 -5.9313  -6.28055 -5.621   -5.69631 -5.80399 -5.87265 -5.7107 ]
+
     """
     import os
     from nipype.interfaces.base import CommandLine
@@ -212,10 +300,11 @@ def curvature(command, method, arguments, surface_file, verbose=False):
         args.extend(['-x', max_curvature_file,
                      '-i', min_curvature_file,
                      '-d', min_curvature_vector_file])
-    args.extend([surface_file, mean_curvature_file])
 
     if arguments:
         args.extend([arguments])
+
+    args.extend([surface_file, mean_curvature_file])
 
     if verbose:
         print("{0} {1}".format(command, args))
