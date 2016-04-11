@@ -109,9 +109,15 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
         folds = np.array(folds)
 
     # Load values, inner anchor threshold, and neighbors:
-    points, indices, lines, faces, curvs, scalar_names, npoints, \
-        input_vtk = read_vtk(curv_file, True, True)
-    depths, name = read_scalars(depth_file, True, True)
+    if os.path.isfile(curv_file):
+        points, indices, lines, faces, curvs, scalar_names, npoints, \
+            input_vtk = read_vtk(curv_file, True, True)
+    else:
+        raise(IOError("{0} doesn't exist!".format(curv_file)))
+    if os.path.isfile(curv_file):
+        depths, name = read_scalars(depth_file, True, True)
+    else:
+        raise(IOError("{0} doesn't exist!".format(depth_file)))
     values = curvs * depths
     values0 = [x for x in values if x > 0]
     thr = np.median(values0) + 2 * median_abs_dev(values0)
