@@ -179,7 +179,7 @@ fi
 #-------------------------------------------------------------------------
 # Install additional testing tools:
 #-------------------------------------------------------------------------
-conda install coverage  # nose
+conda install ipython coverage  # nose
 
 #-------------------------------------------------------------------------
 # Install Mindboggle's remaining dependencies and C++ code

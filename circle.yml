@@ -62,9 +62,9 @@ dependencies:
 #    - pip install --upgrade pygraphviz graphviz
 
     #-------------------------------------------------------------------------
-    # Install testing tools for circleci.com:
+    # Install additional testing tools for circleci.com:
     #-------------------------------------------------------------------------
-#    - conda install coverage  # nose
+#    - conda install ipython coverage  # nose
     #-------------------------------------------------------------------------
     # Install Mindboggle's remaining dependencies and C++ code
     #-------------------------------------------------------------------------
