@@ -179,8 +179,7 @@ fi
 #-------------------------------------------------------------------------
 # Install additional testing tools:
 #-------------------------------------------------------------------------
-pip install nose
-pip install coverage  # nose
+conda install coverage  # nose
 
 #-------------------------------------------------------------------------
 # Install Mindboggle's remaining dependencies and C++ code
