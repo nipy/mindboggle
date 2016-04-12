@@ -54,8 +54,8 @@ dependencies:
     # api site (https://conda.anaconda.org/clinicalgraphics):
     #-------------------------------------------------------------------------
     #- conda install -c https://conda.anaconda.org/clinicalgraphics vtk
-    - conda env create mb_env --quiet
-    - source activate mb_env
+    - conda env create --quiet
+    - source activate mindboggle-env
 #    - export PYTHONPATH="$PYTHONPATH:$MINI/envs/mb_env/lib/python3.5/site-packages/vtk"
     #-------------------------------------------------------------------------
     # Install nipype:
