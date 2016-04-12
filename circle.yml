@@ -45,6 +45,7 @@ dependencies:
     #-------------------------------------------------------------------------
     - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh;
     - bash ~/miniconda.sh -b -p $MINI
+    - export PATH="$MINI/bin:$PATH"
     - conda config --set show_channel_urls yes --set always_yes yes
     - conda config --add channels clinicalgraphics
     - conda update conda --quiet
@@ -56,7 +57,7 @@ dependencies:
     #- conda install -c https://conda.anaconda.org/clinicalgraphics vtk
     - conda env create --quiet
     - source activate mindboggle-env
-#    - export PYTHONPATH="$PYTHONPATH:$MINI/envs/mb_env/lib/python3.5/site-packages/vtk"
+    - export PYTHONPATH="$PYTHONPATH:$MINI/envs/mb_env/lib/python3.5/site-packages/vtk"
     #-------------------------------------------------------------------------
     # Install nipype:
     #-------------------------------------------------------------------------
