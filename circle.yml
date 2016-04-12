@@ -80,7 +80,7 @@ test:
     - conda --version
     - python
     - python -c "import sys; print(sys.executable)"
-    - python -c "import vtk"
+    - /home/ubuntu/virtualenvs/venv-system/bin/python -c "import vtk"
 #    - nosetests --with-coverage --with-doctest evaluate/
 #    - nosetests --with-coverage --with-doctest features/
 #    - nosetests --with-coverage --with-doctest guts/
