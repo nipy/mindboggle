@@ -78,11 +78,12 @@ test:
 
   pre:
     - conda --version
+    - python
     - python -c "import vtk"
 #    - nosetests --with-coverage --with-doctest evaluate/
 #    - nosetests --with-coverage --with-doctest features/
 #    - nosetests --with-coverage --with-doctest guts/
 #    - nosetests --with-coverage --with-doctest mio/
 #    - nosetests --with-coverage --with-doctest shapes/
-    - nosetests --with-coverage --with-doctest thirdparty/
+#    - nosetests --with-coverage --with-doctest thirdparty/
     #- coveralls

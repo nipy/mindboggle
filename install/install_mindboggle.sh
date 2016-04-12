@@ -182,7 +182,7 @@ fi
 conda install ipython pytest coverage  # nose
 
 #-------------------------------------------------------------------------
-# Install Mindboggle's remaining dependencies and C++ code
+# Install Mindboggle's remaining dependencies and C++ code:
 #-------------------------------------------------------------------------
 conda install cmake matplotlib numpy pandas
 
