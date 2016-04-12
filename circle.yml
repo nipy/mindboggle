@@ -1,15 +1,15 @@
 # Configuration file for circleci.com continuous integration (testing)
 
-#machine:
+machine:
 
 #  python:
 #    version: 3.5.1
 
-#  environment:
-#    MINI: $HOME/miniconda3
-#    MB: $HOME/mindboggle
-#    vtk_cpp_tools: $MB/vtk_cpp_tools/bin
-#    PATH: $MINI/bin:$vtk_cpp_tools:$PATH
+  environment:
+    MINI: $HOME/miniconda3
+    MB: $HOME/mindboggle
+    vtk_cpp_tools: $MB/vtk_cpp_tools/bin
+    PATH: $MINI/bin:$vtk_cpp_tools:$PATH
 
 #general:
 
@@ -43,12 +43,12 @@ dependencies:
     # Install conda and add it to PATH:
     #-------------------------------------------------------------------------
     - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-    - bash miniconda.sh -b -p /home/ubuntu/miniconda3  # $MINI
-    - /home/ubuntu/miniconda3/bin/conda config --set always_yes yes
+    - bash miniconda.sh -b -p $MINI
+    - conda config --set always_yes yes
     #-------------------------------------------------------------------------
     # Install VTK:
     #-------------------------------------------------------------------------
-    - /home/ubuntu/miniconda3/bin/conda install -c https://conda.anaconda.org/clinicalgraphics vtk
+    - conda install -c https://conda.anaconda.org/clinicalgraphics vtk
     #-------------------------------------------------------------------------
     # Install nipype:
     #-------------------------------------------------------------------------
