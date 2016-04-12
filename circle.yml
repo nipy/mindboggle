@@ -51,7 +51,7 @@ dependencies:
     #-------------------------------------------------------------------------
     #- conda install -c https://conda.anaconda.org/clinicalgraphics vtk
     - conda create -n my_env -c clinicalgraphics python vtk
-    - activate my_env
+    - source activate my_env
     #-------------------------------------------------------------------------
     # Install nipype:
     #-------------------------------------------------------------------------
