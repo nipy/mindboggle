@@ -25,7 +25,7 @@ dependencies:
 #    - sudo apt-get update
 #    - sudo apt-get install g++ git make xorg
     #-------------------------------------------------------------------------
-    # Fix paths to Linux libraries using symbolic links
+    # Fix paths to Linux libraries using symbolic links:
     #-------------------------------------------------------------------------
     # To avoid the following errors:
     # "No rule to make target `/usr/lib/x86_64-linux-gnu/libGLU.so'"
@@ -46,9 +46,12 @@ dependencies:
     - bash miniconda.sh -b -p $MINI
     - conda config --set always_yes yes
     #-------------------------------------------------------------------------
-    # Install VTK:
+    # Create a Python environment and install VTK from the Anaconda Cloud
+    # api site (https://conda.anaconda.org/clinicalgraphics):
     #-------------------------------------------------------------------------
-    - conda install -c https://conda.anaconda.org/clinicalgraphics vtk
+    #- conda install -c https://conda.anaconda.org/clinicalgraphics vtk
+    - conda create -n my_env -c clinicalgraphics python vtk
+    - activate my_env
     #-------------------------------------------------------------------------
     # Install nipype:
     #-------------------------------------------------------------------------
@@ -74,7 +77,7 @@ dependencies:
 test:
 
   pre:
-    - /home/ubuntu/miniconda3/bin/conda --version
+    - conda --version
     - python -c "import vtk"
 #    - nosetests --with-coverage --with-doctest evaluate/
 #    - nosetests --with-coverage --with-doctest features/
