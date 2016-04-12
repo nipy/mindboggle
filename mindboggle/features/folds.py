@@ -403,4 +403,4 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
 #=============================================================================
 if __name__ == "__main__":
     import doctest
-    doctest.testmod(verbose=True)()
+    doctest.testmod(verbose=True)  # py.test --doctest-modules

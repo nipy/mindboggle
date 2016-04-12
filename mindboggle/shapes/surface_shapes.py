@@ -323,4 +323,4 @@ def curvature(command, method, arguments, surface_file, verbose=False):
 #=============================================================================
 if __name__ == "__main__":
     import doctest
-    doctest.testmod(verbose=True)()
+    doctest.testmod(verbose=True)  # py.test --doctest-modules

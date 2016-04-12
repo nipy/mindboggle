@@ -186,4 +186,4 @@ def xyz2nii(input_xyz_file, output_nii_file='', origin=[], pad=10):
 #=============================================================================
 if __name__ == "__main__":
     import doctest
-    doctest.testmod(verbose=True)()
+    doctest.testmod(verbose=True)  # py.test --doctest-modules

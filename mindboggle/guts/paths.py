@@ -1359,7 +1359,7 @@ def find_max_values(points, values, min_separation=10, thr=0.5):
 #=============================================================================
 if __name__ == "__main__":
     import doctest
-    doctest.testmod(verbose=True)()
+    doctest.testmod(verbose=True)  # py.test --doctest-modules
 
 
 #=============================================================================

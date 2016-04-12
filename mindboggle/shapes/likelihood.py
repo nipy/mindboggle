@@ -507,4 +507,4 @@ def fit_normals_to_histogram(data, x, verbose=False):
 #=============================================================================
 if __name__ == "__main__":
     import doctest
-    doctest.testmod(verbose=True)()
+    doctest.testmod(verbose=True)  # py.test --doctest-modules

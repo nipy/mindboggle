@@ -524,4 +524,4 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
 #=============================================================================
 if __name__ == "__main__":
     import doctest
-    doctest.testmod(verbose=True)()
+    doctest.testmod(verbose=True)  # py.test --doctest-modules

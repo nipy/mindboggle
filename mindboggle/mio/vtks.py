@@ -1811,4 +1811,4 @@ def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk=''):
 #=============================================================================
 if __name__ == "__main__":
     import doctest
-    doctest.testmod(verbose=True)()
+    doctest.testmod(verbose=True)  # py.test --doctest-modules

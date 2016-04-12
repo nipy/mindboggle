@@ -729,4 +729,4 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
 #=============================================================================
 if __name__ == "__main__":
     import doctest
-    doctest.testmod(verbose=True)()
+    doctest.testmod(verbose=True)  # py.test --doctest-modules

@@ -387,4 +387,4 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
 #=============================================================================
 if __name__ == "__main__":
     import doctest
-    doctest.testmod(verbose=True)()
+    doctest.testmod(verbose=True)  # py.test --doctest-modules

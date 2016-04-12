@@ -330,4 +330,4 @@ def segment_fundi(fundus_per_fold, sulci=[], vtk_file='', save_file=False,
 #=============================================================================
 if __name__ == "__main__":
     import doctest
-    doctest.testmod(verbose=True)()
+    doctest.testmod(verbose=True)  # py.test --doctest-modules
