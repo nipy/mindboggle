@@ -44,11 +44,11 @@ dependencies:
     #-------------------------------------------------------------------------
     - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
     - bash miniconda.sh -b -p /home/ubuntu/miniconda3  # $MINI
-    - conda config --set always_yes yes
+    - /home/ubuntu/miniconda3/bin/conda config --set always_yes yes
     #-------------------------------------------------------------------------
     # Install VTK:
     #-------------------------------------------------------------------------
-    - conda install -c https://conda.anaconda.org/clinicalgraphics vtk
+    - /home/ubuntu/miniconda3/bin/conda install -c https://conda.anaconda.org/clinicalgraphics vtk
     #-------------------------------------------------------------------------
     # Install nipype:
     #-------------------------------------------------------------------------
@@ -74,7 +74,7 @@ dependencies:
 test:
 
   pre:
-    - conda --version
+    - /home/ubuntu/miniconda3/bin/conda --version
     - python -c "import vtk"
 #    - nosetests --with-coverage --with-doctest evaluate/
 #    - nosetests --with-coverage --with-doctest features/
