@@ -1,8 +1,9 @@
 name: mindboggle-env
-#channels:
-#  - clinicalgraphics
+channels:
+  - clinicalgraphics
 dependencies:
-  - python
-  - pip
-  - pip:
-    - nibabel
+  - python=3.5
+  - vtk=7.0.0
+#  - pip
+#  - pip:
+#    - nibabel
