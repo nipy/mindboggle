@@ -10,6 +10,7 @@ machine:
     MB: $HOME/mindboggle
     vtk_cpp_tools: $MB/vtk_cpp_tools/bin
     PATH: $MINI/bin:$vtk_cpp_tools:$PATH
+    PYTHONPATH: $MINI/envs/mb_env/lib/python3.5/site-packages/vtk:$PYTHONPATH
 
 #general:
 
@@ -42,16 +43,20 @@ dependencies:
     #-------------------------------------------------------------------------
     # Install conda and add it to PATH:
     #-------------------------------------------------------------------------
-    - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-    - bash miniconda.sh -b -p $MINI
-    - conda config --set always_yes yes
+    - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh;
+    - bash ~/miniconda.sh -b -p $MINI
+    - conda config --set show_channel_urls yes --set always_yes yes
+    - conda config --add channels clinicalgraphics
+    - conda update conda --quiet
+    - conda install conda-build anaconda-client --quiet
     #-------------------------------------------------------------------------
     # Create a Python environment and install VTK from the Anaconda Cloud
     # api site (https://conda.anaconda.org/clinicalgraphics):
     #-------------------------------------------------------------------------
     #- conda install -c https://conda.anaconda.org/clinicalgraphics vtk
-    - conda create -n my_env -c clinicalgraphics python vtk
-    - source activate my_env
+    - conda env create --quiet
+    - source activate mb_env
+#    - export PYTHONPATH="$PYTHONPATH:$MINI/envs/mb_env/lib/python3.5/site-packages/vtk"
     #-------------------------------------------------------------------------
     # Install nipype:
     #-------------------------------------------------------------------------
@@ -80,7 +85,7 @@ test:
     - conda --version
     - python
     - python -c "import sys; print(sys.executable)"
-    - /home/ubuntu/virtualenvs/venv-system/bin/python -c "import vtk"
+    - python -c "import vtk"
 #    - nosetests --with-coverage --with-doctest evaluate/
 #    - nosetests --with-coverage --with-doctest features/
 #    - nosetests --with-coverage --with-doctest guts/
