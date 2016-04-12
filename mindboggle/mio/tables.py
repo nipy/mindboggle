@@ -1022,4 +1022,4 @@ def explode_mindboggle_tables(subject_path='', output_path='',
 #=============================================================================
 if __name__ == "__main__":
     import doctest
-    doctest.testmod()
+    doctest.testmod(verbose=True)()

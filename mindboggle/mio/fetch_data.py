@@ -581,4 +581,4 @@ def fetch_ants_data(segmented_file, use_ants_transforms=True):
 #=============================================================================
 if __name__ == "__main__":
     import doctest
-    doctest.testmod()
+    doctest.testmod(verbose=True)()

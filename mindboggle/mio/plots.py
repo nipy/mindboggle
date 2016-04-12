@@ -635,7 +635,7 @@ def scatterplot_list_pairs(columns, ignore_first_column=False, plot_line=True,
 #=============================================================================
 if __name__ == "__main__":
     import doctest
-    doctest.testmod()
+    doctest.testmod(verbose=True)()
 
 
 # #-----------------------------------------------------------------------------

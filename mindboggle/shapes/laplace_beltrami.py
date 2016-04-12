@@ -769,7 +769,7 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
 #=============================================================================
 if __name__ == "__main__":
     import doctest
-    doctest.testmod()
+    doctest.testmod(verbose=True)()
 
 
 #if __name__ == "__main__":

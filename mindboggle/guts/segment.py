@@ -1720,4 +1720,4 @@ def split_brain(image_file, label_file, left_labels, right_labels):
 #=============================================================================
 if __name__ == "__main__":
     import doctest
-    doctest.testmod()
+    doctest.testmod(verbose=True)()

@@ -1274,4 +1274,4 @@ def area_of_faces(points, faces):
 #=============================================================================
 if __name__ == "__main__":
     import doctest
-    doctest.testmod()
+    doctest.testmod(verbose=True)()

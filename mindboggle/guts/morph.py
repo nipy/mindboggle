@@ -687,4 +687,4 @@ def topo_test(index, values, neighbor_lists):
 #=============================================================================
 if __name__ == "__main__":
     import doctest
-    doctest.testmod()
+    doctest.testmod(verbose=True)()

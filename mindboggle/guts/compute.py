@@ -1101,4 +1101,4 @@ def compute_image_histogram(infile, nbins=100, threshold=0.0):
 #=============================================================================
 if __name__ == "__main__":
     import doctest
-    doctest.testmod()
+    doctest.testmod(verbose=True)()

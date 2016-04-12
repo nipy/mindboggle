@@ -448,4 +448,4 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
 #=============================================================================
 if __name__ == "__main__":
     import doctest
-    doctest.testmod()
+    doctest.testmod(verbose=True)()

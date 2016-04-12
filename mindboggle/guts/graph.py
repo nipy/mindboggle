@@ -266,4 +266,4 @@ def graph_laplacian(W, type_of_laplacian='norm1', verbose=False):
 #=============================================================================
 if __name__ == "__main__":
     import doctest
-    doctest.testmod()
+    doctest.testmod(verbose=True)()

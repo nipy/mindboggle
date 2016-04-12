@@ -119,4 +119,4 @@ def list_strings(string1='', string2='', string3='', string4=''):
 #=============================================================================
 if __name__ == "__main__":
     import doctest
-    doctest.testmod()
+    doctest.testmod(verbose=True)()
