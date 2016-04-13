@@ -48,15 +48,15 @@ dependencies:
     - export PATH="$MINI/bin:$PATH"
     - conda config --set show_channel_urls yes --set always_yes yes
     - conda config --add channels clinicalgraphics
-    - conda update conda --quiet
-    - conda install conda-build anaconda-client --quiet
+    - conda update conda #--quiet
+    - conda install conda-build anaconda-client #--quiet
     #-------------------------------------------------------------------------
     # Create a Python environment and install VTK from the Anaconda Cloud
     # api site (https://conda.anaconda.org/clinicalgraphics):
     #-------------------------------------------------------------------------
     #- conda install -c https://conda.anaconda.org/clinicalgraphics vtk
     - conda install conda-env
-    - conda env create --quiet
+    - conda env create #--quiet
     - source activate mindboggle-env
     - export PATH="$MINI/envs/mindboggle-env/bin:$PATH"
     - export PYTHONPATH="$PYTHONPATH:$MINI/envs/mindboggle-env/lib/python3.5/site-packages/vtk"
@@ -82,9 +82,9 @@ dependencies:
 #    - conda install cmake matplotlib numpy pandas
 #    - mkdir $vtk_cpp_tools && cd $vtk_cpp_tools && cmake ../ && make
 
-test:
+#test:
 
-  pre:
+#  pre:
     - python -c "import sys; print(sys.executable)"
     - python -c "import vtk"
 #    - nosetests --with-coverage --with-doctest evaluate/
