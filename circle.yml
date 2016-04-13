@@ -9,8 +9,8 @@ machine:
     MINI: $HOME/miniconda3
     MB: $HOME/mindboggle
     vtk_cpp_tools: $MB/vtk_cpp_tools/bin
-    PATH: $MINI/bin:$vtk_cpp_tools:$PATH
-    PYTHONPATH: $MINI/envs/mb_env/lib/python3.5/site-packages/vtk:$PYTHONPATH
+    PATH: $MINI/envs/mindboggle-env/bin:$MINI/bin:$vtk_cpp_tools:$PATH
+    PYTHONPATH: $MINI/envs/mindboggle-env/lib/python3.5/site-packages/vtk:$PYTHONPATH
 
 #general:
 
@@ -58,6 +58,7 @@ dependencies:
     - conda install conda-env
     - conda env create --quiet
     - source activate mindboggle-env
+    - export PATH="$MINI/envs/mindboggle-env/bin:$PATH"
     - export PYTHONPATH="$PYTHONPATH:$MINI/envs/mindboggle-env/lib/python3.5/site-packages/vtk"
     #-------------------------------------------------------------------------
     # Install nipype:
