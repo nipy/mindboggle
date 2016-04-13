@@ -55,7 +55,8 @@ dependencies:
     # api site (https://conda.anaconda.org/clinicalgraphics):
     #-------------------------------------------------------------------------
     #- conda install -c https://conda.anaconda.org/clinicalgraphics vtk
-    - conda env create --quiet
+    - conda install -c conda-env
+    - conda env create #--quiet
     - source activate mindboggle-env
     - export PYTHONPATH="$PYTHONPATH:$MINI/envs/mb_env/lib/python3.5/site-packages/vtk"
     #-------------------------------------------------------------------------
