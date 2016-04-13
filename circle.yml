@@ -82,9 +82,10 @@ dependencies:
 #    - conda install cmake matplotlib numpy pandas
 #    - mkdir $vtk_cpp_tools && cd $vtk_cpp_tools && cmake ../ && make
 
-#test:
+test:
 
-#  pre:
+  pre:
+    - $MINI/envs/mindboggle-env/bin/python setup.py install
     - $MINI/envs/mindboggle-env/bin/python -c "import sys; print(sys.executable)"
     - $MINI/envs/mindboggle-env/bin/python -c "import vtk"
 #    - nosetests --with-coverage --with-doctest evaluate/
@@ -92,5 +93,5 @@ dependencies:
 #    - nosetests --with-coverage --with-doctest guts/
 #    - nosetests --with-coverage --with-doctest mio/
 #    - nosetests --with-coverage --with-doctest shapes/
-#    - nosetests --with-coverage --with-doctest thirdparty/
+    - nosetests --with-coverage --with-doctest thirdparty/
     #- coveralls
