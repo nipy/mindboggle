@@ -45,21 +45,21 @@ dependencies:
     #-------------------------------------------------------------------------
     - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh;
     - bash ~/miniconda.sh -b -p $MINI
-    - export PATH="$MINI/bin:$PATH"
+#    - export PATH="$MINI/bin:$PATH"
     - conda config --set show_channel_urls yes --set always_yes yes
     - conda config --add channels clinicalgraphics
-    - conda update conda #--quiet
-    - conda install conda-build anaconda-client #--quiet
+    - conda update conda --quiet
+    - conda install conda-build anaconda-client --quiet
     #-------------------------------------------------------------------------
     # Create a Python environment and install VTK from the Anaconda Cloud
     # api site (https://conda.anaconda.org/clinicalgraphics):
     #-------------------------------------------------------------------------
     #- conda install -c https://conda.anaconda.org/clinicalgraphics vtk
-    - conda install conda-env
+    #- conda install conda-env
     - conda env create #--quiet
     - source activate mindboggle-env
-    - export PATH="$MINI/envs/mindboggle-env/bin:$PATH"
-    - export PYTHONPATH="$PYTHONPATH:$MINI/envs/mindboggle-env/lib/python3.5/site-packages/vtk"
+#    - export PATH="$MINI/envs/mindboggle-env/bin:$PATH"
+#    - export PYTHONPATH="$MINI/envs/mindboggle-env/lib/python3.5/site-packages/vtk:$PYTHONPATH"
     #-------------------------------------------------------------------------
     # Install nipype:
     #-------------------------------------------------------------------------
@@ -85,8 +85,8 @@ dependencies:
 #test:
 
 #  pre:
-    - python -c "import sys; print(sys.executable)"
-    - python -c "import vtk"
+    - $MINI/envs/mindboggle-env/bin/python -c "import sys; print(sys.executable)"
+    - $MINI/envs/mindboggle-env/bin/python -c "import vtk"
 #    - nosetests --with-coverage --with-doctest evaluate/
 #    - nosetests --with-coverage --with-doctest features/
 #    - nosetests --with-coverage --with-doctest guts/
