@@ -29,10 +29,10 @@ dependencies:
       else
           echo "Using cached Miniconda install";
       fi
-    - conda config --set show_channel_urls yes --set always_yes yes
-    - conda config --add channels clinicalgraphics
-    - conda update conda --quiet
-    - conda install conda-build anaconda-client --quiet
+#    - conda config --set show_channel_urls yes --set always_yes yes
+#    - conda config --add channels clinicalgraphics
+#    - conda update conda --quiet
+#    - conda install conda-build anaconda-client --quiet
     #-------------------------------------------------------------------------
     # Create a Python environment and install VTK from the Anaconda Cloud
     # api site (https://conda.anaconda.org/clinicalgraphics):
@@ -41,9 +41,9 @@ dependencies:
     #- source activate mindboggle-env
     - >
       if [ ! -d ${TEST_ENV_PREFIX} ]; then
-          conda create -y -n ${TEST_ENV_NAME} -c pandas; # -c mindboggle;
+          conda create -y -n ${TEST_ENV_NAME} -c clinicalgraphics;
       else
-          conda install -y -n ${TEST_ENV_NAME} -c pandas; # -c mindboggle;
+          conda install -y -n ${TEST_ENV_NAME} -c clinicalgraphics;
       fi
 #    # Replace packaged source with full git repo
 #    - rm -rf ${TEST_ENV_PREFIX}/ilastik-meta
