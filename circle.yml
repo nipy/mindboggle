@@ -29,7 +29,7 @@ dependencies:
       else
           echo "Using cached Miniconda install";
       fi
-     - conda config --set show_channel_urls yes --set always_yes yes
+#    - conda config --set show_channel_urls yes --set always_yes yes
 #    - conda config --add channels clinicalgraphics
 #    - conda update conda --quiet
 #    - conda install conda-build anaconda-client --quiet
