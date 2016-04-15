@@ -89,13 +89,10 @@ dependencies:
 
 
 ## Customize test commands
-#test:
-#  override:
+test:
+  override:
 #  pre:
-##    - $MINI/envs/mindboggle-env/bin/python setup.py install
-##    - python -c "import sys; print(sys.executable)"
-##    - $MINI/envs/mindboggle-env/bin/python -c "import vtk"
-#    - nosetests --with-coverage --with-doctest evaluate/
+    - nosetests --with-coverage --with-doctest evaluate/
 #    - nosetests --with-coverage --with-doctest features/
 #    - nosetests --with-coverage --with-doctest guts/
 #    - nosetests --with-coverage --with-doctest mio/
