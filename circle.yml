@@ -19,6 +19,26 @@ dependencies:
 
   override:
     #-------------------------------------------------------------------------
+    # Install system-wide dependencies in Linux:
+    #-------------------------------------------------------------------------
+#    - sudo apt-get update
+#    - sudo apt-get install g++ git make xorg
+    #-------------------------------------------------------------------------
+    # Fix paths to Linux libraries using symbolic links:
+    #-------------------------------------------------------------------------
+    # To avoid the following errors:
+    # "No rule to make target `/usr/lib/x86_64-linux-gnu/libGLU.so'"
+    # ...
+    # http://techtidings.blogspot.com/2012/01/problem-with-libglso-on-64-bit-ubuntu.html
+#    - sudo mkdir /usr/lib64
+#    - sudo ln -s /usr/lib/x86_64-linux-gnu/libGLU.so.1 /usr/lib64/libGLU.so
+#    - sudo ln -s /usr/lib/x86_64-linux-gnu/libSM.so.6 /usr/lib64/libSM.so
+#    - sudo ln -s /usr/lib/x86_64-linux-gnu/libICE.so.6 /usr/lib64/libICE.so
+#    - sudo ln -s /usr/lib/x86_64-linux-gnu/libX11.so.6 /usr/lib64/libX11.so
+#    - sudo ln -s /usr/lib/x86_64-linux-gnu/libXext.so.6 /usr/lib64/libXext.so
+#    - sudo ln -s /usr/lib/x86_64-linux-gnu/libXt.so.6 /usr/lib64/libXt.so
+#    - sudo ln -s /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1 /usr/lib64/libGL.so
+    #-------------------------------------------------------------------------
     # Download/install conda (if not already cached)
     #-------------------------------------------------------------------------
     - >
@@ -39,69 +59,38 @@ dependencies:
 #    - source activate mindboggle-env
 #    - conda info --envs
     - $python setup.py install
-    - >
-      if [ ! -d ${TEST_ENV_PREFIX} ]; then
-          conda create -y -n ${TEST_ENV_NAME} -c clinicalgraphics vtk;
-      else
-          conda install -y -n ${TEST_ENV_NAME} -c clinicalgraphics vtk;
-      fi
-
-    - conda install cmake
+    - $python -c "import vtk"
+    #- >
+    #  if [ ! -d ${TEST_ENV_PREFIX} ]; then
+    #      conda create -y -n ${TEST_ENV_NAME} -c clinicalgraphics vtk;
+    #  else
+    #      conda install -y -n ${TEST_ENV_NAME} -c clinicalgraphics vtk;
+    #  fi
+    #-------------------------------------------------------------------------
+    # Install nipype:
+    #-------------------------------------------------------------------------
+    - conda install pip scipy nose networkx lxml future simplejson
+    - pip install nibabel prov xvfbwrapper traits
+    - pip install https://github.com/nipy/nipype/archive/master.zip
+    #-------------------------------------------------------------------------
+    # Install optional graphviz and pygraphviz for generating nipype graphs:
+    #-------------------------------------------------------------------------
+    - sudo apt-get install graphviz libgraphviz-dev
+    - pip install --upgrade pygraphviz graphviz
+    #-------------------------------------------------------------------------
+    # Install Mindboggle's remaining dependencies and C++ code
+    #-------------------------------------------------------------------------
+    - conda install cmake matplotlib numpy pandas
+    - mkdir $vtk_cpp_tools && cd $vtk_cpp_tools && cmake ../ && make
+    #-------------------------------------------------------------------------
+    # Install additional testing tools for circleci.com:
+    #-------------------------------------------------------------------------
+    - conda install ipython pytest coverage  # nose
 
 
 ## Customize test commands
 #test:
 #  override:
-
-
-#  pre:
-
-    #-------------------------------------------------------------------------
-    # Install system-wide dependencies in Linux:
-    #-------------------------------------------------------------------------
-#    - sudo apt-get update
-#    - sudo apt-get install g++ git make xorg
-    #-------------------------------------------------------------------------
-    # Fix paths to Linux libraries using symbolic links:
-    #-------------------------------------------------------------------------
-    # To avoid the following errors:
-    # "No rule to make target `/usr/lib/x86_64-linux-gnu/libGLU.so'"
-    # ...
-    # http://techtidings.blogspot.com/2012/01/problem-with-libglso-on-64-bit-ubuntu.html
-#    - sudo mkdir /usr/lib64
-#    - sudo ln -s /usr/lib/x86_64-linux-gnu/libGLU.so.1 /usr/lib64/libGLU.so
-#    - sudo ln -s /usr/lib/x86_64-linux-gnu/libSM.so.6 /usr/lib64/libSM.so
-#    - sudo ln -s /usr/lib/x86_64-linux-gnu/libICE.so.6 /usr/lib64/libICE.so
-#    - sudo ln -s /usr/lib/x86_64-linux-gnu/libX11.so.6 /usr/lib64/libX11.so
-#    - sudo ln -s /usr/lib/x86_64-linux-gnu/libXext.so.6 /usr/lib64/libXext.so
-#    - sudo ln -s /usr/lib/x86_64-linux-gnu/libXt.so.6 /usr/lib64/libXt.so
-#    - sudo ln -s /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1 /usr/lib64/libGL.so
-
-
-    #-------------------------------------------------------------------------
-    # Install nipype:
-    #-------------------------------------------------------------------------
-#    - conda install pip scipy nose networkx lxml future simplejson
-#    - pip install nibabel prov xvfbwrapper traits
-#    - pip install https://github.com/nipy/nipype/archive/master.zip
-    #-------------------------------------------------------------------------
-    # Install optional graphviz and pygraphviz for generating nipype graphs:
-    #-------------------------------------------------------------------------
-#    - sudo apt-get install graphviz libgraphviz-dev
-#    - pip install --upgrade pygraphviz graphviz
-
-    #-------------------------------------------------------------------------
-    # Install additional testing tools for circleci.com:
-    #-------------------------------------------------------------------------
-#    - conda install ipython pytest coverage  # nose
-    #-------------------------------------------------------------------------
-    # Install Mindboggle's remaining dependencies and C++ code
-    #-------------------------------------------------------------------------
-#    - conda install cmake matplotlib numpy pandas
-    - mkdir $vtk_cpp_tools && cd $vtk_cpp_tools && cmake ../ && make
-
-#test:
-
 #  pre:
 ##    - $MINI/envs/mindboggle-env/bin/python setup.py install
 ##    - python -c "import sys; print(sys.executable)"
