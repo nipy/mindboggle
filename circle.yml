@@ -10,6 +10,7 @@ machine:
     vtk_cpp_tools: /home/ubuntu/mindboggle/vtk_cpp_tools/bin
     PATH: ${TEST_ENV_PREFIX}/bin:${CONDA_ROOT}/bin:$vtk_cpp_tools:${PATH}
     PYTHONPATH: $MINI/envs/mindboggle-env/lib/python3.5/site-packages/vtk:$PYTHONPATH
+    $python: $MINI/envs/mindboggle-env/bin/python
 
 ## Customize dependencies
 dependencies:
@@ -28,10 +29,8 @@ dependencies:
       else
           echo "Using cached Miniconda install";
       fi
-#    - conda config --set show_channel_urls yes --set always_yes yes
-#    - conda config --add channels clinicalgraphics
+    - conda config --set show_channel_urls yes --set always_yes yes
 #    - conda update conda --quiet
-#    - conda install conda-build anaconda-client --quiet
     #-------------------------------------------------------------------------
     # Create a Python environment and install VTK from the Anaconda Cloud
     # api site (https://conda.anaconda.org/clinicalgraphics):
@@ -39,15 +38,14 @@ dependencies:
     - conda info --envs
     - source activate mindboggle-env
     - conda info --envs
-    - python -c "import sys; print(sys.executable)"
-    - /home/ubuntu/miniconda/envs/mindboggle-env/bin/python -c "import sys; print(sys.executable)"
+    - $python -c "import sys; print(sys.executable)"
     - >
       if [ ! -d ${TEST_ENV_PREFIX} ]; then
           conda create -y -n ${TEST_ENV_NAME} -c clinicalgraphics vtk;
       else
           conda install -y -n ${TEST_ENV_NAME} -c clinicalgraphics vtk;
       fi
-    - /home/ubuntu/miniconda/envs/mindboggle-env/bin/python setup.py install
+    - $python setup.py install
 
 
 ## Customize test commands
@@ -87,16 +85,8 @@ dependencies:
 ##    - conda config --add channels clinicalgraphics
 ##    - conda update conda --quiet
 ##    - conda install conda-build anaconda-client --quiet
-    #-------------------------------------------------------------------------
-    # Create a Python environment and install VTK from the Anaconda Cloud
-    # api site (https://conda.anaconda.org/clinicalgraphics):
-    #-------------------------------------------------------------------------
-    #- conda install -c https://conda.anaconda.org/clinicalgraphics vtk
-    #- conda install conda-env
-##    - conda env create #--quiet
-##    - source activate mindboggle-env
-#    - export PATH="$MINI/envs/mindboggle-env/bin:$PATH"
-#    - export PYTHONPATH="$MINI/envs/mindboggle-env/lib/python3.5/site-packages/vtk:$PYTHONPATH"
+
+
     #-------------------------------------------------------------------------
     # Install nipype:
     #-------------------------------------------------------------------------
@@ -117,7 +107,7 @@ dependencies:
     # Install Mindboggle's remaining dependencies and C++ code
     #-------------------------------------------------------------------------
 #    - conda install cmake matplotlib numpy pandas
-#    - mkdir $vtk_cpp_tools && cd $vtk_cpp_tools && cmake ../ && make
+    - mkdir $vtk_cpp_tools && cd $vtk_cpp_tools && cmake ../ && make
 
 #test:
 
