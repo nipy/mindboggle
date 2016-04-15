@@ -35,9 +35,9 @@ dependencies:
     # Create a Python environment and install VTK from the Anaconda Cloud
     # api site (https://conda.anaconda.org/clinicalgraphics):
     #-------------------------------------------------------------------------
-    - conda info --envs
-    - source activate mindboggle-env
-    - conda info --envs
+#    - conda info --envs
+#    - source activate mindboggle-env
+#    - conda info --envs
     - $python setup.py install
     - >
       if [ ! -d ${TEST_ENV_PREFIX} ]; then
@@ -45,6 +45,8 @@ dependencies:
       else
           conda install -y -n ${TEST_ENV_NAME} -c clinicalgraphics vtk;
       fi
+
+    - conda install cmake
 
 
 ## Customize test commands
@@ -74,16 +76,6 @@ dependencies:
 #    - sudo ln -s /usr/lib/x86_64-linux-gnu/libXext.so.6 /usr/lib64/libXext.so
 #    - sudo ln -s /usr/lib/x86_64-linux-gnu/libXt.so.6 /usr/lib64/libXt.so
 #    - sudo ln -s /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1 /usr/lib64/libGL.so
-    #-------------------------------------------------------------------------
-    # Install conda and add it to PATH:
-    #-------------------------------------------------------------------------
-##    - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh;
-##    - bash ~/miniconda.sh -b -p $MINI
-#    - export PATH="$MINI/bin:$PATH"
-##    - conda config --set show_channel_urls yes --set always_yes yes
-##    - conda config --add channels clinicalgraphics
-##    - conda update conda --quiet
-##    - conda install conda-build anaconda-client --quiet
 
 
     #-------------------------------------------------------------------------
