@@ -75,8 +75,8 @@ dependencies:
     #-------------------------------------------------------------------------
     # Install optional graphviz and pygraphviz for generating nipype graphs:
     #-------------------------------------------------------------------------
-    - sudo apt-get install graphviz libgraphviz-dev
-    - pip install --upgrade pygraphviz graphviz
+    #- sudo apt-get install graphviz libgraphviz-dev
+    #- pip install --upgrade pygraphviz graphviz
     #-------------------------------------------------------------------------
     # Install Mindboggle's remaining dependencies and C++ code
     #-------------------------------------------------------------------------
