@@ -10,7 +10,7 @@ machine:
     vtk_cpp_tools: /home/ubuntu/mindboggle/vtk_cpp_tools/bin
     PATH: ${TEST_ENV_PREFIX}/bin:${CONDA_ROOT}/bin:$vtk_cpp_tools:${PATH}
     PYTHONPATH: $MINI/envs/mindboggle-env/lib/python3.5/site-packages/vtk:$PYTHONPATH
-    python: $MINI/envs/mindboggle-env/bin/python
+    python: $TEST_ENV_PREFIX/bin/python
 
 ## Customize dependencies
 dependencies:
