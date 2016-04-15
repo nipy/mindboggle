@@ -10,7 +10,7 @@ machine:
     vtk_cpp_tools: /home/ubuntu/mindboggle/vtk_cpp_tools/bin
     PATH: ${TEST_ENV_PREFIX}/bin:${CONDA_ROOT}/bin:$vtk_cpp_tools:${PATH}
     PYTHONPATH: $MINI/envs/mindboggle-env/lib/python3.5/site-packages/vtk:$PYTHONPATH
-    $python: $MINI/envs/mindboggle-env/bin/python
+    python: $MINI/envs/mindboggle-env/bin/python
 
 ## Customize dependencies
 dependencies:
@@ -38,14 +38,13 @@ dependencies:
     - conda info --envs
     - source activate mindboggle-env
     - conda info --envs
-    - $python -c "import sys; print(sys.executable)"
+    - $python setup.py install
     - >
       if [ ! -d ${TEST_ENV_PREFIX} ]; then
           conda create -y -n ${TEST_ENV_NAME} -c clinicalgraphics vtk;
       else
           conda install -y -n ${TEST_ENV_NAME} -c clinicalgraphics vtk;
       fi
-    - $python setup.py install
 
 
 ## Customize test commands
