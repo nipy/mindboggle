@@ -55,16 +55,18 @@ dependencies:
     # Create a Python environment and install VTK from the Anaconda Cloud
     # api site (https://conda.anaconda.org/clinicalgraphics):
     #-------------------------------------------------------------------------
-#    - conda info --envs
-#    - source activate mindboggle-env
-#    - conda info --envs
-    - $python setup.py install
+    #- source activate mindboggle-env
+    #- conda info --envs
     #- >
     #  if [ ! -d ${ENV_PREFIX} ]; then
     #      conda create -y -n ${ENV_NAME} -c clinicalgraphics vtk;
     #  else
     #      conda install -y -n ${ENV_NAME} -c clinicalgraphics vtk;
     #  fi
+    #-------------------------------------------------------------------------
+    # Install Mindboggle:
+    #-------------------------------------------------------------------------
+    - $python setup.py install
     #-------------------------------------------------------------------------
     # Install nipype:
     #-------------------------------------------------------------------------
