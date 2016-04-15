@@ -1,24 +1,48 @@
-language: python
-python:
-  - "3.5"
-install:
-#  - sudo apt-get update
-  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-  - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda update -q conda
-  # Useful for debugging any issues with conda
-  - conda info -a
+# Configuration file for circleci.com continuous integration (testing)
 
-  # Replace dep1 dep2 ... with your dependencies
-#  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION dep1 dep2 ...
-#  - conda info --envs
-#  - source activate mindboggle-env #-f $HOME/mindboggle/environment.yml
-#  - conda info --envs
-  - python -c "import sys; print(sys.executable)"
-#  - python setup.py install
+## Customize the test machine
+machine:
+  # Add some environment variables
+  environment:
+    CONDA_ROOT: /home/ubuntu/miniconda
+    TEST_ENV_NAME: mindboggle-env
+    TEST_ENV_PREFIX: /home/ubuntu/miniconda/envs/mindboggle-env
+    vtk_cpp_tools: /home/ubuntu/mindboggle/vtk_cpp_tools/bin
+    PATH: ${TEST_ENV_PREFIX}/bin:${CONDA_ROOT}/bin:$vtk_cpp_tools:${PATH}
+    PYTHONPATH: $MINI/envs/mindboggle-env/lib/python3.5/site-packages/vtk:$PYTHONPATH
+
+## Customize dependencies
+dependencies:
+  cache_directories:
+    - /home/ubuntu/miniconda
+
+  override:
+    #-------------------------------------------------------------------------
+    # Download/install conda (if not already cached)
+    #-------------------------------------------------------------------------
+    - >
+      if [[ ! -d ${CONDA_ROOT} ]]; then
+          echo "Installing Miniconda3...";
+          wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh &&
+          bash Miniconda3-latest-Linux-x86_64.sh -b -p ${CONDA_ROOT};
+      else
+          echo "Using cached Miniconda install";
+      fi
+#    - conda config --set show_channel_urls yes --set always_yes yes
+#    - conda config --add channels clinicalgraphics
+#    - conda update conda --quiet
+#    - conda install conda-build anaconda-client --quiet
+    #-------------------------------------------------------------------------
+    # Create a Python environment and install VTK from the Anaconda Cloud
+    # api site (https://conda.anaconda.org/clinicalgraphics):
+    #-------------------------------------------------------------------------
+#    - source deactivate
+    - conda info --envs
+    - source activate mindboggle-env
+    - conda info --envs
+#    - export PATH="$MINI/envs/mindboggle-env/bin/:$PATH"
+    - python -c "import sys; print(sys.executable)"
+    - /home/ubuntu/miniconda/envs/mindboggle-env/bin/python -c "import sys; print(sys.executable)"
 
 script:
   # Your test script goes here
