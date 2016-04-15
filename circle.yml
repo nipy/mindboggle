@@ -91,7 +91,7 @@ dependencies:
 test:
   override:
 #  pre:
-    - nosetests --with-coverage --with-doctest evaluate/
+    - nosetests --with-doctest evaluate/  #--with-coverage 
 #    - nosetests --with-coverage --with-doctest features/
 #    - nosetests --with-coverage --with-doctest guts/
 #    - nosetests --with-coverage --with-doctest mio/
