@@ -17,8 +17,11 @@ machine:
 dependencies:
   cache_directories:
     - $CONDA_ROOT
+    - $python
 
   override:
+    $HOME
+
     #-------------------------------------------------------------------------
     # Install system-wide dependencies in Linux:
     #-------------------------------------------------------------------------
