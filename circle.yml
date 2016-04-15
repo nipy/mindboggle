@@ -4,6 +4,7 @@
 machine:
   # Add some environment variables
   environment:
+    HOME: /home/ubuntu
     CONDA_ROOT: $HOME/miniconda
     ENV_NAME: mindboggle-env
     ENV_PREFIX: ${CONDA_ROOT}/envs/${ENV_NAME}
