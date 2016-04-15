@@ -1,6 +1,6 @@
 language: python
 python:
-  - "3.5.1"
+  - "3.5"
 install:
 #  - sudo apt-get update
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
@@ -14,9 +14,9 @@ install:
 
   # Replace dep1 dep2 ... with your dependencies
 #  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION dep1 dep2 ...
-  - conda info --envs
-  - source activate mindboggle-env #-f $HOME/mindboggle/environment.yml
-  - conda info --envs
+#  - conda info --envs
+#  - source activate mindboggle-env #-f $HOME/mindboggle/environment.yml
+#  - conda info --envs
   - python -c "import sys; print(sys.executable)"
 #  - python setup.py install
 
