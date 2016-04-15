@@ -38,6 +38,8 @@ dependencies:
     #-------------------------------------------------------------------------
     - source activate mindboggle-env
     - conda info --envs
+    - export PATH="$MINI/envs/mindboggle-env/bin/:$PATH"
+    - python -c "import sys; print(sys.executable)"
     - /home/ubuntu/miniconda/envs/mindboggle-env/bin/python -c "import sys; print(sys.executable)"
 #    - >
 #      if [ ! -d ${TEST_ENV_PREFIX} ]; then
