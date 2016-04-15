@@ -4,18 +4,18 @@
 machine:
   # Add some environment variables
   environment:
-    CONDA_ROOT: /home/ubuntu/miniconda
-    TEST_ENV_NAME: mindboggle-env
-    TEST_ENV_PREFIX: /home/ubuntu/miniconda/envs/mindboggle-env
-    vtk_cpp_tools: /home/ubuntu/mindboggle/vtk_cpp_tools/bin
-    PATH: ${TEST_ENV_PREFIX}/bin:${CONDA_ROOT}/bin:$vtk_cpp_tools:${PATH}
-    PYTHONPATH: $MINI/envs/mindboggle-env/lib/python3.5/site-packages/vtk:$PYTHONPATH
-    python: $TEST_ENV_PREFIX/bin/python
+    CONDA_ROOT: $HOME/miniconda
+    ENV_NAME: mindboggle-env
+    ENV_PREFIX: ${CONDA_ROOT}/envs/${ENV_NAME}
+    vtk_cpp_tools: ${HOME}/mindboggle/vtk_cpp_tools/bin
+    PATH: ${ENV_PREFIX}/bin:${CONDA_ROOT}/bin:${vtk_cpp_tools}:${PATH}
+    PYTHONPATH: ${ENV_PREFIX}/lib/python3.5/site-packages/vtk:${PYTHONPATH}
+    python: ${ENV_PREFIX}/bin/python
 
 ## Customize dependencies
 dependencies:
   cache_directories:
-    - /home/ubuntu/miniconda
+    - $CONDA_ROOT
 
   override:
     #-------------------------------------------------------------------------
@@ -59,12 +59,11 @@ dependencies:
 #    - source activate mindboggle-env
 #    - conda info --envs
     - $python setup.py install
-    - $python -c "import vtk"
     #- >
-    #  if [ ! -d ${TEST_ENV_PREFIX} ]; then
-    #      conda create -y -n ${TEST_ENV_NAME} -c clinicalgraphics vtk;
+    #  if [ ! -d ${ENV_PREFIX} ]; then
+    #      conda create -y -n ${ENV_NAME} -c clinicalgraphics vtk;
     #  else
-    #      conda install -y -n ${TEST_ENV_NAME} -c clinicalgraphics vtk;
+    #      conda install -y -n ${ENV_NAME} -c clinicalgraphics vtk;
     #  fi
     #-------------------------------------------------------------------------
     # Install nipype:
