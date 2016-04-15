@@ -38,6 +38,7 @@ dependencies:
     # api site (https://conda.anaconda.org/clinicalgraphics):
     #-------------------------------------------------------------------------
     - source activate mindboggle-env
+    - conda info --envs
     - python -c "import sys; print(sys.executable)"
 #    - >
 #      if [ ! -d ${TEST_ENV_PREFIX} ]; then
