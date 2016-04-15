@@ -37,7 +37,7 @@ dependencies:
     # api site (https://conda.anaconda.org/clinicalgraphics):
     #-------------------------------------------------------------------------
 #    - source deactivate
-    conda info --envs
+    - conda info --envs
     - source activate mindboggle-env
     - conda info --envs
 #    - export PATH="$MINI/envs/mindboggle-env/bin/:$PATH"
