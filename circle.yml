@@ -57,7 +57,7 @@ dependencies:
     # api site (https://conda.anaconda.org/clinicalgraphics):
     #-------------------------------------------------------------------------
     #- source activate mindboggle-env
-    #- conda info --envs
+    - conda info --envs
     #- >
     #  if [ ! -d ${ENV_PREFIX} ]; then
     #      conda create -y -n ${ENV_NAME} -c clinicalgraphics vtk;
