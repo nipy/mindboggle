@@ -64,36 +64,36 @@ dependencies:
     # Install Mindboggle:
     #-------------------------------------------------------------------------
     - $python setup.py install
-    #-------------------------------------------------------------------------
-    # Install nipype:
-    #-------------------------------------------------------------------------
-    - conda install pip scipy nose networkx lxml future simplejson
-    - pip install nibabel prov xvfbwrapper traits
-    - pip install https://github.com/nipy/nipype/archive/master.zip
-    #-------------------------------------------------------------------------
-    # Install optional graphviz and pygraphviz for generating nipype graphs:
-    #-------------------------------------------------------------------------
-    #- sudo apt-get install graphviz libgraphviz-dev
-    #- pip install --upgrade pygraphviz graphviz
-    #-------------------------------------------------------------------------
-    # Install VTK from the Anaconda Cloud api site
-    # (https://conda.anaconda.org/clinicalgraphics):
-    #-------------------------------------------------------------------------
-    #- >
-    #  if [ ! -d ${ENV_PREFIX} ]; then
-    #      conda create -y -n ${ENV_NAME} -c clinicalgraphics vtk;
-    #  else
-    #      conda install -y -n ${ENV_NAME} -c clinicalgraphics vtk;
-    #  fi
-    #-------------------------------------------------------------------------
-    # Install Mindboggle's remaining dependencies and C++ code
-    #-------------------------------------------------------------------------
-    - conda install cmake matplotlib numpy pandas
-    - mkdir $vtk_cpp_tools && cd $vtk_cpp_tools && cmake ../ && make
-    #-------------------------------------------------------------------------
-    # Install additional testing tools for circleci.com:
-    #-------------------------------------------------------------------------
-    - conda install ipython pytest coverage  # nose
+#    #-------------------------------------------------------------------------
+#    # Install nipype:
+#    #-------------------------------------------------------------------------
+#    - conda install pip scipy nose networkx lxml future simplejson
+#    - pip install nibabel prov xvfbwrapper traits
+#    - pip install https://github.com/nipy/nipype/archive/master.zip
+#    #-------------------------------------------------------------------------
+#    # Install optional graphviz and pygraphviz for generating nipype graphs:
+#    #-------------------------------------------------------------------------
+#    #- sudo apt-get install graphviz libgraphviz-dev
+#    #- pip install --upgrade pygraphviz graphviz
+#    #-------------------------------------------------------------------------
+#    # Install VTK from the Anaconda Cloud api site
+#    # (https://conda.anaconda.org/clinicalgraphics):
+#    #-------------------------------------------------------------------------
+#    #- >
+#    #  if [ ! -d ${ENV_PREFIX} ]; then
+#    #      conda create -y -n ${ENV_NAME} -c clinicalgraphics vtk;
+#    #  else
+#    #      conda install -y -n ${ENV_NAME} -c clinicalgraphics vtk;
+#    #  fi
+#    #-------------------------------------------------------------------------
+#    # Install Mindboggle's remaining dependencies and C++ code
+#    #-------------------------------------------------------------------------
+#    - conda install cmake matplotlib numpy pandas
+#    - mkdir $vtk_cpp_tools && cd $vtk_cpp_tools && cmake ../ && make
+#    #-------------------------------------------------------------------------
+#    # Install additional testing tools for circleci.com:
+#    #-------------------------------------------------------------------------
+#    - conda install ipython pytest coverage  # nose
 
 
 ## Customize test commands
