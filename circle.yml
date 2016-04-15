@@ -56,14 +56,8 @@ dependencies:
     # Create a Python environment and install VTK from the Anaconda Cloud
     # api site (https://conda.anaconda.org/clinicalgraphics):
     #-------------------------------------------------------------------------
-    #- source activate mindboggle-env
+    - source activate mindboggle-env
     - conda info --envs
-    #- >
-    #  if [ ! -d ${ENV_PREFIX} ]; then
-    #      conda create -y -n ${ENV_NAME} -c clinicalgraphics vtk;
-    #  else
-    #      conda install -y -n ${ENV_NAME} -c clinicalgraphics vtk;
-    #  fi
     #-------------------------------------------------------------------------
     # Install Mindboggle:
     #-------------------------------------------------------------------------
@@ -79,6 +73,16 @@ dependencies:
     #-------------------------------------------------------------------------
     #- sudo apt-get install graphviz libgraphviz-dev
     #- pip install --upgrade pygraphviz graphviz
+    #-------------------------------------------------------------------------
+    # Install VTK from the Anaconda Cloud api site
+    # (https://conda.anaconda.org/clinicalgraphics):
+    #-------------------------------------------------------------------------
+    #- >
+    #  if [ ! -d ${ENV_PREFIX} ]; then
+    #      conda create -y -n ${ENV_NAME} -c clinicalgraphics vtk;
+    #  else
+    #      conda install -y -n ${ENV_NAME} -c clinicalgraphics vtk;
+    #  fi
     #-------------------------------------------------------------------------
     # Install Mindboggle's remaining dependencies and C++ code
     #-------------------------------------------------------------------------
