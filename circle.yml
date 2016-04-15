@@ -36,7 +36,8 @@ dependencies:
     # Create a Python environment and install VTK from the Anaconda Cloud
     # api site (https://conda.anaconda.org/clinicalgraphics):
     #-------------------------------------------------------------------------
-    - source deactivate
+#    - source deactivate
+    conda info --envs
     - source activate mindboggle-env
     - conda info --envs
 #    - export PATH="$MINI/envs/mindboggle-env/bin/:$PATH"
