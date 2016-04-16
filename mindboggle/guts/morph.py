@@ -232,8 +232,8 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[],
     >>> from mindboggle.mio.vtks import read_scalars, read_vtk
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> vtk_file = fetch_data(urls['left_freesurfer_labels'])
     >>> folds_file = fetch_data(urls['left_folds'])
+    >>> vtk_file = folds_file #fetch_data(urls['left_freesurfer_labels'])
     >>> background_value = -1
     >>> # Select one fold
     >>> folds, name = read_scalars(folds_file, return_first=True,
@@ -292,7 +292,7 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[],
     >>> holes[N2] = 40
     >>> indices = [i for i,x in enumerate(holes) if x != background_value]
     >>> indices[0:10]
-    [259, 535, 536, 539, 540, 541, 545, 546, 547, 548]
+    [13, 14, 15, 20, 74, 77, 78, 79, 80, 81]
 
     View holes (skip test):
 

@@ -252,9 +252,7 @@ def fetch_hash(data_file):
     >>> hashes, url, cache_env, cache = hashes_url()
     >>> data_file = fetch_data(url + 'OASIS-30_Atropos_template.nii.gz')
     >>> fetch_hash(data_file)
-    '29aa74c732d09489adddf5704e413519'
-
-    NOTE: hashes['OASIS-30_Atropos_template.nii.gz'] = 'f95dbe37ab40e8ad59c1b1eabc7f230c'
+    'f95dbe37ab40e8ad59c1b1eabc7f230c'
 
     """
     from io import open

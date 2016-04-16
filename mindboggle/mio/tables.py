@@ -447,6 +447,7 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
 
     Examples
     --------
+    >>> import os
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.mio.tables import write_vertex_measures
     >>> output_table = '' #vertex_shapes.csv'
@@ -468,6 +469,25 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     >>> inverse_booleans = [1]
     >>> transform_format = 'itk'
     >>> swap_xy = True
+    >>> affine_rename = affine_transform_files[0] + '.txt'
+    >>> os.rename(affine_transform_files[0], affine_rename)
+    >>> os.rename(labels_or_file, labels_or_file + '.vtk')
+    >>> os.rename(area_file, area_file + '.vtk')
+    >>> os.rename(mean_curvature_file, mean_curvature_file + '.vtk')
+    >>> os.rename(travel_depth_file, travel_depth_file + '.vtk')
+    >>> os.rename(geodesic_depth_file, geodesic_depth_file + '.vtk')
+    >>> os.rename(freesurfer_thickness_file, freesurfer_thickness_file + '.vtk')
+    >>> os.rename(freesurfer_curvature_file, freesurfer_curvature_file + '.vtk')
+    >>> os.rename(freesurfer_sulc_file, freesurfer_sulc_file + '.vtk')
+    >>> labels_or_file = labels_or_file + '.vtk'
+    >>> area_file = area_file + '.vtk'
+    >>> mean_curvature_file = mean_curvature_file + '.vtk'
+    >>> travel_depth_file = travel_depth_file + '.vtk'
+    >>> geodesic_depth_file = geodesic_depth_file + '.vtk'
+    >>> freesurfer_thickness_file = freesurfer_thickness_file + '.vtk'
+    >>> freesurfer_curvature_file = freesurfer_curvature_file + '.vtk'
+    >>> freesurfer_sulc_file = freesurfer_sulc_file + '.vtk'
+    >>> affine_transform_files = [affine_rename]
     >>> output_table = write_vertex_measures(output_table, labels_or_file,
     ...     sulci, fundi, affine_transform_files, inverse_booleans,
     ...     transform_format, area_file, mean_curvature_file,

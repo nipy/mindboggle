@@ -637,7 +637,7 @@ def sum_per_label(values, labels, include_labels=[], exclude_labels=[]):
     ...                                  exclude_labels)
     >>> print(np.array_str(np.array(sums[0:5]),
     ...       precision=5, suppress_small=True))
-    [-8228.32913   -424.90109  -1865.8959 -8353.33769   -5130.06613]
+    [-8228.32913  -424.90109 -1865.8959  -8353.33769 -5130.06613]
 
     """
     import numpy as np
@@ -901,8 +901,8 @@ def count_per_label(labels, include_labels=[], exclude_labels=[]):
     >>> exclude_labels = []
     >>> unique_labels, counts = count_per_label(labels,
     ...     include_labels, exclude_labels)
-    >>> counts[0:5]
-    [972, 2414, 2193, 8329, 2941]
+    >>> counts[0:10]
+    [0, 0, 0, 972, 2414, 2193, 8329, 2941, 1998, 10906]
 
     """
     import numpy as np

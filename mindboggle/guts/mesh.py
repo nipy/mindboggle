@@ -273,7 +273,7 @@ def find_endpoints(indices, neighbor_lists):
     >>> import numpy as np
     >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars # doctest: +SKIP
     >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
-    >>> folds, name = read_scalars(folds_file, True, True)
+    >>> folds, name = read_scalars(folds_file, True, True) # doctest: +SKIP
     >>> T = -1 * np.ones(len(folds)) # doctest: +SKIP
     >>> T[indices_endpoints] = 4 # doctest: +SKIP
     >>> rewrite_scalars(folds_file, 'find_endpoints.vtk', T,

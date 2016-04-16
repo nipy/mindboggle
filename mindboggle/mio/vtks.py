@@ -1608,6 +1608,7 @@ def freesurfer_surface_to_vtk(surface_file, orig_file='', output_vtk=''):
 
     Examples
     --------
+    >>> import os
     >>> from mindboggle.mio.vtks import freesurfer_surface_to_vtk
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
@@ -1615,6 +1616,8 @@ def freesurfer_surface_to_vtk(surface_file, orig_file='', output_vtk=''):
     >>> urls, fetch_data = prep_tests()
     >>> orig_file = fetch_data(urls['freesurfer_orig_mgz'])
     >>> output_vtk = ''
+    >>> os.rename(surface_file, surface_file + '.pial')
+    >>> os.rename(orig_file, orig_file + '.mgz')
     >>> output_vtk = freesurfer_surface_to_vtk(surface_file, orig_file,
     ...                                        output_vtk)
 
