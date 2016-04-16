@@ -103,10 +103,10 @@ dependencies:
 # Customize test commands
 test:
     override:
-        - nosetests --with-doctest ${MB}/features/
-        - nosetests --with-doctest ${MB}/guts/
-        - nosetests --with-doctest ${MB}/mio/
-        - nosetests --with-doctest ${MB}/shapes/
-        - nosetests --with-doctest ${MB}/thirdparty/
+        - $python -m "nose" --with-doctest ${MB}/thirdparty/
+        - $python -m "nose" --with-doctest ${MB}/mio/
+        - $python -m "nose" --with-doctest ${MB}/guts/
+        - $python -m "nose" --with-doctest ${MB}/shapes/
+        - $python -m "nose" --with-doctest ${MB}/features/
 #        - nosetests --with-doctest ${MB}/evaluate/  #--with-coverage
 #        - coveralls
