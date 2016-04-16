@@ -2,110 +2,110 @@
 
 ## Customize the test machine
 machine:
-  # Add some environment variables
-  environment:
-    HOME: /home/ubuntu
-    CONDA_ROOT: ${HOME}/miniconda
-    ENV_NAME: mindboggle-env
-    ENV_PREFIX: ${CONDA_ROOT}/envs/${ENV_NAME}
-    vtk_cpp_tools: ${HOME}/mindboggle/vtk_cpp_tools/bin
-    PATH: ${ENV_PREFIX}/bin:${CONDA_ROOT}/bin:${vtk_cpp_tools}:${PATH}
-    PYTHONPATH: ${ENV_PREFIX}/lib/python3.5/site-packages/vtk:${PYTHONPATH}
-    python: ${ENV_PREFIX}/bin/python
+    # Add some environment variables
+    environment:
+        HOME: /home/ubuntu
+        CONDA_ROOT: ${HOME}/miniconda
+        ENV_NAME: mindboggle-env
+        ENV_PREFIX: ${CONDA_ROOT}/envs/${ENV_NAME}
+        vtk_cpp_tools: ${HOME}/mindboggle/vtk_cpp_tools/bin
+        PATH: ${ENV_PREFIX}/bin:${CONDA_ROOT}/bin:${vtk_cpp_tools}:${PATH}
+        PYTHONPATH: ${ENV_PREFIX}/lib/python3.5/site-packages/vtk:${PYTHONPATH}
+        python: ${ENV_PREFIX}/bin/python
 
 ## Customize dependencies
 dependencies:
-  cache_directories:
-    - $CONDA_ROOT
+    cache_directories:
+        - $CONDA_ROOT
 
-  override:
+    override:
 
-    #-------------------------------------------------------------------------
-    # Install system-wide dependencies in Linux:
-    #-------------------------------------------------------------------------
-#    - sudo apt-get update
-#    - sudo apt-get install g++ git make xorg
-    #-------------------------------------------------------------------------
-    # Fix paths to Linux libraries using symbolic links:
-    #-------------------------------------------------------------------------
-    # To avoid the following errors:
-    # "No rule to make target `/usr/lib/x86_64-linux-gnu/libGLU.so'"
-    # ...
-    # http://techtidings.blogspot.com/2012/01/problem-with-libglso-on-64-bit-ubuntu.html
-#    - sudo mkdir /usr/lib64
-#    - sudo ln -s /usr/lib/x86_64-linux-gnu/libGLU.so.1 /usr/lib64/libGLU.so
-#    - sudo ln -s /usr/lib/x86_64-linux-gnu/libSM.so.6 /usr/lib64/libSM.so
-#    - sudo ln -s /usr/lib/x86_64-linux-gnu/libICE.so.6 /usr/lib64/libICE.so
-#    - sudo ln -s /usr/lib/x86_64-linux-gnu/libX11.so.6 /usr/lib64/libX11.so
-#    - sudo ln -s /usr/lib/x86_64-linux-gnu/libXext.so.6 /usr/lib64/libXext.so
-#    - sudo ln -s /usr/lib/x86_64-linux-gnu/libXt.so.6 /usr/lib64/libXt.so
-#    - sudo ln -s /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1 /usr/lib64/libGL.so
+        #-------------------------------------------------------------------------
+        # Install system-wide dependencies in Linux:
+        #-------------------------------------------------------------------------
+#        - sudo apt-get update
+#        - sudo apt-get install g++ git make xorg
+        #-------------------------------------------------------------------------
+        # Fix paths to Linux libraries using symbolic links:
+        #-------------------------------------------------------------------------
+        # To avoid the following errors:
+        # "No rule to make target `/usr/lib/x86_64-linux-gnu/libGLU.so'"
+        # ...
+        # http://techtidings.blogspot.com/2012/01/problem-with-libglso-on-64-bit-ubuntu.html
+#        - sudo mkdir /usr/lib64
+#        - sudo ln -s /usr/lib/x86_64-linux-gnu/libGLU.so.1 /usr/lib64/libGLU.so
+#        - sudo ln -s /usr/lib/x86_64-linux-gnu/libSM.so.6 /usr/lib64/libSM.so
+#        - sudo ln -s /usr/lib/x86_64-linux-gnu/libICE.so.6 /usr/lib64/libICE.so
+#        - sudo ln -s /usr/lib/x86_64-linux-gnu/libX11.so.6 /usr/lib64/libX11.so
+#        - sudo ln -s /usr/lib/x86_64-linux-gnu/libXext.so.6 /usr/lib64/libXext.so
+#        - sudo ln -s /usr/lib/x86_64-linux-gnu/libXt.so.6 /usr/lib64/libXt.so
+#        - sudo ln -s /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1 /usr/lib64/libGL.so
 
-    #-------------------------------------------------------------------------
-    # Download/install conda (if not already cached)
-    #-------------------------------------------------------------------------
-    - >
-      if [[ ! -d ${CONDA_ROOT} ]]; then
-          echo "Installing Miniconda3...";
-          wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh &&
-          bash Miniconda3-latest-Linux-x86_64.sh -b -p ${CONDA_ROOT};
-      else
-          echo "Using cached Miniconda install";
-      fi
-    - conda config --set show_channel_urls yes --set always_yes yes
-    - conda update conda --quiet
-    #- conda install anaconda-client anaconda-build conda-build
-    #-------------------------------------------------------------------------
-    # Create a Python environment:
-    #-------------------------------------------------------------------------
-    - source activate mindboggle-env
-    - conda info --envs
+        #-------------------------------------------------------------------------
+        # Download/install conda (if not already cached)
+        #-------------------------------------------------------------------------
+        - >
+            if [[ ! -d ${CONDA_ROOT} ]]; then
+                echo "Installing Miniconda3...";
+                wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh &&
+                bash Miniconda3-latest-Linux-x86_64.sh -b -p ${CONDA_ROOT};
+            else
+                echo "Using cached Miniconda install";
+            fi
+        - conda config --set show_channel_urls yes --set always_yes yes
+        - conda update conda --quiet
+        - conda install anaconda-client anaconda-build conda-build
+        #-------------------------------------------------------------------------
+        # Create a Python environment:
+        #-------------------------------------------------------------------------
+        - conda create --name mindboggle-env
+        - source activate mindboggle-env
+        - conda info --envs
 
-#    #-------------------------------------------------------------------------
-#    # Install nipype:
-#    #-------------------------------------------------------------------------
-#    - conda install pip scipy nose networkx lxml future simplejson
-#    - pip install nibabel prov xvfbwrapper traits
-#    - pip install https://github.com/nipy/nipype/archive/master.zip
-#    #-------------------------------------------------------------------------
-#    # Install optional graphviz and pygraphviz for generating nipype graphs:
-#    #-------------------------------------------------------------------------
-#    - sudo apt-get install graphviz libgraphviz-dev
-#    - pip install --upgrade pygraphviz graphviz
-#    #-------------------------------------------------------------------------
-#    # Install VTK from the Anaconda Cloud api site
-#    # (https://conda.anaconda.org/clinicalgraphics):
-#    #-------------------------------------------------------------------------
-#    - >
-#      if [ ! -d ${ENV_PREFIX} ]; then
-#          conda create -y -n ${ENV_NAME} -c clinicalgraphics vtk;
-#      else
-#          conda install -y -n ${ENV_NAME} -c clinicalgraphics vtk;
-#      fi
-#    #-------------------------------------------------------------------------
-#    # Install Mindboggle's remaining dependencies
-#    #-------------------------------------------------------------------------
-#    - conda install cmake matplotlib numpy pandas
-#    #-------------------------------------------------------------------------
-#    # Install additional testing tools for circleci.com:
-#    #-------------------------------------------------------------------------
-#    - conda install ipython pytest coverage  # nose
+#        #-------------------------------------------------------------------------
+#        # Install nipype:
+#        #-------------------------------------------------------------------------
+#        - conda install pip scipy nose networkx lxml future simplejson
+#        - pip install nibabel prov xvfbwrapper traits
+#        - pip install https://github.com/nipy/nipype/archive/master.zip
+#        #-------------------------------------------------------------------------
+#        # Install optional graphviz and pygraphviz for generating nipype graphs:
+#        #-------------------------------------------------------------------------
+#        - sudo apt-get install graphviz libgraphviz-dev
+#        - pip install --upgrade pygraphviz graphviz
+#        #-------------------------------------------------------------------------
+#        # Install VTK from the Anaconda Cloud api site
+#        # (https://conda.anaconda.org/clinicalgraphics):
+#        #-------------------------------------------------------------------------
+#        - >
+#          if [ ! -d ${ENV_PREFIX} ]; then
+#              conda create -y -n ${ENV_NAME} -c clinicalgraphics vtk;
+#          else
+#              conda install -y -n ${ENV_NAME} -c clinicalgraphics vtk;
+#          fi
+#        #-------------------------------------------------------------------------
+#        # Install Mindboggle's remaining dependencies
+#        #-------------------------------------------------------------------------
+#        - conda install cmake matplotlib numpy pandas
+#        #-------------------------------------------------------------------------
+#        # Install additional testing tools for circleci.com:
+#        #-------------------------------------------------------------------------
+#        - conda install ipython pytest coverage  # nose
 
-    #-------------------------------------------------------------------------
-    # Install Mindboggle and its C++ code:
-    #-------------------------------------------------------------------------
-    - $python setup.py install
-    - mkdir $vtk_cpp_tools && cd $vtk_cpp_tools && cmake ../ && make
+        #-------------------------------------------------------------------------
+        # Install Mindboggle and its C++ code:
+        #-------------------------------------------------------------------------
+        - $python setup.py install
+        - mkdir $vtk_cpp_tools && cd $vtk_cpp_tools && cmake ../ && make
 
 
 ## Customize test commands
 test:
-  override:
-#  pre:
-    - nosetests --with-doctest evaluate/  #--with-coverage
-    - nosetests --with-doctest features/
-    - nosetests --with-doctest guts/
-    - nosetests --with-doctest mio/
-    - nosetests --with-doctest shapes/
-    - nosetests --with-doctest thirdparty/
-    #- coveralls
+    override:
+        - nosetests --with-doctest evaluate/  #--with-coverage
+        - nosetests --with-doctest features/
+        - nosetests --with-doctest guts/
+        - nosetests --with-doctest mio/
+        - nosetests --with-doctest shapes/
+        - nosetests --with-doctest thirdparty/
+        #- coveralls
