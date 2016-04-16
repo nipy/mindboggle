@@ -13,6 +13,13 @@ dependencies:
     - simplejson
     - future
     - nose
+    - pip
+    - pip:
+        - nibabel
+        - prov
+        - traits
+        - xvfbwrapper
+        - https://github.com/nipy/nipype/archive/master.zip
     #-------------------------------------------------------------------------
     # mindboggle's remaining dependencies:
     #-------------------------------------------------------------------------
@@ -26,13 +33,5 @@ dependencies:
     - ipython
     - pytest
     - coverage
-
     # - nose
 
-    - pip
-    - pip:
-        - nibabel
-        - prov
-        - traits
-        - xvfbwrapper
-        - https://github.com/nipy/nipype/archive/master.zip

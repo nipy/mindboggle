@@ -8,10 +8,12 @@ machine:
         CONDA_ROOT: ${HOME}/miniconda
         ENV_NAME: mindboggle-env
         ENV_PREFIX: ${CONDA_ROOT}/envs/${ENV_NAME}
+        python: ${ENV_PREFIX}/bin/python
         vtk_cpp_tools: ${HOME}/mindboggle/vtk_cpp_tools/bin
         PATH: ${ENV_PREFIX}/bin:${CONDA_ROOT}/bin:${vtk_cpp_tools}:${PATH}
-        PYTHONPATH: ${ENV_PREFIX}/lib/python3.5/site-packages/vtk:${PYTHONPATH}
-        python: ${ENV_PREFIX}/bin/python
+        SITEPKGS: ${ENV_PREFIX}/lib/python3.5/site-packages
+        PYTHONPATH: ${SITEPKGS}/vtk:${PYTHONPATH}
+        MB: ${SITEPKGS}/mindboggle
 
 ## Customize dependencies
 dependencies:
@@ -101,10 +103,10 @@ dependencies:
 # Customize test commands
 test:
     override:
-        - nosetests --with-doctest evaluate/  #--with-coverage
-        - nosetests --with-doctest features/
-        - nosetests --with-doctest guts/
-        - nosetests --with-doctest mio/
-        - nosetests --with-doctest shapes/
-        - nosetests --with-doctest thirdparty/
+        - nosetests --with-doctest ${MB}/evaluate/  #--with-coverage
+#        - nosetests --with-doctest ${MB}/features/
+#        - nosetests --with-doctest ${MB}/guts/
+#        - nosetests --with-doctest ${MB}/mio/
+#        - nosetests --with-doctest ${MB}/shapes/
+#        - nosetests --with-doctest ${MB}/thirdparty/
         #- coveralls
