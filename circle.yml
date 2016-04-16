@@ -19,7 +19,6 @@ dependencies:
     - $CONDA_ROOT
 
   override:
-    - $HOME
     - ls $python
     #-------------------------------------------------------------------------
     # Install system-wide dependencies in Linux:
