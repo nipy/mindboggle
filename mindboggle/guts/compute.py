@@ -525,7 +525,7 @@ def means_per_label(values, labels, include_labels=[], exclude_labels=[], areas=
     [-0.99077 -0.3005  -1.59342 -2.03939 -2.31815]
     >>> print(np.array_str(np.array(sdevs[0:5]),
     ...       precision=5, suppress_small=True))
-    [ 2.3486   2.4023   2.3253   3.31023  2.91793]
+    [ 2.3486   2.4023   2.3253   3.31023  2.91794]
 
     >>> # FIX: compute mean coordinates per label:
     >>> #points, indices, lines, faces, labels, scalar_names, npoints, input_vtk = read_vtk(values_file)
@@ -637,7 +637,7 @@ def sum_per_label(values, labels, include_labels=[], exclude_labels=[]):
     ...                                  exclude_labels)
     >>> print(np.array_str(np.array(sums[0:5]),
     ...       precision=5, suppress_small=True))
-    [-8228.3287   -424.9007  -1865.89509 -8353.337   -5130.06658]
+    [-8228.32913   -424.90109  -1865.8959 -8353.33769   -5130.06613]
 
     """
     import numpy as np
@@ -886,11 +886,11 @@ def count_per_label(labels, include_labels=[], exclude_labels=[]):
     >>> counts
     [0, 3, 4, 5]
 
-    >>> import nibabel as nb  # doctest: +SKIP
-    >>> from mindboggle.mio.vtks import read_scalars  # doctest: +SKIP
-    >>> from mindboggle.mio.labels import DKTprotocol  # doctest: +SKIP
-    >>> from mindboggle.guts.compute import count_per_label  # doctest: +SKIP
-    >>> from mindboggle.mio.fetch_data import prep_tests  # doctest: +SKIP
+    >>> import nibabel as nb
+    >>> from mindboggle.mio.vtks import read_scalars
+    >>> from mindboggle.mio.labels import DKTprotocol
+    >>> from mindboggle.guts.compute import count_per_label
+    >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
     >>> labels_file = fetch_data(urls['freesurfer_labels'])
     >>> img = nb.load(labels_file)

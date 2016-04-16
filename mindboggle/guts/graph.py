@@ -212,7 +212,7 @@ def graph_laplacian(W, type_of_laplacian='norm1', verbose=False):
     >>> W
     array([[1, 0, 2],
            [0, 0, 3],
-           [4, 5, 6]])
+           [4, 5, 6]], dtype=int64)
     >>> type_of_laplacian = 'norm1'
     >>> verbose = False
     >>> Laplacian = graph_laplacian(W, type_of_laplacian, verbose)

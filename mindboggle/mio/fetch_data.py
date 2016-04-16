@@ -140,7 +140,7 @@ def test_urls():
     #-------------------------------------------------------------------------
     # Mindboggle working directory (including converted FreeSurfer output):
     #-------------------------------------------------------------------------
-    fseg = 'Volume_labels/FreeSurfer_cerebrum_labels_to_graywhite/wmparc.mgz.nii.gz'
+    fseg = 'Volume_labels/Freesurfer_cerebrum_labels_to_graywhite/wmparc.mgz.nii.gz'
     urls['freesurfer_segmentation'] = MBW + fseg
     urls['T1_001'] = MBW + 'Convert_MRI_to_nifti_format/001.mgz.nii.gz'
     urls['left_pial'] = MBW + '_hemi_lh/Surface_to_vtk/lh.pial.vtk'
@@ -219,7 +219,7 @@ def prep_tests():
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
     >>> urls['left_mean_curvature']
-    'http://media.mindboggle.info/data/cache/mindboggled/shapes/left_cortical_surface/mean_curvature.vtk'
+    'http://media.mindboggle.info/data/cache/mindboggled/arno/shapes/left_cortical_surface/mean_curvature.vtk'
     >>> fetch_data # doctest: +SKIP
 
     """
@@ -250,7 +250,7 @@ def fetch_hash(data_file):
     >>> from mindboggle.mio.fetch_data import fetch_hash
     >>> from mindboggle.mio.fetch_data import hashes_url, fetch_data
     >>> hashes, url, cache_env, cache = hashes_url()
-    >>> data_file = fetch_data(url + 'atlases/OASIS-30_Atropos_template.nii.gz')
+    >>> data_file = fetch_data(url + 'OASIS-30_Atropos_template.nii.gz')
     >>> fetch_hash(data_file)
     '29aa74c732d09489adddf5704e413519'
 
@@ -294,10 +294,10 @@ def fetch_data(url, output_file='', append=''):
     >>> from mindboggle.mio.fetch_data import fetch_data
     >>> from mindboggle.mio.fetch_data import hashes_url, fetch_hash
     >>> hashes, url, cache_env, cache = hashes_url()
-    >>> url += 'OASIS-30_Atropos_template.nii.gz'
     >>> output_file = ''
     >>> append = ''
-    >>> data_file = fetch_data(url, output_file, append)
+    >>> data_file = fetch_data(url + 'OASIS-30_Atropos_template.nii.gz',
+    ...     output_file, append)
     >>> fetch_hash(data_file)
     'f95dbe37ab40e8ad59c1b1eabc7f230c'
 
