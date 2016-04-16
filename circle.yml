@@ -54,6 +54,7 @@ dependencies:
             fi
         - conda config --set show_channel_urls yes --set always_yes yes
         - conda update conda conda-env
+        - conda env create
         #- conda install anaconda-client anaconda-build conda-build
         #-------------------------------------------------------------------------
         # Create a Python environment:
