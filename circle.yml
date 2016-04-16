@@ -103,10 +103,10 @@ dependencies:
 # Customize test commands
 test:
     override:
-        - nosetests --with-doctest ${MB}/evaluate/  #--with-coverage
-#        - nosetests --with-doctest ${MB}/features/
-#        - nosetests --with-doctest ${MB}/guts/
-#        - nosetests --with-doctest ${MB}/mio/
-#        - nosetests --with-doctest ${MB}/shapes/
-#        - nosetests --with-doctest ${MB}/thirdparty/
-        #- coveralls
+        - nosetests --with-doctest ${MB}/features/
+        - nosetests --with-doctest ${MB}/guts/
+        - nosetests --with-doctest ${MB}/mio/
+        - nosetests --with-doctest ${MB}/shapes/
+        - nosetests --with-doctest ${MB}/thirdparty/
+#        - nosetests --with-doctest ${MB}/evaluate/  #--with-coverage
+#        - coveralls
