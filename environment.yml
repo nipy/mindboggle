@@ -1,9 +1,38 @@
 name: mindboggle-env
 channels:
-  - clinicalgraphics
+    - clinicalgraphics
 dependencies:
-  - python=3.5.1
-  - vtk=7.0.0
-#  - pip
-#  - pip:
-#    - nibabel
+    - python=3.5.1
+    - vtk=7.0.0
+    #-------------------------------------------------------------------------
+    # nipype:
+    #-------------------------------------------------------------------------
+    - scipy
+    - networkx
+    - lxml
+    - simplejson
+    - future
+    - nose
+    #-------------------------------------------------------------------------
+    # mindboggle's remaining dependencies:
+    #-------------------------------------------------------------------------
+    - cmake
+    - matplotlib
+    - numpy
+    - pandas
+    #-------------------------------------------------------------------------
+    # additional testing tools for circleci.com:
+    #-------------------------------------------------------------------------
+    - ipython
+    - pytest
+    - coverage
+
+    # - nose
+
+    - pip
+    - pip:
+        - nibabel
+        - prov
+        - traits
+        - xvfbwrapper
+        - https://github.com/nipy/nipype/archive/master.zip
