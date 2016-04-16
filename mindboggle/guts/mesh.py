@@ -518,7 +518,7 @@ def find_adjacent_faces(faces):
                         Done[i2] += 1
 
             # Break if all three neighbors of face1 have been found:
-            if Done[i] == 3:
+            if Done[i1] == 3:
                 break
 
     return adjacent_faces
