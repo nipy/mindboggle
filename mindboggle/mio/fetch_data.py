@@ -142,7 +142,7 @@ def test_urls():
     #-------------------------------------------------------------------------
     fseg = 'Volume_labels/FreeSurfer_cerebrum_labels_to_graywhite/wmparc.mgz.nii.gz'
     urls['freesurfer_segmentation'] = MBW + fseg
-    urls['T1_001'] = MBW + 'Convert_MRI_to_nifti/001.mgz.nii.gz'
+    urls['T1_001'] = MBW + 'Convert_MRI_to_nifti_format/001.mgz.nii.gz'
     urls['left_pial'] = MBW + '_hemi_lh/Surface_to_vtk/lh.pial.vtk'
     urls['right_pial'] = MBW + '_hemi_rh/Surface_to_vtk/rh.pial.vtk'
     #-------------------------------------------------------------------------
