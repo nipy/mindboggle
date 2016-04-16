@@ -1,6 +1,15 @@
 ## Configuration file for circleci.com continuous integration (testing)
+##
+## All dependencies are accounted for in the environment.yml file.
+##
+## Authors:
+##    - Arno Klein, 2016  (arno@mindboggle.info)  http://binarybottle.com
+##
+## Copyright 2016,  Mindboggle team (mindboggle.info), Apache v2.0 License
 
-## Customize the test machine
+#-----------------------------------------------------------------------------
+# Customize the test machine:
+#-----------------------------------------------------------------------------
 machine:
     # Add some environment variables
     environment:
@@ -15,16 +24,14 @@ machine:
         PYTHONPATH: ${SITEPKGS}/vtk:${PYTHONPATH}
         MB: ${SITEPKGS}/mindboggle
 
-## Customize dependencies
+#-----------------------------------------------------------------------------
+# Customize dependencies:
+#-----------------------------------------------------------------------------
 dependencies:
     cache_directories:
         - $CONDA_ROOT
 
     override:
-
-        #-------------------------------------------------------------------------
-        # Install system-wide dependencies in Linux:
-        #-------------------------------------------------------------------------
 #        - sudo apt-get update
 #        - sudo apt-get install g++ git make xorg
         #-------------------------------------------------------------------------
@@ -58,49 +65,19 @@ dependencies:
         - conda update conda conda-env
         - conda env create
         #-------------------------------------------------------------------------
-        # Create a Python environment:
+        # Create a Python environment (see environment.yml file):
         #-------------------------------------------------------------------------
         - source activate mindboggle-env
         - conda info --envs
-
-#        #-------------------------------------------------------------------------
-#        # Install nipype:
-#        #-------------------------------------------------------------------------
-#        - conda install pip scipy nose networkx lxml future simplejson
-#        - pip install nibabel prov xvfbwrapper traits
-#        - pip install https://github.com/nipy/nipype/archive/master.zip
-#        #-------------------------------------------------------------------------
-#        # Install optional graphviz and pygraphviz for generating nipype graphs:
-#        #-------------------------------------------------------------------------
-#        - sudo apt-get install graphviz libgraphviz-dev
-#        - pip install --upgrade pygraphviz graphviz
-#        #-------------------------------------------------------------------------
-#        # Install VTK from the Anaconda Cloud api site
-#        # (https://conda.anaconda.org/clinicalgraphics):
-#        #-------------------------------------------------------------------------
-#        - >
-#          if [ ! -d ${ENV_PREFIX} ]; then
-#              conda create -y -n ${ENV_NAME} -c clinicalgraphics vtk;
-#          else
-#              conda install -y -n ${ENV_NAME} -c clinicalgraphics vtk;
-#          fi
-#        #-------------------------------------------------------------------------
-#        # Install Mindboggle's remaining dependencies
-#        #-------------------------------------------------------------------------
-#        - conda install cmake matplotlib numpy pandas
-#        #-------------------------------------------------------------------------
-#        # Install additional testing tools for circleci.com:
-#        #-------------------------------------------------------------------------
-#        - conda install ipython pytest coverage  # nose
-
         #-------------------------------------------------------------------------
         # Install Mindboggle and its C++ code:
         #-------------------------------------------------------------------------
         - $python setup.py install
         - mkdir $vtk_cpp_tools && cd $vtk_cpp_tools && cmake ../ && make
 
-
-# Customize test commands
+#-----------------------------------------------------------------------------
+# Customize test commands:
+#-----------------------------------------------------------------------------
 test:
     override:
         - $python -m "nose" --with-doctest ${MB}/thirdparty/
