@@ -266,38 +266,17 @@ def find_endpoints(indices, neighbor_lists):
     >>> neighbor_lists = find_neighbors_from_file(folds_file)
     >>> indices_endpoints = find_endpoints(indices, neighbor_lists)
     >>> indices_endpoints
-    [848, 886, 920, 987]
+    [821, 885, 951, 979, 991]
 
-    More realistic example -- extract endpoints from a track in a fold:
+    View endpoints on surface fold (skip test):
 
     >>> import numpy as np
-    >>> from mindboggle.mio.vtks import read_scalars
-    >>> from mindboggle.guts.paths import track_values
-    >>> url2 = urls['left_travel_depth']
-    >>> values_file = fetch_data(url2)
-    >>> folds, name = read_scalars(folds_file, True, True)
-    >>> fold_number = 11
-    >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_number]
-    >>> values, name = read_scalars(values_file, True, True)
-    >>> seed = indices_fold[np.argmin(values[indices_fold])]
-    >>> sink = []
-    >>> track = track_values(seed, indices_fold, neighbor_lists, values, sink)
-    >>> track[0:10]
-    [38198, 38207, 39702, 39714, 41177, 41193, 41210, 41222, 41234, 41247]
-    >>> indices_endpoints = find_endpoints(track, neighbor_lists)
-    >>> indices_endpoints
-    [38198, 41325]
-
-    View track in fold on surface (skip test):
-
-    >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP
+    >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars # doctest: +SKIP
     >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
-    >>> T = -1 * np.ones(len(values)) # doctest: +SKIP
-    >>> T[indices_fold] = 1 # doctest: +SKIP
-    >>> T[track] = 2 # doctest: +SKIP
-    >>> T[seed] = 3 # doctest: +SKIP
+    >>> folds, name = read_scalars(folds_file, True, True)
+    >>> T = -1 * np.ones(len(folds)) # doctest: +SKIP
     >>> T[indices_endpoints] = 4 # doctest: +SKIP
-    >>> rewrite_scalars(values_file, 'find_endpoints.vtk', T,
+    >>> rewrite_scalars(folds_file, 'find_endpoints.vtk', T,
     ...     'endpoints', [], -1) # doctest: +SKIP
     >>> plot_surfaces('find_endpoints.vtk') # doctest: +SKIP
 
@@ -641,7 +620,7 @@ def reindex_faces_points(faces, points=[]):
     >>> urls, fetch_data = prep_tests()
     >>> folds_file = fetch_data(urls['left_folds'])
     >>> folds, name = read_scalars(folds_file, True, True)
-    >>> fold_number = 11
+    >>> fold_number = 4
     >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_number]
     >>> T = -1 * np.ones(len(folds))
     >>> T[indices_fold] = 1
@@ -650,16 +629,16 @@ def reindex_faces_points(faces, points=[]):
     >>> new_faces, new_points, original_indices = reindex_faces_points(faces,
     ...     points)
     >>> new_faces[0:5]
-    [[0, 5, 4], [34, 33, 1], [1, 2, 3], [4, 3, 2], [1, 3, 41]]
+    [[19, 18, 0], [0, 1, 2], [3, 2, 1], [0, 2, 25], [0, 25, 19]]
     >>> print(np.array_str(np.array(new_points[0]),
     ...       precision=5, suppress_small=True))
-    [-11.0823  -74.348    -8.88434]
+    [ -9.37212 -73.0571   -8.68719]
     >>> print(np.array_str(np.array(new_points[1]),
     ...       precision=5, suppress_small=True))
-    [ -9.37212 -73.0571   -8.68719]
+    [-10.1493 -73.262   -8.7986]
     >>> print(np.array_str(np.array(new_points[2]),
     ...       precision=5, suppress_small=True))
-    [-10.1493 -73.262   -8.7986]
+    [-10.1267 -72.5364  -9.5358]
 
     View reindexed fold on surface (skip test):
 
@@ -1163,9 +1142,9 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
     ...     labels_or_file, save_file, output_filestring, verbose)
     >>> scalars1, name = read_scalars(input_vtk)
     >>> print('{0:0.5f}, {1:0.5f}'.format(max(scalars1), max(rescaled)))
-    34.95560, 1.00000
+    34.95560, 29.62040
     >>> print('{0:0.5f}, {1:0.5f}'.format(np.mean(scalars1), np.mean(rescaled)))
-    7.43822, 0.28389
+    7.43822, 2.34804
 
     View rescaled scalar values on surface (skip test):
 

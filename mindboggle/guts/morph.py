@@ -49,7 +49,7 @@ def dilate(indices, nedges, neighbor_lists):
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>> dilated_indices = dilate(indices, nedges, neighbor_lists)
     >>> (len(indices), len(dilated_indices))
-    (1065, 1540)
+    (192, 3039)
 
     Write results to vtk file and view (skip test):
 
@@ -106,11 +106,11 @@ def erode(indices, nedges, neighbor_lists):
     >>> nedges = 3
     >>> # Select a single fold:
     >>> folds, name = read_scalars(folds_file, True, True)
-    >>> fold_number = 11
+    >>> fold_number = 4
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>> eroded_indices = erode(indices, nedges, neighbor_lists)
     >>> (len(indices), len(eroded_indices))
-    (1065, 680)
+    (1151, 0)
 
     Write results to vtk file and view (skip test):
 
@@ -163,11 +163,11 @@ def extract_edge(indices, neighbor_lists):
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> # Select a single fold:
     >>> folds, name = read_scalars(folds_file, True, True)
-    >>> fold_number = 11
+    >>> fold_number = 4
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>> edge_indices = extract_edge(indices, neighbor_lists)
     >>> (len(indices), len(edge_indices))
-    (1065, 131)
+    (1151, 1113)
 
     Write results to vtk file and view (skip test):
 
@@ -493,7 +493,7 @@ def close_surface_pair(faces, points1, points2, scalars, background_value=-1):
     ...          points1.append([x,y,0])
     >>> points2 = [[x[0],x[1],1] for x in points1]
     >>> scalars = [background_value for x in range(len(points1))]
-    >>> p = n*(n-1)/2 - 1
+    >>> p = int(n*(n-1)/2 - 1)
     >>> for i in [p, p+1, p+n, p+n+1]:
     ...     scalars[i] = 1
     >>> faces = []
