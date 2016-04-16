@@ -33,5 +33,4 @@ dependencies:
     - ipython
     - pytest
     - coverage
-    # - nose
 

@@ -47,10 +47,10 @@ dependencies:
         # Download/install conda (if not already cached)
         #-------------------------------------------------------------------------
         - >
-            if [[ ! -d ${CONDA_ROOT} ]]; then
+            if [[ ! -d $CONDA_ROOT ]]; then
                 echo "Installing Miniconda3...";
                 wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh &&
-                bash Miniconda3-latest-Linux-x86_64.sh -b -p ${CONDA_ROOT};
+                bash Miniconda3-latest-Linux-x86_64.sh -b -p $CONDA_ROOT;
             else
                 echo "Using cached Miniconda install";
             fi
