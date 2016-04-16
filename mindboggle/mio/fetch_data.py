@@ -73,13 +73,13 @@ def test_urls():
     """
     url = 'http://media.mindboggle.info/data/cache/'
     ATLAS = url + 'atlases/'
-    FS = url + 'freesurfer/'
-    ANTS = url + 'ants/'
-    MBW = url + 'mindboggle_working/Mindboggle/'
-    F = url + 'mindboggled/features/'
-    L = url + 'mindboggled/labels/'
-    S = url + 'mindboggled/shapes/'
-    T = url + 'mindboggled/tables/'
+    FS = url + 'freesurfer/arno/'
+    ANTS = url + 'ants/arno/'
+    MBW = url + 'mindboggle_working/arno/Mindboggle/'
+    F = url + 'mindboggled/arno/features/'
+    L = url + 'mindboggled/arno/labels/'
+    S = url + 'mindboggled/arno/shapes/'
+    T = url + 'mindboggled/arno/tables/'
     left = 'left_cortical_surface/'
     right = 'right_cortical_surface/'
     Fleft = F + left
@@ -112,6 +112,8 @@ def test_urls():
     urls['MNI152_T1_brain'] = ATLAS + 'MNI152_T1_1mm_brain.nii.gz'
     urls['left_DKTatlas40'] = ATLAS + 'lh.DKTatlas40.gcs'
     urls['right_DKTatlas40'] = ATLAS + 'rh.DKTatlas40.gcs'
+    urls['left_DKT31atlas101subjects'] = ATLAS + 'lh.DKT31atlas101subjects.gcs'
+    urls['right_DKT31atlas101subjects'] = ATLAS + 'rh.DKT31atlas101subjects.gcs'
     urls['depth_curv_border_nonborder_parameters'] = \
         ATLAS + 'depth_curv_border_nonborder_parameters.pkl'
     #-------------------------------------------------------------------------
@@ -138,9 +140,9 @@ def test_urls():
     #-------------------------------------------------------------------------
     # Mindboggle working directory (including converted FreeSurfer output):
     #-------------------------------------------------------------------------
-    fseg = 'Volume_labels/FreeSurfer_cerebrum_labels_to_segments/wmparc.mgz.nii.gz'
+    fseg = 'Volume_labels/FreeSurfer_cerebrum_labels_to_graywhite/wmparc.mgz.nii.gz'
     urls['freesurfer_segmentation'] = MBW + fseg
-    urls['T1_001'] = MBW + 'mgh_to_nifti/001.mgz.nii.gz'
+    urls['T1_001'] = MBW + 'Convert_MRI_to_nifti/001.mgz.nii.gz'
     urls['left_pial'] = MBW + '_hemi_lh/Surface_to_vtk/lh.pial.vtk'
     urls['right_pial'] = MBW + '_hemi_rh/Surface_to_vtk/rh.pial.vtk'
     #-------------------------------------------------------------------------
@@ -157,8 +159,8 @@ def test_urls():
     #-------------------------------------------------------------------------
     # Mindboggle labels:
     #-------------------------------------------------------------------------
-    urls['ants_labels'] = L + 'ants_filled_labels.nii.gz'
-    urls['freesurfer_labels'] = L + 'freesurfer_wmparc_filled_labels.nii.gz'
+    urls['ants_labels'] = L + 'ants_labels_in_hybrid_graywhite.nii.gz'
+    urls['freesurfer_labels'] = L + 'freesurfer_wmparc_labels_in_hybrid_graywhite.nii.gz'
     urls['left_freesurfer_labels'] = Lleft + 'freesurfer_cortex_labels.vtk'
     urls['right_freesurfer_labels'] = Lright + 'freesurfer_cortex_labels.vtk'
     #-------------------------------------------------------------------------
@@ -186,9 +188,9 @@ def test_urls():
     urls['thickinthehead_freesurfer_labels_table'] = \
         T + 'thickinthehead_per_freesurfer_cortex_label.csv'
     urls['volume_ants_labels_table'] = \
-        T + 'volume_for_each_ants_label.csv'
+        T + 'volume_per_ants_label.csv'
     urls['volume_freesurfer_labels_table'] = \
-        T + 'volume_for_each_freesurfer_label.csv'
+        T + 'volume_per_freesurfer_label.csv'
     urls['left_fundus_shapes_table'] = Tleft + 'fundus_shapes.csv'
     urls['left_label_shapes_table'] = Tleft + 'label_shapes.csv'
     urls['left_sulcus_shapes_table'] = Tleft + 'sulcus_shapes.csv'
