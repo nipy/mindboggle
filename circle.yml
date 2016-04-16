@@ -55,11 +55,9 @@ dependencies:
         - conda config --set show_channel_urls yes --set always_yes yes
         - conda update conda conda-env
         - conda env create
-        #- conda install anaconda-client anaconda-build conda-build
         #-------------------------------------------------------------------------
         # Create a Python environment:
         #-------------------------------------------------------------------------
-        #- conda create --name mindboggle-env
         - source activate mindboggle-env
         - conda info --envs
 
@@ -96,17 +94,17 @@ dependencies:
         #-------------------------------------------------------------------------
         # Install Mindboggle and its C++ code:
         #-------------------------------------------------------------------------
-        #- $python setup.py install
-        #- mkdir $vtk_cpp_tools && cd $vtk_cpp_tools && cmake ../ && make
+        - $python setup.py install
+        - mkdir $vtk_cpp_tools && cd $vtk_cpp_tools && cmake ../ && make
 
 
-## Customize test commands
-#test:
-#    override:
-#        - nosetests --with-doctest evaluate/  #--with-coverage
-#        - nosetests --with-doctest features/
-#        - nosetests --with-doctest guts/
-#        - nosetests --with-doctest mio/
-#        - nosetests --with-doctest shapes/
-#        - nosetests --with-doctest thirdparty/
-#        #- coveralls
+# Customize test commands
+test:
+    override:
+        - nosetests --with-doctest evaluate/  #--with-coverage
+        - nosetests --with-doctest features/
+        - nosetests --with-doctest guts/
+        - nosetests --with-doctest mio/
+        - nosetests --with-doctest shapes/
+        - nosetests --with-doctest thirdparty/
+        #- coveralls
