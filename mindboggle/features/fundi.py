@@ -68,7 +68,7 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     >>> folds_file = fetch_data(urls['left_folds'])
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> if single_fold:
-    ...     fold_number = 2 #11
+    ...     fold_number = 4
     ...     folds[folds != fold_number] = -1
     >>> min_separation = 10
     >>> erode_ratio = 0.10

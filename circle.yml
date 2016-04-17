@@ -32,8 +32,8 @@ dependencies:
         - $CONDA_ROOT
 
     override:
-#        - sudo apt-get update
-#        - sudo apt-get install g++ git make xorg
+        #- sudo apt-get update
+        #- sudo apt-get install g++ git make xorg
         #-------------------------------------------------------------------------
         # Fix paths to Linux libraries using symbolic links:
         #-------------------------------------------------------------------------
@@ -63,10 +63,10 @@ dependencies:
             fi
         - conda config --set show_channel_urls yes --set always_yes yes
         - conda update conda conda-env
-        - conda env create
         #-------------------------------------------------------------------------
         # Create a Python environment (see environment.yml file):
         #-------------------------------------------------------------------------
+        - conda env create
         - source activate mindboggle-env
         - conda info --envs
         #-------------------------------------------------------------------------
@@ -85,5 +85,5 @@ test:
         - $python -m "nose" --with-doctest ${MB}/guts/
         - $python -m "nose" --with-doctest ${MB}/shapes/
         - $python -m "nose" --with-doctest ${MB}/features/
-#        - nosetests --with-doctest ${MB}/evaluate/  #--with-coverage
+       #- $python -m "nose" --with-doctest ${MB}/evaluate/ #--with-coverage
 #        - coveralls

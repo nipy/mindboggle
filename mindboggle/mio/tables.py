@@ -465,12 +465,12 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     >>> freesurfer_sulc_file = fetch_data(urls['left_freesurfer_sulc'])
     >>> sulci, name = read_scalars(sulci_file)
     >>> fundi, name = read_scalars(fundi_file)
-    >>> affine_transform_files = [fetch_data(urls['affine_mni_transform'])]
+    >>> affine_transform_file = fetch_data(urls['affine_mni_transform'])
     >>> inverse_booleans = [1]
     >>> transform_format = 'itk'
     >>> swap_xy = True
-    >>> affine_rename = affine_transform_files[0] + '.txt'
-    >>> os.rename(affine_transform_files[0], affine_rename)
+    >>> affine_rename = affine_transform_file + '.txt'
+    >>> os.rename(affine_transform_file, affine_rename)
     >>> os.rename(labels_or_file, labels_or_file + '.vtk')
     >>> os.rename(area_file, area_file + '.vtk')
     >>> os.rename(mean_curvature_file, mean_curvature_file + '.vtk')
@@ -574,8 +574,9 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     if not output_table:
         output_table = os.path.join(os.getcwd(), 'vertices.csv')
 
-    df = pd.DataFrame(np.transpose(columns), columns = column_names)
-    df.to_csv(output_table, index=False)
+    df = pd.DataFrame(np.transpose(columns)) #, columns = column_names)
+    dft = df.transpose()
+    dft.to_csv(output_table, header=column_names, index=False)
 
     if not os.path.exists(output_table):
         raise IOError(output_table + " not found")

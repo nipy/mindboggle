@@ -82,10 +82,10 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
     >>> folds, n_folds, thr, bins, bin_edges, folds_file = extract_folds(depth_file,
     ...     min_vertices, min_fold_size, save_file, verbose)
     >>> n_folds
-    26
+    33
     >>> lens = [len([x for x in folds if x == y]) for y in range(n_folds)]
     >>> lens[0:10]
-    [790, 84008, 2856, 1209, 6623, 211, 1165, 356, 336, 60]
+    [726, 67241, 2750, 5799, 1151, 6360, 1001, 505, 228, 198]
 
     View folds (skip test):
 
@@ -172,10 +172,6 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
             print("  Segment vertices deeper than {0:.2f} as folds".format(depth_threshold))
             t1 = time()
         folds = segment(indices_deep, neighbor_lists)
-        # Slightly slower alternative -- fill boundaries:
-        #regions = -1 * np.ones(len(points))
-        #regions[indices_deep] = 1
-        #folds = segment_by_filling_borders(regions, neighbor_lists)
         if verbose:
             print('  ...Segmented folds ({0:.2f} seconds)'.format(time() - t1))
 
@@ -200,14 +196,16 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
         #                    exclude_range=[0, min_hole_depth])
 
         #---------------------------------------------------------------------
-        # Renumber folds so they are sequential
+        # Renumber folds so they are sequential.
+        # NOTE: All vertices are included (-1 for non-fold vertices).
         #---------------------------------------------------------------------
-        renumber_folds = -1 * np.ones(len(folds))
-        fold_numbers = [int(x) for x in np.unique(folds) if x != -1]
+        renumber_folds = -1 * np.ones(npoints)
+        fold_numbers = [x for x in np.unique(folds) if x != -1]
         for i_fold, n_fold in enumerate(fold_numbers):
-            fold = [i for i,x in enumerate(folds) if x == n_fold]
-            renumber_folds[fold] = i_fold
+            fold_indices = [i for i,x in enumerate(folds) if x == n_fold]
+            renumber_folds[fold_indices] = i_fold
         folds = renumber_folds
+        folds = [int(x) for x in folds]
         n_folds = i_fold + 1
 
         # Print statement
@@ -217,8 +215,6 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
     else:
         if verbose:
             print('  No deep vertices')
-
-    folds = [int(x) for x in folds]
 
     #-------------------------------------------------------------------------
     # Return folds, number of folds, file name

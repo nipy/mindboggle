@@ -71,11 +71,11 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> values = curvs * depths
     >>> print(np.array_str(values[0:5], precision=5, suppress_small=True))
-    [-0.11778 -0.35642 -0.80759 -0.25654 -0.0441 ]
+    [-0.11778 -0.35642 -0.80759 -0.25654 -0.04411]
     >>> neighbor_lists = find_neighbors_from_file(curv_file)
     >>> background_value = -1
     >>> # Single fold:
-    >>> fold_number = 1
+    >>> fold_number = 4
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>> S = background_value * np.ones(len(values))
@@ -86,7 +86,7 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     >>> outer_anchors, tracks = find_outer_anchors(indices, neighbor_lists,
     ...                             values, depths, min_separation, verbose)
     >>> outer_anchors[0:10]
-    [1948, 8587, 855, 5866, 7551, 9895, 14663, 12407, 14102, 13405]
+    [50324, 66986, 75661]
     >>> # Inner anchors:
     >>> values0 = [x for x in values if x > 0]
     >>> thr = np.median(values0) + 2 * median_abs_dev(values0)
@@ -101,12 +101,12 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     ...     outer_anchors, inner_anchors, values, erode_ratio, erode_min_size,
     ...     save_steps, save_vtk, background_value, verbose)
     >>> skeleton[0:10]
-    [855, 1228, 1654, 1948, 2141, 2148, 2454, 2465, 2727, 2739]
+    [50324, 50333, 50339, 51552, 51560, 52707, 52716, 52724, 52725, 53893]
 
     Write out vtk file and view (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
-    >>> from mindboggle.mio.vtks import rewrite_scalars
+    >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP
     >>> S[skeleton] = 10 # doctest: +SKIP
     >>> S[outer_anchors] = 12 # doctest: +SKIP
     >>> rewrite_scalars(depth_file, 'connect_points_erosion.vtk',

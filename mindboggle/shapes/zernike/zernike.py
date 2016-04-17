@@ -137,7 +137,7 @@ def zernike_moments(points, faces, order=10, scale_input=True,
         center = np.mean(points, axis=0)
         points = points - center
         maxd = np.max(np.sqrt(np.sum(points**2, axis=1)))
-        points = points / maxd
+        points /= maxd
 
     #-------------------------------------------------------------------------
     # Decimate surface:

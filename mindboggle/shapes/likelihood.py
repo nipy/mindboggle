@@ -101,7 +101,7 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
     import os
     import numpy as np
     from math import pi
-    import cPickle as pickle
+    import pickle
     from io import open
 
     from mindboggle.mio.vtks import read_scalars, rewrite_scalars
@@ -208,8 +208,7 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files,
     Examples
     --------
     >>> import numpy as np
-    >>> import cPickle as pickle
-    >>> from io import open
+    >>> import pickle
     >>> from mindboggle.shapes.likelihood import estimate_distribution
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> # Train on a single surface mesh (using FreeSurfer vs. manual labels):
@@ -261,16 +260,16 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files,
     ...     scalar_range, fold_files, label_files, verbose)
     >>> print(np.array_str(np.array(depth_border['means']),
     ...       precision=5, suppress_small=True))
-    [  6.29198  13.52503  18.67128]
+    [ 17.93322   8.54554   0.06699]
     >>> print(np.array_str(np.array(depth_nonborder['means']),
     ...       precision=5, suppress_small=True))
-    [  4.42468   9.86916  16.16073]
+    [ 13.37442   4.022     0.10465]
     >>> print(np.array_str(np.array(curv_border['means']),
     ...       precision=5, suppress_small=True))
-    [ 3.33657 -0.33544 -2.04763]
+    [ 3.48199 -0.51746 -3.28033]
     >>> print(np.array_str(np.array(curv_nonborder['means']),
     ...       precision=5, suppress_small=True))
-    [ 1.7521  -1.04979 -3.33142]
+    [ 0.91644 -1.5727  -5.09608]
     >>> pickle.dump([depth_border, curv_border, depth_nonborder, curv_nonborder],
     ...     open("depth_curv_border_nonborder_parameters.pkl", "wb"))
 
@@ -349,10 +348,10 @@ def concatenate_sulcus_scalars(scalar_files, fold_files, label_files):
     ...     fold_files, label_files)
     >>> print(np.array_str(np.array(border[0:5]),
     ...       precision=5, suppress_small=True))
-    [ 3.48282  2.57155  4.27596  4.56547  3.84879]
+    [ 0.04129  0.06727  0.08821  0.0107   0.02687]
     >>> print(np.array_str(np.array(nonborder[0:5]),
     ...       precision=5, suppress_small=True))
-    [ 2.01242  2.87204  2.89389  3.55363  2.81681]
+    [ 0.02026  0.06009  0.12859  0.04564  0.00774]
 
     """
     import numpy as np
@@ -443,11 +442,11 @@ def fit_normals_to_histogram(data, x, verbose=False):
     >>> verbose = False
     >>> means, sigmas, weights = fit_normals_to_histogram(scalars, x, verbose)
     >>> print(np.array_str(means, precision=5, suppress_small=True))
-    [ 13.36763   3.87517   0.10806]
+    [ 13.38742   3.90712   0.10946]
     >>> print(np.array_str(sigmas, precision=5, suppress_small=True))
-    [ 5.80264  2.56613  0.10031]
+    [ 5.80721  2.58297  0.10209]
     >>> print(np.array_str(weights, precision=5, suppress_small=True))
-    [ 0.44153  0.39173  0.16674]
+    [ 0.43959  0.39286  0.16755]
 
     """
     import numpy as np
