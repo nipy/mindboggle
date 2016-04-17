@@ -13,7 +13,6 @@ Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 # Extract folds
 #=============================================================================
 def extract_folds(depth_file, min_vertices=10000, min_fold_size=50, 
-                  do_fill_holes=False, min_hole_depth=0.001, 
                   save_file=False, verbose=False):
     """
     Use depth to extract folds from a triangular surface mesh.
@@ -23,8 +22,7 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
         2. Define a depth threshold and find the deepest vertices.
         3. Segment deep vertices as an initial set of folds.
         4. Remove small folds.
-        5. Find and fill holes in the folds (optional).
-        6. Renumber folds.
+        5. Renumber folds.
 
     Step 2 ::
         To extract an initial set of deep vertices from the surface mesh,
@@ -34,12 +32,14 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
         bin values, convolve to compute slopes, and find the depth value
         for the first bin with slope = 0. This is our threshold.
 
-    Step 5 ::
-        The folds could have holes in areas shallower than the depth threshold.
+    Note ::
+        Removed option: Find and fill holes in the folds:
+        Folds could have holes in areas shallower than the depth threshold.
         Calling fill_holes() could accidentally include very shallow areas
-        (in an annulus-shaped fold, for example), so we include the argument
-        exclude_range to check for any values from zero to min_hole_depth;
-        holes are not filled if they contains values within this range.
+        (in an annulus-shaped fold, for example).
+        However, we could include the argument exclude_range to check for
+        any values from zero to min_hole_depth; holes would not be filled
+        if they were to contain values within this range.
 
     Parameters
     ----------
@@ -47,10 +47,6 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
         surface mesh file in VTK format with faces and depth scalar values
     min_fold_size : integer
         minimum fold size (number of vertices)
-    do_fill_holes : bool
-        fill holes in the folds?
-    min_hole_depth : float
-        largest non-zero depth value that will stop a hole from being filled
     save_file : bool
         save output VTK file?
     verbose : bool
@@ -81,13 +77,10 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
     >>> neighbor_lists = find_neighbors_from_file(depth_file)
     >>> min_vertices = 10000
     >>> min_fold_size = 50
-    >>> do_fill_holes = False #True
-    >>> min_hole_depth = 0.001
     >>> save_file = True
     >>> verbose = False
     >>> folds, n_folds, thr, bins, bin_edges, folds_file = extract_folds(depth_file,
-    ...     min_vertices, min_fold_size, do_fill_holes, min_hole_depth,
-    ...     save_file, verbose)
+    ...     min_vertices, min_fold_size, save_file, verbose)
     >>> n_folds
     26
     >>> lens = [len([x for x in folds if x == y]) for y in range(n_folds)]
@@ -124,7 +117,6 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
 
     from mindboggle.mio.vtks import rewrite_scalars, read_vtk
     from mindboggle.guts.mesh import find_neighbors
-    from mindboggle.guts.morph import fill_holes
     from mindboggle.guts.segment import segment
 
     if verbose:
@@ -204,11 +196,8 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
         # Note: Surfaces surrounded by folds can be mistaken for holes,
         #       so exclude_range includes outer surface values close to zero.
         #---------------------------------------------------------------------
-        if do_fill_holes:
-            if verbose:
-                print("  Find and fill holes in the folds")
-            folds = fill_holes(folds, neighbor_lists, values=depths,
-                               exclude_range=[0, min_hole_depth])
+        # folds = fill_holes(folds, neighbor_lists, values=depths,
+        #                    exclude_range=[0, min_hole_depth])
 
         #---------------------------------------------------------------------
         # Renumber folds so they are sequential

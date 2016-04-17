@@ -946,8 +946,6 @@ if not args.no_surfaces:
                                           input_names=['depth_file',
                                                        'min_vertices',
                                                        'min_fold_size',
-                                                       'do_fill_holes',
-                                                       'min_hole_depth',
                                                        'save_file',
                                                        'verbose'],
                                           output_names=['folds',
@@ -961,8 +959,6 @@ if not args.no_surfaces:
                            SurfFeatureFlow, 'Folds.depth_file')
             FoldsNode.inputs.min_vertices = 10000
             FoldsNode.inputs.min_fold_size = 50
-            FoldsNode.inputs.do_fill_holes = False
-            FoldsNode.inputs.min_hole_depth = 0.001
             FoldsNode.inputs.save_file = True
             FoldsNode.inputs.verbose = True
             if save_folds and save_all:

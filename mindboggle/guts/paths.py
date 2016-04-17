@@ -116,9 +116,8 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     """
     import numpy as np
 
-    from mindboggle.guts.morph import topo_test, extract_edge
+    from mindboggle.guts.mesh import topo_test, extract_edge, find_endpoints
     from mindboggle.guts.segment import segment
-    from mindboggle.guts.mesh import find_endpoints
 
     # Make sure arguments are numpy arrays:
     if not isinstance(S, np.ndarray):
@@ -347,7 +346,7 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists,
 
     """
     import numpy as np
-    from mindboggle.guts.morph import topo_test
+    from mindboggle.guts.mesh import topo_test
     from mindboggle.guts.paths import connect_points_erosion
     from mindboggle.guts.segment import extract_borders
 
@@ -679,7 +678,7 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
     from mindboggle.mio.vtks import rewrite_scalars
     from mindboggle.guts.mesh import find_neighbors_from_file, find_endpoints
     from mindboggle.guts.segment import segment
-    from mindboggle.guts.morph import dilate
+    from mindboggle.guts.mesh import dilate
     from mindboggle.guts.paths import connect_points_erosion
     from mindboggle.guts.paths import connect_points_hmmf
 
@@ -1293,7 +1292,7 @@ def find_max_values(points, values, min_separation=10, thr=0.5):
     >>> inner_anchors[0:10]
     [61455, 41761, 67978, 72621, 78546, 40675, 73745, 98736, 125536, 119813]
 
-    View anchors in fold on surface (skip test):
+    View anchors in surface fold (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
     >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP
