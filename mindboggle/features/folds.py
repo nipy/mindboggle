@@ -222,7 +222,7 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
     if save_file:
 
         folds_file = os.path.join(os.getcwd(), 'folds.vtk')
-        rewrite_scalars(depth_file, folds_file, folds, 'folds', folds)
+        rewrite_scalars(depth_file, folds_file, folds, 'folds')
 
         if not os.path.exists(folds_file):
             raise IOError(folds_file + " not found")

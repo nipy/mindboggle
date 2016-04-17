@@ -128,7 +128,7 @@ def volume_per_brain_region(input_file, include_labels=[], exclude_labels=[],
 def thickinthehead(segmented_file, labeled_file, cortex_value=2,
                    noncortex_value=3, labels=[], names=[], resize=True,
                    propagate=True, output_dir='', save_table=False,
-                   output_table='', ants_path='', verbose=False):
+                   output_table='', verbose=False):
     """
     Compute a simple thickness measure for each labeled cortex region volume.
 

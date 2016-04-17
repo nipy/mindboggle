@@ -197,7 +197,7 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
             fundus_per_fold_file = os.path.join(os.getcwd(),
                                                 'fundus_per_fold.vtk')
             rewrite_scalars(curv_file, fundus_per_fold_file, fundus_per_fold,
-                            'fundi', folds)
+                            'fundi')
             if not os.path.exists(fundus_per_fold_file):
                 raise IOError(fundus_per_fold_file + " not found")
         else:

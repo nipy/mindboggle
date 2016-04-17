@@ -374,7 +374,7 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     #-------------------------------------------------------------------------
     sulci = [int(x) for x in sulci]
     sulci_file = os.path.join(os.getcwd(), 'sulci.vtk')
-    rewrite_scalars(labels_file, sulci_file, sulci, 'sulci', sulci)
+    rewrite_scalars(labels_file, sulci_file, sulci, 'sulci')
 
     if not os.path.exists(sulci_file):
         raise IOError(sulci_file + " not found")
