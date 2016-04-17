@@ -645,12 +645,12 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> values = curvs * depths
     >>> print(np.array_str(values[0:5], precision=5, suppress_small=True))
-    [-0.11778 -0.35642 -0.80759 -0.25654 -0.0441 ]
+    [-0.11778 -0.35642 -0.80759 -0.25654 -0.04411]
     >>> skeletons, name = read_scalars(fundus_file, True, True)
     >>> bounds, name = read_scalars(folds_file, True, True)
     >>> background_value = -1
     >>> if single_fold:
-    ...     fold_number = 1
+    ...     fold_number = 4
     ...     bounds[bounds != fold_number] = background_value
     >>> wN_max = 1.0
     >>> erode_again = False
@@ -1062,7 +1062,7 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> values = curvs * depths
     >>> print(np.array_str(values[0:5], precision=5, suppress_small=True))
-    [-0.11778 -0.35642 -0.80759 -0.25654 -0.0441 ]
+    [-0.11778 -0.35642 -0.80759 -0.25654 -0.04411]
     >>> neighbor_lists = find_neighbors_from_file(curv_file)
     >>> background_value = -1
     >>> # Single fold:
@@ -1077,7 +1077,7 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     >>> outer_anchors, tracks = find_outer_anchors(indices, neighbor_lists,
     ...                             values, depths, min_separation, verbose)
     >>> outer_anchors[0:10]
-    [1948, 8587, 855, 5866, 7551, 9895, 14663, 12407, 14102, 13405]
+    [17622, 17788, 19937, 30064, 22470, 24775, 26114, 28810, 28541, 34378]
 
     View anchors in fold on surface (skip test):
 
@@ -1284,7 +1284,7 @@ def find_max_values(points, values, min_separation=10, thr=0.5):
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> values = curvs * depths
     >>> print(np.array_str(values[0:5], precision=5, suppress_small=True))
-    [-0.11778 -0.35642 -0.80759 -0.25654 -0.0441 ]
+    [-0.11778 -0.35642 -0.80759 -0.25654 -0.04411]
     >>> min_separation = 10
     >>> values0 = [x for x in values if x > 0]
     >>> thr = np.median(values0) + 2 * median_abs_dev(values0)
