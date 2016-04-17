@@ -1353,7 +1353,7 @@ def scalars_checker(scalars, scalar_names):
 
 def apply_affine_transforms(transform_files, inverse_booleans,
                             transform_format='itk', vtk_or_points=[],
-                            vtk_file_stem='affine_', command_path=''):
+                            vtk_file_stem='affine_'):
     """
     Transform coordinates using an affine matrix.
 
@@ -1379,8 +1379,6 @@ def apply_affine_transforms(transform_files, inverse_booleans,
     vtk_file_stem : string
         save transformed coordinates in a vtk file with this file prepend
         (empty string if vtk_or_points is points)
-    command_path : string
-        path to antsApplyTransformsToPoints command
 
     Returns
     -------
@@ -1391,7 +1389,6 @@ def apply_affine_transforms(transform_files, inverse_booleans,
 
     Examples
     --------
-    >>> import os
     >>> import numpy as np
     >>> from mindboggle.mio.vtks import apply_affine_transforms
     >>> from mindboggle.mio.fetch_data import prep_tests
@@ -1401,11 +1398,8 @@ def apply_affine_transforms(transform_files, inverse_booleans,
     >>> inverse_booleans = [1]
     >>> transform_format = 'itk'
     >>> vtk_file_stem = 'affine_'
-    >>> command_path = '/software/install/ants/bin' # doctest: +SKIP
-    >>> os.environ["PATH"] += os.pathsep + command_path # doctest: +SKIP
     >>> affine_points, output_file = apply_affine_transforms(transform_files,
-    ...     inverse_booleans, transform_format, vtk_or_points, vtk_file_stem,
-    ...     command_path) # doctest: +SKIP
+    ...     inverse_booleans, transform_format, vtk_or_points, vtk_file_stem) # doctest: +SKIP
     >>> print(np.array_str(np.array(affine_points[0:5]),
     ...       precision=5, suppress_small=True)) # doctest: +SKIP
     [[-123.02735 -228.19407 -101.14381]
@@ -1458,7 +1452,6 @@ def apply_affine_transforms(transform_files, inverse_booleans,
     # coordinate system than the NIfTI coordinate system.
     if transform_format == 'itk' and len(points):
         points[:, :2] = points[:, :2] * np.array((-1, -1))
-        os.environ["PATH"] += os.pathsep + command_path
         affine_points = antsApplyTransformsToPoints(points,
                             transform_files, inverse_booleans)
         affine_points = np.array(affine_points)
