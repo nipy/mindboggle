@@ -1611,12 +1611,14 @@ def freesurfer_surface_to_vtk(surface_file, orig_file='', output_vtk=''):
     >>> output_vtk = ''
     >>> os.rename(surface_file, surface_file + '.pial')
     >>> os.rename(orig_file, orig_file + '.mgz')
+    >>> surface_file = surface_file + '.pial'
+    >>> orig_file = orig_file + '.mgz'
     >>> output_vtk = freesurfer_surface_to_vtk(surface_file, orig_file,
     ...                                        output_vtk)
 
     View output vtk file (skip test):
 
-    >>> from mindboggle.mio.plots import plot_surfaces
+    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
     >>> plot_surfaces(output_vtk) # doctest: +SKIP
 
     """

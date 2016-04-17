@@ -487,7 +487,7 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     >>> freesurfer_thickness_file = freesurfer_thickness_file + '.vtk'
     >>> freesurfer_curvature_file = freesurfer_curvature_file + '.vtk'
     >>> freesurfer_sulc_file = freesurfer_sulc_file + '.vtk'
-    >>> affine_transform_files = [affine_rename]
+    >>> affine_transform_files = [] # [affine_rename] # requires ANTs to test
     >>> output_table = write_vertex_measures(output_table, labels_or_file,
     ...     sulci, fundi, affine_transform_files, inverse_booleans,
     ...     transform_format, area_file, mean_curvature_file,
