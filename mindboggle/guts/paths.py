@@ -660,7 +660,7 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
     ...     bounds, curv_file, values, wN_max, erode_again, save_file,
     ...     background_value, verbose)
     >>> np.where(np.array(smooth_skeletons)!=-1)[0][0:10]
-    array([ 848,  852,  864, 1209, 1210, 1221, 1228, 1236, 1241, 1507])
+    array([35029, 35896, 36750, 36762, 36763, 37656, 37657, 37672, 38546, 39355])
 
     NOTE: Output file is unreadable:
     "Error reading ascii data. Possible mismatch of datasize with declaration."
@@ -782,7 +782,7 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
     if save_file:
         skeletons_file = os.path.join(os.getcwd(), 'smooth_skeletons.vtk')
         rewrite_scalars(vtk_file, skeletons_file, smooth_skeletons,
-                        'smooth_skeletons', bounds)
+                        'smooth_skeletons')
     else:
         skeletons_file = None
 
