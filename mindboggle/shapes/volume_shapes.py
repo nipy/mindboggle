@@ -66,10 +66,10 @@ def volume_per_brain_region(input_file, include_labels=[], exclude_labels=[],
     >>> unique_labels, volumes, table = volume_per_brain_region(input_file,
     ...     include_labels, exclude_labels, label_names, save_table,
     ...     output_table, verbose)
-    >>> print(np.array_str(np.array(volumes[0:5]),
+    >>> print(np.array_str(np.array([x for x in volumes if x > 0][0:5]),
     ...       precision=5, suppress_small=True))
     [  971.99797  2413.99496  2192.99543  8328.98262  2940.99386]
-    >>> print(np.array_str(np.array(volumes[5:10]),
+    >>> print(np.array_str(np.array([x for x in volumes if x > 0][5:10]),
     ...       precision=5, suppress_small=True))
     [  1997.99583  10905.97725  11318.97639  10789.97749   2700.99437]
 
