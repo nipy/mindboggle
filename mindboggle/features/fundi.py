@@ -269,12 +269,11 @@ def segment_fundi(fundus_per_fold, sulci=[], vtk_file='', save_file=False,
     ...     sulci, vtk_file, save_file, verbose)
     >>> segment_numbers = [x for x in np.unique(o1) if x != -1]
     >>> lens = []
-    >>> if single_fold:
+    >>> if limit_folds:
     ...     for segment_number in segment_numbers:
     ...         lens.append(len([x for x in o1 if x == segment_number]))
     >>> lens
-    [14, 13, 88]
-
+    [73]
 
     View result (skip test):
 
