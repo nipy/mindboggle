@@ -930,7 +930,7 @@ def track_segments(seed, segments, neighbor_lists, values, sink,
     >>> folds_file = fetch_data(urls['left_folds'])
     >>> values_file = fetch_data(urls['left_travel_depth'])
     >>> folds, name = read_scalars(folds_file, True, True)
-    >>> fold_number = 11
+    >>> fold_number = 4
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>> neighbor_lists = find_neighbors_from_file(values_file)
     >>> values, name = read_scalars(values_file, True, True)
@@ -953,7 +953,7 @@ def track_segments(seed, segments, neighbor_lists, values, sink,
     >>> T[indices] = 1 # doctest: +SKIP
     >>> T[track] = 10 # doctest: +SKIP
     >>> T[seed] = 12 # doctest: +SKIP
-    >>> rewrite_scalars(values_file, 'track_segments.vtk', T, 'track', [], -1) # doctest: +SKIP
+    >>> rewrite_scalars(values_file, 'track_segments.vtk', T, 'track') # doctest: +SKIP
     >>> plot_surfaces('track_segments.vtk') # doctest: +SKIP
 
     """

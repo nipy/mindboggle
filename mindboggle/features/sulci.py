@@ -54,6 +54,7 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
 
     Examples
     --------
+    >>> import numpy as np
     >>> from mindboggle.features.sulci import extract_sulci
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.mio.fetch_data import prep_tests
@@ -62,6 +63,13 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     >>> labels_file = fetch_data(urls['left_freesurfer_labels'])
     >>> folds_file = fetch_data(urls['left_folds'])
     >>> folds_or_file, name = read_scalars(folds_file)
+    >>> # Just two folds to speed up the test:
+    >>> two_folds = False
+    >>> if two_folds:
+    ...     fold_numbers = [4, 6]
+    ...     i0 = [i for i,x in enumerate(folds_or_file) if x not in fold_numbers]
+    ...     folds_or_file = np.array(folds_or_file)
+    ...     folds_or_file[i0] = -1
     >>> hemi = 'lh'
     >>> min_boundary = 10
     >>> sulcus_names = []
@@ -69,17 +77,17 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     >>> sulci, n_sulci, sulci_file = extract_sulci(labels_file, folds_or_file,
     ...     hemi, min_boundary, sulcus_names, verbose)
     >>> n_sulci
-    23
-    >>> lens = [len([x for x in sulci if x == y]) for y in range(n_sulci)]
-    >>> lens[0:10]
-    [0, 6210, 3288, 6526, 5004, 3465, 6251, 3493, 2566, 3908]
-    >>> lens[10::]
-    [739, 3657, 1876, 5785, 1789, 4893, 488, 1967, 1524, 401, 0, 3397, 1159]
+    2
+    >>> [len([x for x in sulci if x==y]) for y in np.unique(sulci) if y != -1]
+    [65, 52]
 
     View result (skip test):
 
-    >>> from mindboggle.mio.plots import plot_surfaces
-    >>> plot_surfaces('sulci.vtk') # doctest: +SKIP
+    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
+    >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP
+    >>> #plot_surfaces('sulci.vtk') # doctest: +SKIP
+    >>> rewrite_scalars(sulci_file, 'just_sulci.vtk', sulci, 'sulci', sulci) # doctest: +SKIP
+    >>> plot_surfaces('just_sulci.vtk') # doctest: +SKIP
 
     """
     import os
@@ -97,6 +105,8 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
         folds, name = read_scalars(folds_or_file)
     elif isinstance(folds_or_file, list):
         folds = folds_or_file
+    elif isinstance(folds_or_file, np.ndarray):
+        folds = folds_or_file.tolist()
 
     dkt = DKTprotocol()
 
