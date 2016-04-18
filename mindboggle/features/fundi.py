@@ -58,7 +58,7 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     Examples
     --------
     >>> # Extract fundus from one or more folds:
-    >>> single_fold = True
+    >>> import numpy as np
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.features.fundi import extract_fundi
     >>> from mindboggle.mio.fetch_data import prep_tests
@@ -67,9 +67,12 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     >>> depth_file = fetch_data(urls['left_travel_depth'])
     >>> folds_file = fetch_data(urls['left_folds'])
     >>> folds, name = read_scalars(folds_file, True, True)
-    >>> if single_fold:
-    ...     fold_number = 4
-    ...     folds[folds != fold_number] = -1
+    >>> # Limit number of folds to speed up the test:
+    >>> limit_folds = True
+    >>> if limit_folds:
+    ...     fold_numbers = [4] #[4, 6]
+    ...     i0 = [i for i,x in enumerate(folds) if x not in fold_numbers]
+    ...     folds[i0] = -1
     >>> min_separation = 10
     >>> erode_ratio = 0.10
     >>> erode_min_size = 10
@@ -78,12 +81,10 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     >>> o1, o2, fundus_per_fold_file = extract_fundi(folds, curv_file,
     ...     depth_file, min_separation, erode_ratio, erode_min_size,
     ...     save_file, verbose)
-    >>> if single_fold:
-    ...     lens = [len([x for x in o1 if x == 2])]
-    ... else:
-    ...     lens = [len([x for x in o1 if x == y]) for y in range(o2)]
+    >>> lens = [len([x for x in o1 if x == y])
+    ...         for y in np.unique(o1) if y != -1]
     >>> lens[0:10]
-    [115]
+    [73]
 
     View result (skip test):
 
