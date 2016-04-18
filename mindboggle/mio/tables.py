@@ -574,9 +574,8 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     if not output_table:
         output_table = os.path.join(os.getcwd(), 'vertices.csv')
 
-    df = pd.DataFrame(np.transpose(columns)) #, columns = column_names)
-    dft = df.transpose()
-    dft.to_csv(output_table, header=column_names, index=False)
+    df = pd.DataFrame(np.transpose(columns), columns = column_names)
+    df.to_csv(output_table, index=False)
 
     if not os.path.exists(output_table):
         raise IOError(output_table + " not found")

@@ -260,16 +260,16 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files,
     ...     scalar_range, fold_files, label_files, verbose)
     >>> print(np.array_str(np.array(depth_border['means']),
     ...       precision=5, suppress_small=True))
-    [ 17.93322   8.54554   0.06699]
+    [ 13.0869   0.       0.    ]
     >>> print(np.array_str(np.array(depth_nonborder['means']),
     ...       precision=5, suppress_small=True))
-    [ 13.37442   4.022     0.10465]
+    [ 14.59311   6.16008   0.     ]
     >>> print(np.array_str(np.array(curv_border['means']),
     ...       precision=5, suppress_small=True))
-    [ 3.48199 -0.51746 -3.28033]
+    [ 3.37498 -0.21181 -2.04204]
     >>> print(np.array_str(np.array(curv_nonborder['means']),
     ...       precision=5, suppress_small=True))
-    [ 0.91644 -1.5727  -5.09608]
+    [ 1.82383 -0.9718  -3.22018]
     >>> pickle.dump([depth_border, curv_border, depth_nonborder, curv_nonborder],
     ...     open("depth_curv_border_nonborder_parameters.pkl", "wb"))
 
@@ -348,10 +348,10 @@ def concatenate_sulcus_scalars(scalar_files, fold_files, label_files):
     ...     fold_files, label_files)
     >>> print(np.array_str(np.array(border[0:5]),
     ...       precision=5, suppress_small=True))
-    [ 0.04129  0.06727  0.08821  0.0107   0.02687]
+    [ 3.48284  2.57157  4.27596  4.56549  3.84881]
     >>> print(np.array_str(np.array(nonborder[0:5]),
     ...       precision=5, suppress_small=True))
-    [ 0.02026  0.06009  0.12859  0.04564  0.00774]
+    [ 2.87204  2.89388  3.55364  2.81681  3.70736]
 
     """
     import numpy as np

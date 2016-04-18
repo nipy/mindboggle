@@ -85,7 +85,6 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
 
     >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
     >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP
-    >>> #plot_surfaces('sulci.vtk') # doctest: +SKIP
     >>> rewrite_scalars(sulci_file, 'just_sulci.vtk', sulci, 'sulci', sulci) # doctest: +SKIP
     >>> plot_surfaces('just_sulci.vtk') # doctest: +SKIP
 

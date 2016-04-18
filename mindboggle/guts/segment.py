@@ -94,7 +94,7 @@ def propagate(points, faces, region, seeds, labels,
     >>> for useg in np.unique(segments):
     ...     len_segments.append(len(np.where(segments == useg)[0]))
     >>> len_segments[0:10]
-    [142213, 2693, 21, 142]
+    [142319, 2593, 18, 139]
 
     Write results to vtk file and view (skip test):
 
@@ -239,7 +239,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> for useg in np.unique(segments):
     ...     len_segments.append(len(np.where(segments == useg)[0]))
     >>> len_segments[0:10]
-    [26631, 110928, 4, 1686, 1399, 104, 739, 304, 1274, 255]
+    [26631, 110928, 4, 1399, 1274, 5, 139, 255, 12, 5]
 
     Write results to vtk file and view (skip test):
 
@@ -279,7 +279,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> for useg in np.unique(segments):
     ...     len_segments.append(len(np.where(segments == useg)[0]))
     >>> len_segments[0:10]
-    [26631, 110928, 4, 1686, 1399, 104, 739, 304, 1274, 255]
+    [26631, 110928, 4, 1399, 1274, 5, 139, 255, 12, 5]
 
     Write results to vtk file and view (skip test):
 
@@ -717,9 +717,9 @@ def segment_rings(region, seeds, neighbor_lists, step=1, background_value=-1):
     >>> len(segments)
     56
     >>> [len(x) for x in segments][0:10]
-    [5730, 6003, 6257, 6149, 5056, 3231, 1850, 1198, 907, 735]
+    [5540, 5849, 6138, 5997, 4883, 3021, 1809, 1165, 842, 661]
     >>> segments[0][0:10]
-    [65539, 65540, 65541, 98317, 98308, 131102, 131111, 131112, 131122, 131158]
+    [65539, 65540, 98308, 98316, 131112, 131121, 131122, 131171, 131175, 131185]
 
     Write results to vtk file and view (skip test):
 
@@ -1189,11 +1189,11 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
     >>> points2[2]
     [-13.091879844665527, 56.41604232788086, 59.330955505371094]
     >>> faces2[0]
-    [7640, 5629, 7639]
+    [7704, 7306, 7703]
     >>> faces2[1]
-    [7632, 7640, 7641]
+    [7694, 7704, 7705]
     >>> faces2[2]
-    [7639, 8052, 7640]
+    [7703, 8119, 7704]
 
     Write two surfaces to vtk file and view (skip test):
 

@@ -266,7 +266,7 @@ def find_endpoints(indices, neighbor_lists):
     >>> neighbor_lists = find_neighbors_from_file(folds_file)
     >>> indices_endpoints = find_endpoints(indices, neighbor_lists)
     >>> indices_endpoints
-    [821, 885, 951, 979, 991]
+    [854]
 
     View endpoints on surface fold (skip test):
 
@@ -629,16 +629,16 @@ def reindex_faces_points(faces, points=[]):
     >>> new_faces, new_points, original_indices = reindex_faces_points(faces,
     ...     points)
     >>> new_faces[0:5]
-    [[19, 18, 0], [0, 1, 2], [3, 2, 1], [0, 2, 25], [0, 25, 19]]
+    [[0, 1, 4], [5, 4, 1], [0, 48, 49], [0, 49, 1], [0, 4, 48]]
     >>> print(np.array_str(np.array(new_points[0]),
     ...       precision=5, suppress_small=True))
-    [ -9.37212 -73.0571   -8.68719]
+    [-13.7924  -76.0973   -2.57594]
     >>> print(np.array_str(np.array(new_points[1]),
     ...       precision=5, suppress_small=True))
-    [-10.1493 -73.262   -8.7986]
+    [-14.2225  -76.2362   -2.73425]
     >>> print(np.array_str(np.array(new_points[2]),
     ...       precision=5, suppress_small=True))
-    [-10.1267 -72.5364  -9.5358]
+    [-14.9617  -76.2497   -2.62924]
 
     View reindexed fold on surface (skip test):
 
@@ -1142,9 +1142,9 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
     ...     labels_or_file, save_file, output_filestring, verbose)
     >>> scalars1, name = read_scalars(input_vtk)
     >>> print('{0:0.5f}, {1:0.5f}'.format(max(scalars1), max(rescaled)))
-    34.95560, 29.62040
+    34.95560, 1.00000
     >>> print('{0:0.5f}, {1:0.5f}'.format(np.mean(scalars1), np.mean(rescaled)))
-    7.43822, 2.34804
+    7.43822, 0.30677
 
     View rescaled scalar values on surface (skip test):
 
@@ -1283,9 +1283,9 @@ def dilate(indices, nedges, neighbor_lists):
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>> dilated_indices = dilate(indices, nedges, neighbor_lists)
     >>> (len(indices), len(dilated_indices))
-    (1151, 9194)
+    (1151, 1545)
     >>> dilated_indices[0:10]
-    [34148, 34149, 34150, 34151, 34152, 34153, 34154, 34155, 34157, 34158]
+    [50317, 50324, 50325, 50326, 50327, 50332, 50333, 50334, 50339, 50340]
 
     Write results to vtk file and view (skip test):
 
@@ -1343,7 +1343,7 @@ def erode(indices, nedges, neighbor_lists):
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>> eroded_indices = erode(indices, nedges, neighbor_lists)
     >>> (len(indices), len(eroded_indices))
-    (1151, 0)
+    (1151, 809)
 
     Write results to vtk file and view (skip test):
 
@@ -1398,7 +1398,7 @@ def extract_edge(indices, neighbor_lists):
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>> edge_indices = extract_edge(indices, neighbor_lists)
     >>> (len(indices), len(edge_indices))
-    (1151, 1113)
+    (1151, 111)
 
     Write results to vtk file and view (skip test):
 

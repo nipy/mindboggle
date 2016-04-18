@@ -86,7 +86,7 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     >>> outer_anchors, tracks = find_outer_anchors(indices, neighbor_lists,
     ...                             values, depths, min_separation, verbose)
     >>> outer_anchors[0:10]
-    [39386, 41918, 42703, 48420]
+    [50324, 66986, 75661]
     >>> # Inner anchors:
     >>> values0 = [x for x in values if x > 0]
     >>> thr = np.median(values0) + 2 * median_abs_dev(values0)
@@ -101,7 +101,7 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     ...     outer_anchors, inner_anchors, values, erode_ratio, erode_min_size,
     ...     save_steps, save_vtk, background_value, verbose)
     >>> skeleton[0:10]
-    [34148, 34154, 34155, 34157, 34158, 35023, 35028, 35029, 35031, 35036]
+    [50324, 50333, 50339, 51552, 51560, 52707, 52716, 52724, 52725, 53893]
 
     Write out vtk file and view (skip test):
 
@@ -330,7 +330,7 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists,
     >>> skeleton = connect_points_hmmf(outer_anchors, indices, values,
     ...     neighbor_lists, wN_max, background_value, verbose)
     >>> skeleton[0:10]
-    [35029, 35045, 35871, 35872, 35879, 35880, 35881, 35882, 35887, 35888]
+    [50317, 50324, 50325, 50326, 50327, 50332, 50333, 50334, 50339, 50340]
 
     Write out vtk file and view (skip test):
 
@@ -660,7 +660,7 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
     ...     bounds, curv_file, values, wN_max, erode_again, save_file,
     ...     background_value, verbose)
     >>> np.where(np.array(smooth_skeletons)!=-1)[0][0:10]
-    array([35029, 35896, 36750, 36762, 36763, 37656, 37657, 37672, 38546, 39355])
+    array([65736, 65737, 65749, 65750, 65769, 67055, 67062, 67063, 67070, 67071])
 
     NOTE: Output file is unreadable:
     "Error reading ascii data. Possible mismatch of datasize with declaration."
@@ -837,7 +837,7 @@ def track_values(seed, indices, neighbor_lists, values, sink=[]):
     >>> sink = []
     >>> track = track_values(seed, indices_fold, neighbor_lists, values, sink)
     >>> track[0:10]
-    [38198, 38207, 39702, 39714, 41177, 41193, 41210, 41222, 41234, 41247]
+    [73453, 74737, 74747, 74756, 76053, 77335, 77343, 77335]
 
     View track in fold on surface (skip test):
 
@@ -943,7 +943,7 @@ def track_segments(seed, segments, neighbor_lists, values, sink,
     >>> borders, f1,f2 = extract_borders(list(range(len(values))), D, neighbor_lists)
     >>> track = track_segments(seed, segments, neighbor_lists, values, borders)
     >>> track[0:10]
-    [28142, 28128, 29318, 29305, 28119, 28111, 28112]
+    [55181, 53892, 52725, 52717, 52708, 51561, 51553, 50340, 50333, 50324]
 
     View track in fold on surface (skip test):
 
@@ -1077,7 +1077,7 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     >>> outer_anchors, tracks = find_outer_anchors(indices, neighbor_lists,
     ...                             values, depths, min_separation, verbose)
     >>> outer_anchors[0:10]
-    [17622, 17788, 19937, 30064, 22470, 24775, 26114, 28810, 28541, 34378]
+    [1948, 1236, 9896, 14663, 11221, 19549, 25668, 31603, 49000, 31877]
 
     View anchors in fold on surface (skip test):
 
