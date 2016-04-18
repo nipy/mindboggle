@@ -251,9 +251,12 @@ def segment_fundi(fundus_per_fold, sulci=[], vtk_file='', save_file=False,
     >>> vtk_file = fetch_data(urls['left_sulci'])
     >>> sulci, name = read_scalars(vtk_file, True, True)
     >>> folds, name = read_scalars(folds_file, True, True)
-    >>> if single_fold:
-    ...     fold_number = 2 #11
-    ...     folds[folds != fold_number] = -1
+    >>> # Limit number of folds to speed up the test:
+    >>> limit_folds = True
+    >>> if limit_folds:
+    ...     fold_numbers = [4] #[4, 6]
+    ...     i0 = [i for i,x in enumerate(folds) if x not in fold_numbers]
+    ...     folds[i0] = -1
     >>> min_separation = 10
     >>> erode_ratio = 0.10
     >>> erode_min_size = 10

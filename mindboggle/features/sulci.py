@@ -32,7 +32,7 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     ----------
     labels_file : string
         file name for surface mesh VTK containing labels for all vertices
-    folds_or_file : list or string
+    folds_or_file : numpy array, list or string
         fold number for each vertex / name of VTK file containing fold scalars
     hemi : string
         hemisphere abbreviation in {'lh', 'rh'} for sulcus labels
@@ -62,13 +62,12 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     >>> # Load labels, folds, neighbor lists, and sulcus names and label pairs
     >>> labels_file = fetch_data(urls['left_freesurfer_labels'])
     >>> folds_file = fetch_data(urls['left_folds'])
-    >>> folds_or_file, name = read_scalars(folds_file)
-    >>> # Just two folds to speed up the test:
-    >>> two_folds = False
-    >>> if two_folds:
-    ...     fold_numbers = [4, 6]
+    >>> folds_or_file, name = read_scalars(folds_file, True, True)
+    >>> # Limit number of folds to speed up the test:
+    >>> limit_folds = True
+    >>> if limit_folds:
+    ...     fold_numbers = [4] #[4, 6]
     ...     i0 = [i for i,x in enumerate(folds_or_file) if x not in fold_numbers]
-    ...     folds_or_file = np.array(folds_or_file)
     ...     folds_or_file[i0] = -1
     >>> hemi = 'lh'
     >>> min_boundary = 10
@@ -76,10 +75,12 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     >>> verbose = False
     >>> sulci, n_sulci, sulci_file = extract_sulci(labels_file, folds_or_file,
     ...     hemi, min_boundary, sulcus_names, verbose)
-    >>> n_sulci
-    2
-    >>> [len([x for x in sulci if x==y]) for y in np.unique(sulci) if y != -1]
-    [65, 52]
+    >>> n_sulci  # 23
+    1
+    >>> lens = [len([x for x in sulci if x==y])
+    ...         for y in np.unique(sulci) if y != -1]
+    >>> lens[0:10]  # [6358, 3288, 7612, 5205, 4414, 6251, 3493, 2566, 4436, 739]
+    [1151]
 
     View result (skip test):
 
@@ -236,7 +237,8 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
                                 # Vertices with unique label(s) in pair:
                                 indices_unique_labels = [fold_indices[i]
                                      for i,x in enumerate(fold_labels)
-                                     if x in dkt.unique_sulcus_label_pairs]
+                                     if x in unique_labels_in_pair]
+                                             #dkt.unique_sulcus_label_pairs]
 
                                 # Propagate from seeds to labels in label pair:
                                 sulci2 = segment(indices_unique_labels,
@@ -355,8 +357,12 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     # Print statements
     #-------------------------------------------------------------------------
     if verbose:
-        print("Extracted {0} sulci from {1} folds ({2:.1f}s):".
-                  format(n_sulci, n_folds, time()-t0))
+        if n_sulci == 1:
+            print("Extracted 1 sulcus from {0} folds ({1:.1f}s):".
+                      format(n_folds, time()-t0))
+        else:
+            print("Extracted {0} sulci from {1} folds ({2:.1f}s):".
+                      format(n_sulci, n_folds, time()-t0))
         if sulcus_names:
             for sulcus_number in sulcus_numbers:
                 print("  {0}: {1}".format(sulcus_number,
