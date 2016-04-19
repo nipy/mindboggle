@@ -73,6 +73,7 @@ def test_urls():
     """
     url = 'http://media.mindboggle.info/data/cache/'
     ATLAS = url + 'atlases/'
+    MAN = url + 'manual/'
     FS = url + 'freesurfer/arno/'
     ANTS = url + 'ants/arno/'
     MBW = url + 'mindboggle_working/arno/Mindboggle/'
@@ -116,6 +117,11 @@ def test_urls():
     urls['right_DKT31atlas101subjects'] = ATLAS + 'rh.DKT31atlas101subjects.gcs'
     urls['depth_curv_border_nonborder_parameters'] = \
         ATLAS + 'depth_curv_border_nonborder_parameters.pkl'
+    #-------------------------------------------------------------------------
+    # Manual labels:
+    #-------------------------------------------------------------------------
+    urls['left_manual_labels'] = MAN + 'lh.labels.DKT31.manual.vtk'
+    urls['right_manual_labels'] = MAN + 'rh.labels.DKT31.manual.vtk'
     #-------------------------------------------------------------------------
     # FreeSurfer output:
     #-------------------------------------------------------------------------

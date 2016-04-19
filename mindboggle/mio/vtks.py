@@ -1011,7 +1011,8 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
 
 
 def explode_scalars_mindboggle(subject, subject_path='', output_path='',
-                               pieces='labels', verbose=False):
+                               pieces='labels', background_value=-1,
+                               verbose=False):
     """
     Given a subject name corresponding to Mindboggle shape surface outputs,
     take each shape surface VTK file, and create a separate VTK file for each
@@ -1027,6 +1028,8 @@ def explode_scalars_mindboggle(subject, subject_path='', output_path='',
         output path/directory
     pieces : string
         name of structures to explode (e.g., 'labels', 'sulci')
+    background_value : integer or float
+        background value
     verbose : bool
         print statements?
 
@@ -1039,9 +1042,10 @@ def explode_scalars_mindboggle(subject, subject_path='', output_path='',
     >>> subject_path = '/Users/arno/mindboggled'
     >>> output_path = os.getcwd()
     >>> pieces = 'labels'
+    >>> background_value = -1
     >>> verbose = False
     >>> explode_scalars_mindboggle(subject, subject_path, output_path, pieces,
-    ...                            verbose) # doctest: +SKIP
+    ...                            background_value, verbose) # doctest: +SKIP
 
     View example result (skip test):
 
@@ -1099,7 +1103,10 @@ def explode_scalars_mindboggle(subject, subject_path='', output_path='',
 
                     explode_scalars(labels_vtk, shape_vtk,
                                     os.path.join(output_dir,
-                                                 shape_name + '_'))
+                                                 shape_name + '_'),
+                                    [background_value], background_value,
+                                    'scalars', True, True, False)
+
             else:
                 raise IOError('Unable to make directory {0}'.format(output_dir))
 
@@ -1670,7 +1677,8 @@ def freesurfer_surface_to_vtk(surface_file, orig_file='', output_vtk=''):
     return output_vtk
 
 
-def freesurfer_curvature_to_vtk(surface_file, vtk_file, output_vtk=''):
+def freesurfer_curvature_to_vtk(surface_file, vtk_file, output_vtk='',
+                                background_value=-1):
     """
     Convert FreeSurfer curvature, thickness, or convexity file to VTK format.
 
@@ -1682,6 +1690,8 @@ def freesurfer_curvature_to_vtk(surface_file, vtk_file, output_vtk=''):
         name of VTK surface file
     output_vtk : string
         name of output VTK file
+    background_value : integer or float
+        background value
 
     Returns
     -------
@@ -1697,8 +1707,9 @@ def freesurfer_curvature_to_vtk(surface_file, vtk_file, output_vtk=''):
     >>> surface_file = fetch_data(urls['left_freesurfer_thickness'])
     >>> vtk_file = fetch_data(urls['left_pial'])
     >>> output_vtk = ''
+    >>> background_value = -1
     >>> output_vtk = freesurfer_curvature_to_vtk(surface_file, vtk_file,
-    ...                                          output_vtk)
+    ...                                          output_vtk, background_value)
 
     View output vtk file (skip test):
 
@@ -1717,14 +1728,16 @@ def freesurfer_curvature_to_vtk(surface_file, vtk_file, output_vtk=''):
     if not output_vtk:
         output_vtk = os.path.join(os.getcwd(),
                                   os.path.basename(surface_file)+'.vtk')
-    rewrite_scalars(vtk_file, output_vtk, curvature_values, scalar_names)
+    rewrite_scalars(vtk_file, output_vtk, curvature_values, scalar_names,
+                    [], background_value)
     if not os.path.exists(output_vtk):
         raise IOError("Output VTK file " + output_vtk + " not created.")
 
     return output_vtk
 
 
-def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk=''):
+def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk='',
+                            background_value=-1):
     """
     Load a FreeSurfer .annot file and save as a VTK format file.
 
@@ -1746,6 +1759,8 @@ def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk=''):
     output_vtk : string
         name of output VTK file, where each vertex is assigned
         the corresponding annot value
+    background_value : integer or float
+        background value
 
     Returns
     -------
@@ -1764,8 +1779,9 @@ def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk=''):
     >>> annot_file = fetch_data(urls['left_freesurfer_aparc_annot'])
     >>> vtk_file = fetch_data(urls['left_pial'])
     >>> output_vtk = ''
+    >>> background_value = -1
     >>> labels, output_vtk = freesurfer_annot_to_vtk(annot_file,
-    ...                                              vtk_file, output_vtk)
+    ...                          vtk_file, output_vtk, background_value)
     >>> nlabels = [len(np.where(labels == x)[0]) for x in np.unique(labels)]
     >>> nlabels[0:10]
     [8305, 1414, 1171, 4096, 2213, 633, 5002, 6524, 4852, 1823]
@@ -1788,7 +1804,7 @@ def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk=''):
     # https://github.com/nipy/nibabel/issues/205#issuecomment-25294009
     # RESOLUTION IN THE PIP INSTALL VERSION OF NIBABEL:
     labels_orig, ctab, names = nb.freesurfer.read_annot(annot_file, True)
-    labels[np.where(labels_orig == 0)[0]] = -1
+    labels[np.where(labels_orig == 0)[0]] = background_value
     # Test removal of unlabeled cortex from label 3:
     #labels[np.where(labels==3)[0]]=1000
 
@@ -1796,7 +1812,8 @@ def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk=''):
         output_vtk = os.path.join(os.getcwd(),
             os.path.basename(annot_file).split('.annot', 1)[0] + '.vtk')
 
-    rewrite_scalars(vtk_file, output_vtk, labels, 'Labels')
+    rewrite_scalars(vtk_file, output_vtk, labels, 'Labels', [],
+                    background_value)
 
     if not os.path.exists(output_vtk):
         raise IOError("Output VTK file " + output_vtk + " not created.")

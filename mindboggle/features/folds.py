@@ -13,7 +13,7 @@ Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 # Extract folds
 #=============================================================================
 def extract_folds(depth_file, min_vertices=10000, min_fold_size=50, 
-                  save_file=False, verbose=False):
+                  save_file=False, background_value=-1, verbose=False):
     """
     Use depth to extract folds from a triangular surface mesh.
 
@@ -45,10 +45,14 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
     ----------
     depth_file : string
         surface mesh file in VTK format with faces and depth scalar values
+    min_vertices : integer
+        minimum number of vertices
     min_fold_size : integer
         minimum fold size (number of vertices)
     save_file : bool
         save output VTK file?
+    background_value : integer or float
+        background value
     verbose : bool
         print statements?
 
@@ -78,9 +82,10 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
     >>> min_vertices = 10000
     >>> min_fold_size = 50
     >>> save_file = True
+    >>> background_value = -1
     >>> verbose = False
     >>> folds, n_folds, thr, bins, bin_edges, folds_file = extract_folds(depth_file,
-    ...     min_vertices, min_fold_size, save_file, verbose)
+    ...     min_vertices, min_fold_size, save_file, background_value, verbose)
     >>> n_folds
     33
     >>> lens = [len([x for x in folds if x == y]) for y in range(n_folds)]
@@ -117,7 +122,7 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
 
     from mindboggle.mio.vtks import rewrite_scalars, read_vtk
     from mindboggle.guts.mesh import find_neighbors
-    from mindboggle.guts.segment import segment
+    from mindboggle.guts.segment import segment_regions
 
     if verbose:
         print("Extract folds in surface mesh")
@@ -171,7 +176,8 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
         if verbose:
             print("  Segment vertices deeper than {0:.2f} as folds".format(depth_threshold))
             t1 = time()
-        folds = segment(indices_deep, neighbor_lists)
+        folds = segment_regions(indices_deep, neighbor_lists, 1, [], False,
+                                False, [], [], [], '', background_value, False)
         if verbose:
             print('  ...Segmented folds ({0:.2f} seconds)'.format(time() - t1))
 
@@ -181,11 +187,12 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
         if min_fold_size > 1:
             if verbose:
                 print('  Remove folds smaller than {0}'.format(min_fold_size))
-            unique_folds = [x for x in np.unique(folds) if x != -1]
+            unique_folds = [x for x in np.unique(folds)
+                            if x != background_value]
             for nfold in unique_folds:
                 indices_fold = [i for i,x in enumerate(folds) if x == nfold]
                 if len(indices_fold) < min_fold_size:
-                    folds[indices_fold] = -1
+                    folds[indices_fold] = background_value
 
         #---------------------------------------------------------------------
         # Find and fill holes in the folds
@@ -199,8 +206,8 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
         # Renumber folds so they are sequential.
         # NOTE: All vertices are included (-1 for non-fold vertices).
         #---------------------------------------------------------------------
-        renumber_folds = -1 * np.ones(npoints)
-        fold_numbers = [x for x in np.unique(folds) if x != -1]
+        renumber_folds = background_value * np.ones(npoints)
+        fold_numbers = [x for x in np.unique(folds) if x != background_value]
         for i_fold, n_fold in enumerate(fold_numbers):
             fold_indices = [i for i,x in enumerate(folds) if x == n_fold]
             renumber_folds[fold_indices] = i_fold
@@ -222,7 +229,8 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
     if save_file:
 
         folds_file = os.path.join(os.getcwd(), 'folds.vtk')
-        rewrite_scalars(depth_file, folds_file, folds, 'folds')
+        rewrite_scalars(depth_file, folds_file, folds, 'folds', [],
+                        background_value)
 
         if not os.path.exists(folds_file):
             raise IOError(folds_file + " not found")
@@ -238,7 +246,7 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
 # #=============================================================================
 # def extract_subfolds(depth_file, folds, min_size=10, depth_factor=0.25,
 #                      depth_ratio=0.1, tolerance=0.01, save_file=False,
-#                      verbose=False):
+#                      background_value=-1, verbose=False):
 #     """
 #     Use depth to segment folds into subfolds in a triangular surface mesh.
 #
@@ -282,6 +290,8 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
 #         tolerance for detecting differences in depth between vertices
 #     save_file : bool
 #         save output VTK file?
+#     background_value : integer or float
+#         background value
 #     verbose : bool
 #         verbose output?
 #
@@ -312,10 +322,11 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
 #     >>> depth_ratio = 0.1
 #     >>> tolerance = 0.01
 #     >>> save_file = False
+#     >>> background_value = -1
 #     >>> verbose = False
 #     >>> subfolds, n_subfolds, subfolds_file = extract_subfolds(depth_file,
 #     ...     folds, min_size, depth_factor, depth_ratio, tolerance, save_file,
-#     ...     verbose)
+#     ...     background_value, verbose)
 #     >>> n_subfolds
 #     288
 #     >>> [len([x for x in subfolds if x == y]) for y in range(n_subfolds)]  # doctest: +ELLIPSIS
@@ -359,6 +370,7 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
 #                                        neighbor_lists, min_size,
 #                                        depth_factor=0.25, depth_ratio=0.1,
 #                                        tolerance=0.01, regrow=True,
+#                                        background_value=background_value,
 #                                        verbose=False)
 #
 #     # Print statement

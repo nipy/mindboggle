@@ -506,7 +506,8 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
 #         surface_in_volume2 = transform_to_volume(surface_files[1], mask)
 #
 #         overwrite_volume_labels(surface_in_volume, surface_in_volume2,
-#                                 surfaces_in_volume, ignore_labels=[0])
+#                                 surfaces_in_volume, ignore_labels,
+#                                 erase_labels, background_value)
 #         surface_in_volume = surfaces_in_volume
 #
 #     # Use ANTs to fill a binary volume mask with initial labels:

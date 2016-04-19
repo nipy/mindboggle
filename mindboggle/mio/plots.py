@@ -31,7 +31,6 @@ def plot_surfaces(vtk_files, use_colormap=False, colormap_file=''):
 
     Examples
     --------
-    >>> import os
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
@@ -39,6 +38,32 @@ def plot_surfaces(vtk_files, use_colormap=False, colormap_file=''):
     >>> use_colormap = True
     >>> colormap_file = '/software/vtk_cpp_tools/colormap.xml' # doctest: +SKIP
     >>> plot_surfaces(vtk_files, use_colormap, colormap_file) # doctest: +SKIP
+
+    Plot manual labels on folds of the left hemisphere:
+
+    >>> from mindboggle.mio.vtks import read_scalars
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> from mindboggle.mio.vtks import rewrite_scalars
+    >>> from mindboggle.mio.plots import plot_surfaces
+    >>> urls, fetch_data = prep_tests()
+    >>> labels_file = fetch_data(urls['manual_labels']) #'left_freesurfer_labels'
+    >>> folds_file = fetch_data(urls['left_folds'])
+    >>> labels, name = read_scalars(labels_file, True, True)
+    >>> folds, name = read_scalars(folds_file, True, True)
+    >>> background_value = -1
+    >>> # Limit number of folds to speed up the test:
+    >>> limit_folds = False
+    >>> if limit_folds:
+    ...     fold_numbers = [4] #[4, 6]
+    ...     indices = [i for i,x in enumerate(folds) if x in fold_numbers]
+    ...     i0 = [i for i,x in enumerate(folds) if x not in fold_numbers]
+    ...     folds[i0] = background_value
+    ... else:
+    ...     indices = [i for i,x in enumerate(folds) if x != background_value]
+    >>> folds[indices] = labels[indices]
+    >>> rewrite_scalars(labels_file, 'labeled_folds.vtk',
+    ...                 folds, 'skeleton', folds, background_value) # doctest: +SKIP
+    >>> plot_surfaces('labeled_folds.vtk') # doctest: +SKIP
 
     """
     import os
@@ -70,7 +95,8 @@ def plot_surfaces(vtk_files, use_colormap=False, colormap_file=''):
 def plot_mask_surface(vtk_file, mask_file='', nonmask_value=-1,
                       masked_output='', remove_nonmask=False,
                       program='vtkviewer',
-                      use_colormap=False, colormap_file=''):
+                      use_colormap=False, colormap_file='',
+                      background_value=-1):
     """
     Use vtkviewer or mayavi2 to visualize VTK surface mesh data.
 
@@ -99,6 +125,8 @@ def plot_mask_surface(vtk_file, mask_file='', nonmask_value=-1,
     colormap_file : string
         use colormap in given file if use_colormap==True?  if empty and
         use_colormap==True, use file set by $COLORMAP environment variable
+    background_value : integer or float
+        background value
 
     Examples
     --------
@@ -116,8 +144,10 @@ def plot_mask_surface(vtk_file, mask_file='', nonmask_value=-1,
     >>> program = 'vtkviewer'
     >>> use_colormap = True
     >>> colormap_file = ''
+    >>> background_value = -1
     >>> plot_mask_surface(vtk_file, mask_file, nonmask_value, masked_output,
-    ...     remove_nonmask, program, use_colormap, colormap_file) # doctest: +SKIP
+    ...     remove_nonmask, program, use_colormap, colormap_file,
+    ...     background_value) # doctest: +SKIP
 
     """
     import os
@@ -169,7 +199,8 @@ def plot_mask_surface(vtk_file, mask_file='', nonmask_value=-1,
         else:
             scalars, name = read_scalars(vtk_file, True, True)
             scalars[mask == nonmask_value] = nonmask_value
-            rewrite_scalars(vtk_file, file_to_plot, scalars)
+            rewrite_scalars(vtk_file, file_to_plot, scalars, ['scalars'], [],
+                            background_value)
     else:
         file_to_plot = vtk_file
 

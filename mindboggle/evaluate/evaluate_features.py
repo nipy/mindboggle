@@ -78,7 +78,8 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='', hemi='',
     if sulci_file:
         sulci, name = read_scalars(sulci_file, True, True)
         # List of indices to sulcus vertices:
-        sulcus_indices = [i for i,x in enumerate(sulci) if x != -1]
+        sulcus_indices = [i for i,x in enumerate(sulci)
+                          if x not in excludeIDs]
         segmentIDs = sulci
         sulcus_faces = keep_faces(faces, sulcus_indices)
     else:

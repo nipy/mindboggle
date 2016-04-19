@@ -40,7 +40,7 @@ Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 
 def compute_likelihood(trained_file, depth_file, curvature_file, folds,
-                       save_file=False):
+                       save_file=False, background_value=-1):
     """
     Compute likelihoods based on input values, folds, estimated parameters.
 
@@ -63,6 +63,8 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
         fold number for all vertices (-1 for non-fold vertices)
     save_file : bool
         save output VTK file?
+    background_value : integer or float
+        background value
 
     Returns
     -------
@@ -89,8 +91,9 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
     ...     'depth_curv_border_nonborder_parameters']) # doctest: +SKIP
     >>> folds, name = read_scalars(folds_file)
     >>> save_file = True
+    >>> background_value = -1
     >>> likelihoods, likelihoods_file = compute_likelihood(trained_file,
-    ...     depth_file, curvature_file, folds, save_file) # doctest: +SKIP
+    ...     depth_file, curvature_file, folds, save_file, background_value) # doctest: +SKIP
 
     View result (skip test):
 
@@ -127,7 +130,7 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
     nonborder_sigmas = depth_nonborder['sigmas'] * curv_nonborder['sigmas']
     norm_border = 1 / (twopiexp * border_sigmas + tiny)
     norm_nonborder = 1 / (twopiexp * nonborder_sigmas + tiny)
-    I = [i for i,x in enumerate(folds) if x != -1]
+    I = [i for i,x in enumerate(folds) if x != background_value]
 
     N = depth_border['sigmas'].shape[0]
     for j in range(N):
@@ -163,7 +166,7 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
 
         likelihoods_file = os.path.join(os.getcwd(), 'likelihoods.vtk')
         rewrite_scalars(depth_file, likelihoods_file, likelihoods,
-                        'likelihoods', likelihoods)
+                        'likelihoods', likelihoods, background_value)
         if not os.path.exists(likelihoods_file):
             raise IOError(likelihoods_file + " not found")
 
@@ -174,7 +177,7 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
 
 
 def estimate_distribution(scalar_files, scalar_range, fold_files, label_files,
-                          verbose):
+                          background_value=-1, verbose):
     """
     Estimate sulcus label border scalar distributions from VTK files.
 
@@ -195,6 +198,8 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files,
         names of VTK files with fold numbers for scalar values
     label_files : list of strings
         names of VTK files with label numbers for scalar values
+    background_value : integer or float
+        background value
     verbose : bool
         print statements?
 
@@ -251,9 +256,10 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files,
     >>> #
     >>> scalar_files = depth_files
     >>> scalar_range = np.linspace(0, 1, 51, endpoint=True) # (0 to 1 by 0.02)
+    >>> background_value = -1
     >>> verbose = False
     >>> depth_border, depth_nonborder = estimate_distribution(scalar_files,
-    ...     scalar_range, fold_files, label_files, verbose)
+    ...     scalar_range, fold_files, label_files, background_value, verbose)
     >>> scalar_files = curv_files
     >>> scalar_range = np.linspace(-1, 1, 101, endpoint=True) # (-1 to 1 by 0.02)
     >>> curv_border, curv_nonborder = estimate_distribution(scalar_files,
@@ -282,7 +288,7 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files,
 
     # Concatenate scalars across multiple training files:
     border_scalars, nonborder_scalars = concatenate_sulcus_scalars(scalar_files,
-        fold_files, label_files)
+        fold_files, label_files, background_value)
 
     # Estimate distribution parameters:
     border_means, border_sigmas, \
@@ -307,7 +313,8 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files,
     return border_parameters, nonborder_parameters
 
 
-def concatenate_sulcus_scalars(scalar_files, fold_files, label_files):
+def concatenate_sulcus_scalars(scalar_files, fold_files, label_files,
+                               background_value=-1):
     """
     Prepare data for estimating scalar distributions along and outside fundi.
 
@@ -323,6 +330,8 @@ def concatenate_sulcus_scalars(scalar_files, fold_files, label_files):
         VTK files with fold numbers as scalars (-1 for non-fold vertices)
     label_files : list of strings (corr. to fold_files)
         VTK files with label numbers (-1 for unlabeled vertices)
+    background_value : integer or float
+        background value
 
     Returns
     -------
@@ -344,8 +353,9 @@ def concatenate_sulcus_scalars(scalar_files, fold_files, label_files):
     >>> scalar_files = [depth_file, depth_file]
     >>> fold_files = [folds_file, folds_file]
     >>> label_files = [labels_file, labels_file]
+    >>> background_value = -1
     >>> border, nonborder = concatenate_sulcus_scalars(scalar_files,
-    ...     fold_files, label_files)
+    ...     fold_files, label_files, background_value)
     >>> print(np.array_str(np.array(border[0:5]),
     ...       precision=5, suppress_small=True))
     [ 3.48284  2.57157  4.27596  4.56549  3.84881]
@@ -381,7 +391,8 @@ def concatenate_sulcus_scalars(scalar_files, fold_files, label_files):
         if scalars.shape:
             folds, name = read_scalars(folds_file)
             labels, name = read_scalars(labels_file)
-            indices_folds = [i for i,x in enumerate(folds) if x != -1]
+            indices_folds = [i for i,x in enumerate(folds)
+                             if x != background_value]
             neighbor_lists = find_neighbors_from_file(labels_file)
 
             # Find all label border pairs within the folds:

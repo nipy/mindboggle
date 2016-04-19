@@ -1085,7 +1085,8 @@ def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
 
         rescaled_scalars_file = os.path.join(os.getcwd(), output_filestring + '.vtk')
         rewrite_scalars(input_vtk, rescaled_scalars_file,
-                        rescaled_scalars, 'rescaled_scalars')
+                        rescaled_scalars, 'rescaled_scalars', [],
+                        background_value)
         if not os.path.exists(rescaled_scalars_file):
             raise IOError(rescaled_scalars_file + " not found")
 
@@ -1097,7 +1098,7 @@ def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
 
 def rescale_by_label(input_vtk, labels_or_file, save_file=False,
                      output_filestring='rescaled_scalars',
-                     verbose=False):
+                     background_value=-1, verbose=False):
     """
     Rescale scalars for each label (such as depth values within each fold).
 
@@ -1114,6 +1115,8 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
         save output VTK file?
     output_filestring : string (if save_file)
         name of output file
+    background_value : integer or float
+        background value
     verbose : bool
         print statements?
 
@@ -1139,7 +1142,7 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
     >>> output_filestring = 'rescaled_scalars'
     >>> verbose = False
     >>> rescaled, rescaled_label_file = rescale_by_label(input_vtk,
-    ...     labels_or_file, save_file, output_filestring, verbose)
+    ...     labels_or_file, save_file, output_filestring, background_value, verbose)
     >>> scalars1, name = read_scalars(input_vtk)
     >>> print('{0:0.5f}, {1:0.5f}'.format(max(scalars1), max(rescaled)))
     34.95560, 1.00000
@@ -1190,7 +1193,8 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
         rescaled_scalars_file = os.path.join(os.getcwd(),
                                              output_filestring + '.vtk')
         rewrite_scalars(input_vtk, rescaled_scalars_file,
-                        rescaled_scalars, 'rescaled_scalars', labels)
+                        rescaled_scalars, 'rescaled_scalars', labels,
+                        background_value)
         if not os.path.exists(rescaled_scalars_file):
             raise IOError(rescaled_scalars_file + " not found")
 
