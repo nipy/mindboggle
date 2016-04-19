@@ -70,7 +70,7 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     >>> folds_file = fetch_data(urls['left_folds'])
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> # Limit number of folds to speed up the test:
-    >>> limit_folds = False
+    >>> limit_folds = True
     >>> if limit_folds:
     ...     fold_numbers = [4] #[4, 6]
     ...     i0 = [i for i,x in enumerate(folds) if x not in fold_numbers]
