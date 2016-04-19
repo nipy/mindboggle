@@ -99,10 +99,10 @@ def propagate(points, faces, region, seeds, labels,
     >>> for useg in np.unique(segments):
     ...     len_segments.append(len(np.where(segments == useg)[0]))
     >>> len_segments[0:10]
-#    [143918, 1151]
-#
-#    Write results to vtk file and view (skip test):
-#
+    [143918, 1151]
+
+    Write results to vtk file and view (skip test):
+
     >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
     >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP
     >>> rewrite_scalars(label_file, 'propagate.vtk',

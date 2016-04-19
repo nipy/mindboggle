@@ -1140,6 +1140,7 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
     >>> labels_or_file = fetch_data(urls['left_folds'])
     >>> save_file = True
     >>> output_filestring = 'rescaled_scalars'
+    >>> background_value = -1
     >>> verbose = False
     >>> rescaled, rescaled_label_file = rescale_by_label(input_vtk,
     ...     labels_or_file, save_file, output_filestring, background_value, verbose)

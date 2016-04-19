@@ -272,10 +272,10 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files,
     [ 14.59311   6.16008   0.     ]
     >>> print(np.array_str(np.array(curv_border['means']),
     ...       precision=5, suppress_small=True))
-    [ 3.37498 -0.21181 -2.04204]
+    [ 3.06449 -0.76109 -3.43184]
     >>> print(np.array_str(np.array(curv_nonborder['means']),
     ...       precision=5, suppress_small=True))
-    [ 1.82383 -0.9718  -3.22018]
+    [ 0.62236 -1.55192 -5.19359]
     >>> pickle.dump([depth_border, curv_border, depth_nonborder, curv_nonborder],
     ...     open("depth_curv_border_nonborder_parameters.pkl", "wb"))
 

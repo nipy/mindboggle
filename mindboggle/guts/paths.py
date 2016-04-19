@@ -70,9 +70,9 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     >>> points, f1,f2,f3, curvs, f4,f5,f6 = read_vtk(curv_file, True,True)
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> folds, name = read_scalars(folds_file, True, True)
-    >>> values = curvs * depths
+    >>> values = depths/max(depths) * abs(curvs)/max(abs(curvs))
     >>> print(np.array_str(values[0:5], precision=5, suppress_small=True))
-    [-0.11778 -0.35642 -0.80759 -0.25654 -0.04411]
+    [ 0.00028  0.00085  0.00193  0.00061  0.00011]
     >>> neighbor_lists = find_neighbors_from_file(curv_file)
     >>> background_value = -1
     >>> # Limit number of folds to speed up the test:
@@ -88,7 +88,8 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     >>> min_separation = 10
     >>> verbose = False
     >>> outer_anchors, tracks = find_outer_endpoints(indices, neighbor_lists,
-    ...                             values, depths, min_separation, verbose)
+    ...                             values, depths, min_separation,
+    ...                             background_value, verbose)
     >>> outer_anchors[0:10]
     [50324, 66986, 75661]
     >>> # Inner anchors:
@@ -344,7 +345,8 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists,
     >>> min_separation = 10
     >>> verbose = False
     >>> indices_points, tracks = find_outer_endpoints(indices, neighbor_lists,
-    ...                             L, depths, min_separation, verbose)
+    ...                             L, depths, min_separation,
+    ...                             background_value, verbose)
     >>> wN_max = 2.0
     >>> do_erode = True
     >>> skeleton = connect_points_hmmf(indices_points, indices, L,
@@ -658,11 +660,9 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
     Examples
     --------
     >>> # Smooth skeleton to extract fundus from one or more folds:
-    >>> single_fold = True
     >>> import numpy as np
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> from mindboggle.guts.paths import smooth_skeleton
-    >>> from mindboggle.guts.paths import find_outer_endpoints
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.guts.compute import median_abs_dev
     >>> from mindboggle.guts.mesh import find_neighbors_from_file
@@ -955,7 +955,6 @@ def track_segments(seed, segments, neighbor_lists, values, sink,
 
     # If the track remains empty or does not reach the border, return the track:
     return None
-
 
 def find_outer_endpoints(indices, neighbor_lists, values, values_seeding,
                          min_separation=10, background_value=-1,
