@@ -70,9 +70,9 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     >>> points, f1,f2,f3, curvs, f4,f5,f6 = read_vtk(curv_file, True,True)
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> folds, name = read_scalars(folds_file, True, True)
-    >>> values = depths/max(depths) * abs(curvs)/max(abs(curvs))
+    >>> values = depths * curvs
     >>> print(np.array_str(values[0:5], precision=5, suppress_small=True))
-    [ 0.00028  0.00085  0.00193  0.00061  0.00011]
+    [-0.11778 -0.35642 -0.80759 -0.25654 -0.04411]
     >>> neighbor_lists = find_neighbors_from_file(curv_file)
     >>> background_value = -1
     >>> # Limit number of folds to speed up the test:
@@ -91,7 +91,7 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     ...                             values, depths, min_separation,
     ...                             background_value, verbose)
     >>> outer_anchors[0:10]
-    [50324, 61015, 66953]
+    [50324, 66986, 75661]
     >>> # Inner anchors:
     >>> values0 = [x for x in values if x > 0]
     >>> thr = np.median(values0) + 2 * median_abs_dev(values0)
@@ -675,9 +675,9 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
     >>> curvs, name = read_scalars(curv_file, True, True)
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> vtk_file = curv_file
-    >>> likelihoods = depths * abs(curvs)
+    >>> likelihoods = depths * curvs
     >>> print(np.array_str(likelihoods[0:5], precision=5, suppress_small=True))
-    [ 0.11778  0.35642  0.80759  0.25654  0.04411]
+    [-0.11778 -0.35642 -0.80759 -0.25654 -0.04411]
     >>> bounds, name = read_scalars(folds_file, True, True)
     >>> skeletons, name = read_scalars(fundus_file, True, True)
     >>> background_value = -1
@@ -696,7 +696,7 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
     ...     bounds, vtk_file, likelihoods, wN_max, do_erode, save_file,
     ...     background_value, verbose)
     >>> np.where(np.array(smooth_skeletons)!=-1)[0][0:8]
-    array([112572, 113453, 113468, 114294, 114295, 114313, 114315, 115087])
+    array([112572, 113453, 113454, 113469, 114312, 114313, 114325, 115087])
 
     Write out vtk file and view (skip test):
 
@@ -1236,9 +1236,9 @@ def find_max_values(points, values, min_separation=10, thr=0.5):
     >>> folds_file = fetch_data(urls['left_folds'])
     >>> points, f1,f2,f3, curvs, f4,f5,f6 = read_vtk(curv_file, True,True)
     >>> depths, name = read_scalars(depth_file, True, True)
-    >>> values = depths * abs(curvs)
+    >>> values = depths * curvs
     >>> print(np.array_str(values[0:5], precision=5, suppress_small=True))
-    [ 0.11778  0.35642  0.80759  0.25654  0.04411]
+    [-0.11778 -0.35642 -0.80759 -0.25654 -0.04411]
     >>> min_separation = 10
     >>> values0 = [x for x in values if x > 0]
     >>> thr = np.median(values0) + 2 * median_abs_dev(values0)
@@ -1250,7 +1250,7 @@ def find_max_values(points, values, min_separation=10, thr=0.5):
 
     >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
     >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP
-    >>> values[inner_anchors] = np.max(values) + 0.1 # doctest: +SKIP
+    >>> values[inner_anchors] = np.max(values) + 10 # doctest: +SKIP
     >>> rewrite_scalars(depth_file, 'find_max_values.vtk',
     ...                 values, 'find_max_values', [], -1) # doctest: +SKIP
     >>> plot_surfaces('find_max_values.vtk') # doctest: +SKIP

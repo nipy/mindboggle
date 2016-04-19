@@ -349,7 +349,7 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
 
                             # Propagate sulcus ID from seeds to vertices
                             # with a given shared label:
-                            seg_vs_prop = True
+                            seg_vs_prop = False
                             if seg_vs_prop:
                                 indices_seeds = []
                                 for seed in [x for x in np.unique(seeds)

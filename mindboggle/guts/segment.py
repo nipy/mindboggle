@@ -71,7 +71,7 @@ def propagate(points, faces, region, seeds, labels,
     >>> # Limit number of folds to speed up the test:
     >>> limit_folds = True
     >>> if limit_folds:
-    ...     fold_numbers = [4] #[4, 6]
+    ...     fold_numbers = [4, 7] #[4, 6]
     ...     indices_fold = [i for i,x in enumerate(folds) if x in fold_numbers]
     ...     i0 = [i for i,x in enumerate(folds) if x not in fold_numbers]
     ...     folds[i0] = background_value
@@ -86,7 +86,7 @@ def propagate(points, faces, region, seeds, labels,
     ...     I = [x for i,x in enumerate(indices_borders)
     ...          if np.sort(label_pairs[i]).tolist() in label_pair_list]
     ...     seeds[I] = ilist
-    >>> verbose = False
+#    >>> verbose = False
     >>> region = folds
     >>> max_iters = 500
     >>> tol = 0.001
@@ -94,12 +94,11 @@ def propagate(points, faces, region, seeds, labels,
     >>> segments = propagate(points, faces, region, seeds, labels,
     ...                      max_iters, tol, sigma, background_value, verbose)
     >>> np.unique(segments)[0:10]
-    array([-1.,  3.])
-    >>> len_segments = []
-    >>> for useg in np.unique(segments):
-    ...     len_segments.append(len(np.where(segments == useg)[0]))
+    array([ -1.,   3.,  12.,  23.])
+    >>> len_segments = [len(np.where(segments == x)[0])
+    ...                 for x in np.unique(segments) if x != background_value]
     >>> len_segments[0:10]
-    [143918, 1151]
+    [1152, 388, 116]
 
     Write results to vtk file and view (skip test):
 
@@ -163,7 +162,7 @@ def propagate(points, faces, region, seeds, labels,
                                        max_iters=max_iters,
                                        tol=tol,
                                        vis=False,
-                                       verbose=False)
+                                       verbose=verbose)
 
                 # Assign maximum probability seed IDs to each point of region:
                 max_prob_labels = B.assign_max_prob_label(verbose=False)
@@ -241,9 +240,8 @@ def segment_regions(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> segments = segment_regions(vertices_to_segment, neighbor_lists)
     >>> len(np.unique(segments))
     92
-    >>> len_segments = []
-    >>> for useg in np.unique(segments):
-    ...     len_segments.append(len(np.where(segments == useg)[0]))
+    >>> len_segments = [len(np.where(segments == x)[0])
+    ...                 for x in np.unique(segments) if x != background_value]
     >>> len_segments[0:10]
     [26631, 110928, 4, 1399, 1274, 5, 139, 255, 12, 5]
 
@@ -267,33 +265,34 @@ def segment_regions(vertices_to_segment, neighbor_lists, min_region_size=1,
     ...     labels, neighbor_lists, ignore_values=[], return_label_pairs=True)
     >>> seed_lists = []
     >>> for label_pair_list in dkt.sulcus_label_pair_lists:
-    ...     seed_lists.append([x for i,x in enumerate(indices_borders) if np.sort(label_pairs[i]).tolist() in label_pair_list])
+    ...     seed_lists.append([x for i,x in enumerate(indices_borders)
+    ...                        if np.sort(label_pairs[i]).tolist()
+    ...                        in label_pair_list])
     >>> keep_seeding = True
     >>> spread_within_labels = True
     >>> values = []
     >>> max_steps = ''
     >>> background_value = -1
     >>> verbose = False
-    >>> segments_from_seeds = segment_regions(vertices_to_segment,
+    >>> segments = segment_regions(vertices_to_segment,
     ...     neighbor_lists, 1, seed_lists, keep_seeding, spread_within_labels,
     ...     labels, label_lists, values, max_steps, background_value, verbose)
     >>> len(np.unique(segments))
-    92
+    122
     >>> np.unique(segments)[0:10]
-    array([-1.,  0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.])
-    >>> len_segments = []
-    >>> for useg in np.unique(segments):
-    ...     len_segments.append(len(np.where(segments == useg)[0]))
+    array([ -1.,   1.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  11.])
+    >>> len_segments = [len(np.where(segments == x)[0])
+    ...                 for x in np.unique(segments) if x != background_value]
     >>> len_segments[0:10]
-    [26631, 110928, 4, 1399, 1274, 5, 139, 255, 12, 5]
+    [6962, 8033, 5965, 5598, 7412, 3636, 3070, 5244, 3972, 6144]
 
     Write results to vtk file and view (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
     >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP
-    >>> rewrite_scalars(depth_file, 'segment_seeds.vtk', segments_from_seeds,
-    ...     'segments_from_seeds', [], -1) # doctest: +SKIP
-    >>> plot_surfaces('segment_seeds.vtk') # doctest: +SKIP
+    >>> rewrite_scalars(depth_file, 'segments.vtk', segments,
+    ...     'segments', [], -1) # doctest: +SKIP
+    >>> plot_surfaces('segments.vtk') # doctest: +SKIP
 
     """
     import numpy as np
