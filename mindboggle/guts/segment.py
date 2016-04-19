@@ -86,7 +86,7 @@ def propagate(points, faces, region, seeds, labels,
     ...     I = [x for i,x in enumerate(indices_borders)
     ...          if np.sort(label_pairs[i]).tolist() in label_pair_list]
     ...     seeds[I] = ilist
-#    >>> verbose = False
+    >>> verbose = False
     >>> region = folds
     >>> max_iters = 500
     >>> tol = 0.001
