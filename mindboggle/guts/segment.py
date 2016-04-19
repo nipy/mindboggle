@@ -94,7 +94,7 @@ def propagate(points, faces, region, seeds, labels,
     >>> segments = propagate(points, faces, region, seeds, labels,
     ...                      max_iters, tol, sigma, background_value, verbose)
     >>> np.unique(segments)[0:10]
-    array([ -1.,  3.])
+    array([-1.,  3.])
     >>> len_segments = []
     >>> for useg in np.unique(segments):
     ...     len_segments.append(len(np.where(segments == useg)[0]))
@@ -846,7 +846,7 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
     >>> # Perform watershed segmentation on the deeper portions of a surface:
     >>> import numpy as np
     >>> from mindboggle.guts.mesh import find_neighbors
-    >>> from mindboggle.guts.segment import watershed, segment
+    >>> from mindboggle.guts.segment import watershed
     >>> from mindboggle.mio.vtks import read_vtk
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()

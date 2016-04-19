@@ -91,7 +91,7 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     ...                             values, depths, min_separation,
     ...                             background_value, verbose)
     >>> outer_anchors[0:10]
-    [50324, 66986, 75661]
+    [50324, 61015, 66953]
     >>> # Inner anchors:
     >>> values0 = [x for x in values if x > 0]
     >>> thr = np.median(values0) + 2 * median_abs_dev(values0)

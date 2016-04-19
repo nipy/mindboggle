@@ -46,7 +46,7 @@ def plot_surfaces(vtk_files, use_colormap=False, colormap_file=''):
     >>> from mindboggle.mio.vtks import rewrite_scalars
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> urls, fetch_data = prep_tests()
-    >>> labels_file = fetch_data(urls['manual_labels']) #'left_freesurfer_labels'
+    >>> labels_file = fetch_data(urls['left_manual_labels']) #'left_freesurfer_labels'
     >>> folds_file = fetch_data(urls['left_folds'])
     >>> labels, name = read_scalars(labels_file, True, True)
     >>> folds, name = read_scalars(folds_file, True, True)
