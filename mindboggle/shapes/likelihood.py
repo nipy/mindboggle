@@ -177,7 +177,7 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
 
 
 def estimate_distribution(scalar_files, scalar_range, fold_files, label_files,
-                          background_value=-1, verbose):
+                          background_value=-1, verbose=False):
     """
     Estimate sulcus label border scalar distributions from VTK files.
 

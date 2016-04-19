@@ -75,15 +75,15 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     >>> hemi = 'lh'
     >>> min_boundary = 10
     >>> sulcus_names = []
-    >>> verbose = True #False
+    >>> verbose = False
     >>> sulci, n_sulci, sulci_file = extract_sulci(labels_file, folds_or_file,
     ...     hemi, min_boundary, sulcus_names, background_value, verbose)
     >>> n_sulci  # 23
-    3
+    5
     >>> lens = [len([x for x in sulci if x==y])
     ...         for y in np.unique(sulci) if y != -1]
     >>> lens[0:10]  # [6358, 3288, 7612, 5205, 4414, 6251, 3493, 2566, 4436, 739]
-    [1151]
+    [222, 119, 1151, 105, 16]
 
     View result (skip test):
 
@@ -352,10 +352,12 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
                             seg_vs_prop = True
                             if seg_vs_prop:
                                 indices_seeds = []
-                                for seed in np.unique(seeds):
+                                for seed in [x for x in np.unique(seeds)
+                                             if x != background_value]:
                                    indices_seeds.append([i for i,x
                                                          in enumerate(seeds)
                                                          if x == seed])
+
                                 sulci2 = segment_regions(indices_label,
                                             neighbor_lists, 50, indices_seeds,
                                             False, True, labels, [], [], '',
