@@ -72,7 +72,7 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     >>> # Limit number of folds to speed up the test:
     >>> limit_folds = True
     >>> if limit_folds:
-    ...     fold_numbers = [4] #[4, 6]
+    ...     fold_numbers = [7] #[4, 6]
     ...     i0 = [i for i,x in enumerate(folds) if x not in fold_numbers]
     ...     folds[i0] = -1
     >>> min_separation = 10
@@ -195,6 +195,7 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     #-------------------------------------------------------------------------
     # Return fundi, number of fundi, and file name:
     #-------------------------------------------------------------------------
+    fundus_per_fold_file = None
     if n_fundi_in_folds > 0:
         fundus_per_fold = [int(x) for x in fundus_per_fold]
         if save_file:
@@ -204,8 +205,6 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
                             'fundi', [], background_value)
             if not os.path.exists(fundus_per_fold_file):
                 raise IOError(fundus_per_fold_file + " not found")
-        else:
-            fundus_per_fold_file = None
 
     return fundus_per_fold,  n_fundi_in_folds, fundus_per_fold_file
 

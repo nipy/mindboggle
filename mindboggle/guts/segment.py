@@ -228,6 +228,7 @@ def segment_regions(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> from mindboggle.mio.vtks import read_vtk
     >>> from mindboggle.guts.mesh import find_neighbors
     >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> background_value = -1
     >>> urls, fetch_data = prep_tests()
     >>> depth_file = fetch_data(urls['left_travel_depth'])
     >>> f1,f2,f3, faces, depths, f4, npoints, t5 = read_vtk(depth_file,
