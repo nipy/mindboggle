@@ -32,9 +32,9 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     ----------
     labels_or_file : list or string
         label number for each vertex or name of VTK file with index scalars
-    sulci :  list of integers
+    sulci : list of integers
         indices to sulci, one per vertex, with -1 indicating no sulcus
-    fundi :  list of integers
+    fundi : list of integers
         indices to fundi, one per vertex, with -1 indicating no fundus
     affine_transform_files : list of strings
         affine transform files to standard space
@@ -97,7 +97,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     >>> urls, fetch_data = prep_tests()
     >>> label_file = fetch_data(urls['left_freesurfer_labels'])
     >>> sulci_file = fetch_data(urls['left_sulci'])
-    >>> fundi_file = '' #fetch_data(urls['left_fundi'])
+    >>> fundi_file = fetch_data(urls['left_fundus_per_sulcus'])
     >>> mean_curvature_file = fetch_data(urls['left_mean_curvature'])
     >>> travel_depth_file = fetch_data(urls['left_travel_depth'])
     >>> geodesic_depth_file = fetch_data(urls['left_geodesic_depth'])
@@ -106,7 +106,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     >>> freesurfer_curvature_file = ''
     >>> freesurfer_sulc_file = ''
     >>> sulci, name = read_scalars(sulci_file)
-    >>> fundi = []  #fundi, name = read_scalars(fundi_file)
+    >>> fundi, name = read_scalars(fundi_file)
     >>> affine_transform_files = []
     >>> inverse_booleans = []
     >>> transform_format = 'itk'
@@ -455,7 +455,7 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     >>> urls, fetch_data = prep_tests()
     >>> labels_or_file = fetch_data(urls['left_freesurfer_labels'])
     >>> sulci_file = fetch_data(urls['left_sulci'])
-    >>> fundi_file = fetch_data(urls['left_fundi'])
+    >>> fundi_file = fetch_data(urls['left_fundus_per_sulcus'])
     >>> mean_curvature_file = fetch_data(urls['left_mean_curvature'])
     >>> travel_depth_file = fetch_data(urls['left_travel_depth'])
     >>> geodesic_depth_file = fetch_data(urls['left_geodesic_depth'])

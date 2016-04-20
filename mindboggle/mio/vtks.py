@@ -89,7 +89,7 @@ def read_lines(filename):
     >>> from mindboggle.mio.vtks import read_lines
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> fundus_file = fetch_data(urls['left_fundi'])
+    >>> fundus_file = fetch_data(urls['left_fundus_per_fold'])
     >>> lines, scalars  = read_lines(fundus_file) # doctest: +SKIP
 
     """

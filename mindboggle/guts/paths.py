@@ -671,7 +671,7 @@ def smooth_skeletons(skeletons, bounds, vtk_file, likelihoods,
     >>> curv_file = fetch_data(urls['left_mean_curvature'])
     >>> depth_file = fetch_data(urls['left_travel_depth'])
     >>> folds_file = fetch_data(urls['left_folds'])
-    >>> fundus_file = fetch_data(urls['left_fundi'])
+    >>> fundus_file = fetch_data(urls['left_fundus_per_fold'])
     >>> curvs, name = read_scalars(curv_file, True, True)
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> vtk_file = curv_file

@@ -265,7 +265,7 @@ def find_endpoints(indices, neighbor_lists):
     >>> from mindboggle.mio.vtks import read_scalars
     >>> urls, fetch_data = prep_tests()
     >>> folds_file = fetch_data(urls['left_folds'])
-    >>> fundus_file = fetch_data(urls['left_fundi'])
+    >>> fundus_file = fetch_data(urls['left_fundus_per_fold'])
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> fundi, name = read_scalars(fundus_file, True, True)
     >>> background_value = -1
