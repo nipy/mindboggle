@@ -280,7 +280,7 @@ def find_endpoints(indices, neighbor_lists):
     >>> neighbor_lists = find_neighbors_from_file(fundus_file)
     >>> indices_endpoints = find_endpoints(indices, neighbor_lists)
     >>> indices_endpoints[0:5]
-    [32782, 35142, 45244, 49010, 63051]
+    [32804, 34043, 36588, 39274, 47657]
 
     View endpoints (skip test):
 

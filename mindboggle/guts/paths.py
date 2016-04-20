@@ -696,7 +696,7 @@ def smooth_skeletons(skeletons, bounds, vtk_file, likelihoods,
     ...     bounds, vtk_file, likelihoods, wN_max, do_erode, save_file,
     ...     background_value, verbose)
     >>> np.where(np.array(smoothed_skeletons)!=-1)[0][0:8]
-    array([112572, 113453, 113454, 113469, 114312, 114313, 114325, 115087])
+    array([113453, 113454, 113455, 114312, 114313, 114325, 115087, 115088])
 
     Write out vtk file and view (skip test):
 
