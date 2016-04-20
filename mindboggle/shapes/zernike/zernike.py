@@ -57,6 +57,8 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     >>> faces = [[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]]
     >>> order = 3
     >>> scale_input = True
+    >>> decimate_fraction = 0
+    >>> decimate_smooth = 0
     >>> verbose = False
     >>> descriptors = zernike_moments(points, faces, order, scale_input,
     ...     verbose)
@@ -116,7 +118,7 @@ def zernike_moments(points, faces, order=10, scale_input=True,
 
     from mindboggle.guts.mesh import reindex_faces_0to1
     from mindboggle.guts.mesh import decimate
-    from .pipelines import DefaultPipeline as ZernikePipeline
+    from mindboggle.shapes.zernike.pipelines import DefaultPipeline as ZernikePipeline
 
     # Convert 0-indices (Python) to 1-indices (Matlab) for all face indices:
     index1 = False  # already done elsewhere in the code

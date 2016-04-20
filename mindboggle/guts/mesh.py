@@ -41,11 +41,12 @@ def find_neighbors_from_file(input_vtk):
 
     >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP
     >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
-    >>> index = 0 # doctest: +SKIP
-    >>> IDs = -1 * np.ones(npoints) # doctest: +SKIP
+    >>> index = 100 # doctest: +SKIP
+    >>> IDs = -1 * np.ones(len(neighbor_lists)) # doctest: +SKIP
     >>> IDs[index] = 1 # doctest: +SKIP
     >>> IDs[neighbor_lists[index]] = 2 # doctest: +SKIP
-    >>> rewrite_scalars(vtk_file, 'find_neighbors_from_file.vtk', IDs, 'neighbors', IDs) # doctest: +SKIP
+    >>> rewrite_scalars(vtk_file, 'find_neighbors_from_file.vtk', IDs,
+    ...                 'neighbors', IDs) # doctest: +SKIP
     >>> plot_surfaces('find_neighbors_from_file.vtk') # doctest: +SKIP
 
     """
@@ -102,8 +103,8 @@ def find_neighbors(faces, npoints):
     Write results to vtk file and view (skip test):
 
     >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP
-    >>> index = 0 # doctest: +SKIP
-    >>> IDs = -1 * np.ones(npoints) # doctest: +SKIP
+    >>> index = 100 # doctest: +SKIP
+    >>> IDs = -1 * np.ones(len(neighbor_lists)) # doctest: +SKIP
     >>> IDs[index] = 1 # doctest: +SKIP
     >>> IDs[neighbor_lists[index]] = 2 # doctest: +SKIP
     >>> rewrite_scalars(vtk_file, 'find_neighbors.vtk', IDs, 'neighbors', IDs) # doctest: +SKIP
@@ -257,27 +258,37 @@ def find_endpoints(indices, neighbor_lists):
 
     Examples
     --------
+    >>> # Find endpoints of fundus in a fold:
     >>> from mindboggle.guts.mesh import find_endpoints
     >>> from mindboggle.guts.mesh import find_neighbors_from_file
     >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> from mindboggle.mio.vtks import read_scalars
     >>> urls, fetch_data = prep_tests()
     >>> folds_file = fetch_data(urls['left_folds'])
-    >>> indices = list(range(1000))
-    >>> neighbor_lists = find_neighbors_from_file(folds_file)
+    >>> fundus_file = fetch_data(urls['left_fundi'])
+    >>> folds, name = read_scalars(folds_file, True, True)
+    >>> fundi, name = read_scalars(fundus_file, True, True)
+    >>> background_value = -1
+    >>> # Limit number of folds to speed up the test:
+    >>> limit_folds = True
+    >>> if limit_folds:
+    ...     fold_numbers = [2]
+    ...     i0 = [i for i,x in enumerate(folds) if x not in fold_numbers]
+    ...     folds[i0] = background_value
+    ...     fundi[i0] = background_value
+    ...     indices = [i for i,x in enumerate(fundi) if x != background_value]
+    >>> neighbor_lists = find_neighbors_from_file(fundus_file)
     >>> indices_endpoints = find_endpoints(indices, neighbor_lists)
-    >>> indices_endpoints
-    [854]
+    >>> indices_endpoints[0:5]
+    [68445, 68453]
 
-    View endpoints on surface fold (skip test):
+    View endpoints (skip test):
 
-    >>> import numpy as np
-    >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars # doctest: +SKIP
+    >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP
     >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
-    >>> folds, name = read_scalars(folds_file, True, True) # doctest: +SKIP
-    >>> T = -1 * np.ones(len(folds)) # doctest: +SKIP
-    >>> T[indices_endpoints] = 4 # doctest: +SKIP
-    >>> rewrite_scalars(folds_file, 'find_endpoints.vtk', T,
-    ...     'endpoints', [], -1) # doctest: +SKIP
+    >>> fundi[indices_endpoints] = 50 # doctest: +SKIP
+    >>> rewrite_scalars(fundus_file, 'find_endpoints.vtk', fundi,
+    ...     'endpoints', folds, background_value) # doctest: +SKIP
     >>> plot_surfaces('find_endpoints.vtk') # doctest: +SKIP
 
     """
@@ -611,39 +622,40 @@ def reindex_faces_points(faces, points=[]):
     >>> new_faces
     [[5, 0, 1], [0, 1, 4], [2, 4, 5], [1, 0, 3]]
 
-    Reindex faces of a single fold of the brain:
+    Reindex faces of a limited number of folds of the brain:
 
     >>> import numpy as np
+    >>> from mindboggle.guts.mesh import keep_faces
     >>> from mindboggle.mio.vtks import read_faces_points
     >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
     >>> folds_file = fetch_data(urls['left_folds'])
     >>> folds, name = read_scalars(folds_file, True, True)
-    >>> fold_number = 4
-    >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_number]
-    >>> T = -1 * np.ones(len(folds))
-    >>> T[indices_fold] = 1
-    >>> rewrite_scalars(folds_file, 'fold.vtk', T, 'fold', [],-1)
-    >>> faces, points, npoints = read_faces_points('fold.vtk')
+    >>> fold_numbers = [4]
+    >>> indices = [i for i,x in enumerate(folds) if x in fold_numbers]
+    >>> i0 = [i for i,x in enumerate(folds) if x not in fold_numbers]
+    >>> background_value = -1
+    >>> folds[i0] = background_value
+    >>> faces, points, npoints = read_faces_points(folds_file)
+    >>> faces = keep_faces(faces, indices)
+    >>> faces[0:3]
+    [[51535, 50324, 51529], [50317, 50325, 50326], [50324, 50332, 50333]]
     >>> new_faces, new_points, original_indices = reindex_faces_points(faces,
     ...     points)
-    >>> new_faces[0:5]
-    [[0, 1, 4], [5, 4, 1], [0, 48, 49], [0, 49, 1], [0, 4, 48]]
-    >>> print(np.array_str(np.array(new_points[0]),
+    >>> new_faces[0:3]
+    [[277, 690, 276], [689, 691, 692], [690, 698, 699]]
+    >>> print(np.array_str(np.array(points[0]),
     ...       precision=5, suppress_small=True))
     [-13.7924  -76.0973   -2.57594]
-    >>> print(np.array_str(np.array(new_points[1]),
+    >>> print(np.array_str(np.array(new_points[0]),
     ...       precision=5, suppress_small=True))
-    [-14.2225  -76.2362   -2.73425]
-    >>> print(np.array_str(np.array(new_points[2]),
-    ...       precision=5, suppress_small=True))
-    [-14.9617  -76.2497   -2.62924]
+    [-13.7802 -12.3814  57.4042]
 
     View reindexed fold on surface (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces
-    >>> plot_surfaces('fold.vtk') # doctest: +SKIP
+    >>> plot_surfaces('reindex_faces_points.vtk') # doctest: +SKIP
 
     """
     import numpy as np
@@ -783,7 +795,7 @@ def decimate(points, faces, reduction=0.75, smooth_steps=25,
     >>> reduction = 0.5
     >>> smooth_steps = 25
     >>> save_vtk = True
-    >>> output_vtk = ''
+    >>> output_vtk = 'decimate.vtk'
     >>> points2, faces2, scalars, output_vtk = decimate(points, faces,
     ...     reduction, smooth_steps, scalars, save_vtk, output_vtk)
     >>> (len(points), len(points2))
@@ -793,8 +805,8 @@ def decimate(points, faces, reduction=0.75, smooth_steps=25,
 
     View decimated surface (skip test):
 
-    >>> from mindboggle.mio.plots import plot_surfaces
-    >>> plot_surfaces('decimated.vtk') # doctest: +SKIP
+    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
+    >>> plot_surfaces('decimate.vtk') # doctest: +SKIP
 
     """
     import os
@@ -949,7 +961,7 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100,
     >>> urls, fetch_data = prep_tests()
     >>> input_vtk = fetch_data(urls['left_freesurfer_labels'])
     >>> save_vtk = True
-    >>> output_vtk = ''
+    >>> output_vtk = 'decimate.vtk'
     >>> reduction = 0.5
     >>> smooth_steps = 25
     >>> output_vtk = decimate_file(input_vtk, reduction, smooth_steps,
@@ -964,7 +976,7 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100,
     View decimated surface (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces
-    >>> plot_surfaces('decimated.vtk') # doctest: +SKIP
+    >>> plot_surfaces('decimate.vtk') # doctest: +SKIP
 
     """
     from mindboggle.mio.vtks import read_vtk
@@ -1031,7 +1043,7 @@ def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
     >>> p = 99
     >>> set_max_to_1 = True
     >>> save_file = True
-    >>> output_filestring = 'rescaled_scalars'
+    >>> output_filestring = 'rescale_by_neighborhood'
     >>> background_value = -1
     >>> rescaled, rescaled_file = rescale_by_neighborhood(input_vtk,
     ...     indices, nedges, p, set_max_to_1, save_file, output_filestring,
@@ -1139,7 +1151,7 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
     >>> input_vtk = fetch_data(urls['left_travel_depth'])
     >>> labels_or_file = fetch_data(urls['left_folds'])
     >>> save_file = True
-    >>> output_filestring = 'rescaled_scalars'
+    >>> output_filestring = 'rescale_by_label'
     >>> background_value = -1
     >>> verbose = False
     >>> rescaled, rescaled_label_file = rescale_by_label(input_vtk,
@@ -1411,8 +1423,8 @@ def extract_edge(indices, neighbor_lists):
     >>> IDs = -1 * np.ones(len(folds)) # doctest: +SKIP
     >>> IDs[indices] = 1 # doctest: +SKIP
     >>> IDs[edge_indices] = 2 # doctest: +SKIP
-    >>> rewrite_scalars(vtk_file, 'edge.vtk', IDs, 'edges_of_fold', IDs) # doctest: +SKIP
-    >>> plot_surfaces('edge.vtk') # doctest: +SKIP
+    >>> rewrite_scalars(vtk_file, 'extract_edge.vtk', IDs, 'edges_of_fold', IDs) # doctest: +SKIP
+    >>> plot_surfaces('extract_edge.vtk') # doctest: +SKIP
 
     """
     from mindboggle.guts.mesh import find_neighborhood

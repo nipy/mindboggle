@@ -65,9 +65,9 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     >>> labels_file = fetch_data(urls['left_freesurfer_labels'])
     >>> folds_file = fetch_data(urls['left_folds'])
     >>> folds_or_file, name = read_scalars(folds_file, True, True)
-    >>> # Limit number of folds to speed up the test:
     >>> background_value = -1
-    >>> limit_folds = True
+    >>> # Limit number of folds to speed up the test:
+    >>> limit_folds = False
     >>> if limit_folds:
     ...     fold_numbers = [4, 7] #[4, 6]
     ...     i0 = [i for i,x in enumerate(folds_or_file) if x not in fold_numbers]
@@ -79,11 +79,11 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     >>> sulci, n_sulci, sulci_file = extract_sulci(labels_file, folds_or_file,
     ...     hemi, min_boundary, sulcus_names, background_value, verbose)
     >>> n_sulci  # 23
-    5
+    3
     >>> lens = [len([x for x in sulci if x==y])
     ...         for y in np.unique(sulci) if y != -1]
     >>> lens[0:10]  # [6358, 3288, 7612, 5205, 4414, 6251, 3493, 2566, 4436, 739]
-    [222, 119, 1151, 105, 16]
+    [1151, 369, 93]
 
     View result (skip test):
 

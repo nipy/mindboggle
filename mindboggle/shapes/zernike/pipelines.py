@@ -6,7 +6,7 @@ from scipy.misc import (factorial,
                         comb as nchoosek,
                         )
 
-from .helpers import nest, autocat
+from mindboggle.shapes.zernike.helpers import nest, autocat
 
 import logging
 LOG = logging.getLogger(__name__)
@@ -156,7 +156,8 @@ class SerialPipeline(Pipeline):
                                  lambda _n, _l: range(_l + 1),
                                  lambda _n, _l, _m: range(int((_n - _l) / 2) + 1),
                                  ):
-            k = (n - l) / 2
+            # integer required for k when used as power in Qklnu below:
+            k = int((n - l) / 2)
             Z[n, l, m] += (3 / (4 * PI_CONST)) * \
                 self.Qklnu(k, l, nu) * np.conj(Y[l, nu, m])
 
@@ -182,7 +183,7 @@ class SerialPipeline(Pipeline):
         return y
 
     def Qklnu(self, k, l, nu):
-        aux_1 = np.power(-1, k + nu) / np.power(4.0, k)
+        aux_1 = np.power(-1, k + nu) / np.float(np.power(4, k))
         aux_2 = np.sqrt((2 * l + 4 * k + 3) / 3.0)
         aux_3 = self.trinomial(
             nu, k - nu, l + nu + 1) * nchoosek(2 * (l + nu + 1 + k), l + nu + 1 + k)
@@ -309,6 +310,12 @@ class KoehlOptimizations(Pipeline):
         Vf = self.facet_volume(vertex_list)
         Cf = self.term_Cijk(vertex_list[2], N)
         Df = self.term_Dijk(vertex_list[1], N, Cf)
+        print('Vf')
+        print(Vf)
+        print('Cf')
+        print(Cf)
+        print('Df')
+        print(Df)
         return Vf*self.term_Sijk(vertex_list[0], N, Df)
 
     def term_Cijk(self, vertex, N):
@@ -341,6 +348,9 @@ class KoehlOptimizations(Pipeline):
         return Q
 
 def _kmp_geometric_moments_exact_worker(self, vertex_list, N):
+    print('_kmp_geometric_moments_exact_worker')
+    print('self.facet_contribution(vertex_list, N)')
+    print(self.facet_contribution(vertex_list, N))
     return self.facet_contribution(vertex_list, N)
 
 class KoehlMultiproc(KoehlOptimizations):
@@ -349,12 +359,22 @@ class KoehlMultiproc(KoehlOptimizations):
         assert n_vertices == 3
         moments_array = np.zeros([N+1, N+1, N+1])
         process_pool = mp.Pool()
+        print('KoehlMultiproc')
         for face in faces_array:
             vertex_list = [points_array[_i, ...] for _i in face]
+
+            print('vertex_list')
+            print(vertex_list)
+
             process_pool.apply_async(_kmp_geometric_moments_exact_worker,
                                      args=(self, vertex_list, N),
                                      callback=moments_array.__iadd__,
                                      )
+        print('moments_array')
+        print(moments_array)
+        print('process_pool')
+        print(process_pool)
+
         process_pool.close()
         process_pool.join()
         return self.factorial_scalar(N)*moments_array

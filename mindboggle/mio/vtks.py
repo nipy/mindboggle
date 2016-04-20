@@ -667,14 +667,14 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     >>> #scalars = [[random.random() for i in range(4)] for j in [1,2]]
     >>> scalars = [[1,3,5,7],[2,4,6,8]]
     >>> scalar_names = ['curv','depth']
-    >>> output_vtk = 'write_vtk.vtk'
+    >>> output_vtk = 'write_vtk_toy.vtk'
     >>> scalar_type = 'float'
     >>> write_vtk(output_vtk, points, indices, lines, faces, scalars,
-    ...           scalar_names, scalar_type)
+    ...           scalar_names, scalar_type) # doctest: +SKIP
 
     View resulting vtk file (skip test):
 
-    >>> from mindboggle.mio.plots import plot_surfaces
+    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
     >>> plot_surfaces(output_vtk) # doctest: +SKIP
 
     Write vtk file with depth values and view (skip plot in test):
@@ -688,6 +688,9 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     >>> scalar_type = 'float'
     >>> write_vtk(output_vtk, points, indices, lines, faces, scalars,
     ...           scalar_names, scalar_type)
+
+    View resulting vtk file (skip test):
+
     >>> plot_surfaces(output_vtk) # doctest: +SKIP
 
     """
@@ -902,10 +905,10 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     >>> urls, fetch_data = prep_tests()
     >>> input_indices_vtk = fetch_data(urls['left_sulci'])
     >>> input_values_vtk = fetch_data(urls['left_travel_depth'])
-    >>> output_stem = 'sulci_depth'
+    >>> output_stem = 'explode_scalars_sulcus_depth'
     >>> exclude_values = [-1]
     >>> background_value = -1,
-    >>> output_scalar_name = 'scalars'
+    >>> output_scalar_name = 'sulcus_depth'
     >>> remove_background_faces = True
     >>> reindex = True
     >>> verbose = False
@@ -921,7 +924,9 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     Example 2:  explode labels
 
     >>> input_indices_vtk = fetch_data(urls['left_freesurfer_labels'])
-    >>> output_stem = 'label'
+    >>> input_values_vtk = ''
+    >>> output_stem = 'explode_scalars_label'
+    >>> output_scalar_name = 'labels'
     >>> explode_scalars(input_indices_vtk, input_values_vtk, output_stem,
     ...     exclude_values, background_value, output_scalar_name,
     ...     remove_background_faces, reindex, verbose)
@@ -981,20 +986,15 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
         else:
             select_points = points
 
-        # Create array and indices for scalar value:
-        if reindex:
-            len_indices = len(select_points)
-            select_values = scalar * np.ones(len_indices)
-        else:
-            select_values = np.copy(values)
-            select_values[scalars != scalar] = background_value
-            len_indices = len([i for i,x in enumerate(select_values)
-                               if x != background_value])
+        # Select values for each scalar:
+        select_values = np.copy(values)
+        select_values[scalars != scalar] = background_value
 
         if verbose:
-            print("  Scalar {0}: {1} vertices".format(scalar, len_indices))
+            print("  Scalar {0}: {1} vertices".format(scalar,
+                                                      len(select_points)))
 
-        if len_indices > 0:
+        if len(select_points) > 0:
             # Write VTK file with scalar values (list of values):
             if np.ndim(select_values) == 1:
                 scalar_type = type(select_values[0]).__name__
@@ -1002,7 +1002,7 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
                 scalar_type = type(select_values[0][0]).__name__
             else:
                 if verbose:
-                    print("Undefined scalar type!")
+                    raise(IOError("Undefined scalar type!"))
             output_vtk = os.path.join(os.getcwd(),
                                       output_stem + str(scalar) + '.vtk')
             write_vtk(output_vtk, select_points, indices, lines, scalar_faces,
@@ -1493,95 +1493,6 @@ def apply_affine_transforms(transform_files, inverse_booleans,
     return affine_points, output_file
 
 
-# def transform_to_volume(vtk_file, points, volume_file, output_volume=''):
-#     """
-#     Transform vtk coordinates to voxel index coordinates in a target
-#     volume by using the header transformation.
-#
-#     This function assumes that the nibabel-readable volume has LPI orientation.
-#
-#     Parameters
-#     ----------
-#     vtk_file : string
-#         name of VTK file containing point coordinate data
-#     points : list of lists of floats
-#         each element is a list of 3-D coordinates of a surface mesh vertex
-#     volume_file : string
-#         name of target nibabel-readable image volume file
-#     output_volume : string
-#         name of output nibabel-readable image volume file
-#
-#     Returns
-#     -------
-#     output_volume : string
-#         name of nifti file containing transformed point data
-#
-#     Examples
-#     --------
-#     >>> import os
-#     >>> from mindboggle.mio.vtks import transform_to_volume
-#     >>> from mindboggle.mio.vtks import read_points
-#     >>> from mindboggle.mio.fetch_data import prep_tests
-#     >>> urls, fetch_data = prep_tests()
-#     >>> vtk_file = fetch_data(urls['left_pial'])
-#     >>> volume_file = fetch_data(urls['T1_001'])
-#     >>> points  = read_points(vtk_file)
-#     >>> output_volume = ''
-#     >>> output_volume = transform_to_volume(vtk_file, points, volume_file,
-#     ...                                     output_volume) # doctest: +SKIP
-#
-#     View resulting vtk file (skip test):
-#
-#     >>> from mindboggle.mio.plots import plot_volumes
-#     >>> plot_volumes([output_volume, volume_file]) # doctest: +SKIP
-#
-#     """
-#     import os
-#     import numpy as np
-#     import nibabel as nb
-#
-#     from mindboggle.mio.vtks import read_vtk
-#
-#     # Read vtk file:
-#     points, indices, lines, faces, scalars, scalar_names, npoints, \
-#             input_vtk = read_vtk(vtk_file)
-#
-#     # Read target image volume header information:
-#     img = nb.load(volume_file)
-#     hdr = img.get_header()
-#     dims = img.get_shape()
-#     ndims = len(dims)
-#     affine = img.get_affine()
-#     inv_transform = np.linalg.inv(affine)
-#
-#     # Transform vtk coordinates:
-#     points = np.array(points)
-#     points = np.concatenate((points, np.ones((npoints,1))), axis=1)
-#     voxels = np.transpose(np.dot(inv_transform, np.transpose(points)))[:,0:ndims]
-#
-#     voxels = np.reshape([int(np.round(x)) for lst in voxels for x in lst],
-#                         (-1,ndims))
-#     # Write vtk scalar values to voxels:
-#     data = np.zeros(dims)
-#     if scalars:
-#         for ivoxel, ijk in enumerate(voxels):
-#             data[ijk[0], ijk[1], ijk[2]] = scalars[ivoxel]
-#
-#     # Write output image volume:
-#     if not output_volume:
-#         output_volume = os.path.join(os.getcwd(),
-#                                      os.path.basename(vtk_file) +
-#                                      '_to_volume.nii.gz')
-#
-#     img = nb.Nifti1Image(data, affine, header=hdr)
-#     img.to_filename(output_volume)
-#
-#     if not os.path.exists(output_volume):
-#         raise IOError(output_volume + " not found")
-#
-#     return output_volume
-
-
 def freesurfer_surface_to_vtk(surface_file, orig_file='', output_vtk=''):
     """
     Convert FreeSurfer surface file to VTK format.
@@ -1615,7 +1526,7 @@ def freesurfer_surface_to_vtk(surface_file, orig_file='', output_vtk=''):
     >>> surface_file = fetch_data(urls['left_freesurfer_pial'])
     >>> urls, fetch_data = prep_tests()
     >>> orig_file = fetch_data(urls['freesurfer_orig_mgz'])
-    >>> output_vtk = ''
+    >>> output_vtk = 'freesurfer_surface_to_vtk.vtk'
     >>> os.rename(surface_file, surface_file + '.pial')
     >>> os.rename(orig_file, orig_file + '.mgz')
     >>> surface_file = surface_file + '.pial'
@@ -1706,7 +1617,7 @@ def freesurfer_curvature_to_vtk(surface_file, vtk_file, output_vtk='',
     >>> urls, fetch_data = prep_tests()
     >>> surface_file = fetch_data(urls['left_freesurfer_thickness'])
     >>> vtk_file = fetch_data(urls['left_pial'])
-    >>> output_vtk = ''
+    >>> output_vtk = 'freesurfer_curvature_to_vtk.vtk'
     >>> background_value = -1
     >>> output_vtk = freesurfer_curvature_to_vtk(surface_file, vtk_file,
     ...                                          output_vtk, background_value)
@@ -1778,7 +1689,7 @@ def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk='',
     >>> urls, fetch_data = prep_tests()
     >>> annot_file = fetch_data(urls['left_freesurfer_aparc_annot'])
     >>> vtk_file = fetch_data(urls['left_pial'])
-    >>> output_vtk = ''
+    >>> output_vtk = 'freesurfer_annot_to_vtk.vtk'
     >>> background_value = -1
     >>> labels, output_vtk = freesurfer_annot_to_vtk(annot_file,
     ...                          vtk_file, output_vtk, background_value)
@@ -1819,6 +1730,95 @@ def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk='',
         raise IOError("Output VTK file " + output_vtk + " not created.")
 
     return labels, output_vtk
+
+
+# def transform_to_volume(vtk_file, points, volume_file, output_volume=''):
+#     """
+#     Transform vtk coordinates to voxel index coordinates in a target
+#     volume by using the header transformation.
+#
+#     This function assumes that the nibabel-readable volume has LPI orientation.
+#
+#     Parameters
+#     ----------
+#     vtk_file : string
+#         name of VTK file containing point coordinate data
+#     points : list of lists of floats
+#         each element is a list of 3-D coordinates of a surface mesh vertex
+#     volume_file : string
+#         name of target nibabel-readable image volume file
+#     output_volume : string
+#         name of output nibabel-readable image volume file
+#
+#     Returns
+#     -------
+#     output_volume : string
+#         name of nifti file containing transformed point data
+#
+#     Examples
+#     --------
+#     >>> import os
+#     >>> from mindboggle.mio.vtks import transform_to_volume
+#     >>> from mindboggle.mio.vtks import read_points
+#     >>> from mindboggle.mio.fetch_data import prep_tests
+#     >>> urls, fetch_data = prep_tests()
+#     >>> vtk_file = fetch_data(urls['left_pial'])
+#     >>> volume_file = fetch_data(urls['T1_001'])
+#     >>> points  = read_points(vtk_file)
+#     >>> output_volume = ''
+#     >>> output_volume = transform_to_volume(vtk_file, points, volume_file,
+#     ...                                     output_volume) # doctest: +SKIP
+#
+#     View resulting vtk file (skip test):
+#
+#     >>> from mindboggle.mio.plots import plot_volumes
+#     >>> plot_volumes([output_volume, volume_file]) # doctest: +SKIP
+#
+#     """
+#     import os
+#     import numpy as np
+#     import nibabel as nb
+#
+#     from mindboggle.mio.vtks import read_vtk
+#
+#     # Read vtk file:
+#     points, indices, lines, faces, scalars, scalar_names, npoints, \
+#             input_vtk = read_vtk(vtk_file)
+#
+#     # Read target image volume header information:
+#     img = nb.load(volume_file)
+#     hdr = img.get_header()
+#     dims = img.get_shape()
+#     ndims = len(dims)
+#     affine = img.get_affine()
+#     inv_transform = np.linalg.inv(affine)
+#
+#     # Transform vtk coordinates:
+#     points = np.array(points)
+#     points = np.concatenate((points, np.ones((npoints,1))), axis=1)
+#     voxels = np.transpose(np.dot(inv_transform, np.transpose(points)))[:,0:ndims]
+#
+#     voxels = np.reshape([int(np.round(x)) for lst in voxels for x in lst],
+#                         (-1,ndims))
+#     # Write vtk scalar values to voxels:
+#     data = np.zeros(dims)
+#     if scalars:
+#         for ivoxel, ijk in enumerate(voxels):
+#             data[ijk[0], ijk[1], ijk[2]] = scalars[ivoxel]
+#
+#     # Write output image volume:
+#     if not output_volume:
+#         output_volume = os.path.join(os.getcwd(),
+#                                      os.path.basename(vtk_file) +
+#                                      '_to_volume.nii.gz')
+#
+#     img = nb.Nifti1Image(data, affine, header=hdr)
+#     img.to_filename(output_volume)
+#
+#     if not os.path.exists(output_volume):
+#         raise IOError(output_volume + " not found")
+#
+#     return output_volume
 
 
 #=============================================================================

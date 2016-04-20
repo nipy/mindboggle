@@ -70,9 +70,9 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     >>> folds_file = fetch_data(urls['left_folds'])
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> # Limit number of folds to speed up the test:
-    >>> limit_folds = True
+    >>> limit_folds = False #True
     >>> if limit_folds:
-    ...     fold_numbers = [7] #[4, 6]
+    ...     fold_numbers = [4] #[4, 6]
     ...     i0 = [i for i,x in enumerate(folds) if x not in fold_numbers]
     ...     folds[i0] = -1
     >>> min_separation = 10
@@ -87,6 +87,7 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     >>> lens = [len([x for x in o1 if x == y])
     ...         for y in np.unique(o1) if y != -1]
     >>> lens[0:10] # [66, 2914, 100, 363, 73, 331, 59, 30, 1, 14]
+    [2207, 187, 1, 29, 1, 176, 1, 1, 9, 1]
     [73]
 
     View result (skip test):
@@ -242,42 +243,43 @@ def segment_fundi(fundus_per_fold, sulci=[], vtk_file='', save_file=False,
 
     Examples
     --------
-    >>> # Extract fundus from one or more sulci:
+    >>> # Segment fundi by sulci:
     >>> import numpy as np
-    >>> single_fold = True
+#    >>> single_fold = True
     >>> from mindboggle.features.fundi import segment_fundi
-    >>> from mindboggle.features.fundi import extract_fundi
+#    >>> from mindboggle.features.fundi import extract_fundi
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> curv_file = fetch_data(urls['left_mean_curvature'])
-    >>> depth_file = fetch_data(urls['left_travel_depth'])
-    >>> folds_file = fetch_data(urls['left_folds'])
+#    >>> curv_file = fetch_data(urls['left_mean_curvature'])
+#    >>> depth_file = fetch_data(urls['left_travel_depth'])
+    >>> fundus_file = fetch_data(urls['left_fundi'])
     >>> vtk_file = fetch_data(urls['left_sulci'])
-    >>> sulci, name = read_scalars(vtk_file, True, True)
-    >>> folds, name = read_scalars(folds_file, True, True)
-    >>> # Limit number of folds to speed up the test:
-    >>> limit_folds = True
-    >>> if limit_folds:
-    ...     fold_numbers = [4] #[4, 6]
-    ...     i0 = [i for i,x in enumerate(folds) if x not in fold_numbers]
-    ...     folds[i0] = -1
-    >>> min_separation = 10
-    >>> erode_ratio = 0.10
-    >>> erode_min_size = 10
+    >>> sulci = read_scalars(vtk_file, True, True)
+    >>> fundus_per_fold, name = read_scalars(fundus_file, True, True)
+    # >>> folds, name = read_scalars(folds_file, True, True)
+    # >>> # Limit number of folds to speed up the test:
+    # >>> limit_folds = True
+    # >>> if limit_folds:
+    # ...     fold_numbers = [4] #[4, 6]
+    # ...     i0 = [i for i,x in enumerate(folds) if x not in fold_numbers]
+    # ...     folds[i0] = -1
+    # >>> min_separation = 10
+    # >>> erode_ratio = 0.10
+    # >>> erode_min_size = 10
     >>> save_file = True
     >>> background_value = -1
     >>> verbose = False
-    >>> fundus_per_fold, o1, o2 = extract_fundi(folds,
-    ...     curv_file, depth_file, min_separation, erode_ratio,
-    ...     erode_min_size, save_file, background_value, verbose)
+    # >>> fundus_per_fold, o1, o2 = extract_fundi(folds,
+    # ...     curv_file, depth_file, min_separation, erode_ratio,
+    # ...     erode_min_size, save_file, background_value, verbose)
+
     >>> o1, o2, fundus_per_sulcus_file = segment_fundi(fundus_per_fold,
     ...     sulci, vtk_file, save_file, background_value, verbose)
     >>> segment_numbers = [x for x in np.unique(o1) if x != -1]
     >>> lens = []
-    >>> if limit_folds:
-    ...     for segment_number in segment_numbers:
-    ...         lens.append(len([x for x in o1 if x == segment_number]))
+    >>> for segment_number in segment_numbers:
+    ...     lens.append(len([x for x in o1 if x == segment_number]))
     >>> lens
     [73]
 

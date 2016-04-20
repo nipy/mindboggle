@@ -114,6 +114,14 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
     ...     pylab.show()
     >>> vis() # doctest: +SKIP
 
+    View folds just on folds (skip test):
+
+    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
+    >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP
+    >>> rewrite_scalars(depth_file, 'just_folds.vtk', folds,
+    ...     'just_folds', folds, -1) # doctest: +SKIP
+    >>> plot_surfaces('just_folds.vtk') # doctest: +SKIP
+
     """
     import os
     import numpy as np

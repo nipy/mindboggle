@@ -291,9 +291,9 @@ def segment_regions(vertices_to_segment, neighbor_lists, min_region_size=1,
 
     >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
     >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP
-    >>> rewrite_scalars(depth_file, 'segments.vtk', segments,
+    >>> rewrite_scalars(depth_file, 'segment_regions.vtk', segments,
     ...     'segments', [], -1) # doctest: +SKIP
-    >>> plot_surfaces('segments.vtk') # doctest: +SKIP
+    >>> plot_surfaces('segment_regions.vtk') # doctest: +SKIP
 
     """
     import numpy as np
@@ -1223,13 +1223,13 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
     >>> from mindboggle.mio.vtks import write_vtk # doctest: +SKIP
     >>> scalars = np.zeros(np.shape(labels)) # doctest: +SKIP
     >>> scalars[I28] = 1 # doctest: +SKIP
-    >>> vtk_file = 'test_two_labels.vtk' # doctest: +SKIP
+    >>> vtk_file = 'select_largest_two_labels.vtk' # doctest: +SKIP
     >>> write_vtk(vtk_file, points, indices, [], faces) # doctest: +SKIP
     >>> plot_surfaces(vtk_file) # doctest: +SKIP
 
     Write larger surface to vtk file and view (skip test):
 
-    >>> vtk_file = 'test_larger_label.vtk' # doctest: +SKIP
+    >>> vtk_file = 'select_largest.vtk' # doctest: +SKIP
     >>> write_vtk(vtk_file, points2, list(range(len(points2))), [], faces2) # doctest: +SKIP
     >>> plot_surfaces(vtk_file) # doctest: +SKIP
 
@@ -1402,9 +1402,9 @@ def extract_borders(indices, labels, neighbor_lists,
 
     Write just the borders to vtk file and view (skip test):
 
-    >>> rewrite_scalars(label_file, 'extract_borders.vtk',
-    ...                 IDs, 'borders', borders) # doctest: +SKIP
-    >>> plot_surfaces('extract_borders.vtk') # doctest: +SKIP
+    >>> rewrite_scalars(label_file, 'extract_borders_no_background.vtk',
+    ...                 IDs, 'borders', IDs) # doctest: +SKIP
+    >>> plot_surfaces('extract_borders_no_background.vtk') # doctest: +SKIP
 
     """
     import numpy as np
@@ -1449,7 +1449,7 @@ def extract_borders(indices, labels, neighbor_lists,
 
 
 def extract_borders_2nd_surface(labels_file, values_file='',
-                                background_value=-1):
+                                output_file='', background_value=-1):
     """
     Extract borders (between labels) on a surface.
     Option: extract border values on a second surface.
@@ -1460,6 +1460,8 @@ def extract_borders_2nd_surface(labels_file, values_file='',
         file name for surface mesh with labels
     values_file : string
         file name for surface mesh with values to extract along borders
+    output_file : string
+        full path to output file
     background_value : integer or float
         background value
 
@@ -1482,8 +1484,9 @@ def extract_borders_2nd_surface(labels_file, values_file='',
     >>> label_file = fetch_data(urls['left_freesurfer_labels'])
     >>> values_file = fetch_data(urls['left_travel_depth'])
     >>> background_value = -1
+    >>> output_file = 'extract_borders_2nd_surface.vtk'
     >>> border_file, values, I = extract_borders_2nd_surface(label_file,
-    ...     values_file, background_value)
+    ...     values_file, output_file, background_value)
     >>> print(np.array_str(np.unique(values)[0:8],
     ...       precision=5, suppress_small=True))
     [-1.       0.       0.00012  0.00023  0.00032  0.00044  0.00047  0.00051]
@@ -1492,7 +1495,7 @@ def extract_borders_2nd_surface(labels_file, values_file='',
 
     Write depth values on label borders to vtk file and view (skip test):
 
-    >>> from mindboggle.mio.plots import plot_surfaces
+    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
     >>> plot_surfaces(border_file) # doctest: +SKIP
 
     """
@@ -1521,7 +1524,11 @@ def extract_borders_2nd_surface(labels_file, values_file='',
         border_values[indices_borders] = 1
 
     # Write out label boundary vtk file
-    border_file = os.path.join(os.getcwd(), 'borders_' + os.path.basename(labels_file))
+    if output_file:
+        border_file = output_file
+    else:
+        border_file = os.path.join(os.getcwd(),
+                                   'borders_' + os.path.basename(labels_file))
     rewrite_scalars(labels_file, border_file, border_values, \
                     'label_borders_in_mask', [], background_value)
 
@@ -1591,13 +1598,13 @@ def combine_2labels_in_2volumes(file1, file2, label1=3, label2=2,
     >>> file2 = fetch_data(urls['ants_segmentation'])
     >>> label1 = 3
     >>> label2 = 2
-    >>> output_file = ''
+    >>> output_file = 'combine_2labels_in_2volumes.nii.gz'
     >>> output_file = combine_2labels_in_2volumes(file1, file2, label1,
     ...                                           label2, output_file)
 
     View nifti file (skip test):
 
-    >>> from mindboggle.mio.plots import plot_volumes
+    >>> from mindboggle.mio.plots import plot_volumes # doctest: +SKIP
     >>> plot_volumes(output_file) # doctest: +SKIP
 
     """
@@ -1670,7 +1677,6 @@ def split_brain(image_file, label_file, left_labels, right_labels):
 
     Examples
     --------
-    >>> import os
     >>> from mindboggle.guts.segment import split_brain
     >>> from mindboggle.mio.labels import DKTprotocol
     >>> from mindboggle.mio.fetch_data import prep_tests
@@ -1685,7 +1691,7 @@ def split_brain(image_file, label_file, left_labels, right_labels):
 
     Write results to nifti file and view (skip test):
 
-    >>> from mindboggle.mio.plots import plot_volumes
+    >>> from mindboggle.mio.plots import plot_volumes # doctest: +SKIP
     >>> plot_volumes([left_brain, right_brain]) # doctest: +SKIP
 
     """

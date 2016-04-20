@@ -41,7 +41,7 @@ from mindboggle.features.folds import extract_folds
 from mindboggle.features.fundi import extract_fundi, segment_fundi
 from mindboggle.features.sulci import extract_sulci
 from mindboggle.guts.mesh import rescale_by_neighborhood
-from mindboggle.guts.paths import smooth_skeleton
+from mindboggle.guts.paths import smooth_skeletons
 from mindboggle.guts.relabel import relabel_surface, relabel_volume, \
     keep_volume_labels, remove_volume_labels, overwrite_volume_labels
 from mindboggle.guts.segment import combine_2labels_in_2volumes
@@ -1067,7 +1067,7 @@ if not args.no_surfaces:
                 # Smooth fundi:
                 # ------------------------------------------------------------
                 SmoothFundi = Node(name='Smooth_fundi',
-                                   interface=Fn(function=smooth_skeleton,
+                                   interface=Fn(function=smooth_skeletons,
                                         input_names=['skeletons',
                                                      'bounds',
                                                      'vtk_file',
@@ -1077,7 +1077,7 @@ if not args.no_surfaces:
                                                      'save_file',
                                                      'background_value',
                                                      'verbose'],
-                                        output_names=['smooth_skeletons',
+                                        output_names=['smoothed_skeletons',
                                                       'n_skeletons',
                                                       'skeletons_file']))
                 SurfFeatureFlow.connect(FundusPerFold, 'fundus_per_fold',
@@ -1113,7 +1113,7 @@ if not args.no_surfaces:
                                                   'n_fundi',
                                                   'fundus_per_sulcus_file']))
             if do_smooth_fundi:
-                SurfFeatureFlow.connect(SmoothFundi, 'smooth_skeletons',
+                SurfFeatureFlow.connect(SmoothFundi, 'smoothed_skeletons',
                                         FundusPerSulcus, 'fundus_per_fold')
             else:
                 SurfFeatureFlow.connect(FundusPerFold, 'fundus_per_fold',

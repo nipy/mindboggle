@@ -614,9 +614,9 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists,
     return skeleton
 
 
-def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
-                    wN_max=1.0, do_erode=True, save_file=False,
-                    background_value=-1, verbose=False):
+def smooth_skeletons(skeletons, bounds, vtk_file, likelihoods,
+                     wN_max=1.0, do_erode=True, save_file=False,
+                     background_value=-1, verbose=False):
     """
     Smooth skeleton by dilation followed by connect_points_hmmf().
 
@@ -662,7 +662,7 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
     >>> # Smooth skeleton to extract fundus from one or more folds:
     >>> import numpy as np
     >>> from mindboggle.mio.plots import plot_surfaces
-    >>> from mindboggle.guts.paths import smooth_skeleton
+    >>> from mindboggle.guts.paths import smooth_skeletons
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.guts.compute import median_abs_dev
     >>> from mindboggle.guts.mesh import find_neighbors_from_file
@@ -692,17 +692,18 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
     >>> do_erode = True
     >>> save_file = True
     >>> verbose = False
-    >>> smooth_skeletons, n_skeletons, skel_file = smooth_skeleton(skeletons,
+    >>> smoothed_skeletons, n_skeletons, skel_file = smooth_skeleton(skeletons,
     ...     bounds, vtk_file, likelihoods, wN_max, do_erode, save_file,
     ...     background_value, verbose)
-    >>> np.where(np.array(smooth_skeletons)!=-1)[0][0:8]
+    >>> np.where(np.array(smoothed_skeletons)!=-1)[0][0:8]
     array([112572, 113453, 113454, 113469, 114312, 114313, 114325, 115087])
 
     Write out vtk file and view (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
     >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP
-    >>> iskels = [i for i,x in enumerate(smooth_skeletons) if x != background_value] # doctest: +SKIP
+    >>> iskels = [i for i,x in enumerate(smoothed_skeletons)
+    ...           if x != background_value] # doctest: +SKIP
     >>> bounds[iskels] = 100 # doctest: +SKIP
     >>> rewrite_scalars(depth_file, 'smooth_skeletons.vtk',
     ...                 bounds, 'skeleton', bounds, -1) # doctest: +SKIP
@@ -738,7 +739,7 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
     if verbose:
         print("Smooth {0} skeleton{1}...".format(n_skeletons, sdum))
     Z = background_value * np.ones(npoints)
-    smooth_skeletons = Z.copy()
+    smoothed_skeletons = Z.copy()
     for ID in unique_IDs:
         skeleton = [i for i,x in enumerate(skeletons) if x == ID]
         if verbose:
@@ -799,7 +800,7 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
                 #-------------------------------------------------------------
                 # Store skeleton:
                 #-------------------------------------------------------------
-                smooth_skeletons[new_skeleton] = ID
+                smoothed_skeletons[new_skeleton] = ID
     if verbose:
         print('  ...Smoothed {0} skeleton{1} ({2:.2f} seconds)'.
               format(n_skeletons, sdum, time() - t0))
@@ -807,16 +808,16 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
     #-------------------------------------------------------------------------
     # Return skeletons, number of skeletons, and file name:
     #-------------------------------------------------------------------------
-    smooth_skeletons = smooth_skeletons.tolist()
+    smoothed_skeletons = smoothed_skeletons.tolist()
 
     if save_file:
         skeletons_file = os.path.join(os.getcwd(), 'smooth_skeletons.vtk')
-        rewrite_scalars(vtk_file, skeletons_file, smooth_skeletons,
-                        'smooth_skeletons', [], background_value)
+        rewrite_scalars(vtk_file, skeletons_file, smoothed_skeletons,
+                        'smoothed_skeletons', [], background_value)
     else:
         skeletons_file = None
 
-    return smooth_skeletons, n_skeletons, skeletons_file
+    return smoothed_skeletons, n_skeletons, skeletons_file
 
 
 def track_segments(seed, segments, neighbor_lists, values, sink,

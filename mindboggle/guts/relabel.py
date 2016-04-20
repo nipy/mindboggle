@@ -45,13 +45,13 @@ def relabel_volume(input_file, old_labels, new_labels, output_file=''):
     >>> ctx = [5000 for x in dkt.cerebrum_cortex_numbers]
     >>> nonctx = [6000 for x in dkt.cerebrum_noncortex_numbers]
     >>> new_labels = ctx + nonctx
-    >>> output_file = ''
+    >>> output_file = 'relabel_volume.nii.gz'
     >>> output_file = relabel_volume(input_file, old_labels, new_labels,
     ...                              output_file)
 
     View nifti file (skip test):
 
-    >>> from mindboggle.mio.plots import plot_volumes
+    >>> from mindboggle.mio.plots import plot_volumes # doctest: +SKIP
     >>> plot_volumes(output_file) # doctest: +SKIP
 
     """
@@ -128,13 +128,13 @@ def remove_volume_labels(input_file, labels_to_remove, output_file='',
     >>> labels_to_remove = list(range(1,300)) # Remove noncortex (+aseg) labels
     >>> labels_to_remove.extend([1000,1001,2000,2001])
     >>> labels_to_remove.extend(list(range(2000,2036))) # Remove right cortex labels
-    >>> output_file = ''
+    >>> output_file = 'remove_volume_labels.nii.gz'
     >>> output_file = remove_volume_labels(input_file, labels_to_remove,
     ...                                    output_file, second_file)
 
     View nifti file (skip test):
 
-    >>> from mindboggle.mio.plots import plot_volumes
+    >>> from mindboggle.mio.plots import plot_volumes # doctest: +SKIP
     >>> plot_volumes(output_file) # doctest: +SKIP
 
     """
@@ -229,7 +229,7 @@ def keep_volume_labels(input_file, labels_to_keep, output_file='',
     >>> input_file = fetch_data(urls['freesurfer_labels'])
     >>> second_file = ''
     >>> labels_to_keep = list(range(1000, 1036))
-    >>> output_file = ''
+    >>> output_file = 'keep_volume_labels.nii.gz'
     >>> output_file = keep_volume_labels(input_file, labels_to_keep,
     ...                                  output_file, second_file)
 
@@ -344,7 +344,7 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
     >>> erase_remaining = True
     >>> erase_labels = [0]
     >>> erase_value = -1
-    >>> output_file = ''
+    >>> output_file = 'relabel_surface.vtk'
     >>> output_file = relabel_surface(vtk_file, hemi, old_labels, new_labels,
     ...     erase_remaining, erase_labels, erase_value, output_file)
     >>> labels, name = read_scalars(output_file, True, True)
@@ -458,7 +458,7 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
     >>> urls, fetch_data = prep_tests()
     >>> source = fetch_data(urls['freesurfer_labels'])
     >>> target = fetch_data(urls['ants_labels'])
-    >>> output_file = ''
+    >>> output_file = 'overwrite_volume_labels.nii.gz'
     >>> ignore_labels = [0]
     >>> erase_labels = False
     >>> background_value = -1
