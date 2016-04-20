@@ -156,7 +156,8 @@ def test_urls():
     #-------------------------------------------------------------------------
     urls['right_cortex_in_mni'] = Fleft + 'cortex_in_MNI152_space.vtk'
     urls['left_folds'] = Fleft + 'folds.vtk'
-    urls['left_fundi'] = Fleft + 'fundus_per_sulcus.vtk'
+    urls['left_fundus_per_sulcus'] = Fleft + 'fundus_per_sulcus.vtk'
+    urls['left_fundus_per_fold'] = Fleft + 'fundus_per_fold.vtk'
     urls['left_sulci'] = Fleft + 'sulci.vtk'
     urls['right_cortex_in_mni'] = Fright + 'cortex_in_MNI152_space.vtk'
     urls['right_folds'] = Fright + 'folds.vtk'

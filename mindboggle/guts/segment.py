@@ -506,6 +506,123 @@ def segment_regions(vertices_to_segment, neighbor_lists, min_region_size=1,
     return segments
 
 
+def segment_by_region(data, regions=[], surface_file='', save_file=False,
+                      output_file='', background_value=-1, verbose=False):
+    """
+    Segment data on one surface by regions on a corresponding surface.
+
+    For example use sulcus regions to segment fundus data.
+
+    Parameters
+    ----------
+    data : list of integers
+        numbers for all vertices (including background_value)
+    regions : numpy array or list of integers
+        number for each vertex, used to filter and label data
+    surface_file : string (if save_file)
+        VTK file
+    save_file : bool
+        save output VTK file?
+    output_file : string
+        output VTK file
+    background_value : integer or float
+        background value
+    verbose : bool
+        print statements?
+
+    Returns
+    -------
+    segment_per_region : list of integers
+        region numbers for all vertices (or background_value)
+    n_segments :  integer
+        number of segments
+    segment_per_region_file : string (if save_file)
+        output VTK file with region numbers for data vertices
+
+    Examples
+    --------
+    >>> # Segment fundus data by sulcus regions:
+    >>> import numpy as np
+    >>> from mindboggle.guts.segment import segment_by_region
+    >>> from mindboggle.mio.vtks import read_scalars
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> fundus_file = fetch_data(urls['left_fundus_per_fold'])
+    >>> data, name = read_scalars(fundus_file, True, True)
+    >>> surface_file = fetch_data(urls['left_sulci'])
+    >>> regions, name = read_scalars(surface_file, True, True)
+    >>> save_file = True
+    >>> output_file = 'segment_by_region.vtk'
+    >>> background_value = -1
+    >>> verbose = False
+    >>> o1, o2, segment_per_region_file = segment_by_region(data, regions,
+    ...     surface_file, save_file, output_file, background_value, verbose)
+    >>> segment_numbers = [x for x in np.unique(o1) if x != background_value]
+    >>> lens = []
+    >>> for segment_number in segment_numbers:
+    ...     lens.append(len([x for x in o1 if x == segment_number]))
+    >>> lens[0:10]
+    [304, 154, 412, 178, 233, 308, 142, 148, 229, 30]
+
+    View result (skip test):
+
+    >>> from mindboggle.mio.plots import plot_surfaces
+    >>> plot_surfaces(segment_per_region_file) # doctest: +SKIP
+
+    """
+
+    # Extract a skeleton to connect endpoints in a fold:
+    import os
+    import numpy as np
+
+    from mindboggle.mio.vtks import rewrite_scalars
+
+    if isinstance(regions, list):
+        regions = np.array(regions)
+
+    #-------------------------------------------------------------------------
+    # Segment data with overlapping regions:
+    #-------------------------------------------------------------------------
+    indices = [i for i,x in enumerate(data)
+               if x != background_value]
+    if indices and np.size(regions):
+        segment_per_region = background_value * np.ones(len(regions))
+        segment_per_region[indices] = regions[indices]
+        n_segments = len([x for x in np.unique(segment_per_region)
+                          if x != background_value])
+    else:
+        segment_per_region = []
+        n_segments = 0
+
+    if n_segments == 1:
+        sdum = 'sulcus fundus'
+    else:
+        sdum = 'sulcus fundi'
+    if verbose:
+        print('  Segmented {0} {1}'.format(n_segments, sdum))
+
+    #-------------------------------------------------------------------------
+    # Return segments, number of segments, and file name:
+    #-------------------------------------------------------------------------
+    segment_per_region_file = None
+    if n_segments > 0:
+        segment_per_region = [int(x) for x in segment_per_region]
+        if save_file and os.path.exists(surface_file):
+            if output_file:
+                segment_per_region_file = output_file
+            else:
+                segment_per_region_file = os.path.join(os.getcwd(),
+                                              'segment_per_region.vtk')
+            # Do not filter faces/points by scalars when saving file:
+            rewrite_scalars(surface_file, segment_per_region_file,
+                            segment_per_region, 'segment_per_region', [],
+                            background_value)
+            if not os.path.exists(segment_per_region_file):
+                raise IOError(segment_per_region_file + " not found")
+
+    return segment_per_region, n_segments, segment_per_region_file
+
+
 def segment_by_filling_borders(regions, neighbor_lists, background_value=-1,
                                verbose=False):
     """
@@ -776,9 +893,7 @@ def segment_rings(region, seeds, neighbor_lists, step=1, background_value=-1,
 
     return segments
 
-#-----------------------------------------------------------------------------
-#
-#-----------------------------------------------------------------------------
+
 def watershed(depths, points, indices, neighbor_lists, min_size=1,
               depth_factor=0.25, depth_ratio=0.1, tolerance=0.01, regrow=True,
               background_value=-1, verbose=False):
@@ -1224,7 +1339,7 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
     >>> from mindboggle.mio.vtks import write_vtk # doctest: +SKIP
     >>> scalars = np.zeros(np.shape(labels)) # doctest: +SKIP
     >>> scalars[I28] = 1 # doctest: +SKIP
-    >>> vtk_file = 'select_largest_two_labels.vtk' # doctest: +SKIP
+    >>> segments_file = 'select_largest_two_labels.vtk' # doctest: +SKIP
     >>> write_vtk(vtk_file, points, indices, [], faces) # doctest: +SKIP
     >>> plot_surfaces(vtk_file) # doctest: +SKIP
 

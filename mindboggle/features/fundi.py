@@ -25,6 +25,9 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
         3. Connect anchor points using connect_points_erosion();
            inner anchors are removed if they result in endpoints.
 
+    Note ::
+        Follow this with segment_by_region() to segment fundi by sulci.
+
     Parameters
     ----------
     folds : numpy array or list of integers
@@ -219,134 +222,6 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
 
     return fundus_per_fold,  n_fundi_in_folds, fundus_per_fold_file
 
-
-def segment_fundi(fundus_per_fold, sulci=[], vtk_file='', save_file=False,
-                  background_value=-1, verbose=False):
-    """
-    Segment fundi by sulcus definitions.
-
-    Parameters
-    ----------
-    fundus_per_fold : list of integers
-        fundus numbers for all vertices, labeled by fold
-        (-1 for non-fundus vertices)
-    sulci : numpy array or list of integers
-        sulcus number for each vertex, used to filter and label fundi
-    vtk_file : string (if save_file)
-        VTK file with sulcus number for each vertex
-    save_file : bool
-        save output VTK file?
-    background_value : integer or float
-        background value
-    verbose : bool
-        print statements?
-
-    Returns
-    -------
-    fundus_per_sulcus : list of integers
-        fundus numbers for all vertices, labeled by sulcus
-        (-1 for non-fundus vertices)
-    n_fundi :  integer
-        number of fundi
-    fundus_per_sulcus_file : string (if save_file)
-        output VTK file with fundus numbers (-1 for non-fundus vertices)
-
-    Examples
-    --------
-    >>> # Segment fundi by sulci:
-    >>> import numpy as np
-#    >>> single_fold = True
-    >>> from mindboggle.features.fundi import segment_fundi
-#    >>> from mindboggle.features.fundi import extract_fundi
-    >>> from mindboggle.mio.vtks import read_scalars
-    >>> from mindboggle.mio.fetch_data import prep_tests
-    >>> urls, fetch_data = prep_tests()
-#    >>> curv_file = fetch_data(urls['left_mean_curvature'])
-#    >>> depth_file = fetch_data(urls['left_travel_depth'])
-    >>> fundus_file = fetch_data(urls['left_fundi'])
-    >>> vtk_file = fetch_data(urls['left_sulci'])
-    >>> sulci = read_scalars(vtk_file, True, True)
-    >>> fundus_per_fold, name = read_scalars(fundus_file, True, True)
-    # >>> folds, name = read_scalars(folds_file, True, True)
-    # >>> # Limit number of folds to speed up the test:
-    # >>> limit_folds = True
-    # >>> if limit_folds:
-    # ...     fold_numbers = [4] #[4, 6]
-    # ...     i0 = [i for i,x in enumerate(folds) if x not in fold_numbers]
-    # ...     folds[i0] = -1
-    # >>> min_separation = 10
-    # >>> erode_ratio = 0.10
-    # >>> erode_min_size = 10
-    >>> save_file = True
-    >>> background_value = -1
-    >>> verbose = False
-    # >>> fundus_per_fold, o1, o2 = extract_fundi(folds,
-    # ...     curv_file, depth_file, min_separation, erode_ratio,
-    # ...     erode_min_size, save_file, background_value, verbose)
-
-    >>> o1, o2, fundus_per_sulcus_file = segment_fundi(fundus_per_fold,
-    ...     sulci, vtk_file, save_file, background_value, verbose)
-    >>> segment_numbers = [x for x in np.unique(o1) if x != -1]
-    >>> lens = []
-    >>> for segment_number in segment_numbers:
-    ...     lens.append(len([x for x in o1 if x == segment_number]))
-    >>> lens
-    [73]
-
-    View result (skip test):
-
-    >>> from mindboggle.mio.plots import plot_surfaces
-    >>> plot_surfaces(fundus_per_sulcus_file) # doctest: +SKIP
-
-    """
-
-    # Extract a skeleton to connect endpoints in a fold:
-    import os
-    import numpy as np
-
-    from mindboggle.mio.vtks import rewrite_scalars
-
-    if isinstance(sulci, list):
-        sulci = np.array(sulci)
-
-    #-------------------------------------------------------------------------
-    # Create fundi by segmenting fold fundi with overlapping sulcus labels:
-    #-------------------------------------------------------------------------
-    indices = [i for i,x in enumerate(fundus_per_fold)
-               if x != background_value]
-    if indices and np.size(sulci):
-        fundus_per_sulcus = background_value * np.ones(len(sulci))
-        fundus_per_sulcus[indices] = sulci[indices]
-        n_fundi = len([x for x in np.unique(fundus_per_sulcus)
-                       if x != background_value])
-    else:
-        fundus_per_sulcus = []
-        n_fundi = 0
-
-    if n_fundi == 1:
-        sdum = 'sulcus fundus'
-    else:
-        sdum = 'sulcus fundi'
-    if verbose:
-        print('  Segmented {0} {1}'.format(n_fundi, sdum))
-
-    #-------------------------------------------------------------------------
-    # Return fundi, number of fundi, and file name:
-    #-------------------------------------------------------------------------
-    fundus_per_sulcus_file = None
-    if n_fundi > 0:
-        fundus_per_sulcus = [int(x) for x in fundus_per_sulcus]
-        if save_file and os.path.exists(vtk_file):
-            fundus_per_sulcus_file = os.path.join(os.getcwd(),
-                                                  'fundus_per_sulcus.vtk')
-            # Do not filter faces/points by scalars when saving file:
-            rewrite_scalars(vtk_file, fundus_per_sulcus_file,
-                            fundus_per_sulcus, 'fundus_per_sulcus', [],
-                            background_value)
-            if not os.path.exists(fundus_per_sulcus_file):
-                raise IOError(fundus_per_sulcus_file + " not found")
-
-    return fundus_per_sulcus, n_fundi, fundus_per_sulcus_file
 
 #=============================================================================
 # Doctests

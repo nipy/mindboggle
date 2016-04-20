@@ -38,13 +38,14 @@ from nipype.pipeline.engine import Workflow, Node
 # Mindboggle libraries
 # ----------------------------------------------------------------------------
 from mindboggle.features.folds import extract_folds
-from mindboggle.features.fundi import extract_fundi, segment_fundi
+from mindboggle.features.fundi import extract_fundi
 from mindboggle.features.sulci import extract_sulci
 from mindboggle.guts.mesh import rescale_by_neighborhood
 from mindboggle.guts.paths import smooth_skeletons
 from mindboggle.guts.relabel import relabel_surface, relabel_volume, \
     keep_volume_labels, remove_volume_labels, overwrite_volume_labels
-from mindboggle.guts.segment import combine_2labels_in_2volumes
+from mindboggle.guts.segment import segment_by_region, \
+    combine_2labels_in_2volumes
 from mindboggle.guts.utilities import list_strings
 from mindboggle.mio.convert_volumes import convert2nii
 from mindboggle.mio.fetch_data import hashes_url, fetch_check_data, \
@@ -1103,27 +1104,31 @@ if not args.no_surfaces:
             # Segment a fundus per sulcus:
             # ----------------------------------------------------------------
             FundusPerSulcus = Node(name='Fundus_per_sulcus',
-                               interface=Fn(function=segment_fundi,
-                                    input_names=['fundus_per_fold',
-                                                 'sulci',
-                                                 'vtk_file',
+                               interface=Fn(function=segment_by_region,
+                                    input_names=['data',
+                                                 'regions',
+                                                 'surface_file',
                                                  'save_file',
+                                                 'output_file',
+                                                 'background_value',
                                                  'verbose'],
-                                    output_names=['fundus_per_sulcus',
-                                                  'n_fundi',
-                                                  'fundus_per_sulcus_file']))
+                                    output_names=['segment_per_region',
+                                                  'n_segments',
+                                                  'segment_per_region_file']))
             if do_smooth_fundi:
                 SurfFeatureFlow.connect(SmoothFundi, 'smoothed_skeletons',
-                                        FundusPerSulcus, 'fundus_per_fold')
+                                        FundusPerSulcus, 'data')
             else:
                 SurfFeatureFlow.connect(FundusPerFold, 'fundus_per_fold',
-                                        FundusPerSulcus, 'fundus_per_fold')
+                                        FundusPerSulcus, 'data')
             SurfFeatureFlow.connect(SulciNode, 'sulci', 
-                                    FundusPerSulcus, 'sulci')
+                                    FundusPerSulcus, 'regions')
             mbFlow.connect(WholeSurfShapeFlow,
                            'Curvature.mean_curvature_file',
-                           SurfFeatureFlow, 'Fundus_per_sulcus.vtk_file')
+                           SurfFeatureFlow, 'Fundus_per_sulcus.surface_file')
             FundusPerSulcus.inputs.save_file = True
+            FundusPerSulcus.inputs.output_file = ''
+            FundusPerSulcus.inputs.background_value = background_value
             FundusPerSulcus.inputs.verbose = True
             if save_all:
                 mbFlow.connect(SurfFeatureFlow,
