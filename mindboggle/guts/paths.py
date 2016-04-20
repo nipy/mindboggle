@@ -692,7 +692,7 @@ def smooth_skeletons(skeletons, bounds, vtk_file, likelihoods,
     >>> do_erode = True
     >>> save_file = True
     >>> verbose = False
-    >>> smoothed_skeletons, n_skeletons, skel_file = smooth_skeleton(skeletons,
+    >>> smoothed_skeletons, n_skeletons, skel_file = smooth_skeletons(skeletons,
     ...     bounds, vtk_file, likelihoods, wN_max, do_erode, save_file,
     ...     background_value, verbose)
     >>> np.where(np.array(smoothed_skeletons)!=-1)[0][0:8]

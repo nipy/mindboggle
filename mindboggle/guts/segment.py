@@ -244,14 +244,15 @@ def segment_regions(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> len_segments = [len(np.where(segments == x)[0])
     ...                 for x in np.unique(segments) if x != background_value]
     >>> len_segments[0:10]
-    [26631, 110928, 4, 1399, 1274, 5, 139, 255, 12, 5]
+    [110928, 4, 1399, 1274, 5, 139, 255, 12, 5, 1686]
 
     Write results to vtk file and view (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
     >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP
-    >>> rewrite_scalars(depth_file, 'segment.vtk', segments, 'segments', [], -1) # doctest: +SKIP
-    >>> plot_surfaces('segment.vtk') # doctest: +SKIP
+    >>> rewrite_scalars(depth_file, 'segment_regions_no_seeds.vtk', segments,
+    ...                 'segments', [], -1) # doctest: +SKIP
+    >>> plot_surfaces('segment_regions_no_seeds.vtk') # doctest: +SKIP
 
     Example 2: with seed lists
 
@@ -292,7 +293,7 @@ def segment_regions(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
     >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP
     >>> rewrite_scalars(depth_file, 'segment_regions.vtk', segments,
-    ...     'segments', [], -1) # doctest: +SKIP
+    ...     'segments_from_seeds', [], -1) # doctest: +SKIP
     >>> plot_surfaces('segment_regions.vtk') # doctest: +SKIP
 
     """

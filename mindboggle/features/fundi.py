@@ -12,7 +12,7 @@ Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 def extract_fundi(folds, curv_file, depth_file, min_separation=10,
                   erode_ratio=0.1, erode_min_size=1, save_file=False,
-                  background_value=-1, verbose=False):
+                  output_file='', background_value=-1, verbose=False):
     """
     Extract fundi from folds.
 
@@ -42,6 +42,8 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
         in connect_points_erosion()
     save_file : bool
         save output VTK file?
+    output_file : string
+        output VTK file
     background_value : integer or float
         background value
     verbose : bool
@@ -70,7 +72,7 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     >>> folds_file = fetch_data(urls['left_folds'])
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> # Limit number of folds to speed up the test:
-    >>> limit_folds = False #True
+    >>> limit_folds = True
     >>> if limit_folds:
     ...     fold_numbers = [4] #[4, 6]
     ...     i0 = [i for i,x in enumerate(folds) if x not in fold_numbers]
@@ -79,21 +81,25 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     >>> erode_ratio = 0.10
     >>> erode_min_size = 10
     >>> save_file = True
+    >>> output_file = 'extract_fundi.vtk'
     >>> background_value = -1
     >>> verbose = False
     >>> o1, o2, fundus_per_fold_file = extract_fundi(folds, curv_file,
     ...     depth_file, min_separation, erode_ratio, erode_min_size,
-    ...     save_file, background_value, verbose)
+    ...     save_file, output_file, background_value, verbose)
     >>> lens = [len([x for x in o1 if x == y])
-    ...         for y in np.unique(o1) if y != -1]
+    ...         for y in np.unique(o1) if y != background_value]
     >>> lens[0:10] # [66, 2914, 100, 363, 73, 331, 59, 30, 1, 14]
-    [2207, 187, 1, 29, 1, 176, 1, 1, 9, 1]
     [73]
 
     View result (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
-    >>> plot_surfaces(fundus_per_fold_file) # doctest: +SKIP
+    >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP
+    >>> rewrite_scalars(fundus_per_fold_file,
+    ...                 'extract_fundi_no_background.vtk', o1,
+    ...                 'fundus_per_fold', folds) # doctest: +SKIP
+    >>> plot_surfaces('extract_fundi_no_background.vtk') # doctest: +SKIP
 
     """
 
@@ -154,7 +160,8 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
             #-----------------------------------------------------------------
             verbose = False
             outer_anchors, tracks = find_outer_endpoints(indices_fold,
-                neighbor_lists, values, depths, min_separation, verbose)
+                neighbor_lists, values, depths, min_separation,
+                background_value, verbose)
 
             #-----------------------------------------------------------------
             # Find inner anchor points:
@@ -200,8 +207,11 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     if n_fundi_in_folds > 0:
         fundus_per_fold = [int(x) for x in fundus_per_fold]
         if save_file:
-            fundus_per_fold_file = os.path.join(os.getcwd(),
-                                                'fundus_per_fold.vtk')
+            if output_file:
+                fundus_per_fold_file = output_file
+            else:
+                fundus_per_fold_file = os.path.join(os.getcwd(),
+                                                    'fundus_per_fold.vtk')
             rewrite_scalars(curv_file, fundus_per_fold_file, fundus_per_fold,
                             'fundi', [], background_value)
             if not os.path.exists(fundus_per_fold_file):

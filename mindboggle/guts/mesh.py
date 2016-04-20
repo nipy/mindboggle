@@ -280,7 +280,7 @@ def find_endpoints(indices, neighbor_lists):
     >>> neighbor_lists = find_neighbors_from_file(fundus_file)
     >>> indices_endpoints = find_endpoints(indices, neighbor_lists)
     >>> indices_endpoints[0:5]
-    [68445, 68453]
+    [32782, 35142, 45244, 49010, 63051]
 
     View endpoints (skip test):
 
@@ -967,7 +967,7 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100,
     >>> output_vtk = decimate_file(input_vtk, reduction, smooth_steps,
     ...     save_vtk, output_vtk)
     >>> f1, f2, f3, faces1, f4, f5, npoints1, f6 = read_vtk(input_vtk)
-    >>> f1, f2, f3, faces2, f4, f5, npoints2, f6 = read_vtk('decimated.vtk')
+    >>> f1, f2, f3, faces2, f4, f5, npoints2, f6 = read_vtk('decimate.vtk')
     >>> (npoints1, npoints2)
     (145069, 72535)
     >>> (len(faces1), len(faces2))
