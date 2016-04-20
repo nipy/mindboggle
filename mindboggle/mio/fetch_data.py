@@ -73,7 +73,7 @@ def test_urls():
     """
     url = 'http://media.mindboggle.info/data/cache/'
     ATLAS = url + 'atlases/'
-    MAN = url + 'manual/'
+    MAN = url + 'manual/arno/'
     FS = url + 'freesurfer/arno/'
     ANTS = url + 'ants/arno/'
     MBW = url + 'mindboggle_working/arno/Mindboggle/'
@@ -301,9 +301,9 @@ def fetch_data(url, output_file='', append=''):
     >>> hashes, url, cache_env, cache = hashes_url()
     >>> output_file = ''
     >>> append = ''
-    >>> data_file = fetch_data(url + 'OASIS-30_Atropos_template.nii.gz',
-    ...     output_file, append)
-    >>> fetch_hash(data_file)
+    >>> url += 'OASIS-30_Atropos_template.nii.gz'
+    >>> output_file = fetch_data(url, output_file, append)
+    >>> fetch_hash(output_file)
     'f95dbe37ab40e8ad59c1b1eabc7f230c'
 
     """
