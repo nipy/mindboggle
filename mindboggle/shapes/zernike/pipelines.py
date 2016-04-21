@@ -304,18 +304,12 @@ class KoehlOptimizations(Pipeline):
         for face in faces_array:
             vertex_list = [points_array[_i, ...] for _i in face]
             moments_array += self.facet_contribution(vertex_list, N)
-        return self.factorial_scalar(N)*moments_array
+        return self.factorial_scalar(N) * moments_array
 
     def facet_contribution(self, vertex_list, N):
         Vf = self.facet_volume(vertex_list)
         Cf = self.term_Cijk(vertex_list[2], N)
         Df = self.term_Dijk(vertex_list[1], N, Cf)
-        print('Vf')
-        print(Vf)
-        print('Cf')
-        print(Cf)
-        print('Df')
-        print(Df)
         return Vf*self.term_Sijk(vertex_list[0], N, Df)
 
     def term_Cijk(self, vertex, N):
@@ -334,11 +328,10 @@ class KoehlOptimizations(Pipeline):
         Q = np.zeros([N+1, N+1, N+1])
         Q[0, 0, 0] = 1.0
 
-        #recursion_term = lambda _X, (x, y, z), mask: \
-        recursion_term = lambda _X, x, y, z, mask: \
-            np.roll(_X, 1, axis=0)[mask]*x + \
-            np.roll(_X, 1, axis=1)[mask]*y + \
-            np.roll(_X, 1, axis=2)[mask]*z
+        recursion_term = lambda _X, x_y_z, mask: \
+            np.roll(_X, 1, axis=0)[mask]*x_y_z[0] + \
+            np.roll(_X, 1, axis=1)[mask]*x_y_z[1] + \
+            np.roll(_X, 1, axis=2)[mask]*x_y_z[2]
         i, j, k = np.mgrid[:N+1, :N+1, :N+1]
         order = (i+j+k)
         for n in range(N):
@@ -348,9 +341,6 @@ class KoehlOptimizations(Pipeline):
         return Q
 
 def _kmp_geometric_moments_exact_worker(self, vertex_list, N):
-    print('_kmp_geometric_moments_exact_worker')
-    print('self.facet_contribution(vertex_list, N)')
-    print(self.facet_contribution(vertex_list, N))
     return self.facet_contribution(vertex_list, N)
 
 class KoehlMultiproc(KoehlOptimizations):
@@ -359,25 +349,15 @@ class KoehlMultiproc(KoehlOptimizations):
         assert n_vertices == 3
         moments_array = np.zeros([N+1, N+1, N+1])
         process_pool = mp.Pool()
-        print('KoehlMultiproc')
         for face in faces_array:
             vertex_list = [points_array[_i, ...] for _i in face]
-
-            print('vertex_list')
-            print(vertex_list)
-
             process_pool.apply_async(_kmp_geometric_moments_exact_worker,
                                      args=(self, vertex_list, N),
                                      callback=moments_array.__iadd__,
                                      )
-        print('moments_array')
-        print(moments_array)
-        print('process_pool')
-        print(process_pool)
-
         process_pool.close()
         process_pool.join()
-        return self.factorial_scalar(N)*moments_array
+        return self.factorial_scalar(N) * moments_array
 
 
 #DefaultPipeline = type('DefaultPipeline', (SerialPipeline,), {})
