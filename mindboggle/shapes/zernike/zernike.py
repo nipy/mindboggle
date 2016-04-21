@@ -110,12 +110,12 @@ def zernike_moments(points, faces, order=10, scale_input=True,
 
     View both segments (skip test):
 
-    >>> from mindboggle.mio.plots import plot_surfaces
-    >>> scalars = -1 * np.ones(np.shape(labels))
-    >>> scalars[I22] = 1
-    >>> vtk_file = 'test_two_labels.vtk'
-    >>> # Note: mismatch in the following command:
-    >>> write_vtk(vtk_file, points, [],[], faces, scalars, 'scalars', 'int')
+    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
+    >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP
+    >>> scalars = -1 * np.ones(np.shape(labels)) # doctest: +SKIP
+    >>> scalars[I22] = 1 # doctest: +SKIP
+    >>> rewrite_scalars(label_file, 'test_two_labels.vtk', scalars,
+    ...                 'two_labels', scalars) # doctest: +SKIP
     >>> plot_surfaces(vtk_file) # doctest: +SKIP
 
     """
