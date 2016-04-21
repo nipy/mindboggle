@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Functions to extract folds.
+Functions to extract surface folds.
 
 Authors:
     - Arno Klein, 2012-2016  (arno@mindboggle.info)  http://binarybottle.com
@@ -9,37 +9,20 @@ Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-#=============================================================================
-# Extract folds
-#=============================================================================
-def extract_folds(depth_file, min_vertices=10000, min_fold_size=50, 
-                  save_file=False, background_value=-1, verbose=False):
+
+def find_depth_threshold(depth_file, min_vertices=10000, verbose=False):
     """
-    Use depth to extract folds from a triangular surface mesh.
+    Find depth threshold to extract folds from a triangular surface mesh.
 
     Steps ::
         1. Compute histogram of depth measures.
         2. Define a depth threshold and find the deepest vertices.
-        3. Segment deep vertices as an initial set of folds.
-        4. Remove small folds.
-        5. Renumber folds.
-
-    Step 2 ::
-        To extract an initial set of deep vertices from the surface mesh,
-        we anticipate that there will be a rapidly decreasing distribution
-        of low depth values (on the outer surface) with a long tail
-        of higher depth values (in the folds), so we smooth the histogram's
-        bin values, convolve to compute slopes, and find the depth value
-        for the first bin with slope = 0. This is our threshold.
-
-    Note ::
-        Removed option: Find and fill holes in the folds:
-        Folds could have holes in areas shallower than the depth threshold.
-        Calling fill_holes() could accidentally include very shallow areas
-        (in an annulus-shaped fold, for example).
-        However, we could include the argument exclude_range to check for
-        any values from zero to min_hole_depth; holes would not be filled
-        if they were to contain values within this range.
+           To extract an initial set of deep vertices from the surface mesh,
+           we anticipate that there will be a rapidly decreasing distribution
+           of low depth values (on the outer surface) with a long tail
+           of higher depth values (in the folds), so we smooth the histogram's
+           bin values, convolve to compute slopes, and find the depth value
+           for the first bin with slope = 0. This is our threshold.
 
     Parameters
     ----------
@@ -47,108 +30,72 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
         surface mesh file in VTK format with faces and depth scalar values
     min_vertices : integer
         minimum number of vertices
-    min_fold_size : integer
-        minimum fold size (number of vertices)
-    save_file : bool
-        save output VTK file?
-    background_value : integer or float
-        background value
     verbose : bool
         print statements?
 
     Returns
     -------
-    folds : list of integers
-        fold numbers for all vertices (-1 for non-fold vertices)
-    n_folds :  int
-        number of folds
     depth_threshold :  float
         threshold defining the minimum depth for vertices to be in a fold
     bins :  list of integers
         histogram bins: each is the number of vertices within a range of depth values
     bin_edges :  list of floats
         histogram bin edge values defining the bin ranges of depth values
-    folds_file : string (if save_file)
-        name of output VTK file with fold IDs (-1 for non-fold vertices)
 
     Examples
     --------
-    >>> from mindboggle.features.folds import extract_folds
-    >>> from mindboggle.guts.mesh import find_neighbors_from_file
+    >>> import numpy as np
+    >>> from mindboggle.features.folds import find_depth_threshold
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
     >>> depth_file = fetch_data(urls['left_travel_depth'])
-    >>> neighbor_lists = find_neighbors_from_file(depth_file)
     >>> min_vertices = 10000
-    >>> min_fold_size = 50
-    >>> save_file = True
-    >>> background_value = -1
     >>> verbose = False
-    >>> folds, n_folds, thr, bins, bin_edges, folds_file = extract_folds(depth_file,
-    ...     min_vertices, min_fold_size, save_file, background_value, verbose)
-    >>> n_folds
-    33
-    >>> lens = [len([x for x in folds if x == y]) for y in range(n_folds)]
-    >>> lens[0:10]
-    [726, 67241, 2750, 5799, 1151, 6360, 1001, 505, 228, 198]
+    >>> depth_threshold, bins, bin_edges = find_depth_threshold(depth_file,
+    ...     min_vertices, verbose)
+    >>> np.float(np.array_str(np.array([depth_threshold]),
+    ...     precision=5).strip('[').strip(']').strip())
+    2.36089
 
-    View folds (skip test):
+    View threshold histogram plots (skip test):
 
     >>> def vis():
     ...     import numpy as np
     ...     import pylab
     ...     from scipy.ndimage.filters import gaussian_filter1d
     ...     from mindboggle.mio.vtks import read_scalars
-    ...     from mindboggle.mio.plots import plot_surfaces
-    ...     plot_surfaces('folds.vtk')
     ...     # Plot histogram and depth threshold:
     ...     depths, name = read_scalars(depth_file)
     ...     nbins = np.round(len(depths) / 100.0)
     ...     a,b,c = pylab.hist(depths, bins=nbins)
-    ...     pylab.plot(thr*np.ones((100,1)), np.linspace(0, max(bins), 100), 'r.')
+    ...     pylab.plot(depth_threshold * np.ones((100,1)),
+    ...                np.linspace(0, max(bins), 100), 'r.')
+    ...     pylab.title('Histogram of depth values with threshold')
+    ...     pylab.xlabel('Depth')
+    ...     pylab.ylabel('Number of vertices')
     ...     pylab.show()
     ...     # Plot smoothed histogram:
     ...     bins_smooth = gaussian_filter1d(bins.tolist(), 5)
     ...     pylab.plot(list(range(len(bins))), bins, '.',
     ...                list(range(len(bins))), bins_smooth,'-')
+    ...     pylab.title('Smoothed histogram of depth values')
     ...     pylab.show()
     >>> vis() # doctest: +SKIP
 
-    View folds just on folds (skip test):
-
-    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
-    >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP
-    >>> rewrite_scalars(depth_file, 'just_folds.vtk', folds,
-    ...     'just_folds', folds, -1) # doctest: +SKIP
-    >>> plot_surfaces('just_folds.vtk') # doctest: +SKIP
-
     """
-    import os
     import numpy as np
-    from time import time
     from scipy.ndimage.filters import gaussian_filter1d
 
-    from mindboggle.mio.vtks import rewrite_scalars, read_vtk
-    from mindboggle.guts.mesh import find_neighbors
-    from mindboggle.guts.segment import segment_regions
-
-    if verbose:
-        print("Extract folds in surface mesh")
-        t0 = time()
+    from mindboggle.mio.vtks import read_vtk
 
     #-------------------------------------------------------------------------
-    # Load depth values for all vertices
+    # Load depth values for all vertices:
     #-------------------------------------------------------------------------
     points, indices, lines, faces, depths, scalar_names, npoints, \
         input_vtk = read_vtk(depth_file, return_first=True, return_array=True)
 
     #-------------------------------------------------------------------------
-    # Find neighbors for each vertex
-    #-------------------------------------------------------------------------
-    neighbor_lists = find_neighbors(faces, npoints)
-
-    #-------------------------------------------------------------------------
-    # Compute histogram of depth measures
+    # Compute histogram of depth measures:
     #-------------------------------------------------------------------------
     if npoints > min_vertices:
         nbins = np.round(npoints / 100.0)
@@ -165,18 +112,126 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
     #-------------------------------------------------------------------------
     bins_smooth = gaussian_filter1d(bins.tolist(), 5)
     window = [-1, 0, 1]
-    bin_slopes = np.convolve(bins_smooth, window, mode='same') / (len(window) - 1)
+    bin_slopes = np.convolve(bins_smooth, window, mode='same') / \
+                 (len(window) - 1)
     ibins0 = np.where(bin_slopes == 0)[0]
     if ibins0.shape:
         depth_threshold = bin_edges[ibins0[0]]
     else:
         depth_threshold = np.median(depths)
 
+    # Print statement:
+    if verbose:
+        print('  Depth threshold: {0}'.format(depth_threshold))
+
+    return depth_threshold, bins, bin_edges
+
+
+def extract_folds(depth_file, depth_threshold=2, min_fold_size=50,
+                  save_file=False, background_value=-1, verbose=False):
+    """
+    Use depth threshold to extract folds from a triangular surface mesh.
+
+    Steps ::
+        1. Segment deep vertices as an initial set of folds.
+        2. Remove small folds.
+        3. Renumber folds.
+
+    Note ::
+        Removed option: Find and fill holes in the folds:
+        Folds could have holes in areas shallower than the depth threshold.
+        Calling fill_holes() could accidentally include very shallow areas
+        (in an annulus-shaped fold, for example).
+        However, we could include the argument exclude_range to check for
+        any values from zero to min_hole_depth; holes would not be filled
+        if they were to contain values within this range.
+
+    Parameters
+    ----------
+    depth_file : string
+        surface mesh file in VTK format with faces and depth scalar values
+    depth_threshold :  float
+        threshold defining the minimum depth for vertices to be in a fold
+    min_fold_size : integer
+        minimum fold size (number of vertices)
+    save_file : bool
+        save output VTK file?
+    background_value : integer or float
+        background value
+    verbose : bool
+        print statements?
+
+    Returns
+    -------
+    folds : list of integers
+        fold numbers for all vertices (-1 for non-fold vertices)
+    n_folds :  int
+        number of folds
+    folds_file : string (if save_file)
+        name of output VTK file with fold IDs (-1 for non-fold vertices)
+
+    Examples
+    --------
+    >>> from mindboggle.features.folds import extract_folds
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> depth_file = fetch_data(urls['left_travel_depth'])
+    >>> depth_threshold = 2.36089
+    >>> min_fold_size = 50
+    >>> save_file = True
+    >>> background_value = -1
+    >>> verbose = False
+    >>> folds, n_folds, folds_file = extract_folds(depth_file,
+    ...     depth_threshold, min_fold_size, save_file, background_value,
+    ...     verbose)
+    >>> n_folds
+    33
+    >>> lens = [len([x for x in folds if x == y]) for y in range(n_folds)]
+    >>> lens[0:10]
+    [726, 67241, 2750, 5799, 1151, 6360, 1001, 505, 228, 198]
+
+    View folds (skip test):
+
+    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
+    >>> plot_surfaces('folds.vtk') # doctest: +SKIP
+
+    View folds just on folds (skip test):
+
+    >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
+    >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP
+    >>> rewrite_scalars(depth_file, 'just_folds.vtk', folds,
+    ...     'just_folds', folds, -1) # doctest: +SKIP
+    >>> plot_surfaces('just_folds.vtk') # doctest: +SKIP
+
+    """
+    import os
+    import numpy as np
+    from time import time
+
+    from mindboggle.mio.vtks import rewrite_scalars, read_vtk
+    from mindboggle.guts.mesh import find_neighbors
+    from mindboggle.guts.segment import segment_regions
+
+    if verbose:
+        print("Extract folds in surface mesh")
+        t0 = time()
+
+    #-------------------------------------------------------------------------
+    # Load depth values for all vertices
+    #-------------------------------------------------------------------------
+    points, indices, lines, faces, depths, scalar_names, npoints, \
+        input_vtk = read_vtk(depth_file, return_first=True, return_array=True)
+
     #-------------------------------------------------------------------------
     # Find the deepest vertices
     #-------------------------------------------------------------------------
     indices_deep = [i for i,x in enumerate(depths) if x >= depth_threshold]
     if indices_deep:
+
+        #---------------------------------------------------------------------
+        # Find neighbors for each vertex
+        #---------------------------------------------------------------------
+        neighbor_lists = find_neighbors(faces, npoints)
 
         #---------------------------------------------------------------------
         # Segment deep vertices as an initial set of folds
@@ -246,12 +301,9 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
     else:
         folds_file = None
 
-    return folds, n_folds, depth_threshold, bins, bin_edges, folds_file
+    return folds, n_folds, folds_file
 
 
-# #=============================================================================
-# # Extract subfolds
-# #=============================================================================
 # def extract_subfolds(depth_file, folds, min_size=10, depth_factor=0.25,
 #                      depth_ratio=0.1, tolerance=0.01, save_file=False,
 #                      background_value=-1, verbose=False):
@@ -402,6 +454,7 @@ def extract_folds(depth_file, min_vertices=10000, min_fold_size=50,
 #         subfolds_file = None
 #
 #     return subfolds, n_subfolds, subfolds_file
+
 
 #=============================================================================
 # Doctests
