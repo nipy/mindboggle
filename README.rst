@@ -3,14 +3,12 @@ Software -- PRE-RELEASE
 ==============================================================================
 .. role:: red
 
-NOTE: :red:`CURRENTLY MOVING CODE FROM PYTHON 2 TO PYTHON 3...`
-
 The Mindboggle software package automates shape analysis of anatomical labels
 and features extracted from human brain magnetic resonance image data.
 Mindboggle can be run as a single command, and can be installed as a
 cross-platform virtual machine for convenience and reproducibility of results.
-Behind the scenes, open source Python and C++ code run within a modular Nipype
-pipeline framework.
+Behind the scenes, open source Python 3 and C++ code run within a modular
+Nipype pipeline framework.
 
 ..
     1. Installing Mindboggle
