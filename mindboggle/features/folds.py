@@ -199,7 +199,7 @@ def extract_folds(depth_file, depth_threshold=2, min_fold_size=50,
     >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
     >>> plot_surfaces('extract_folds.vtk') # doctest: +SKIP
 
-    View folds just on folds (skip test):
+    View folds without background (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
     >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP

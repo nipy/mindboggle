@@ -84,7 +84,7 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     >>> erode_ratio = 0.10
     >>> erode_min_size = 10
     >>> save_file = True
-    >>> output_file = 'extract_fundi.vtk'
+    >>> output_file = 'extract_fundi_fold4.vtk'
     >>> background_value = -1
     >>> verbose = False
     >>> o1, o2, fundus_per_fold_file = extract_fundi(folds, curv_file,
@@ -92,17 +92,17 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     ...     save_file, output_file, background_value, verbose)
     >>> lens = [len([x for x in o1 if x == y])
     ...         for y in np.unique(o1) if y != background_value]
-    >>> lens[0:10] # [66, 2914, 100, 363, 73, 331, 59, 30, 1, 14]
+    >>> lens[0:10] # [66, 2914, 100, 363, 73, 331, 59, 30, 1, 14] # (if not limit_folds)
     [73]
 
-    View result (skip test):
+    View result without background (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
     >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP
     >>> rewrite_scalars(fundus_per_fold_file,
-    ...                 'extract_fundi_no_background.vtk', o1,
+    ...                 'extract_fundi_fold4_no_background.vtk', o1,
     ...                 'fundus_per_fold', folds) # doctest: +SKIP
-    >>> plot_surfaces('extract_fundi_no_background.vtk') # doctest: +SKIP
+    >>> plot_surfaces('extract_fundi_fold4_no_background.vtk') # doctest: +SKIP
 
     """
 
