@@ -63,10 +63,10 @@ dependencies:
 #-----------------------------------------------------------------------------
 test:
     override:
-        - $python -m "nose" --with-doctest --with-coverage ${MB}/thirdparty/
-        - $python -m "nose" --with-doctest --with-coverage ${MB}/mio/
-        - $python -m "nose" --with-doctest --with-coverage ${MB}/guts/
-        - $python -m "nose" --with-doctest --with-coverage ${MB}/shapes/
-        - $python -m "nose" --with-doctest --with-coverage ${MB}/features/
+        - $python -m "nose" --with-doctest ${MB}/thirdparty/
+        - $python -m "nose" --with-doctest ${MB}/mio/
+        - $python -m "nose" --with-doctest ${MB}/guts/
+        - $python -m "nose" --with-doctest ${MB}/shapes/
+        - $python -m "nose" --with-doctest ${MB}/features/
        #- $python -m "nose" --with-doctest --with-coverage ${MB}/evaluate/
        #- coveralls
