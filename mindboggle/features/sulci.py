@@ -130,9 +130,9 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     # their sulcus IDs will remain -1:
     sulci = background_value * np.ones(npoints)
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Loop through folds
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     fold_numbers = [int(x) for x in np.unique(folds) if x != background_value]
     n_folds = len(fold_numbers)
     if verbose:
@@ -147,9 +147,9 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
         unique_fold_labels = [int(x) for x in np.unique(fold_labels)
                               if x != background_value]
 
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # NO MATCH -- fold has fewer than two labels
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         if verbose and len(unique_fold_labels) < 2:
             # Ignore: sulci already initialized with -1 values:
             if not unique_fold_labels:
@@ -176,16 +176,16 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
                 print("  Fold {0} labels: {1} ({2} vertices)".format(n_fold,
                       ', '.join([str(x) for x in unique_fold_labels]),
                       len_fold))
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # NO MATCH -- fold has no sulcus label pair
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             if verbose and not fold_pairs_in_protocol:
                 print("  Fold {0}: NO MATCH -- fold has no sulcus label pair".
                       format(n_fold, len_fold))
 
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Possible matches
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             else:
                 if verbose:
                     print("  Fold {0} label pairs in protocol: {1}".format(n_fold,
@@ -204,14 +204,14 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
                     else:
                         nonunique_labels.append(label)
 
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 # Vertices whose labels are in only one sulcus label pair
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 # Find vertices with a label that is in only one of the fold's
                 # label pairs (the other label in the pair can exist in other
                 # pairs). Assign the vertices the sulcus with the label pair
                 # if they are connected to the label boundary for that pair.
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 if unique_labels:
 
                     for pair in fold_pairs_in_protocol:
@@ -276,12 +276,12 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
                                           format(ps1, ps2,
                                                  unique_labels_in_pair))
 
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 # Vertex labels shared by multiple label pairs
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 # Propagate labels from label borders to vertices with labels
                 # that are shared by multiple label pairs in the fold.
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 if len(nonunique_labels):
                     # For each label shared by different label pairs:
                     for label in nonunique_labels:
@@ -379,9 +379,9 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
                       if x != background_value]
     n_sulci = len(sulcus_numbers)
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Print statements
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     if verbose:
         if n_sulci == 1:
             sulcus_str = 'sulcus'
@@ -414,9 +414,9 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
         else:
             print("  " + ", ".join([str(x) for x in unresolved]))
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Return sulci, number of sulci, and file name
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     sulci = [int(x) for x in sulci]
     sulci_file = os.path.join(os.getcwd(), 'sulci.vtk')
     rewrite_scalars(labels_file, sulci_file, sulci, 'sulci', [],

@@ -173,9 +173,9 @@ def pairwise_vector_distances(vectors, save_file=False, normalize=False):
     # Initialize output
     vector_distances = np.zeros((len(vectors), len(vectors)))
 
-    #---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Compute distance between each pair of vectors
-    #---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Loop through every pair of vectors
     for ihist1 in range(len(vectors)):
         for ihist2 in range(len(vectors)):
@@ -1076,9 +1076,9 @@ def compute_image_histogram(infile, nbins=100, threshold=0.0):
     import nibabel as nb
     #from pylab import plot #, hist
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Compute histogram
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Load image
     data = nb.load(infile).get_data().ravel()
 

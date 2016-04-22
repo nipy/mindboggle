@@ -425,9 +425,9 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None,
 
     from mindboggle.shapes.laplace_beltrami import computeAB
 
-    #-----------------------------------------------------------------
+    # ----------------------------------------------------------------
     # Compute A and B matrices (from Reuter et al., 2009):
-    #-----------------------------------------------------------------
+    # ----------------------------------------------------------------
     A, B = computeAB(points, faces)
     if A.shape[0] <= spectrum_size:
         if verbose:
@@ -435,9 +435,9 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None,
                   format(A.shape[0], spectrum_size))
         return None
 
-    #-----------------------------------------------------------------
+    # ----------------------------------------------------------------
     # Use the eigsh eigensolver:
-    #-----------------------------------------------------------------
+    # ----------------------------------------------------------------
     try :
 
         # eigs is for nonsymmetric matrices while
@@ -446,9 +446,9 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None,
                                           sigma=-0.01)
         spectrum = eigenvalues.tolist()
 
-    #-----------------------------------------------------------------
+    # ----------------------------------------------------------------
     # Use the lobpcg eigensolver:
-    #-----------------------------------------------------------------
+    # ----------------------------------------------------------------
     except RuntimeError:     
            
         if verbose:
@@ -469,9 +469,9 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None,
         # For some reason, the eigenvalues from lobpcg are not sorted:
         spectrum.sort()
 
-    #-----------------------------------------------------------------
+    # ----------------------------------------------------------------
     # Normalize by area:
-    #-----------------------------------------------------------------
+    # ----------------------------------------------------------------
     if normalization == "area":
         spectrum = area_normalize(points, faces, spectrum)
         if verbose:
@@ -574,9 +574,9 @@ def spectrum_of_largest(points, faces, spectrum_size=10, exclude_labels=[-1],
         return None
     else:
 
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Select the largest segment (connected set of indices):
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         points, faces = select_largest(points, faces, exclude_labels, areas,
                                        reindex=True)
 
@@ -587,9 +587,9 @@ def spectrum_of_largest(points, faces, spectrum_size=10, exclude_labels=[-1],
             return None
         elif faces:
 
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Compute spectrum:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             spectrum = fem_laplacian(points, faces, spectrum_size,
                                      normalization, verbose)
             return spectrum

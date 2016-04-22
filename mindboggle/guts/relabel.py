@@ -142,17 +142,17 @@ def remove_volume_labels(input_file, labels_to_remove, output_file='',
     import numpy as np
     import nibabel as nb
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Load labeled image volume and extract data as 1-D array:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     vol = nb.load(input_file)
     xfm = vol.get_affine()
     data = vol.get_data().ravel()
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # If second file specified, erase voxels whose corresponding
     # voxels in the input_file have labels in labels_to_remove:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     if second_file:
         # Load second image volume and extract data as 1-D array:
         vol = nb.load(second_file)
@@ -161,32 +161,32 @@ def remove_volume_labels(input_file, labels_to_remove, output_file='',
         if not output_file:
             output_file = os.path.join(os.getcwd(),
                                        os.path.basename(second_file))
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # If second file not specified, remove labels in labels_to_remove:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     else:
         new_data = data.copy()
         if not output_file:
             output_file = os.path.join(os.getcwd(),
                                        os.path.basename(input_file))
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Erase voxels as specified above:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     ulabels = np.unique(data)
     for label in ulabels:
         label = int(label)
         if label in labels_to_remove:
             new_data[np.where(data == label)[0]] = 0
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Reshape to original dimensions:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     new_data = np.reshape(new_data, vol.shape)
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Save relabeled file:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     img = nb.Nifti1Image(new_data, xfm)
     img.to_filename(output_file)
 
@@ -243,17 +243,17 @@ def keep_volume_labels(input_file, labels_to_keep, output_file='',
     import numpy as np
     import nibabel as nb
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Load labeled image volume and extract data as 1-D array:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     vol = nb.load(input_file)
     xfm = vol.get_affine()
     data = vol.get_data().ravel()
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # If second file specified, erase voxels whose corresponding
     # voxels in the input_file have labels not in labels_to_keep:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     if second_file:
         # Load second image volume and extract data as 1-D array:
         vol = nb.load(second_file)
@@ -262,32 +262,32 @@ def keep_volume_labels(input_file, labels_to_keep, output_file='',
         if not output_file:
             output_file = os.path.join(os.getcwd(),
                                        os.path.basename(second_file))
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # If second file not specified, remove labels not in labels_to_keep:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     else:
         new_data = data.copy()
         if not output_file:
             output_file = os.path.join(os.getcwd(),
                                        os.path.basename(input_file))
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Erase voxels as specified above:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     ulabels = np.unique(data)
     for label in ulabels:
         label = int(label)
         if label not in labels_to_keep:
             new_data[np.where(data == label)[0]] = 0
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Reshape to original dimensions:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     new_data = np.reshape(new_data, vol.shape)
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Save relabeled file:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     img = nb.Nifti1Image(new_data, xfm)
     img.to_filename(output_file)
 

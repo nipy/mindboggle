@@ -71,15 +71,15 @@ def convert2nii(input_file, reference_file, output_file='', interp='continuous')
     if not output_file:
         output_file = os.path.join(os.getcwd(),
                                    os.path.basename(input_file) + '.nii.gz')
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Load reference image:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     vol2 = nb.load(reference_file)
     xfm2 = vol2.get_affine()
     dim2 = vol2.shape
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Resample the source image according to the reference image:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     vol1 = nb.load(input_file)
     dat1 = vol1.get_data()
     xfm1 = vol1.get_affine()
@@ -106,9 +106,9 @@ def convert2nii(input_file, reference_file, output_file='', interp='continuous')
                          output_shape=dim2,
                          order=interpolation_order)
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Save the image with the reference affine transform:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     img = nb.Nifti1Image(resliced, xfm2)
     img.to_filename(output_file)
 

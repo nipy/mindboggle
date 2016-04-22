@@ -274,9 +274,9 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
 
     from mindboggle.guts.utilities import execute
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Output files:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     if output_dir:
         if not os.path.exists(output_dir):
             os.mkdir(output_dir)
@@ -304,16 +304,16 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     else:
         output_table = ''
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # ants command paths:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     ants_thresh = 'ThresholdImage'
     ants_math = 'ImageMath'
     ants_resample = 'ResampleImageBySpacing'
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Extract noncortex and cortex:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     cmd = [ants_thresh, '3', segmented_file, noncortex,
            str(noncortex_value), str(noncortex_value), '1 0']
     execute(cmd, 'os')
@@ -321,9 +321,9 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
            str(cortex_value), str(cortex_value), '1 0']
     execute(cmd, 'os')
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Either mask labels with cortex or fill cortex with labels:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     if propagate:
         cmd = [ants_math, '3', cortex, 'PropagateLabelsThroughMask',
                cortex, labeled_file]
@@ -332,9 +332,9 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
         cmd = [ants_math, '3', cortex, 'm', cortex, labeled_file]
         execute(cmd, 'os')
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Load data and dimensions:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     if resize:
         rescale = 2.0
     else:
@@ -350,10 +350,10 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
         vv = 1/rescale
         cortex_data = nb.load(cortex).get_data().ravel()
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Resample cortex and noncortex files from 1x1x1 to 0.5x0.5x0.5
     # to better represent the contours of the boundaries of the cortex:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     if resize:
         dims = ' '.join([str(1/rescale), str(1/rescale), str(1/rescale)])
         cmd = [ants_resample, '3', cortex, cortex, dims, '0 0 1']
@@ -361,11 +361,11 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
         cmd = [ants_resample, '3', noncortex, noncortex, dims, '0 0 1']
         execute(cmd, 'os')
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Extract outer and inner boundary voxels of the cortex,
     # by eroding 1 (resampled) voxel for cortex voxels (2) bordering
     # the outside of the brain (0) and bordering noncortex (3):
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     cmd = [ants_math, '3', inner_edge, 'MD', noncortex, '1']
     execute(cmd, 'os')
     cmd = [ants_math, '3', inner_edge, 'm', cortex, inner_edge]
@@ -386,16 +386,16 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
         cmd = [ants_math, '3', outer_edge, 'm', temp, outer_edge]
         execute(cmd, 'os')
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Load data:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     inner_edge_data = nb.load(inner_edge).get_data().ravel()
     if use_outer_edge:
         outer_edge_data = nb.load(outer_edge).get_data().ravel()
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Loop through labels:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     if not labels:
         labeled_data = nb.load(labeled_file).get_data().ravel()
         labels = np.unique(labeled_data)
@@ -406,14 +406,14 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
         if names:
             name = names[ilabel]
 
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Compute thickness as a ratio of label volume and edge volume:
         #   - Estimate middle cortical surface area by the average volume
         #     of the outer and inner boundary voxels of the cortex.
         #   - Compute the volume of a labeled region of cortex.
         #   - Estimate the thickness of the labeled cortical region as the
         #     volume of the labeled region divided by the surface area.
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         label_cortex_volume = vv_orig * len(np.where(cortex_data==label)[0])
         label_inner_edge_volume = vv * len(np.where(inner_edge_data==label)[0])
         if label_inner_edge_volume:

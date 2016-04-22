@@ -164,9 +164,9 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     spectrum_start = 1  # Store all columns of spectral components (0),
                         # or start from higher frequency components (>=1)
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Feature lists, shape names, and shape files:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Feature lists:
     feature_lists = [labels, sulci, fundi]
     feature_names = ['label', 'sulcus', 'fundus']
@@ -225,9 +225,9 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     for itable, feature_list in enumerate(feature_lists):
         column_names = []
 
-        #-----------------------------------------------------------------
+        # ----------------------------------------------------------------
         # Label names:
-        #-----------------------------------------------------------------
+        # ----------------------------------------------------------------
         label_title = 'name'
         if itable == 0:
             label_numbers = dkt.cerebrum_cortex_DKT31_numbers
@@ -241,33 +241,33 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
         include_labels = label_numbers
         nlabels = len(label_numbers)
 
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # For each feature, construct a table of average shape values:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         if feature_list:
             feature_name = feature_names[itable]
             columns = []
 
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Loop through shape measures:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             column_names.extend(column_names[:])
             for ishape, shape_array in enumerate(shape_arrays):
                 shape = shape_names[ishape]
                 if verbose:
                     print('  Compute statistics on {0} {1}...'.
                         format(feature_name, shape))
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 # Append feature areas to columns:
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 if ishape == 0 and np.size(area_array):
                     sums, label_list = sum_per_label(shape_array,
                         feature_list, include_labels, exclude_labels)
                     column_names.append(shape)
                     columns.append(sums)
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 # Append feature shape statistics to columns:
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 else:
                     medians, mads, means, sdevs, skews, kurts, \
                     lower_quarts, upper_quarts, \
@@ -292,9 +292,9 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                     columns.append(lower_quarts)
                     columns.append(upper_quarts)
 
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Mean positions in the original space:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Compute mean position per feature:
             positions, sdevs, label_list, foo = means_per_label(points,
                 feature_list, include_labels, exclude_labels, use_area)
@@ -305,9 +305,9 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                 column_names.append('mean position: {0}'.format(xyz))
                 columns.append(xyz_positions[:, ixyz].tolist())
 
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Mean positions in standard space:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             if affine_transform_files and transform_format:
                 # Compute standard space mean position per feature:
                 standard_positions, sdevs, label_list, \
@@ -321,9 +321,9 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                                         ' {0}'.format(xyz))
                     columns.append(xyz_std_positions[:, ixyz].tolist())
 
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Laplace-Beltrami spectra:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             if itable in [0, 1]:
                 spectra = spectra_lists[itable]
                 if spectra:
@@ -343,9 +343,9 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                         column_names.append('Laplace-Beltrami spectrum:'
                                             ' component {0}'.format(ispec+1))
 
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Zernike moments:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             if itable in [0, 1]:
                 zernike = zernike_lists[itable]
                 if zernike:
@@ -365,9 +365,9 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                         column_names.append('Zernike moments: component {0}'.
                                             format(imoment+1))
 
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Write labels/IDs and values to table:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Write labels/IDs to table:
             output_table = os.path.join(os.getcwd(), table_names[itable])
 
@@ -384,9 +384,9 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
             if not os.path.exists(output_table):
                 raise IOError(output_table + " not found")
 
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Return correct table file name:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             if itable == 0:
                 label_table = output_table
             elif itable == 1:
@@ -625,9 +625,9 @@ def write_face_vertex_averages(input_file, output_table='', area_file=''):
     if area_file:
         area_scalars, name = read_scalars(area_file, True, True)
 
-    #---------------------------------------------------------------------
+    # --------------------------------------------------------------------
     # For each face, average vertex values:
-    #---------------------------------------------------------------------
+    # --------------------------------------------------------------------
     columns = []
     for face in faces:
         values = []
@@ -638,9 +638,9 @@ def write_face_vertex_averages(input_file, output_table='', area_file=''):
                 values.append(scalars[index])
         columns.append(np.mean(values))
 
-    #-----------------------------------------------------------------
+    # ----------------------------------------------------------------
     # Write to table:
-    #-----------------------------------------------------------------
+    # ----------------------------------------------------------------
     if not output_table:
         output_table = os.path.join(os.getcwd(), 'average_face_values.csv')
 
@@ -740,9 +740,9 @@ def write_average_face_values_per_label(input_indices_vtk,
             print("  Scalar {0}: {1} vertices".format(scalar,
                                                       len(scalar_indices)))
 
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # For each face, average vertex values:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         output_table = os.path.join(os.getcwd(),
                                     output_stem+str(scalar)+'.csv')
         columns = []
@@ -755,9 +755,9 @@ def write_average_face_values_per_label(input_indices_vtk,
                     values.append(scalars[index])
             columns.append(np.mean(values))
 
-        #-----------------------------------------------------------------
+        # ----------------------------------------------------------------
         # Write to table:
-        #-----------------------------------------------------------------
+        # ----------------------------------------------------------------
         df = pd.DataFrame({'': columns})
         df.to_csv(output_table, index=False)
         if not os.path.exists(output_table):
@@ -825,24 +825,24 @@ def select_column_from_tables(tables, index=0, write_table=True,
     import os
     import pandas as pd
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Construct a table:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     columns = []
     for input_table in tables:
 
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Extract column from the table for each subject:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         if not os.path.exists(input_table):
             raise IOError(input_table + " not found")
         else:
             input_columns = pd.read_csv(input_table)
             columns.append(input_columns.iloc[:, index])
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Write tables:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     if write_table and columns:
         if all([len(x) == len(columns[0]) for x in columns]):
             if not output_table:
@@ -926,9 +926,9 @@ def select_column_from_mindboggle_tables(subjects, hemi, index, tables_dir,
 
     from mindboggle.mio.tables import select_column_from_tables
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Construct list of Mindboggle shape table file names:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     tables = []
     for subject in subjects:
         if is_surface_table:
@@ -938,9 +938,9 @@ def select_column_from_mindboggle_tables(subjects, hemi, index, tables_dir,
             table = os.path.join(tables_dir, subject, 'tables', table_name)
         tables.append(table)
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Extract columns and construct new table:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     tables, columns, output_table = select_column_from_tables(tables, index,
         write_table, output_table)
 

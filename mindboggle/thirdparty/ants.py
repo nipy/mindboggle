@@ -73,9 +73,9 @@ def antsApplyTransformsToPoints(points, transform_files,
 
     from mindboggle.guts.utilities import execute
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Write points (x,y,z,1) to a .csv file:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     points_file = os.path.join(os.getcwd(), 'points.csv')
     fid = open(points_file, 'w')
     fid.write('x,y,z,t\n')
@@ -86,9 +86,9 @@ def antsApplyTransformsToPoints(points, transform_files,
         fid.write(','.join([str(x) for x in point]) + string_of_zeros + '\n')
     fid.close()
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Apply transforms to points in .csv file:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     transformed_points_file = os.path.join(os.getcwd(),
                                            'transformed_points.csv')
     transform_string = ''
@@ -106,9 +106,9 @@ def antsApplyTransformsToPoints(points, transform_files,
         raise IOError("antsApplyTransformsToPoints did not create {0}.".
                       format(transformed_points_file))
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Return transformed points:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     fid = open(transformed_points_file, 'r')
     lines = fid.readlines()
     fid.close()

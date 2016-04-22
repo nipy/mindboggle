@@ -137,9 +137,9 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     thr = np.median(values0) + 2 * median_abs_dev(values0)
     neighbor_lists = find_neighbors_from_file(curv_file)
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Loop through folds:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     t1 = time()
     skeletons = []
     unique_fold_IDs = [x for x in np.unique(folds) if x != background_value]
@@ -157,24 +157,24 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
             if verbose:
                 print('  Fold {0}:'.format(int(fold_ID)))
 
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Find outer anchor points on the boundary of the surface region,
             # to serve as fundus endpoints:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             verbose = False
             outer_anchors, tracks = find_outer_endpoints(indices_fold,
                 neighbor_lists, values, depths, min_separation,
                 background_value, verbose)
 
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Find inner anchor points:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             inner_anchors = find_max_values(points, values, min_separation,
                                             thr)
 
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Connect anchor points to create skeleton:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             B = background_value * np.ones(npoints)
             B[indices_fold] = 1
             skeleton = connect_points_erosion(B, neighbor_lists,
@@ -183,9 +183,9 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
             if skeleton:
                 skeletons.extend(skeleton)
 
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Remove fundus vertices if they complete triangle faces:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             Iremove = find_complete_faces(skeletons, faces)
             if Iremove:
                 skeletons = list(frozenset(skeletons).difference(Iremove))
@@ -203,9 +203,9 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
         print('  ...Extracted {0} {1}; {2} total ({3:.2f} seconds)'.
               format(n_fundi_in_folds, sdum, n_fundi_in_folds, time() - t1))
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Return fundi, number of fundi, and file name:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     fundus_per_fold_file = None
     if n_fundi_in_folds > 0:
         fundus_per_fold = [int(x) for x in fundus_per_fold]

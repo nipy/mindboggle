@@ -37,9 +37,9 @@ def hashes_url():
     cache = os.environ.get(cache_env, os.path.join(os.environ['HOME'],
                                                    'mindboggle_cache'))
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Atlases and templates:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     hashes['OASIS-30_Atropos_template.nii.gz'] = 'f95dbe37ab40e8ad59c1b1eabc7f230c'
     hashes['OASIS-30_Atropos_template_in_MNI152.nii.gz'] = '2efbe9c0755f4aa4506ad78e60ec319f'
     hashes['OASIS-30_Atropos_template_to_MNI152_affine.txt'] = 'f36e3d5d99f7c4a9bb70e2494ed7340b'
@@ -93,9 +93,9 @@ def test_urls():
     Tright = T + right
 
     urls = {}
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Atlases and templates:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     urls['OASIS-30_Atropos_template'] = \
         ATLAS + 'OASIS-30_Atropos_template.nii.gz'
     urls['OASIS-30_Atropos_template_in_MNI152'] = \
@@ -117,14 +117,14 @@ def test_urls():
     urls['right_DKT31atlas101subjects'] = ATLAS + 'rh.DKT31atlas101subjects.gcs'
     urls['depth_curv_border_nonborder_parameters'] = \
         ATLAS + 'depth_curv_border_nonborder_parameters.pkl'
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Manual labels:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     urls['left_manual_labels'] = MAN + 'lh.labels.DKT31.manual.vtk'
     urls['right_manual_labels'] = MAN + 'rh.labels.DKT31.manual.vtk'
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # FreeSurfer output:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     urls['left_freesurfer_aparc_annot'] = FS + 'label/lh.aparc.annot'
     urls['right_freesurfer_aparc_annot'] = FS + 'label/rh.aparc.annot'
     urls['freesurfer_orig_mgz'] = FS + 'mri/orig.mgz'
@@ -134,26 +134,26 @@ def test_urls():
     urls['left_freesurfer_thickness'] = FS + 'surf/lh.thickness'
     urls['right_freesurfer_thickness'] = FS + 'surf/rh.thickness'
     urls['affine_mni_transform'] = FS + 'mri/t1weighted_brain.MNI152Affine.txt'
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # ants (antsCorticalThickness.sh) output:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     urls['ants_segmentation'] = ANTS + 'antsBrainSegmentation.nii.gz'
     urls['ants_mask'] = ANTS + 'antsBrainExtractionMask.nii.gz'
     urls['ants_affine_subject2template'] = ANTS + 'antsSubjectToTemplate0GenericAffine.mat'
     urls['ants_warp_subject2template'] = ANTS + 'antsSubjectToTemplate1Warp.nii.gz'
     urls['ants_affine_template2subject'] = ANTS + 'antsTemplateToSubject1GenericAffine.mat'
     urls['ants_warp_template2subject'] = ANTS + 'antsTemplateToSubject0Warp.nii.gz'
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Mindboggle working directory (including converted FreeSurfer output):
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     fseg = 'Volume_labels/Freesurfer_cerebrum_labels_to_graywhite/wmparc.mgz.nii.gz'
     urls['freesurfer_segmentation'] = MBW + fseg
     urls['T1_001'] = MBW + 'Convert_MRI_to_nifti_format/001.mgz.nii.gz'
     urls['left_pial'] = MBW + '_hemi_lh/Surface_to_vtk/lh.pial.vtk'
     urls['right_pial'] = MBW + '_hemi_rh/Surface_to_vtk/rh.pial.vtk'
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Mindboggle features:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     urls['right_cortex_in_mni'] = Fleft + 'cortex_in_MNI152_space.vtk'
     urls['left_folds'] = Fleft + 'folds.vtk'
     urls['left_fundus_per_sulcus'] = Fleft + 'fundus_per_sulcus.vtk'
@@ -163,16 +163,16 @@ def test_urls():
     urls['right_folds'] = Fright + 'folds.vtk'
     urls['right_fundi'] = Fright + 'fundus_per_sulcus.vtk'
     urls['right_sulci'] = Fright + 'sulci.vtk'
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Mindboggle labels:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     urls['ants_labels'] = L + 'ants_labels_in_hybrid_graywhite.nii.gz'
     urls['freesurfer_labels'] = L + 'freesurfer_wmparc_labels_in_hybrid_graywhite.nii.gz'
     urls['left_freesurfer_labels'] = Lleft + 'freesurfer_cortex_labels.vtk'
     urls['right_freesurfer_labels'] = Lright + 'freesurfer_cortex_labels.vtk'
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Mindboggle shapes:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     urls['left_area'] = Sleft + 'area.vtk'
     urls['left_freesurfer_curvature'] = Sleft + 'freesurfer_curvature.vtk'
     urls['left_freesurfer_sulc'] = Sleft + 'freesurfer_sulc.vtk'
@@ -187,9 +187,9 @@ def test_urls():
     urls['right_geodesic_depth'] = Sright + 'geodesic_depth.vtk'
     urls['right_mean_curvature'] = Sright + 'mean_curvature.vtk'
     urls['right_travel_depth'] = Sright + 'travel_depth.vtk'
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Mindboggle tables:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     urls['thickinthehead_ants_labels_table'] = \
         T + 'thickinthehead_per_ants_cortex_label.csv'
     urls['thickinthehead_freesurfer_labels_table'] = \
@@ -393,9 +393,9 @@ def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
 
     if lookup:
 
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # If hashes provided, go through steps to check/download file:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         if hashes:
     
             if not cache_env:
@@ -403,9 +403,9 @@ def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
             if not cache:
                 cache = os.path.join(os.environ['HOME'], 'hash_temp')
     
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Check hash table for file:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             if data_file not in list(hashes):  #.keys():
                 if return_missing:
                     data_path = data_file
@@ -419,9 +419,9 @@ def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
             else:
                 stored_hash = hashes[data_file]
     
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 # Create missing cache and hash directories:
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 if cache_env in list(os.environ):  #.keys():
                     cache = os.environ[cache_env]
                 if not os.path.exists(cache):
@@ -436,16 +436,16 @@ def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
                             format(hash_dir))
                     os.mkdir(os.path.join(hash_dir))
         
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 # Check hash subdirectory for file:
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 data_path = os.path.join(hash_dir, data_file)
                 if os.path.exists(data_path):
                     return data_path
         
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 # If file not in cache, download, compute hash, and verify:
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 else:
                     if verbose:
                         print("Retrieve file from the Mindboggle website: {0}".
@@ -467,9 +467,9 @@ def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
                         if verbose:
                             print("Retrieved hash does not match stored hash.")
     
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # If hashes not provided, simply download file:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         elif url:
             # Download file as a temporary file:
             data_path = fetch_data(url+data_file)
@@ -478,9 +478,9 @@ def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
                       format(data_path))
             return data_path
     
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # If URL also not provided, simply return file path:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         else:
             data_path = data_file
             if verbose:
@@ -488,9 +488,9 @@ def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
                     "Returning file path: {0}".format(data_path))
             return data_path
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Simply return file path:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     else:
         data_path = data_file
         if verbose:

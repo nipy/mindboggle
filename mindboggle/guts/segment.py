@@ -309,10 +309,10 @@ def segment_regions(vertices_to_segment, neighbor_lists, min_region_size=1,
     if isinstance(values, np.ndarray):
         values = values.tolist()
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # If seed_lists is empty, select first vertex from vertices_to_segment
     # (single vertex selection does not affect result -- see below*):
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     if seed_lists:
         select_single_seed = False
         if verbose:
@@ -329,11 +329,11 @@ def segment_regions(vertices_to_segment, neighbor_lists, min_region_size=1,
             print('    Segment {0} vertices from first vertex as initial seed'.
                   format(len(vertices_to_segment)))
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Initialize variables, including the list of vertex indices for each region,
     # vertex indices for all regions, and Boolean list indicating which regions
     # are fully grown, number of segments, etc.:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     segments = background_value * np.ones(len(neighbor_lists))
     region_lists = [[] for x in seed_lists]
     all_regions = []
@@ -343,9 +343,9 @@ def segment_regions(vertices_to_segment, neighbor_lists, min_region_size=1,
     if isinstance(max_steps, str):
         max_steps = np.Inf
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # If label_lists empty, set to unique labels for each seed list:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     if spread_within_labels:
         if not len(label_lists):
             label_lists = []
@@ -353,9 +353,9 @@ def segment_regions(vertices_to_segment, neighbor_lists, min_region_size=1,
                 seed_labels = np.unique([labels[x] for x in seed_list])
                 label_lists.append(seed_labels)
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Loop until all of the seed lists have grown to their full extent:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     count = 0
     while not all(fully_grown):
         # Loop through seed lists over and over again:
@@ -446,9 +446,9 @@ def segment_regions(vertices_to_segment, neighbor_lists, min_region_size=1,
                             seed_lists[0] = [vertices_to_segment[0]]
                             region_lists[0] = []
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Keep growing from new seeds even after all seed lists have fully grown:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     if keep_seeding and len(vertices_to_segment) >= min_region_size:
         if verbose:
             print('    Keep seeding to segment {0} remaining vertices'.
@@ -580,9 +580,9 @@ def segment_by_region(data, regions=[], surface_file='', save_file=False,
     if isinstance(regions, list):
         regions = np.array(regions)
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Segment data with overlapping regions:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     indices = [i for i,x in enumerate(data)
                if x != background_value]
     if indices and np.size(regions):
@@ -601,9 +601,9 @@ def segment_by_region(data, regions=[], surface_file='', save_file=False,
     if verbose:
         print('  Segmented {0} {1}'.format(n_segments, sdum))
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Return segments, number of segments, and file name:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     segment_per_region_file = None
     if n_segments > 0:
         segment_per_region = [int(x) for x in segment_per_region]
@@ -1024,26 +1024,26 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
 
     use_depth_ratio = True
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Find the borders of the given mesh vertices (indices):
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     D = np.ones(len(depths))
     D[indices] = 2
     borders, foo1, foo2 = extract_borders(list(range(len(depths))), D,
         neighbor_lists, ignore_values=[], return_label_pairs=False)
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Select deepest vertex as initial seed:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     index_deepest = indices[np.argmax(depths[indices])]
     seed_list = [index_deepest]
     basin_depths = []
     original_indices = indices[:]
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Loop until all vertices have been segmented.
     # This limits the number of possible seeds:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     segments = background_value * np.ones(len(depths))
     seed_indices = []
     seed_points = []
@@ -1121,9 +1121,9 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
         print('  ...Segmented {0} initial watershed regions ({1:.2f} seconds)'.
               format(counter, time() - t0))
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Regrow from (deep) watershed seeds, stopping at borders:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     if regrow:
 
         if verbose:
@@ -1182,9 +1182,9 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
                     if verbose2:
                         print("    {0} vertices remain".format(len(indices)))
 
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Continue growth until there are no more vertices to segment:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Note: As long as keep_seeding=False, the segment values in `segments`
         # are equal to the order of the `basin_depths` and `seed_points` below.
         seed_lists = [[i for i,x in enumerate(segments) if x==s]
@@ -1197,9 +1197,9 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
             print('  ...Regrew {0} watershed regions from seeds '
                   '({1:.2f} seconds)'.format(iseed+1, time() - t0))
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Merge watershed catchment basins:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     if merge:
 
         # Extract segments pairs at borders between watershed basins:
@@ -1374,9 +1374,9 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
         return None
     else:
 
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Segment the indices into connected sets of indices:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Construct neighbor lists:
         neighbor_lists = find_neighbors(faces, npoints)
 
@@ -1388,9 +1388,9 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
                                    False, [], [], [], '', background_value,
                                    verbose)
 
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Select the largest segment (connected set of indices):
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         unique_segments = [x for x in np.unique(segments)
                            if x not in exclude_labels]
         if len(unique_segments) > 1:
@@ -1422,14 +1422,14 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
                 print('Largest of {0} segments: {1:.2f}'.
                       format(len(unique_segments), max_segment_area))
 
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             # Renumber faces for the selected indices:
-            #-----------------------------------------------------------------
+            # ----------------------------------------------------------------
             faces = keep_faces(faces, select_indices)
             if faces:
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 # Reindex indices in faces:
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 if reindex:
                     faces, points, o1 = reindex_faces_points(faces, points)
                 else:
@@ -1728,17 +1728,17 @@ def combine_2labels_in_2volumes(file1, file2, label1=3, label2=2,
     import numpy as np
     import nibabel as nb
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Load labeled image volume and extract data as 1-D array:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     vol1 = nb.load(file1)
     vol2 = nb.load(file2)
     data1 = vol1.get_data().ravel()
     data2 = vol2.get_data().ravel()
     xfm = vol1.get_affine()
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Indices to voxels with label1 or label2 in two files:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     label1 = int(label1)
     label2 = int(label2)
     Ilabel1_vol1 = np.where(data1 == label1)[0]
@@ -1747,16 +1747,16 @@ def combine_2labels_in_2volumes(file1, file2, label1=3, label2=2,
     Ilabel2_vol2 = np.where(data2 == label2)[0]
     Ilabel1 = Ilabel1_vol1.tolist() + Ilabel1_vol2.tolist()
     Ilabel2 = Ilabel2_vol1.tolist() + Ilabel2_vol2.tolist()
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Assign new labels and reshape to original dimensions:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     new_data = data1.copy()
     new_data[Ilabel2] = label2
     new_data[Ilabel1] = label1
     new_data = np.reshape(new_data, vol1.shape)
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Save relabeled file:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     if not output_file:
         output_file = os.path.join(os.getcwd(),
                                    'combined_segmentations.nii.gz')
@@ -1821,14 +1821,14 @@ def split_brain(image_file, label_file, left_labels, right_labels):
                               'left_' + os.path.basename(image_file))
     right_brain = os.path.join(os.getcwd(),
                                'right_' + os.path.basename(image_file))
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Split brain labels by masking with left or right labels:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     left_brain = keep_volume_labels(label_file, left_labels, left_brain)
     right_brain = keep_volume_labels(label_file, right_labels, right_brain)
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Load labeled image volumes and extract data as 1-D array:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     vol = nb.load(image_file)
     volL = nb.load(left_brain)
     volR = nb.load(right_brain)
@@ -1838,14 +1838,14 @@ def split_brain(image_file, label_file, left_labels, right_labels):
     dataL[np.where(dataL != 0)[0]] = 1
     dataR[np.where(dataR != 0)[0]] = 1
     xfm = vol.get_affine()
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Split brain image by masking with left or right labels:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     left_data = data * dataL
     right_data = data * dataR
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Save relabeled file:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     left_data = np.reshape(left_data, volL.shape)
     right_data = np.reshape(right_data, volR.shape)
     img1 = nb.Nifti1Image(left_data, xfm)

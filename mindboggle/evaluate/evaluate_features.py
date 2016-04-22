@@ -69,9 +69,9 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='', hemi='',
     from mindboggle.mio.labels import DKTprotocol
 
     dkt = DKTprotocol()
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Load labels, features, and sulci:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     points, indices, lines, faces, labels, scalar_names, npoints, \
     input_vtk = read_vtk(labels_file, True, True)
     features, name = read_scalars(features_file, True, True)
@@ -87,9 +87,9 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='', hemi='',
         segmentIDs = []
         sulcus_faces = faces
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Prepare neighbors, label pairs, border IDs, and outputs:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Calculate neighbor lists for all points:
     print('Find neighbors for all vertices...')
     neighbor_lists = find_neighbors(faces, npoints)
@@ -118,9 +118,9 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='', hemi='',
     feature_to_border_distances_vtk = ''
     border_to_feature_distances_vtk = ''
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Loop through sulci:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # For each list of sorted label pairs (corresponding to a sulcus):
     for isulcus, label_pairs in enumerate(dkt.sulcus_label_pair_lists):
 
@@ -135,9 +135,9 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='', hemi='',
 
     if len(np.unique(label_borders)) > 1:
 
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Construct a feature-to-border distance matrix and VTK file:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Construct a distance matrix:
         print('Construct a feature-to-border distance matrix...')
         sourceIDs = features
@@ -171,9 +171,9 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='', hemi='',
                       [], [], sulcus_faces, [distances],
                       ['feature-to-border_distances'], 'float')
 
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Construct a border-to-feature distance matrix and VTK file:
-        #---------------------------------------------------------------------
+        # --------------------------------------------------------------------
         # Construct a distance matrix:
         print('Construct a border-to-feature distance matrix...')
         sourceIDs = label_borders
@@ -207,19 +207,19 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='', hemi='',
                       [], [], sulcus_faces, [distances],
                       ['border-to-feature_distances'], 'float')
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Return outputs:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     return feature_to_border_mean_distances, feature_to_border_sd_distances,\
            feature_to_border_distances_vtk,\
            border_to_feature_mean_distances, border_to_feature_sd_distances,\
            border_to_feature_distances_vtk
 
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Run evaluate_deep_features() on fundi extracted from Mindboggle-101 data
 # by Mindboggle, and Forrest Bao's, Gang Li's, and Olivier Coulon's methods.
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 if __name__ == "__main__":
 
     import os
@@ -227,9 +227,9 @@ if __name__ == "__main__":
 
     from mindboggle.evaluate.evaluate_features import evaluate_deep_features
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Set feature type ('fundi' or '' for every sulcus vertex), subjects:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     feature_type = 'fundi' #'sulci'  # If 'fundi', select 'nmethod' below.
     names = ['OASIS-TRT-20', 'MMRR-21', 'NKI-RS-22', 'NKI-TRT-20',
              'Afterthought', 'Colin27', 'Twins-2', 'MMRR-3T7T-2', 'HLN-12']
@@ -237,9 +237,9 @@ if __name__ == "__main__":
     mindboggled = '/mnt/nfs-share/Mindboggle101/mindboggled/manual'
     labels_dir = '/mnt/nfs-share/Mindboggle101/mindboggled/manual' 
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Feature-specific settings:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     if feature_type == 'fundi':
         # Features: fundus method:
         # 0 = mindboggle
@@ -264,16 +264,16 @@ if __name__ == "__main__":
     else:
         fmethod = 'all'
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Miscellaneous defaults:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     surfs = ['left_cortical_surface', 'right_cortical_surface']
     hemis = ['lh', 'rh']
     nsulci = 25
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Loop through subjects and hemispheres:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     nsubjects = sum(numbers)
     feature_to_border_mean_distances_left = -1 * np.ones((nsubjects, nsulci))
     feature_to_border_sd_distances_left = -1 * np.ones((nsubjects, nsulci))
@@ -291,17 +291,17 @@ if __name__ == "__main__":
             for isurf, surf in enumerate(surfs):
                 hemi = hemis[isurf]
                 #print('{0}: {1}'.format(subject, hemi))
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 # Identify surface files with labels and with sulci:
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 mdir = os.path.join(mindboggled, subject)
                 ldir = os.path.join(labels_dir, subject)
                 sulci_file = os.path.join(mdir, 'features', surf, 'sulci.vtk')
                 labels_file = os.path.join(ldir, 'labels', surf,
                                            'relabeled_labels.DKT31.manual.vtk')
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 # Identify features file:
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 if feature_type == 'fundi':
                     if nmethod == 0:
                         features_file = os.path.join(mdir, 'features', surf,
@@ -315,10 +315,10 @@ if __name__ == "__main__":
                 #if not os.path.exists(features_file):
                 #    print(features_file)
 
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 # Compute distances between features and label borders
                 # in sulci corresponding to fundi:
-                #-------------------------------------------------------------
+                # ------------------------------------------------------------
                 if os.path.exists(features_file) \
                    and os.path.exists(labels_file) \
                    and os.path.exists(sulci_file):
@@ -355,9 +355,9 @@ if __name__ == "__main__":
 
             isubject += 1
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Save tables of mean distances:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     np.savetxt(fmethod + '_mean_distances_to_border_left.csv',
                feature_to_border_mean_distances_left)
     np.savetxt(fmethod + '_sd_distances_to_border_left.csv',
@@ -376,10 +376,10 @@ if __name__ == "__main__":
     np.savetxt(fmethod + '_sd_distances_from_border_right.csv',
                border_to_feature_sd_distances_right)
 
-    # #-------------------------------------------------------------------------
+    # # ------------------------------------------------------------------------
     # # Save tables of mean distances averaged across all subjects:
     # # NOTE: np.mean() results in nan's if any element has a nan.
-    # #-------------------------------------------------------------------------
+    # # ------------------------------------------------------------------------
     # mean_feature_to_border_mean_distances_left = \
     #     np.mean(feature_to_border_mean_distances_left, axis=0)
     # mean_feature_to_border_sd_distances_left = \

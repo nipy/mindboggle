@@ -812,15 +812,15 @@ def decimate(points, faces, reduction=0.75, smooth_steps=25,
     import os
     import vtk
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # vtk points:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     vtk_points = vtk.vtkPoints()
     [vtk_points.InsertPoint(i, x[0], x[1], x[2]) for i,x in enumerate(points)]
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # vtk faces:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     vtk_faces = vtk.vtkCellArray()
     for face in faces:
         vtk_face = vtk.vtkPolygon()
@@ -830,27 +830,27 @@ def decimate(points, faces, reduction=0.75, smooth_steps=25,
         vtk_face.GetPointIds().SetId(2, face[2])
         vtk_faces.InsertNextCell(vtk_face)
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # vtk scalars:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     if scalars:
         vtk_scalars = vtk.vtkFloatArray()
         vtk_scalars.SetName("scalars")
         for scalar in scalars:
             vtk_scalars.InsertNextValue(scalar)
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # vtkPolyData:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     polydata = vtk.vtkPolyData()
     polydata.SetPoints(vtk_points)
     polydata.SetPolys(vtk_faces)
     if scalars:
         polydata.GetPointData().SetScalars(vtk_scalars)
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Decimate:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # We want to preserve topology (not let any cracks form).
     # This may limit the total reduction possible.
     decimate = vtk.vtkDecimatePro()
@@ -863,9 +863,9 @@ def decimate(points, faces, reduction=0.75, smooth_steps=25,
     decimate.SetTargetReduction(reduction)
     decimate.PreserveTopologyOn()
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Smooth:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     if save_vtk:
         if not output_vtk:
             output_vtk = os.path.join(os.getcwd(), 'decimated.vtk')
@@ -900,18 +900,18 @@ def decimate(points, faces, reduction=0.75, smooth_steps=25,
             # Old: exporter.SetInput(decimate.GetOutput())
             exporter.SetInputConnection(decimate.GetOutputPort())
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Export output:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     if save_vtk:
         exporter.SetFileName(output_vtk)
         exporter.Write()
         if not os.path.exists(output_vtk):
             raise IOError(output_vtk + " not found")
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Extract decimated points, faces, and scalars:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     points = [list(out.GetPoint(point_id))
               for point_id in range(out.GetNumberOfPoints())]
     if out.GetNumberOfPolys() > 0:
@@ -1090,9 +1090,9 @@ def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
 
     rescaled_scalars = rescaled_scalars.tolist()
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Return rescaled scalars and file name
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     if save_file:
 
         rescaled_scalars_file = os.path.join(os.getcwd(), output_filestring + '.vtk')
@@ -1198,9 +1198,9 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
 
     rescaled_scalars = scalars.tolist()
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Return rescaled scalars and file name
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     if save_file:
 
         rescaled_scalars_file = os.path.join(os.getcwd(),
@@ -1695,9 +1695,9 @@ def topo_test(index, values, neighbor_lists):
 #
 #         return regions
 #
-#     #-------------------------------------------------------------------------
+#     # ------------------------------------------------------------------------
 #     # Find boundaries to holes
-#     #-------------------------------------------------------------------------
+#     # ------------------------------------------------------------------------
 #     hole_boundaries = background_value * np.ones(len(regions))
 #
 #     # Identify vertices for each region
@@ -1740,9 +1740,9 @@ def topo_test(index, values, neighbor_lists):
 #                 hole_boundaries[indices] = count
 #                 count += 1
 #
-#     #-------------------------------------------------------------------------
+#     # ------------------------------------------------------------------------
 #     # Fill holes
-#     #-------------------------------------------------------------------------
+#     # ------------------------------------------------------------------------
 #     # If there are any holes
 #     if count > 0:
 #         hole_numbers = [x for x in np.unique(hole_boundaries)

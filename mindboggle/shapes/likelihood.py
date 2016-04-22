@@ -159,9 +159,9 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
     likelihoods = probs_border / (probs_nonborder + probs_border + tiny)
     likelihoods = likelihoods.tolist()
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Return likelihoods and output file name
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     if save_file:
 
         likelihoods_file = os.path.join(os.getcwd(), 'likelihoods.vtk')

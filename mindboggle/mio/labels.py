@@ -3923,36 +3923,36 @@ class DKTprotocol(object):
     """
     from mindboggle.mio.labels import return_numbers_names_colors
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Return numbers, names, colors extracted from FreeSurferColorLUT.txt:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     numbers, names, colors = return_numbers_names_colors()
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Cerebral cortex label numbers (DKT31 protocol):
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     DKT31_numbers = [2, 3] + list(range(5, 32)) + [34, 35]
     left_cerebrum_cortex_DKT31_list = [1000 + x for x in DKT31_numbers]
     right_cerebrum_cortex_DKT31_list = [2000 + x for x in DKT31_numbers]
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Cerebral cortex label numbers (31 + duplicates):
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     left_cerebrum_cortex_list = left_cerebrum_cortex_DKT31_list + \
         [3, 19, 20, 1000, 1001, 1032, 1033]
     right_cerebrum_cortex_list = right_cerebrum_cortex_DKT31_list + \
         [42, 55, 56, 2000, 2001, 2032, 2033]
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Cerebral ventricle label numbers:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     left_ventricle_list = [4, 5]
     right_ventricle_list = [43, 44]
     medial_ventricle_list = [14, 15, 72]
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Cerebral noncortex label numbers (including ventricles above):
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # These labels were converted from Neuromorphometrics BrainCOLOR subcortex
     # labels to be consistent with FreeSurferColorLUT.txt labels.
     #
@@ -3962,7 +3962,7 @@ class DKTprotocol(object):
     # and were reassigned to unused numbers in FreeSurferColorLUT.txt:
     #         [91, "left basal forebrain"],
     #         [92, "right basal forebrain"]
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     left_cerebrum_noncortex_list = \
         [2, 9, 10, 11, 12, 13, 17, 18, 25, 26, 27, 28, 30, 31, 78, 91, 96] + \
         list(range(100, 109)) + [155, 157] + list(range(550, 559)) + [1004] + \
@@ -3974,36 +3974,36 @@ class DKTprotocol(object):
     medial_cerebrum_noncortex_list = medial_ventricle_list + \
                                         [192] + list(range(250, 256))
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Cerebellar label numbers:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # These labels [71, 72, 73] in Neuromorphometrics BrainCOLOR subcortex
     # did not have counterparts in FreeSurferColorLUT.txt, and were
     # reassigned to unused numbers in FreeSurferColorLUT.txt:
     #   [630, "cerebellar vermal lobules I-V"],
     #   [631, "cerebellar vermal lobules VI-VII"],
     #   [632, "cerebellar vermal lobules VIII-X"],
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     left_cerebellum_cortex_list = [6, 8]
     right_cerebellum_cortex_list = [45, 47]
     left_cerebellum_noncortex_list = [7]
     right_cerebellum_noncortex_list = [46]
     medial_cerebellum_noncortex_list = [630, 631, 632]
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Extra label numbers:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     #  [16, "Brain stem"],
     #  [24, "CSF"],
     #  [85, "optic chiasm"]]
     #  170-175: brain stem
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     brainstem_list = [16] + list(range(170, 176))
     extra_list = [24, 85]
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Label numbers:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     left_cerebrum_cortex_DKT31_numbers = []
     right_cerebrum_cortex_DKT31_numbers = []
     left_cerebrum_cortex_numbers = []
@@ -4022,9 +4022,9 @@ class DKTprotocol(object):
     brainstem_numbers = []
     extra_numbers = []
     misc_numbers = []
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Names corresponding to label numbers:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     left_cerebrum_cortex_DKT31_names = []
     right_cerebrum_cortex_DKT31_names = []
     left_cerebrum_cortex_names = []
@@ -4043,9 +4043,9 @@ class DKTprotocol(object):
     brainstem_names = []
     extra_names = []
     misc_names = []
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Colors corresponding to label numbers:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     left_cerebrum_cortex_DKT31_colors = []
     right_cerebrum_cortex_DKT31_colors = []
     left_cerebrum_cortex_colors = []
@@ -4065,9 +4065,9 @@ class DKTprotocol(object):
     extra_colors = []
     misc_colors = []
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Lists of numbers, names, and colors:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     for i, n in enumerate(numbers):
 
         if n in left_cerebrum_cortex_DKT31_list:
@@ -4165,9 +4165,9 @@ class DKTprotocol(object):
             misc_names.append(names[i])
             misc_colors.append(colors[i])
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Aggregate lists of numbers, names, and colors:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     ventricle_numbers = left_ventricle_numbers + right_ventricle_numbers + \
                         medial_ventricle_numbers
     ventricle_names = left_ventricle_names + right_ventricle_names + \
@@ -4250,9 +4250,9 @@ class DKTprotocol(object):
     label_colors = cerebrum_colors + cerebellum_colors + \
                    brainstem_colors + extra_colors
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Colormap:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     colormap = []
     colormap_normalized = []
     for i, x in enumerate(label_colors):
@@ -4260,9 +4260,9 @@ class DKTprotocol(object):
         colormap_normalized.append([label_numbers[i], 1,
                                     x[0]/255.0, x[1]/255.0, x[2]/255.0])
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Sulcus names from the DKT labeling protocol:
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     sulcus_names = [
         "frontomarginal sulcus",
         "superior frontal sulcus",
@@ -4318,11 +4318,11 @@ class DKTprotocol(object):
         "ots",
         "cos"]
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Lists of label pairs that define sulcus boundaries (or fundi)
     # according to the DKT labeling protocol.
     # 1000 [lh] or 2000 [rh] are added to these numbers below.
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     pair_lists = [
         [[12, 28]],
         [[3, 28], [27, 28]],
@@ -4417,9 +4417,9 @@ def print_colormap(colormap):
               format(row[0], row[2], row[3], row[4]))
     print('</ColorMap>')
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Read FreeSurferColorLUT.txt file:
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 def extract_numbers_names_colors(FreeSurferColorLUT=''):
     """
     Extract lists of numbers, names, and colors representing anatomical brain
@@ -4484,9 +4484,9 @@ def extract_numbers_names_colors(FreeSurferColorLUT=''):
 
 
 """
-#-------------------------------------------------------------------------
+# ------------------------------------------------------------------------
 # Variant of the DKT cerebral cortical labeling protocol with 25 labels:
-#-------------------------------------------------------------------------
+# ------------------------------------------------------------------------
 # Region numbers:
 # DKT31 to DKT25: [[10,23,26,27,19,20], [2,2,2,3,18,18]]
 left_cerebrum_cortex_numbers_DKT25 = list(range(1002, 1036))
