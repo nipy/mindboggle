@@ -583,9 +583,9 @@ def fetch_ants_data(segmented_file, use_ants_transforms=True):
                            affine_template2subject, warp_template2subject
 
 
-#=============================================================================
+# ============================================================================
 # Doctests
-#=============================================================================
+# ============================================================================
 if __name__ == "__main__":
     import doctest
     doctest.testmod(verbose=True)  # py.test --doctest-modules

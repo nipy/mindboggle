@@ -27,9 +27,9 @@ Copyright 2015,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-#=============================================================================
+# ============================================================================
 # List numbers, names, and colors in FreeSurferColorLUT.txt file
-#=============================================================================
+# ============================================================================
 def return_numbers_names_colors():
     """
     Return lists of numbers, names, and colors representing anatomical brain
@@ -3862,9 +3862,9 @@ def return_numbers_names_colors():
 
     return numbers, names, colors
 
-#=============================================================================
+# ============================================================================
 # DKT protocol
-#=============================================================================
+# ============================================================================
 class DKTprotocol(object):
     """Variables related to the Desikan-Killiany-Tourville labeling protocol.
 

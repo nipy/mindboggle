@@ -63,7 +63,7 @@ dependencies:
 #-----------------------------------------------------------------------------
 test:
     override:
-        - $python -m "nose" --with-doctest ${MB}/thirdparty/
+        - $python -m "nose" --with-doctest --with-coverage ${MB}/thirdparty/
         - $python -m "nose" --with-doctest ${MB}/mio/
         - $python -m "nose" --with-doctest ${MB}/guts/
         - $python -m "nose" --with-doctest ${MB}/shapes/

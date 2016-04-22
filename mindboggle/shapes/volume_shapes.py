@@ -446,9 +446,9 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     return label_volume_thickness, output_table
 
 
-#=============================================================================
+# ============================================================================
 # Doctests
-#=============================================================================
+# ============================================================================
 if __name__ == "__main__":
     import doctest
     doctest.testmod(verbose=True)  # py.test --doctest-modules

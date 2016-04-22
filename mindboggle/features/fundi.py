@@ -223,9 +223,9 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     return fundus_per_fold,  n_fundi_in_folds, fundus_per_fold_file
 
 
-#=============================================================================
+# ============================================================================
 # Doctests
-#=============================================================================
+# ============================================================================
 if __name__ == "__main__":
     import doctest
     doctest.testmod(verbose=True)  # py.test --doctest-modules

@@ -463,9 +463,9 @@ def extract_folds(depth_file, depth_threshold=2, min_fold_size=50,
 #     return subfolds, n_subfolds, subfolds_file
 
 
-#=============================================================================
+# ============================================================================
 # Doctests
-#=============================================================================
+# ============================================================================
 if __name__ == "__main__":
     import doctest
     doctest.testmod(verbose=True)  # py.test --doctest-modules

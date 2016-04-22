@@ -318,9 +318,9 @@ def curvature(command, method, arguments, surface_file, verbose=False):
            max_curvature_file, min_curvature_file, min_curvature_vector_file
 
 
-#=============================================================================
+# ============================================================================
 # Doctests
-#=============================================================================
+# ============================================================================
 if __name__ == "__main__":
     import doctest
     doctest.testmod(verbose=True)  # py.test --doctest-modules
