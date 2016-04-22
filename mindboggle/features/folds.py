@@ -128,7 +128,8 @@ def find_depth_threshold(depth_file, min_vertices=10000, verbose=False):
 
 
 def extract_folds(depth_file, depth_threshold=2, min_fold_size=50,
-                  save_file=False, background_value=-1, verbose=False):
+                  save_file=False, output_file='', background_value=-1,
+                  verbose=False):
     """
     Use depth threshold to extract folds from a triangular surface mesh.
 
@@ -156,6 +157,8 @@ def extract_folds(depth_file, depth_threshold=2, min_fold_size=50,
         minimum fold size (number of vertices)
     save_file : bool
         save output VTK file?
+    output_file : string
+        name of output file in VTK format
     background_value : integer or float
         background value
     verbose : bool
@@ -179,11 +182,12 @@ def extract_folds(depth_file, depth_threshold=2, min_fold_size=50,
     >>> depth_threshold = 2.36089
     >>> min_fold_size = 50
     >>> save_file = True
+    >>> output_file = 'extract_folds.vtk'
     >>> background_value = -1
     >>> verbose = False
     >>> folds, n_folds, folds_file = extract_folds(depth_file,
-    ...     depth_threshold, min_fold_size, save_file, background_value,
-    ...     verbose)
+    ...     depth_threshold, min_fold_size, save_file, output_file,
+    ...     background_value, verbose)
     >>> n_folds
     33
     >>> lens = [len([x for x in folds if x == y]) for y in range(n_folds)]
@@ -193,15 +197,15 @@ def extract_folds(depth_file, depth_threshold=2, min_fold_size=50,
     View folds (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
-    >>> plot_surfaces('folds.vtk') # doctest: +SKIP
+    >>> plot_surfaces('extract_folds.vtk') # doctest: +SKIP
 
     View folds just on folds (skip test):
 
     >>> from mindboggle.mio.plots import plot_surfaces # doctest: +SKIP
     >>> from mindboggle.mio.vtks import rewrite_scalars # doctest: +SKIP
-    >>> rewrite_scalars(depth_file, 'just_folds.vtk', folds,
+    >>> rewrite_scalars(depth_file, 'extract_folds_no_background.vtk', folds,
     ...     'just_folds', folds, -1) # doctest: +SKIP
-    >>> plot_surfaces('just_folds.vtk') # doctest: +SKIP
+    >>> plot_surfaces('extract_folds_no_background.vtk') # doctest: +SKIP
 
     """
     import os
@@ -291,7 +295,10 @@ def extract_folds(depth_file, depth_threshold=2, min_fold_size=50,
     #-------------------------------------------------------------------------
     if save_file:
 
-        folds_file = os.path.join(os.getcwd(), 'folds.vtk')
+        if output_file:
+            folds_file = output_file
+        else:
+            folds_file = os.path.join(os.getcwd(), 'folds.vtk')
         rewrite_scalars(depth_file, folds_file, folds, 'folds', [],
                         background_value)
 
