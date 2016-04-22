@@ -955,7 +955,7 @@ if not args.no_surfaces:
                                                         'bin_edges']))
             SurfFeatureFlow.add_nodes([DepthThreshold])
             mbFlow.connect(WholeSurfShapeFlow, 'Travel_depth.depth_file',
-                           SurfFeatureFlow, 'Folds.depth_file')
+                           SurfFeatureFlow, 'Depth_threshold.depth_file')
             DepthThreshold.inputs.min_vertices = 10000
             DepthThreshold.inputs.verbose = True
             # ----------------------------------------------------------------
@@ -976,8 +976,8 @@ if not args.no_surfaces:
             SurfFeatureFlow.add_nodes([FoldsNode])
             mbFlow.connect(WholeSurfShapeFlow, 'Travel_depth.depth_file',
                            SurfFeatureFlow, 'Folds.depth_file')
-            SurfFeatureFlow.connect('FoldsNode', 'depth_threshold',
-                                    'Folds', 'depth_threshold')
+            SurfFeatureFlow.connect(DepthThreshold, 'depth_threshold',
+                                    FoldsNode, 'depth_threshold')
             FoldsNode.inputs.min_fold_size = 50
             FoldsNode.inputs.save_file = True
             FoldsNode.inputs.output_file = ''
