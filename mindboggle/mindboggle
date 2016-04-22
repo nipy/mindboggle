@@ -114,9 +114,6 @@ out_args.add_argument("--cache",
                       help='download folder (if not $HOME/mindboggle_cache)',
                       default=os.path.join(os.environ['HOME'],
                                            'mindboggle_cache'), metavar='STR')
-out_args.add_argument("--graph",
-                      help='plot workflow graph: "hier", "flat", "exec"',
-                      choices=['hier', 'flat', 'exec'], metavar='STR')
 out_args.add_argument("--no_volumes", action='store_true',
                       help="no volume labels, features, or shape tables")
 out_args.add_argument("--no_surfaces", action='store_true',
@@ -139,10 +136,10 @@ out_args.add_argument("--no_thickness", action='store_true',
 adv_args.add_argument("--fundi", action='store_true',
                       help="extract, measure fundi (under evaluation)")
 adv_args.add_argument("--moments",
-                      help="order of Zernike moments (10)",
+                      help="reset order of Zernike moments (10)",
                       default=10, type=int, metavar='INT')
 adv_args.add_argument("--spectra",
-                      help="number of Laplace-Beltrami eigenvalues (10)",
+                      help="reset number of Laplace-Beltrami eigenvalues (10)",
                       default=10, type=int, metavar='INT')
 adv_args.add_argument("--my_atlas",
                       help=("new atlas, same labels, in MNI space "
@@ -169,6 +166,9 @@ adv_args.add_argument("--my_transform",
                       help=("different ITK affine transform to MNI space (if "
                             " different template used to get --ants output)"),
                       metavar='STR')
+adv_args.add_argument("--graph",
+                      help='plot workflow: "hier", "exec" (need graphviz)',
+                      choices=['hier', 'flat', 'exec'], metavar='STR')
 adv_args.add_argument("--plugin", dest="plugin",
                       default='Linear',
                       help="nipype plugin (see nipype documentation)")
