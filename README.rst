@@ -88,8 +88,8 @@ examples, download and uncompress ("tar xvfz example.tar.gz") the
 directory (over 500MB), which includes abridged FreeSurfer, ANTs, and
 Mindboggle output for one person.
 
-If using the Mindboggle virtual machine, type the commands in step 3
-of `Installing Mindboggle`_ above to enter the VM before continuing.
+If using the Mindboggle virtual machine, type the commands in step 3 of
+`Installing Mindboggle`_ above to enter the VM before continuing.
 
 For help after installing, type the following in a terminal window::
 
