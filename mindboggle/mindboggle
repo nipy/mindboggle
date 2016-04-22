@@ -1049,10 +1049,10 @@ if not args.no_surfaces:
             FundusPerFold.inputs.save_file = False
             FundusPerFold.inputs.background_value = background_value
             FundusPerFold.inputs.verbose = True
-            #if save_all:
-            #    mbFlow.connect(SurfFeatureFlow,
-            #                   'Fundus_per_fold.fundus_per_fold_file',
-            #                   Sink, 'features.@fundus_per_fold')
+            if save_all:
+                mbFlow.connect(SurfFeatureFlow,
+                               'Fundus_per_fold.fundus_per_fold_file',
+                               Sink, 'features.@fundus_per_fold')
 
             if do_smooth_fundi:
                 # ------------------------------------------------------------
@@ -1149,7 +1149,7 @@ if not args.no_surfaces:
             FundusPerSulcus.inputs.verbose = True
             if save_all:
                 mbFlow.connect(SurfFeatureFlow,
-                               'Fundus_per_sulcus.fundus_per_sulcus_file',
+                               'Fundus_per_sulcus.segment_per_region_file',
                                Sink, 'features.@fundus_per_sulcus')
 
     # ========================================================================
