@@ -1298,7 +1298,7 @@ if not args.no_surfaces:
                            ShapeTables, 'sulci')
         if do_fundi:
             mbFlow.connect(SurfFeatureFlow,
-                           'Fundus_per_sulcus.fundus_per_sulcus',
+                           'Fundus_per_sulcus.segment_per_region_file',
                            ShapeTables, 'fundi')
         if use_ants:
             mbFlow.connect(ListSubject2mniAffineTransforms, 'string_list',
@@ -1406,7 +1406,7 @@ if not args.no_surfaces:
                                VertexTable, 'sulci')
             if do_fundi:
                 mbFlow.connect(SurfFeatureFlow,
-                               'Fundus_per_sulcus.fundus_per_sulcus',
+                               'Fundus_per_sulcus.segment_per_region_file',
                                VertexTable, 'fundi')
 
             if use_ants:
