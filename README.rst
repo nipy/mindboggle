@@ -8,7 +8,7 @@ and features extracted from human brain magnetic resonance image data.
 Mindboggle can be run as a single command, and can be installed as a
 cross-platform virtual machine for convenience and reproducibility of results.
 Behind the scenes, open source Python 3 and C++ code run within a modular
-Nipype pipeline framework on Linux (tested on Ubuntu 14.04).
+Nipype pipeline framework on Linux (tested with Python 3.5.1 on Ubuntu 14.04).
 
 ..
     1. Installing Mindboggle
