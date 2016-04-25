@@ -455,7 +455,7 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     >>> urls, fetch_data = prep_tests()
     >>> labels_or_file = fetch_data(urls['left_freesurfer_labels'])
     >>> sulci_file = fetch_data(urls['left_sulci'])
-    >>> fundi_file = fetch_data(urls['left_fundus_per_sulcus'])
+    >>> fundi_file = sulci_file #''#fetch_data(urls['left_fundus_per_sulcus'])
     >>> mean_curvature_file = fetch_data(urls['left_mean_curvature'])
     >>> travel_depth_file = fetch_data(urls['left_travel_depth'])
     >>> geodesic_depth_file = fetch_data(urls['left_geodesic_depth'])
@@ -464,7 +464,10 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     >>> freesurfer_curvature_file = fetch_data(urls['left_freesurfer_curvature'])
     >>> freesurfer_sulc_file = fetch_data(urls['left_freesurfer_sulc'])
     >>> sulci, name = read_scalars(sulci_file)
-    >>> fundi, name = read_scalars(fundi_file)
+    >>> if fundi_file:
+    ...     fundi, name = read_scalars(fundi_file)
+    ... else:
+    ...     fundi = []
     >>> affine_transform_file = fetch_data(urls['affine_mni_transform'])
     >>> inverse_booleans = [1]
     >>> transform_format = 'itk'

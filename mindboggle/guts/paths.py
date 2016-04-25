@@ -614,8 +614,8 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists,
     return skeleton
 
 
-def smooth_skeletons(skeletons, bounds, vtk_file, likelihoods,
-                     wN_max=1.0, do_erode=True, save_file=False,
+def smooth_skeletons(skeletons, bounds, vtk_file, likelihoods, wN_max=1.0,
+                     do_erode=True, save_file=False, output_file='',
                      background_value=-1, verbose=False):
     """
     Smooth skeleton by dilation followed by connect_points_hmmf().
@@ -643,6 +643,8 @@ def smooth_skeletons(skeletons, bounds, vtk_file, likelihoods,
         erode skeleton?
     save_file : bool
         save output VTK file?
+    output_file : string
+        output VTK file
     background_value : integer or float
         background value
     verbose : bool
@@ -691,10 +693,11 @@ def smooth_skeletons(skeletons, bounds, vtk_file, likelihoods,
     >>> wN_max = 1.0
     >>> do_erode = True
     >>> save_file = True
+    >>> output_file = 'smooth_skeletons.vtk'
     >>> verbose = False
     >>> smoothed_skeletons, n_skeletons, skel_file = smooth_skeletons(skeletons,
     ...     bounds, vtk_file, likelihoods, wN_max, do_erode, save_file,
-    ...     background_value, verbose)
+    ...     output_file, background_value, verbose)
     >>> np.where(np.array(smoothed_skeletons)!=-1)[0][0:8]
     array([113453, 113454, 113455, 114312, 114313, 114325, 115087, 115088])
 
@@ -705,7 +708,7 @@ def smooth_skeletons(skeletons, bounds, vtk_file, likelihoods,
     >>> iskels = [i for i,x in enumerate(smoothed_skeletons)
     ...           if x != background_value] # doctest: +SKIP
     >>> bounds[iskels] = 100 # doctest: +SKIP
-    >>> rewrite_scalars(depth_file, 'smooth_skeletons.vtk',
+    >>> rewrite_scalars(depth_file, 'smooth_skeletons_no_background.vtk',
     ...                 bounds, 'skeleton', bounds, -1) # doctest: +SKIP
     >>> plot_surfaces('smooth_skeletons.vtk') # doctest: +SKIP
 
@@ -811,9 +814,12 @@ def smooth_skeletons(skeletons, bounds, vtk_file, likelihoods,
     smoothed_skeletons = smoothed_skeletons.tolist()
 
     if save_file:
-        skeletons_file = os.path.join(os.getcwd(), 'smooth_skeletons.vtk')
-        rewrite_scalars(vtk_file, skeletons_file, smoothed_skeletons,
-                        'smoothed_skeletons', [], background_value)
+        if output_file:
+            skeletons_file = output_file
+        else:
+            skeletons_file = os.path.join(os.getcwd(), 'smooth_skeletons.vtk')
+            rewrite_scalars(vtk_file, skeletons_file, smoothed_skeletons,
+                            'smoothed_skeletons', [], background_value)
     else:
         skeletons_file = None
 
