@@ -4,7 +4,7 @@ This is the main program to run Mindboggle (http://mindboggle.info).
 
 For help in using Mindboggle ::
 
-    - Online `documentation <http://mindboggle.info/documentation.html>`_
+    - Online `documentation <http://mindboggle.info>`_
     - README file
     - Help on the command line::
 
@@ -603,8 +603,8 @@ if not args.no_surfaces:
 
         # ====================================================================
         # Initialize labels with the DKT classifier atlas
-        # NOTE: This can now be done by running FreeSurfer's recon-all
-        #       with "-gcs DKTatlas40.gcs"
+        # NOTE: This can now be done by running FreeSurfer's recon-all (v6)
+        #       or with "-gcs DKTatlas40.gcs" (prior to v6)
         # ====================================================================
         # surface_classifier = DKTatlas40
         # if surface_labels == 'atlas' and use_FS_inputs:
