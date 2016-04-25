@@ -1002,7 +1002,7 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
                 scalar_type = type(select_values[0][0]).__name__
             else:
                 if verbose:
-                    raise(IOError("Undefined scalar type!"))
+                    raise IOError("Undefined scalar type!")
             output_vtk = os.path.join(os.getcwd(),
                                       output_stem + str(scalar) + '.vtk')
             write_vtk(output_vtk, select_points, indices, lines, scalar_faces,
