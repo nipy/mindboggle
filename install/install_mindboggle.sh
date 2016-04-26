@@ -54,6 +54,9 @@ SUDO=1
 if [ -z "$HOME" ]; then
     HOME="/home/vagrant"
 fi
+if [ -z "$ANTS" ]; then
+    ANTS="yes"
+fi
 if [ -z "$DOWNLOAD" ]; then
     DOWNLOAD="$HOME/downloads"
 fi
@@ -77,9 +80,6 @@ fi
 if [ ! -w "$ENV" ] ; then
     echo cannot write to $ENV
     exit 1
-fi
-if [ -z "$ANTS" ]; then
-    ANTS="yes"
 fi
 if [ -z "$OS" ]; then
     OS="Linux"

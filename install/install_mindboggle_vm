@@ -177,10 +177,11 @@ vagrant_file = """# Vagrantfile (http://www.vagrantup.com)
 #=============================================================================
 # Configure the Mindboggle Vagrant box and mount local directories
 #=============================================================================
-This Vagrantfile downloads and configures the mindboggle virtual machine (vm).
-You must have Vagrant (vagrantup.com) and VirtualBox (virtualbox.org)
-installed, and a good Internet connection. Log in to the vm to run mindboggle
-with "vagrant up; vagrant ssh" (username="mind" and password="mindboggle").
+# This Vagrantfile downloads and configures the mindboggle virtual machine.
+# Vagrant (vagrantup.com) and VirtualBox (virtualbox.org) must be installed,
+# and there must be a good Internet connection. Log in to the virtual machine
+# to run mindboggle with "vagrant up; vagrant ssh"
+# (username and password = "vagrant").
 #-----------------------------------------------------------------------------
 Vagrant.configure("2") do |config|
 
@@ -189,6 +190,13 @@ Vagrant.configure("2") do |config|
     #config.vm.box_url = "mindboggle.{0}.box"
     config.vm.box_url = "http://media.mindboggle.info/vm/mindboggle.{0}.box"
     config.vm.hostname = "boggler"
+
+    # Download and configure the mindboggle VM as the user "vagrant":
+    config.vm.provision "shell" do |sh|
+        sh.inline = "echo $1"
+        sh.args = "Download and configure the mindboggle virtual machine..."
+        sh.privileged = false
+    end
 
     # Share additional folders to the guest VM,
     # with paths on the guest to mount the folder:
@@ -213,8 +221,8 @@ Vagrant.configure("2") do |config|
     config.vm.network "forwarded_port", guest: 80, host: 8080
 
     # Disable private key for easy ssh login:
-    config.ssh.username = "mind"
-    config.ssh.password = "mindboggle"
+    config.ssh.username = "vagrant"
+    config.ssh.password = "vagrant"
 
 end
 """.format(version, out_str, work_str, cache_str, freesurfer_str,
