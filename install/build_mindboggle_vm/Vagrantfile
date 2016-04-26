@@ -2,7 +2,7 @@
 #=============================================================================
 # This program installs Mindboggle (http://mindboggle.info) and dependencies
 # in a VirtualBox environment (virtual machine) using Vagrant software.
-# It calls a bash setup script in the same folder: setup_mindboggle.sh.
+# It calls a bash setup script as 'vagrant' (not root) to install Mindboggle.
 # Vagrant (vagrantup.com) and VirtualBox (virtualbox.org) should be installed,
 # and there needs to be a good Internet connection. Installing ANTs requires
 # considerable (> 1 GB) RAM.
@@ -26,12 +26,17 @@ Vagrant.configure("2") do |conf|
 
     # Initialize with a basic Ubuntu Linux box:
     conf.vm.box = "ubuntu/trusty64"
-    #conf.vm.provision "shell", privileged: False, path: "../install_mindboggle.sh"
-    conf.vm.provision "shell", privileged: False, path: "https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle.sh"
+
+    # Provide path to Mindboggle installation program (not as root):
+    conf.vm.provision :shell do |sh|
+        sh.privileged = false
+        sh.path = "https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle.sh"
+        #sh.path = "../install_mindboggle.sh"
+    end
 
     # Configure number of CPUs maximum percent per CPU, and memory (MB RAM):
     conf.vm.provider :virtualbox do |vb|
-        vb.customize ["modifyvm", :id, "--cpus", "4"]
+        vb.customize ["modifyvm", :id, "--cpus", "6"]
         vb.customize ["modifyvm", :id, "--cpuexecutioncap", "95"]
         vb.customize ["modifyvm", :id, "--memory", "14000"]
         vb.customize ["modifyvm", :id, "--ioapic", "on"]
