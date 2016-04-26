@@ -134,7 +134,7 @@ out_args.add_argument("--no_thickness", action='store_true',
                       help="no volume-based cortical label thicknesses")
 
 adv_args.add_argument("--fundi", action='store_true',
-                      help="extract, measure fundi (under evaluation)")
+                      help="extract, measure fundi (under evaluation, SLOW)")
 adv_args.add_argument("--moments",
                       help="reset order of Zernike moments (10)",
                       default=10, type=int, metavar='INT')
@@ -757,20 +757,31 @@ if not args.no_surfaces:
     #   Surface shape measurements
     #
     # ========================================================================
-    if do_shapes:
+    if do_shapes or do_sulci or do_fundi:
+
         WholeSurfShapeFlow = Workflow(name='Surface_shapes')
+
         # --------------------------------------------------------------------
-        # Measure surface area:
+        # Measure surface curvature:
         # --------------------------------------------------------------------
-        SurfaceArea = Node(name='Surface_area',
-                           interface=Fn(function=area,
-                                        input_names=['command',
-                                                     'surface_file',
-                                                     'verbose'],
-                                        output_names=['area_file']))
-        area_command = os.path.join(ccode_path, 'area', 'PointAreaMain')
-        SurfaceArea.inputs.command = area_command
-        SurfaceArea.inputs.verbose = True
+        CurvNode = Node(name='Curvature',
+                        interface=Fn(function=curvature,
+                             input_names=['command',
+                                          'method',
+                                          'arguments',
+                                          'surface_file',
+                                          'verbose'],
+                             output_names=['mean_curvature_file',
+                                           'gauss_curvature_file',
+                                           'max_curvature_file',
+                                           'min_curvature_file',
+                                           'min_curvature_vector_file']))
+        CurvNode.inputs.command = os.path.join(ccode_path,
+                                               'curvature',
+                                               'CurvatureMain')
+        CurvNode.inputs.method = 2
+        CurvNode.inputs.arguments = '-n 0.7'
+        CurvNode.inputs.verbose = True
         # --------------------------------------------------------------------
         # Measure surface travel depth:
         # --------------------------------------------------------------------
@@ -786,7 +797,7 @@ if not args.no_surfaces:
                                                   'TravelDepthMain')
         TravelDepth.inputs.verbose = True
         # --------------------------------------------------------------------
-        # Rescale surface travel depth:
+        # Rescale surface travel depth for fundus extraction:
         # --------------------------------------------------------------------
         if do_fundi:
             RescaleTravelDepth = Node(name='Rescale_travel_depth',
@@ -812,40 +823,60 @@ if not args.no_surfaces:
             RescaleTravelDepth.inputs.output_filestring = \
                 'travel_depth_rescaled'
             RescaleTravelDepth.inputs.background_value = background_value
+
         # --------------------------------------------------------------------
-        # Measure surface geodesic depth:
+        # Only compute these shape measures if saving shape tables:
         # --------------------------------------------------------------------
-        GeodesicDepth = Node(name='Geodesic_depth',
-                             interface=Fn(function=geodesic_depth,
-                                          input_names=['command',
-                                                       'surface_file',
-                                                       'verbose'],
-                                          output_names=['depth_file']))
-        GeodesicDepth.inputs.command = os.path.join(ccode_path,
-                                                    'geodesic_depth',
-                                                    'GeodesicDepthMain')
-        GeodesicDepth.inputs.verbose = True
-        # --------------------------------------------------------------------
-        # Measure surface curvature:
-        # --------------------------------------------------------------------
-        CurvNode = Node(name='Curvature',
-                        interface=Fn(function=curvature,
-                             input_names=['command',
-                                          'method',
-                                          'arguments',
-                                          'surface_file',
-                                          'verbose'],
-                             output_names=['mean_curvature_file',
-                                           'gauss_curvature_file',
-                                           'max_curvature_file',
-                                           'min_curvature_file',
-                                           'min_curvature_vector_file']))
-        CurvNode.inputs.command = os.path.join(ccode_path,
-                                               'curvature',
-                                               'CurvatureMain')
-        CurvNode.inputs.method = 2
-        CurvNode.inputs.arguments = '-n 0.7'
-        CurvNode.inputs.verbose = True
+        if do_shapes:
+            # ----------------------------------------------------------------
+            # Measure surface geodesic depth:
+            # ----------------------------------------------------------------
+            GeodesicDepth = Node(name='Geodesic_depth',
+                                 interface=Fn(function=geodesic_depth,
+                                              input_names=['command',
+                                                           'surface_file',
+                                                           'verbose'],
+                                              output_names=['depth_file']))
+            GeodesicDepth.inputs.command = os.path.join(ccode_path,
+                                                        'geodesic_depth',
+                                                        'GeodesicDepthMain')
+            GeodesicDepth.inputs.verbose = True
+            # ----------------------------------------------------------------
+            # Measure surface area:
+            # ----------------------------------------------------------------
+            SurfaceArea = Node(name='Surface_area',
+                               interface=Fn(function=area,
+                                            input_names=['command',
+                                                         'surface_file',
+                                                         'verbose'],
+                                            output_names=['area_file']))
+            area_command = os.path.join(ccode_path, 'area', 'PointAreaMain')
+            SurfaceArea.inputs.command = area_command
+            SurfaceArea.inputs.verbose = True
+
+            # ----------------------------------------------------------------
+            # Connect nodes:
+            # ----------------------------------------------------------------
+            WholeSurfShapeFlow.add_nodes([SurfaceArea, GeodesicDepth, CurvNode])
+            if do_input_vtk:
+                mbFlow.connect([(Surf, WholeSurfShapeFlow,
+                                 [('surface_files','Surface_area.surface_file'),
+                                  ('surface_files','Travel_depth.surface_file'),
+                                  ('surface_files','Geodesic_depth.surface_file'),
+                                  ('surface_files','Curvature.surface_file')])])
+            else:
+                mbFlow.connect([(Surf2vtk, WholeSurfShapeFlow,
+                                   [('output_vtk', 'Surface_area.surface_file'),
+                                    ('output_vtk', 'Travel_depth.surface_file'),
+                                    ('output_vtk', 'Geodesic_depth.surface_file'),
+                                    ('output_vtk', 'Curvature.surface_file')])])
+            if save_all:
+                mbFlow.connect([(WholeSurfShapeFlow, Sink,
+                  [('Surface_area.area_file', 'shapes.@surface_area'),
+                   ('Travel_depth.depth_file', 'shapes.@travel_depth'),
+                   ('Geodesic_depth.depth_file', 'shapes.@geodesic_depth'),
+                   ('Curvature.mean_curvature_file', 'shapes.@mean_curvature')])])
+
         # --------------------------------------------------------------------
         # Convert FreeSurfer surface measures to VTK:
         # --------------------------------------------------------------------
@@ -906,28 +937,6 @@ if not args.no_surfaces:
                 mbFlow.connect(WholeSurfShapeFlow, 
                                'Freesurfer_thickness_to_vtk.output_vtk',
                                Sink, 'shapes.@freesurfer_thickness')
-        # --------------------------------------------------------------------
-        # Connect nodes:
-        # --------------------------------------------------------------------
-        WholeSurfShapeFlow.add_nodes([SurfaceArea, GeodesicDepth, CurvNode])
-        if do_input_vtk:
-            mbFlow.connect([(Surf, WholeSurfShapeFlow,
-                             [('surface_files','Surface_area.surface_file'),
-                              ('surface_files','Travel_depth.surface_file'),
-                              ('surface_files','Geodesic_depth.surface_file'),
-                              ('surface_files','Curvature.surface_file')])])
-        else:
-            mbFlow.connect([(Surf2vtk, WholeSurfShapeFlow,
-                               [('output_vtk', 'Surface_area.surface_file'),
-                                ('output_vtk', 'Travel_depth.surface_file'),
-                                ('output_vtk', 'Geodesic_depth.surface_file'),
-                                ('output_vtk', 'Curvature.surface_file')])])
-        if save_all:
-            mbFlow.connect([(WholeSurfShapeFlow, Sink,
-              [('Surface_area.area_file', 'shapes.@surface_area'),
-               ('Travel_depth.depth_file', 'shapes.@travel_depth'),
-               ('Geodesic_depth.depth_file', 'shapes.@geodesic_depth'),
-               ('Curvature.mean_curvature_file', 'shapes.@mean_curvature')])])
 
     # ========================================================================
     #
