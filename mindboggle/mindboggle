@@ -791,7 +791,6 @@ if not args.no_surfaces:
                                                      'surface_file',
                                                      'verbose'],
                                         output_names=['depth_file']))
-        WholeSurfShapeFlow.add_nodes([TravelDepth])
         TravelDepth.inputs.command = os.path.join(ccode_path,
                                                   'travel_depth',
                                                   'TravelDepthMain')
