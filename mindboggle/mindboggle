@@ -799,7 +799,7 @@ if not args.no_surfaces:
         # ----------------------------------------------------------------
         # Connect nodes:
         # ----------------------------------------------------------------
-        WholeSurfShapeFlow.add_nodes([SurfaceArea, GeodesicDepth, CurvNode])
+        WholeSurfShapeFlow.add_nodes([TravelDepth, CurvNode])
         if do_input_vtk:
             mbFlow.connect([(Surf, WholeSurfShapeFlow,
                              [('surface_files','Travel_depth.surface_file'),
@@ -873,7 +873,7 @@ if not args.no_surfaces:
             # ----------------------------------------------------------------
             # Connect nodes:
             # ----------------------------------------------------------------
-            WholeSurfShapeFlow.add_nodes([SurfaceArea, GeodesicDepth, CurvNode])
+            WholeSurfShapeFlow.add_nodes([SurfaceArea, GeodesicDepth])
             if do_input_vtk:
                 mbFlow.connect([(Surf, WholeSurfShapeFlow,
                                  [('surface_files','Surface_area.surface_file'),
