@@ -9,8 +9,9 @@ supports broad use and modification of the software.
 The Apache license allows other projects with virtually any license,
 including GPL, to use our code, and makes it more likely that we will
 attract support from companies, including open-source software
-companies, such as Enthought_ and Kitware_. 
+companies, such as `Continuum Analytics`_, Enthought_, and Kitware_.
 
 
+.. _`Continuum Analytics`: https://www.continuum.io/
 .. _Enthought: http://www.enthought.com
 .. _Kitware: http://www.kitware.com

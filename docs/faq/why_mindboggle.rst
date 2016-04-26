@@ -18,7 +18,7 @@ Motivation
 There is a strong tendency for neuroscientists who are not software developers
 to assume that questions of brain image "preprocessing", including registration
 and labeling, have been satisfactorily resolved or are not even worthy of mention
-([carp2012]_).  We believe that conventional methods do not establish
+[carp2012]_.  We believe that conventional methods do not establish
 reasonable correspondences across brain images and threaten to undermine the
 credibility of the science and the scientists who use them in the service of
 answering the neuroscientific and clinical questions that interest them.
@@ -62,7 +62,7 @@ imaging modalities such as fMRI, dMRI, and genetic data.
 Tank Think Labs joined this U01 effort:
 
     - `Satrajit Ghosh <http://mit.edu/~satra>`_
-    - `Nolan Nichols <http://www.linkedin.com/in/nolannichols>`_
+    - Nolan Nichols
     - Brian Rossa
     - Oliver Hinds
 
