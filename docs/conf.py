@@ -21,7 +21,10 @@ import os
 sys.path.insert(0, os.path.abspath('..'))
 #sys.path.append(os.path.abspath('sphinxext'))
 
-# -- General configuration ------------------------------------------------
+# -- Build API docs ----------------------------------------------------------
+os.system('bash api_build.sh')
+
+# -- General configuration ---------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
 needs_sphinx = '1.3'
@@ -95,7 +98,7 @@ exec(open("../info.py").read())
 # built documents.
 # The short X.Y version.
 #version = u'1.0'
-version = VERSION[0:3]
+version = VERSION[0:5]
 # The full version, including alpha/beta/rc tags.
 #release = u'1.0.0dev'
 release = VERSION
