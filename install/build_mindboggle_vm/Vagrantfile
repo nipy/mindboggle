@@ -26,8 +26,8 @@ Vagrant.configure("2") do |conf|
 
     # Initialize with a basic Ubuntu Linux box:
     conf.vm.box = "ubuntu/trusty64"
-    #conf.vm.provision "shell", path: "../install_mindboggle.sh"
-    conf.vm.provision "shell", :privileged => False, path: "https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle.sh"
+    #conf.vm.provision "shell", privileged: False, path: "../install_mindboggle.sh"
+    conf.vm.provision "shell", privileged: False, path: "https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle.sh"
 
     # Configure number of CPUs maximum percent per CPU, and memory (MB RAM):
     conf.vm.provider :virtualbox do |vb|
