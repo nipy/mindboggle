@@ -796,6 +796,22 @@ if not args.no_surfaces:
                                                   'travel_depth',
                                                   'TravelDepthMain')
         TravelDepth.inputs.verbose = True
+        # ----------------------------------------------------------------
+        # Connect nodes:
+        # ----------------------------------------------------------------
+        WholeSurfShapeFlow.add_nodes([SurfaceArea, GeodesicDepth, CurvNode])
+        if do_input_vtk:
+            mbFlow.connect([(Surf, WholeSurfShapeFlow,
+                             [('surface_files','Travel_depth.surface_file'),
+                              ('surface_files','Curvature.surface_file')])])
+        else:
+            mbFlow.connect([(Surf2vtk, WholeSurfShapeFlow,
+                               [('output_vtk', 'Travel_depth.surface_file'),
+                                ('output_vtk', 'Curvature.surface_file')])])
+        if save_all:
+            mbFlow.connect([(WholeSurfShapeFlow, Sink,
+              [('Travel_depth.depth_file', 'shapes.@travel_depth'),
+               ('Curvature.mean_curvature_file', 'shapes.@mean_curvature')])])
         # --------------------------------------------------------------------
         # Rescale surface travel depth for fundus extraction:
         # --------------------------------------------------------------------
@@ -861,21 +877,15 @@ if not args.no_surfaces:
             if do_input_vtk:
                 mbFlow.connect([(Surf, WholeSurfShapeFlow,
                                  [('surface_files','Surface_area.surface_file'),
-                                  ('surface_files','Travel_depth.surface_file'),
-                                  ('surface_files','Geodesic_depth.surface_file'),
-                                  ('surface_files','Curvature.surface_file')])])
+                                  ('surface_files','Geodesic_depth.surface_file')])])
             else:
                 mbFlow.connect([(Surf2vtk, WholeSurfShapeFlow,
                                    [('output_vtk', 'Surface_area.surface_file'),
-                                    ('output_vtk', 'Travel_depth.surface_file'),
-                                    ('output_vtk', 'Geodesic_depth.surface_file'),
-                                    ('output_vtk', 'Curvature.surface_file')])])
+                                    ('output_vtk', 'Geodesic_depth.surface_file')])])
             if save_all:
                 mbFlow.connect([(WholeSurfShapeFlow, Sink,
                   [('Surface_area.area_file', 'shapes.@surface_area'),
-                   ('Travel_depth.depth_file', 'shapes.@travel_depth'),
-                   ('Geodesic_depth.depth_file', 'shapes.@geodesic_depth'),
-                   ('Curvature.mean_curvature_file', 'shapes.@mean_curvature')])])
+                   ('Geodesic_depth.depth_file', 'shapes.@geodesic_depth')])])
 
         # --------------------------------------------------------------------
         # Convert FreeSurfer surface measures to VTK:
