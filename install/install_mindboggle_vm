@@ -73,7 +73,7 @@ This script will generate a Vagrantfile. You must have Vagrant (vagrantup.com)
 and VirtualBox (virtualbox.org) installed, and a good Internet connection.
 Once the virtual machine has been installed and configured as in the
 following Example, log in to the vm to run mindboggle with
-"vagrant up; vagrant ssh" (the vm's username and password are both "vagrant":
+"vagrant up; vagrant ssh" (the vm's username="mind" and password="mindboggle":
 
 Example (default settings except --ants): python install_mindboggle_vm
     --out $HOME/mindboggled
@@ -177,13 +177,18 @@ vagrant_file = """# Vagrantfile (http://www.vagrantup.com)
 #=============================================================================
 # Configure the Mindboggle Vagrant box and mount local directories
 #=============================================================================
+This Vagrantfile downloads and configures the mindboggle virtual machine (vm).
+You must have Vagrant (vagrantup.com) and VirtualBox (virtualbox.org)
+installed, and a good Internet connection. Log in to the vm to run mindboggle
+with "vagrant up; vagrant ssh" (username="mind" and password="mindboggle").
+#-----------------------------------------------------------------------------
 Vagrant.configure("2") do |config|
 
     # Fetch the mindboggle Vagrant virtual box if not already cached:
     config.vm.box = "mindboggle"
     #config.vm.box_url = "mindboggle.{0}.box"
     config.vm.box_url = "http://media.mindboggle.info/vm/mindboggle.{0}.box"
-    config.vm.hostname = "mindboggler"
+    config.vm.hostname = "boggler"
 
     # Share additional folders to the guest VM,
     # with paths on the guest to mount the folder:
@@ -196,7 +201,7 @@ Vagrant.configure("2") do |config|
 
     # Configure number of CPUs, maximum % per CPU, and memory (MB RAM):
     config.vm.provider :virtualbox do |vb|
-        vb.name = "MindboggleVM"
+        vb.name = "mindboggleVM"
         vb.customize ["modifyvm", :id, "--cpus", "{7}"]
         vb.customize ["modifyvm", :id, "--cpuexecutioncap", "{8}"]
         vb.customize ["modifyvm", :id, "--memory", "{9}"]
@@ -208,8 +213,8 @@ Vagrant.configure("2") do |config|
     config.vm.network "forwarded_port", guest: 80, host: 8080
 
     # Disable private key for easy ssh login:
-    config.ssh.username = "vagrant"
-    config.ssh.password = "vagrant"
+    config.ssh.username = "mind"
+    config.ssh.password = "mindboggle"
 
 end
 """.format(version, out_str, work_str, cache_str, freesurfer_str,

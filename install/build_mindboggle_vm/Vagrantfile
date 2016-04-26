@@ -43,8 +43,8 @@ Vagrant.configure("2") do |conf|
     end
 
     # Disable private key for easy ssh login:
-    conf.ssh.username = "vagrant"
-    conf.ssh.password = "vagrant"
+    conf.ssh.username = "mind"
+    conf.ssh.password = "mindboggle"
 
 end
 
