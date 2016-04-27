@@ -562,7 +562,7 @@ def segment_by_region(data, regions=[], surface_file='', save_file=False,
     >>> for segment_number in segment_numbers:
     ...     lens.append(len([x for x in o1 if x == segment_number]))
     >>> lens[0:10]
-    [304, 154, 412, 178, 233, 308, 142, 148, 229, 30]
+    [333, 229, 419, 251, 281, 380, 162, 137, 256, 29]
 
     View result (skip test):
 
