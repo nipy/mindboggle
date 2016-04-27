@@ -7,8 +7,8 @@
 # Vagrant (vagrantup.com) and VirtualBox (virtualbox.org) should be installed,
 # and there needs to be a good Internet connection.
 #
-# Usage:
-#     bash build_mindboggle_vm.sh <Mindboggle version, such as 1.0.0>
+# Example (Mindboggle version 1.0.0):
+#     bash build_mindboggle_vm.sh 1.0.0
 #
 # Upload the box to a website for others to download:
 #     rsync -avz --sparse -e /usr/bin/ssh mindboggle.1.0.0.box
