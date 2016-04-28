@@ -161,7 +161,6 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
             # Find outer anchor points on the boundary of the surface region,
             # to serve as fundus endpoints:
             # ----------------------------------------------------------------
-            verbose = False
             outer_anchors, tracks = find_outer_endpoints(indices_fold,
                 neighbor_lists, values, depths, min_separation,
                 background_value, verbose)
