@@ -87,7 +87,7 @@ examples, download and unzip the
 `mindboggle_input_example.zip <https://osf.io/h8zp5/?action=download&version=1>`_
 directory (450 MB), which contains some example preprocessed data.
 More example input and output data can be found
-on Mindboggle's `examples <https://osf.io/8cf5z>`_ site.
+on Mindboggle's `examples <https://osf.io/8cf5z>`_ osf.io site.
 
 If using the Mindboggle virtual machine, type the commands in step 3 of
 `Installing Mindboggle`_ above to enter the VM before continuing.
