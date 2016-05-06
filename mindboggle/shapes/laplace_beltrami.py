@@ -395,7 +395,7 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None,
     >>> from mindboggle.mio.vtks import read_vtk
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> label_file = fetch_data(urls['left_freesurfer_labels'])
+    >>> label_file = fetch_data(urls['left_freesurfer_labels'], '', '.vtk')
     >>> points, f1,f2, faces, labels, f3,f4,f5 = read_vtk(label_file)
     >>> spectrum = fem_laplacian(points, faces, spectrum_size=6,
     ...                          normalization=None, verbose=False)
@@ -524,8 +524,8 @@ def spectrum_of_largest(points, faces, spectrum_size=10, exclude_labels=[-1],
     >>> from mindboggle.shapes.laplace_beltrami import spectrum_of_largest
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> label_file = fetch_data(urls['left_freesurfer_labels'])
-    >>> area_file = fetch_data(urls['left_area'])
+    >>> label_file = fetch_data(urls['left_freesurfer_labels'], '', '.vtk')
+    >>> area_file = fetch_data(urls['left_area'], '', '.vtk')
     >>> spectrum_size = 6
     >>> exclude_labels = [-1]
     >>> normalization = None
@@ -631,7 +631,7 @@ def spectrum_from_file(vtk_file, spectrum_size=10, exclude_labels=[-1],
     >>> from mindboggle.shapes.laplace_beltrami import spectrum_per_label
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> vtk_file = fetch_data(urls['left_freesurfer_labels'])
+    >>> vtk_file = fetch_data(urls['left_freesurfer_labels'], '', '.vtk')
     >>> spectrum = spectrum_from_file(vtk_file, spectrum_size=6)
     >>> print(np.array_str(np.array(spectrum[1::]),
     ...                    precision=5, suppress_small=True))
@@ -696,8 +696,8 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
     >>> from mindboggle.shapes.laplace_beltrami import spectrum_per_label
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> vtk_file = fetch_data(urls['left_freesurfer_labels'])
-    >>> area_file = fetch_data(urls['left_area'])
+    >>> vtk_file = fetch_data(urls['left_freesurfer_labels'], '', '.vtk')
+    >>> area_file = fetch_data(urls['left_area'], '', '.vtk')
     >>> spectrum_size = 6
     >>> exclude_labels = [0]  #[-1]
     >>> largest_segment = True

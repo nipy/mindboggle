@@ -48,7 +48,7 @@ def find_depth_threshold(depth_file, min_vertices=10000, verbose=False):
     >>> from mindboggle.features.folds import find_depth_threshold
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> depth_file = fetch_data(urls['left_travel_depth'])
+    >>> depth_file = fetch_data(urls['left_travel_depth'], '', '.vtk')
     >>> min_vertices = 10000
     >>> verbose = False
     >>> depth_threshold, bins, bin_edges = find_depth_threshold(depth_file,
@@ -178,7 +178,7 @@ def extract_folds(depth_file, depth_threshold=2, min_fold_size=50,
     >>> from mindboggle.features.folds import extract_folds
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> depth_file = fetch_data(urls['left_travel_depth'])
+    >>> depth_file = fetch_data(urls['left_travel_depth'], '', '.vtk')
     >>> depth_threshold = 2.36089
     >>> min_fold_size = 50
     >>> save_file = True

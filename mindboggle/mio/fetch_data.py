@@ -264,42 +264,42 @@ def test_urls():
     # ------------------------------------------------------------------------
     # Mindboggle tables:
     # ------------------------------------------------------------------------
-    # # thickinthehead_per_ants_cortex_label.csv
-    # urls['thickinthehead_ants_labels_table'] = \
-    #     ''
-    # # thickinthehead_per_freesurfer_cortex_label.csv
-    # urls['thickinthehead_freesurfer_labels_table'] = \
-    #     ''
-    # # volume_per_ants_label.csv
-    # urls['volume_ants_labels_table'] = \
-    #     ''
-    # # volume_per_freesurfer_label.csv
-    # urls['volume_freesurfer_labels_table'] = \
-    #     ''
-    # # fundus_shapes.csv
-    # urls['left_fundus_shapes_table'] = \
-    #     ''
-    # # label_shapes.csv
-    # urls['left_label_shapes_table'] = \
-    #     ''
-    # # sulcus_shapes.csv
-    # urls['left_sulcus_shapes_table'] = \
-    #     ''
-    # # vertices.csv
-    # urls['left_vertices_table'] = \
-    #     ''
-    # # fundus_shapes.csv
-    # urls['right_fundus_shapes_table'] = \
-    #     ''
-    # # label_shapes.csv
-    # urls['right_label_shapes_table'] = \
-    #     ''
-    # # sulcus_shapes.csv
-    # urls['right_sulcus_shapes_table'] = \
-    #     ''
-    # # vertices.csv
-    # urls['right_vertices_table'] = \
-    #     ''
+    # thickinthehead_per_ants_cortex_label.csv
+    urls['thickinthehead_ants_labels_table'] = \
+        'https://osf.io/ujvrd/?action=download&version=1'
+    # thickinthehead_per_freesurfer_cortex_label.csv
+    urls['thickinthehead_freesurfer_labels_table'] = \
+        'https://osf.io/976ew/?action=download&version=1'
+    # volume_per_ants_label.csv
+    urls['volume_ants_labels_table'] = \
+        'https://osf.io/y6d2c/?action=download&version=1'
+    # volume_per_freesurfer_label.csv
+    urls['volume_freesurfer_labels_table'] = \
+        'https://osf.io/ukqdy/?action=download&version=1'
+    # fundus_shapes.csv
+    urls['left_fundus_shapes_table'] = \
+        'https://osf.io/23rqv/?action=download&version=1'
+    # label_shapes.csv
+    urls['left_label_shapes_table'] = \
+        'https://osf.io/jecq3/?action=download&version=1'
+    # sulcus_shapes.csv
+    urls['left_sulcus_shapes_table'] = \
+        'https://osf.io/tmhrp/?action=download&version=1'
+    # vertices.csv
+    urls['left_vertices_table'] = \
+        'https://osf.io/6dcx7/?action=download&version=1'
+    # fundus_shapes.csv
+    urls['right_fundus_shapes_table'] = \
+        'https://osf.io/4trm9/?action=download&version=1'
+    # label_shapes.csv
+    urls['right_label_shapes_table'] = \
+        'https://osf.io/5sgn7/?action=download&version=1'
+    # sulcus_shapes.csv
+    urls['right_sulcus_shapes_table'] = \
+        'https://osf.io/mndya/?action=download&version=1'
+    # vertices.csv
+    urls['right_vertices_table'] = \
+        'https://osf.io/f6h72/?action=download&version=1'
 
     return urls
 

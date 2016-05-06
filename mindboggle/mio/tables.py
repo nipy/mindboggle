@@ -95,13 +95,13 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> label_file = fetch_data(urls['left_freesurfer_labels'])
-    >>> sulci_file = fetch_data(urls['left_sulci'])
-    >>> fundi_file = fetch_data(urls['left_fundus_per_sulcus'])
-    >>> mean_curvature_file = fetch_data(urls['left_mean_curvature'])
-    >>> travel_depth_file = fetch_data(urls['left_travel_depth'])
-    >>> geodesic_depth_file = fetch_data(urls['left_geodesic_depth'])
-    >>> area_file = fetch_data(urls['left_area'])
+    >>> label_file = fetch_data(urls['left_freesurfer_labels'], '', '.vtk')
+    >>> sulci_file = fetch_data(urls['left_sulci'], '', '.vtk')
+    >>> fundi_file = fetch_data(urls['left_fundus_per_sulcus'], '', '.vtk')
+    >>> mean_curvature_file = fetch_data(urls['left_mean_curvature'], '', '.vtk')
+    >>> travel_depth_file = fetch_data(urls['left_travel_depth'], '', '.vtk')
+    >>> geodesic_depth_file = fetch_data(urls['left_geodesic_depth'], '', '.vtk')
+    >>> area_file = fetch_data(urls['left_area'], '', '.vtk')
     >>> freesurfer_thickness_file = ''
     >>> freesurfer_curvature_file = ''
     >>> freesurfer_sulc_file = ''
@@ -453,22 +453,22 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     >>> output_table = '' #vertex_shapes.csv'
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> labels_or_file = fetch_data(urls['left_freesurfer_labels'])
-    >>> sulci_file = fetch_data(urls['left_sulci'])
-    >>> fundi_file = fetch_data(urls['left_fundus_per_sulcus'])
-    >>> mean_curvature_file = fetch_data(urls['left_mean_curvature'])
-    >>> travel_depth_file = fetch_data(urls['left_travel_depth'])
-    >>> geodesic_depth_file = fetch_data(urls['left_geodesic_depth'])
-    >>> area_file = fetch_data(urls['left_area'])
-    >>> freesurfer_thickness_file = fetch_data(urls['left_freesurfer_thickness'])
-    >>> freesurfer_curvature_file = fetch_data(urls['left_freesurfer_curvature'])
-    >>> freesurfer_sulc_file = fetch_data(urls['left_freesurfer_sulc'])
+    >>> labels_or_file = fetch_data(urls['left_freesurfer_labels'], '', '.vtk')
+    >>> sulci_file = fetch_data(urls['left_sulci'], '', '.vtk')
+    >>> fundi_file = fetch_data(urls['left_fundus_per_sulcus'], '', '.vtk')
+    >>> mean_curvature_file = fetch_data(urls['left_mean_curvature'], '', '.vtk')
+    >>> travel_depth_file = fetch_data(urls['left_travel_depth'], '', '.vtk')
+    >>> geodesic_depth_file = fetch_data(urls['left_geodesic_depth'], '', '.vtk')
+    >>> area_file = fetch_data(urls['left_area'], '', '.vtk')
+    >>> freesurfer_thickness_file = fetch_data(urls['left_freesurfer_thickness'], '', '.vtk')
+    >>> freesurfer_curvature_file = fetch_data(urls['left_freesurfer_curvature'], '', '.vtk')
+    >>> freesurfer_sulc_file = fetch_data(urls['left_freesurfer_sulc'], '', '.vtk')
     >>> sulci, name = read_scalars(sulci_file)
     >>> if fundi_file:
     ...     fundi, name = read_scalars(fundi_file)
     ... else:
     ...     fundi = []
-    >>> affine_transform_file = fetch_data(urls['affine_mni_transform'])
+    >>> affine_transform_file = fetch_data(urls['affine_mni_transform'], '', '.txt')
     >>> inverse_booleans = [1]
     >>> transform_format = 'itk'
     >>> swap_xy = True
@@ -610,8 +610,8 @@ def write_face_vertex_averages(input_file, output_table='', area_file=''):
     >>> from mindboggle.mio.tables import write_face_vertex_averages
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> input_file = fetch_data(urls['left_travel_depth'])
-    >>> area_file = fetch_data(urls['left_area'])
+    >>> input_file = fetch_data(urls['left_travel_depth'], '', '.vtk')
+    >>> area_file = fetch_data(urls['left_area'], '', '.vtk')
     >>> output_table = ''
     >>> output_table = write_face_vertex_averages(input_file, output_table,
     ...                                           area_file)
@@ -687,9 +687,9 @@ def write_average_face_values_per_label(input_indices_vtk,
     >>> from mindboggle.mio.tables import write_average_face_values_per_label
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> input_indices_vtk = fetch_data(urls['left_freesurfer_labels'])
-    >>> input_values_vtk = fetch_data(urls['left_mean_curvature'])
-    >>> area_file = fetch_data(urls['left_area'])
+    >>> input_indices_vtk = fetch_data(urls['left_freesurfer_labels'], '', '.vtk')
+    >>> input_values_vtk = fetch_data(urls['left_mean_curvature'], '', '.vtk')
+    >>> area_file = fetch_data(urls['left_area'], '', '.vtk')
     >>> output_stem = 'labels_thickness'
     >>> exclude_values = [-1]
     >>> background_value = -1
@@ -809,8 +809,8 @@ def select_column_from_tables(tables, index=0, write_table=True,
     >>> from mindboggle.mio.tables import select_column_from_tables
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> tables = [fetch_data(urls['thickinthehead_freesurfer_labels_table']),
-    ...           fetch_data(urls['thickinthehead_freesurfer_labels_table'])]
+    >>> tables = [fetch_data(urls['thickinthehead_freesurfer_labels_table'], '', '.csv'),
+    ...           fetch_data(urls['thickinthehead_freesurfer_labels_table'], '', '.csv')]
     >>> index = 2
     >>> write_table = True
     >>> output_table = ''

@@ -60,8 +60,8 @@ def propagate(points, faces, region, seeds, labels,
     >>> from mindboggle.mio.labels import DKTprotocol
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> label_file = fetch_data(urls['left_freesurfer_labels'])
-    >>> folds_file = fetch_data(urls['left_folds'])
+    >>> label_file = fetch_data(urls['left_freesurfer_labels'], '', '.vtk')
+    >>> folds_file = fetch_data(urls['left_folds'], '', '.vtk')
     >>> dkt = DKTprotocol()
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> points, f1,f2, faces, labels, f3, npoints, f4 = read_vtk(label_file,
@@ -230,7 +230,7 @@ def segment_regions(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> background_value = -1
     >>> urls, fetch_data = prep_tests()
-    >>> depth_file = fetch_data(urls['left_travel_depth'])
+    >>> depth_file = fetch_data(urls['left_travel_depth'], '', '.vtk')
     >>> f1,f2,f3, faces, depths, f4, npoints, t5 = read_vtk(depth_file,
     ...                                                     True, True)
     >>> vertices_to_segment = np.where(depths > 0.50)[0].tolist()  # (sped up)
@@ -261,7 +261,7 @@ def segment_regions(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> from mindboggle.mio.labels import DKTprotocol
     >>> dkt = DKTprotocol()
     >>> label_lists = [np.unique(np.ravel(x)) for x in dkt.sulcus_label_pair_lists]
-    >>> labels_file = fetch_data(urls['left_freesurfer_labels'])
+    >>> labels_file = fetch_data(urls['left_freesurfer_labels'], '', '.vtk')
     >>> labels, name = read_scalars(labels_file)
     >>> indices_borders, label_pairs, foo = extract_borders(vertices_to_segment,
     ...     labels, neighbor_lists, ignore_values=[], return_label_pairs=True)
@@ -547,9 +547,9 @@ def segment_by_region(data, regions=[], surface_file='', save_file=False,
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> fundus_file = fetch_data(urls['left_fundus_per_fold'])
+    >>> fundus_file = fetch_data(urls['left_fundus_per_fold'], '', '.vtk')
     >>> data, name = read_scalars(fundus_file, True, True)
-    >>> surface_file = fetch_data(urls['left_sulci'])
+    >>> surface_file = fetch_data(urls['left_sulci'], '', '.vtk')
     >>> regions, name = read_scalars(surface_file, True, True)
     >>> save_file = True
     >>> output_file = 'segment_by_region.vtk'
@@ -663,7 +663,7 @@ def segment_by_filling_borders(regions, neighbor_lists, background_value=-1,
     >>> from mindboggle.mio.vtks import read_vtk
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> depth_file = fetch_data(urls['left_travel_depth'])
+    >>> depth_file = fetch_data(urls['left_travel_depth'], '', '.vtk')
     >>> f1,f2,f3, faces, depths, f4, npoints, input_vtk = read_vtk(depth_file,
     ...                                                            True, True)
     >>> background_value = -1
@@ -816,8 +816,8 @@ def segment_rings(region, seeds, neighbor_lists, step=1, background_value=-1,
     >>> from mindboggle.guts.segment import segment_rings
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> vtk_file = fetch_data(urls['left_travel_depth'])
-    >>> folds_file = fetch_data(urls['left_folds'])
+    >>> vtk_file = fetch_data(urls['left_travel_depth'], '', '.vtk')
+    >>> folds_file = fetch_data(urls['left_folds'], '', '.vtk')
     >>> values, name = read_scalars(vtk_file, True, True)
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> background_value = -1
@@ -966,7 +966,7 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
     >>> from mindboggle.mio.vtks import read_vtk
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> depth_file = fetch_data(urls['left_travel_depth'])
+    >>> depth_file = fetch_data(urls['left_travel_depth'], '', '.vtk')
     >>> points, indices, f1, faces, depths, f2, npoints, f3 = read_vtk(depth_file,
     ...     return_first=True, return_array=True)
     >>> indices = np.where(depths > 0.01)[0]  # high to speed up
@@ -1305,8 +1305,8 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
     >>> from mindboggle.guts.segment import select_largest
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> label_file = fetch_data(urls['left_freesurfer_labels'])
-    >>> area_file = fetch_data(urls['left_area'])
+    >>> label_file = fetch_data(urls['left_freesurfer_labels'], '', '.vtk')
+    >>> area_file = fetch_data(urls['left_area'], '', '.vtk')
     >>> exclude_labels = [-1]
     >>> points, indices, f1, faces, labels, f2,f3,f4 = read_vtk(label_file,
     ...                                                         True, True)
@@ -1497,7 +1497,7 @@ def extract_borders(indices, labels, neighbor_lists,
     >>> from mindboggle.mio.vtks import read_vtk
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> label_file = fetch_data(urls['left_freesurfer_labels'])
+    >>> label_file = fetch_data(urls['left_freesurfer_labels'], '', '.vtk')
     >>> f1,f2,f3, faces, labels, f4, npoints, f5 = read_vtk(label_file,
     ...                                                     True, True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
@@ -1597,8 +1597,8 @@ def extract_borders_2nd_surface(labels_file, values_file='',
     >>> from mindboggle.guts.segment import extract_borders_2nd_surface
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> label_file = fetch_data(urls['left_freesurfer_labels'])
-    >>> values_file = fetch_data(urls['left_travel_depth'])
+    >>> label_file = fetch_data(urls['left_freesurfer_labels'], '', '.vtk')
+    >>> values_file = fetch_data(urls['left_travel_depth'], '', '.vtk')
     >>> background_value = -1
     >>> output_file = 'extract_borders_2nd_surface.vtk'
     >>> border_file, values, I = extract_borders_2nd_surface(label_file,
@@ -1710,8 +1710,8 @@ def combine_2labels_in_2volumes(file1, file2, label1=3, label2=2,
     >>> from mindboggle.guts.segment import combine_2labels_in_2volumes
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> file1 = fetch_data(urls['freesurfer_segmentation'])
-    >>> file2 = fetch_data(urls['ants_segmentation'])
+    >>> file1 = fetch_data(urls['freesurfer_segmentation'], '', '.nii.gz')
+    >>> file2 = fetch_data(urls['ants_segmentation'], '', '.nii.gz')
     >>> label1 = 3
     >>> label2 = 2
     >>> output_file = 'combine_2labels_in_2volumes.nii.gz'
@@ -1797,8 +1797,8 @@ def split_brain(image_file, label_file, left_labels, right_labels):
     >>> from mindboggle.mio.labels import DKTprotocol
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> image_file = fetch_data(urls['freesurfer_segmentation'])
-    >>> label_file = fetch_data(urls['freesurfer_labels'])
+    >>> image_file = fetch_data(urls['freesurfer_segmentation'], '', '.nii.gz')
+    >>> label_file = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
     >>> dkt = DKTprotocol()
     >>> left_labels = dkt.left_cerebrum_numbers
     >>> right_labels = dkt.right_cerebrum_numbers

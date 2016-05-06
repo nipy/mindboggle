@@ -52,8 +52,8 @@ def evaluate_volume_overlaps(labels, file1, file2,
     >>> from mindboggle.mio.labels import DKTprotocol
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> file1 = fetch_data(urls['freesurfer_labels'])
-    >>> file2 = fetch_data(urls['ants_labels'])
+    >>> file1 = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
+    >>> file2 = fetch_data(urls['ants_labels'], '', '.nii.gz')
     >>> dkt = DKTprotocol()
     >>> labels = dkt.cerebrum_cortex_DKT31_numbers
     >>> output_file = ''
@@ -113,8 +113,8 @@ def evaluate_surface_overlaps(labels, index, table1, table2,
     >>> from mindboggle.mio.labels import DKTprotocol
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> table1 = fetch_data(urls['left_vertices_table'])
-    >>> table2 = fetch_data(urls['left_vertices_table'])
+    >>> table1 = fetch_data(urls['left_vertices_table'], '', '.csv')
+    >>> table2 = fetch_data(urls['left_vertices_table'], '', '.csv')
     >>> dkt = DKTprotocol()
     >>> labels = dkt.cerebrum_cortex_DKT31_numbers
     >>> index = 1
@@ -171,8 +171,8 @@ def evaluate_surface_overlaps_cpp(command, labels_file1, labels_file2,
     >>> from mindboggle.mio.fetch_data import fetch_data
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> file1 = fetch_data(urls['left_freesurfer_labels'])
-    >>> file2 = fetch_data(urls['left_freesurfer_labels'])
+    >>> file1 = fetch_data(urls['left_freesurfer_labels'], '', '.nii.gz')
+    >>> file2 = fetch_data(urls['left_freesurfer_labels'], '', '.nii.gz')
     >>> ccode_path = os.environ['MINDBOGGLE_TOOLS'] # doctest: +SKIP
     >>> command = os.path.join(ccode_path, 'surface_overlap', 'SurfaceOverlapMain') # doctest: +SKIP
     >>> output_file = ''

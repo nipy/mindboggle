@@ -64,9 +64,9 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     >>> from mindboggle.guts.mesh import find_neighbors_from_file
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> curv_file = fetch_data(urls['left_mean_curvature'])
-    >>> depth_file = fetch_data(urls['left_travel_depth'])
-    >>> folds_file = fetch_data(urls['left_folds'])
+    >>> curv_file = fetch_data(urls['left_mean_curvature'], '', '.vtk')
+    >>> depth_file = fetch_data(urls['left_travel_depth'], '', '.vtk')
+    >>> folds_file = fetch_data(urls['left_folds'], '', '.vtk')
     >>> points, f1,f2,f3, curvs, f4,f5,f6 = read_vtk(curv_file, True,True)
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> folds, name = read_scalars(folds_file, True, True)
@@ -321,9 +321,9 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists,
     >>> url1 = urls['left_mean_curvature']
     >>> url2 = urls['left_travel_depth']
     >>> url3 = urls['left_folds']
-    >>> curv_file = fetch_data(url1)
-    >>> depth_file = fetch_data(url2)
-    >>> folds_file = fetch_data(url3)
+    >>> curv_file = fetch_data(url1, '', '.vtk')
+    >>> depth_file = fetch_data(url2, '', '.vtk')
+    >>> folds_file = fetch_data(url3, '', '.vtk')
     >>> curvs, name = read_scalars(curv_file, True, True)
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> folds, name = read_scalars(folds_file, True, True)
@@ -670,10 +670,10 @@ def smooth_skeletons(skeletons, bounds, vtk_file, likelihoods, wN_max=1.0,
     >>> from mindboggle.guts.mesh import find_neighbors_from_file
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> curv_file = fetch_data(urls['left_mean_curvature'])
-    >>> depth_file = fetch_data(urls['left_travel_depth'])
-    >>> folds_file = fetch_data(urls['left_folds'])
-    >>> fundus_file = fetch_data(urls['left_fundus_per_fold'])
+    >>> curv_file = fetch_data(urls['left_mean_curvature'], '', '.vtk')
+    >>> depth_file = fetch_data(urls['left_travel_depth'], '', '.vtk')
+    >>> folds_file = fetch_data(urls['left_folds'], '', '.vtk')
+    >>> fundus_file = fetch_data(urls['left_fundus_per_fold'], '', '.vtk')
     >>> curvs, name = read_scalars(curv_file, True, True)
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> vtk_file = curv_file
@@ -866,8 +866,8 @@ def track_segments(seed, segments, neighbor_lists, values, sink,
     >>> from mindboggle.guts.mesh import find_neighbors_from_file
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> folds_file = fetch_data(urls['left_folds'])
-    >>> values_file = fetch_data(urls['left_travel_depth'])
+    >>> folds_file = fetch_data(urls['left_folds'], '', '.vtk')
+    >>> values_file = fetch_data(urls['left_travel_depth'], '', '.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> background_value = -1
     >>> # Limit number of folds to speed up the test:
@@ -1010,9 +1010,9 @@ def find_outer_endpoints(indices, neighbor_lists, values, values_seeding,
     >>> from mindboggle.guts.mesh import find_neighbors_from_file
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> curv_file = fetch_data(urls['left_mean_curvature'])
-    >>> depth_file = fetch_data(urls['left_travel_depth'])
-    >>> folds_file = fetch_data(urls['left_folds'])
+    >>> curv_file = fetch_data(urls['left_mean_curvature'], '', '.vtk')
+    >>> depth_file = fetch_data(urls['left_travel_depth'], '', '.vtk')
+    >>> folds_file = fetch_data(urls['left_folds'], '', '.vtk')
     >>> curvs, name = read_scalars(curv_file, True, True)
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> folds, name = read_scalars(folds_file, True, True)
@@ -1238,9 +1238,9 @@ def find_max_values(points, values, min_separation=10, thr=0.5):
     >>> from mindboggle.guts.compute import median_abs_dev
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> curv_file = fetch_data(urls['left_mean_curvature'])
-    >>> depth_file = fetch_data(urls['left_travel_depth'])
-    >>> folds_file = fetch_data(urls['left_folds'])
+    >>> curv_file = fetch_data(urls['left_mean_curvature'], '', '.vtk')
+    >>> depth_file = fetch_data(urls['left_travel_depth'], '', '.vtk')
+    >>> folds_file = fetch_data(urls['left_folds'], '', '.vtk')
     >>> points, f1,f2,f3, curvs, f4,f5,f6 = read_vtk(curv_file, True,True)
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> values = depths * curvs
@@ -1353,8 +1353,8 @@ def find_max_values(points, values, min_separation=10, thr=0.5):
 #     >>> urls, fetch_data = prep_tests()
 #     >>> url1 = urls['left_travel_depth']
 #     >>> url2 = urls['left_folds']
-#     >>> depth_file = fetch_data(url1)
-#     >>> folds_file = fetch_data(url2)
+#     >>> depth_file = fetch_data(url1, '', '.vtk')
+#     >>> folds_file = fetch_data(url2, '', '.vtk')
 #     >>> depths, name = read_scalars(depth_file, True, True)
 #     >>> folds, name = read_scalars(folds_file, True, True)
 #     >>> # Limit number of folds to speed up the test:

@@ -84,11 +84,11 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
     >>> from mindboggle.shapes.likelihood import compute_likelihood
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> depth_file = fetch_data(urls['left_travel_depth'])
-    >>> curvature_file = fetch_data(urls['left_mean_curvature'])
-    >>> folds_file = fetch_data(urls['left_folds'])
+    >>> depth_file = fetch_data(urls['left_travel_depth'], '', '.vtk')
+    >>> curvature_file = fetch_data(urls['left_mean_curvature'], '', '.vtk')
+    >>> folds_file = fetch_data(urls['left_folds'], '', '.vtk')
     >>> trained_file = fetch_data(urls[
-    ...     'depth_curv_border_nonborder_parameters']) # doctest: +SKIP
+    ...     'depth_curv_border_nonborder_parameters'], '', '.pkl') # doctest: +SKIP
     >>> folds, name = read_scalars(folds_file)
     >>> save_file = True
     >>> background_value = -1
@@ -218,10 +218,10 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files,
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> # Train on a single surface mesh (using FreeSurfer vs. manual labels):
     >>> urls, fetch_data = prep_tests()
-    >>> depth_file = fetch_data(urls['left_travel_depth'])
-    >>> curv_file = fetch_data(urls['left_mean_curvature'])
-    >>> folds_file = fetch_data(urls['left_folds'])
-    >>> labels_file = fetch_data(urls['left_freesurfer_labels'])
+    >>> depth_file = fetch_data(urls['left_travel_depth'], '', '.vtk')
+    >>> curv_file = fetch_data(urls['left_mean_curvature'], '', '.vtk')
+    >>> folds_file = fetch_data(urls['left_folds'], '', '.vtk')
+    >>> labels_file = fetch_data(urls['left_freesurfer_labels'], '', '.vtk')
     >>> depth_files = [depth_file]
     >>> curv_files = [curv_file]
     >>> fold_files = [folds_file]
@@ -347,9 +347,9 @@ def concatenate_sulcus_scalars(scalar_files, fold_files, label_files,
     >>> from mindboggle.shapes.likelihood import concatenate_sulcus_scalars
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> depth_file = fetch_data(urls['left_travel_depth'])
-    >>> labels_file = fetch_data(urls['left_freesurfer_labels'])
-    >>> folds_file = fetch_data(urls['left_folds'])
+    >>> depth_file = fetch_data(urls['left_travel_depth'], '', '.vtk')
+    >>> labels_file = fetch_data(urls['left_freesurfer_labels'], '', '.vtk')
+    >>> folds_file = fetch_data(urls['left_folds'], '', '.vtk')
     >>> scalar_files = [depth_file, depth_file]
     >>> fold_files = [folds_file, folds_file]
     >>> label_files = [labels_file, labels_file]
@@ -447,7 +447,7 @@ def fit_normals_to_histogram(data, x, verbose=False):
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> depth_file = fetch_data(urls['left_travel_depth'])
+    >>> depth_file = fetch_data(urls['left_travel_depth'], '', '.vtk')
     >>> scalars, name = read_scalars(depth_file)
     >>> x = np.linspace(0, 1, 51, endpoint=True)
     >>> verbose = False

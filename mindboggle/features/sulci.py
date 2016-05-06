@@ -68,8 +68,8 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
     >>> # Load labels, folds, neighbor lists, and sulcus names and label pairs
-    >>> labels_file = fetch_data(urls['left_freesurfer_labels'])
-    >>> folds_file = fetch_data(urls['left_folds'])
+    >>> labels_file = fetch_data(urls['left_freesurfer_labels'], '', '.vtk')
+    >>> folds_file = fetch_data(urls['left_folds'], '', '.vtk')
     >>> folds_or_file, name = read_scalars(folds_file, True, True)
     >>> save_file = True
     >>> output_file = 'extract_sulci_fold4_1sulcus.vtk'

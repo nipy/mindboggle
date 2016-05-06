@@ -43,7 +43,7 @@ def read_vertices(filename):
     >>> from mindboggle.mio.vtks import read_vertices
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> depth_file = fetch_data(urls['left_travel_depth'])
+    >>> depth_file = fetch_data(urls['left_travel_depth'], '', '.vtk')
     >>> indices = read_vertices(depth_file) # doctest: +SKIP
 
     """
@@ -89,7 +89,7 @@ def read_lines(filename):
     >>> from mindboggle.mio.vtks import read_lines
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> fundus_file = fetch_data(urls['left_fundus_per_fold'])
+    >>> fundus_file = fetch_data(urls['left_fundus_per_fold'], '', '.vtk')
     >>> lines, scalars  = read_lines(fundus_file) # doctest: +SKIP
 
     """
@@ -138,7 +138,7 @@ def read_points(filename):
     >>> from mindboggle.mio.vtks import read_points
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> depth_file = fetch_data(urls['left_travel_depth'])
+    >>> depth_file = fetch_data(urls['left_travel_depth'], '', '.vtk')
     >>> points  = read_points(depth_file)
     >>> print(np.array_str(np.array(points[0:5]),
     ...       precision=5, suppress_small=True))
@@ -188,7 +188,7 @@ def read_faces_points(filename):
     >>> from mindboggle.mio.vtks import read_faces_points
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> depth_file = fetch_data(urls['left_travel_depth'])
+    >>> depth_file = fetch_data(urls['left_travel_depth'], '', '.vtk')
     >>> faces, points, npoints  = read_faces_points(depth_file)
     >>> npoints
     145069
@@ -251,7 +251,7 @@ def read_scalars(filename, return_first=True, return_array=False):
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> depth_file = fetch_data(urls['left_travel_depth'])
+    >>> depth_file = fetch_data(urls['left_travel_depth'], '', '.vtk')
     >>> depths, name = read_scalars(depth_file)
     >>> name
     'scalars'
@@ -354,7 +354,7 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
     >>> from mindboggle.mio.vtks import read_vtk
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> depth_file = fetch_data(urls['left_travel_depth'])
+    >>> depth_file = fetch_data(urls['left_travel_depth'], '', '.vtk')
     >>> points, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(depth_file)
     >>> npoints
     145069
@@ -682,7 +682,7 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     >>> from mindboggle.mio.vtks import read_vtk
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> input_vtk = fetch_data(urls['left_travel_depth'])
+    >>> input_vtk = fetch_data(urls['left_travel_depth'], '', '.vtk')
     >>> points, indices, lines, faces, scalars, scalar_names, npoints, input_vtk = read_vtk(input_vtk)
     >>> output_vtk = 'write_vtk.vtk'
     >>> scalar_type = 'float'
@@ -769,8 +769,8 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> input_vtk = fetch_data(urls['left_travel_depth'])
-    >>> sulci_file = fetch_data(urls['left_sulci'])
+    >>> input_vtk = fetch_data(urls['left_travel_depth'], '', '.vtk')
+    >>> sulci_file = fetch_data(urls['left_sulci'], '', '.vtk')
     >>> output_vtk = 'rewrite_scalars.vtk'
     >>> curvs, name = read_scalars(input_vtk, True,True)
     >>> sulci, name = read_scalars(sulci_file)
@@ -903,8 +903,8 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     >>> from mindboggle.mio.vtks import explode_scalars
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> input_indices_vtk = fetch_data(urls['left_sulci'])
-    >>> input_values_vtk = fetch_data(urls['left_travel_depth'])
+    >>> input_indices_vtk = fetch_data(urls['left_sulci'], '', '.vtk')
+    >>> input_values_vtk = fetch_data(urls['left_travel_depth'], '', '.vtk')
     >>> output_stem = 'explode_scalars_sulcus_depth'
     >>> exclude_values = [-1]
     >>> background_value = -1,
@@ -923,7 +923,7 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
 
     Example 2:  explode labels
 
-    >>> input_indices_vtk = fetch_data(urls['left_freesurfer_labels'])
+    >>> input_indices_vtk = fetch_data(urls['left_freesurfer_labels'], '', '.vtk')
     >>> input_values_vtk = ''
     >>> output_stem = 'explode_scalars_label'
     >>> output_scalar_name = 'labels'
@@ -1400,8 +1400,8 @@ def apply_affine_transforms(transform_files, inverse_booleans,
     >>> from mindboggle.mio.vtks import apply_affine_transforms
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> vtk_or_points = fetch_data(urls['left_pial'])
-    >>> transform_files = [fetch_data(urls['ants_affine_subject2template'])]
+    >>> vtk_or_points = fetch_data(urls['left_pial'], '', '.vtk')
+    >>> transform_files = [fetch_data(urls['ants_affine_subject2template'], '', '.txt')]
     >>> inverse_booleans = [1]
     >>> transform_format = 'itk'
     >>> vtk_file_stem = 'affine_'
@@ -1523,9 +1523,9 @@ def freesurfer_surface_to_vtk(surface_file, orig_file='', output_vtk=''):
     >>> from mindboggle.mio.vtks import freesurfer_surface_to_vtk
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> surface_file = fetch_data(urls['left_freesurfer_pial'])
+    >>> surface_file = fetch_data(urls['left_freesurfer_pial'], '', '.pial')
     >>> urls, fetch_data = prep_tests()
-    >>> orig_file = fetch_data(urls['freesurfer_orig_mgz'])
+    >>> orig_file = fetch_data(urls['freesurfer_orig_mgz'], '', '.mgz')
     >>> output_vtk = 'freesurfer_surface_to_vtk.vtk'
     >>> os.rename(surface_file, surface_file + '.pial')
     >>> os.rename(orig_file, orig_file + '.mgz')
@@ -1615,8 +1615,8 @@ def freesurfer_curvature_to_vtk(surface_file, vtk_file, output_vtk='',
     >>> from mindboggle.mio.vtks import freesurfer_curvature_to_vtk
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> surface_file = fetch_data(urls['left_freesurfer_thickness'])
-    >>> vtk_file = fetch_data(urls['left_pial'])
+    >>> surface_file = fetch_data(urls['left_freesurfer_thickness'], '', '.vtk')
+    >>> vtk_file = fetch_data(urls['left_pial'], '', '.vtk')
     >>> output_vtk = 'freesurfer_curvature_to_vtk.vtk'
     >>> background_value = -1
     >>> output_vtk = freesurfer_curvature_to_vtk(surface_file, vtk_file,
@@ -1687,8 +1687,8 @@ def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk='',
     >>> from mindboggle.mio.vtks import freesurfer_annot_to_vtk
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> annot_file = fetch_data(urls['left_freesurfer_aparc_annot'])
-    >>> vtk_file = fetch_data(urls['left_pial'])
+    >>> annot_file = fetch_data(urls['left_freesurfer_aparc_annot'], '', '.annot')
+    >>> vtk_file = fetch_data(urls['left_pial'], '', '.vtk')
     >>> output_vtk = 'freesurfer_annot_to_vtk.vtk'
     >>> background_value = -1
     >>> labels, output_vtk = freesurfer_annot_to_vtk(annot_file,
@@ -1762,8 +1762,8 @@ def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk='',
 #     >>> from mindboggle.mio.vtks import read_points
 #     >>> from mindboggle.mio.fetch_data import prep_tests
 #     >>> urls, fetch_data = prep_tests()
-#     >>> vtk_file = fetch_data(urls['left_pial'])
-#     >>> volume_file = fetch_data(urls['T1_001'])
+#     >>> vtk_file = fetch_data(urls['left_pial'], '', '.vtk')
+#     >>> volume_file = fetch_data(urls['T1_001'], '', '.nii.gz')
 #     >>> points  = read_points(vtk_file)
 #     >>> output_volume = ''
 #     >>> output_volume = transform_to_volume(vtk_file, points, volume_file,

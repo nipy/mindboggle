@@ -70,9 +70,9 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     >>> from mindboggle.features.fundi import extract_fundi
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> curv_file = fetch_data(urls['left_mean_curvature'])
-    >>> depth_file = fetch_data(urls['left_travel_depth'])
-    >>> folds_file = fetch_data(urls['left_folds'])
+    >>> curv_file = fetch_data(urls['left_mean_curvature'], '', '.vtk')
+    >>> depth_file = fetch_data(urls['left_travel_depth'], '', '.vtk')
+    >>> folds_file = fetch_data(urls['left_folds'], '', '.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> # Limit number of folds to speed up the test:
     >>> limit_folds = True

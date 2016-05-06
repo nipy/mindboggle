@@ -50,11 +50,11 @@ def antsApplyTransformsToPoints(points, transform_files,
     >>> from mindboggle.mio.vtks import read_points
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> xfm1 = fetch_data(urls['ants_affine_template2subject'])
-    >>> xfm2 = fetch_data(urls['ants_warp_template2subject'])
-    >>> xfm3 = fetch_data(urls['OASIS-30_Atropos_template_to_MNI152_affine'])
+    >>> xfm1 = fetch_data(urls['ants_affine_template2subject'], '', '.txt')
+    >>> xfm2 = fetch_data(urls['ants_warp_template2subject'], '', '.txt')
+    >>> xfm3 = fetch_data(urls['OASIS-30_Atropos_template_to_MNI152_affine'], '', '.txt')
     >>> transform_files = [xfm1, xfm2, xfm3]
-    >>> vtk_file = fetch_data(urls['left_pial'])
+    >>> vtk_file = fetch_data(urls['left_pial'], '', '.vtk')
     >>> points  = read_points(vtk_file)
     >>> inverse_booleans = [0,0,1]
     >>> transformed_points = antsApplyTransformsToPoints(points,
@@ -164,8 +164,8 @@ def ImageMath(volume1, volume2, operator='m', output_file=''):
     >>> from mindboggle.thirdparty.ants import ImageMath
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> volume1 = fetch_data(urls['T1_001'])
-    >>> volume2 = fetch_data(urls['ants_mask'])
+    >>> volume1 = fetch_data(urls['T1_001'], '', '.nii.gz')
+    >>> volume2 = fetch_data(urls['ants_mask'], '', '.nii.gz')
     >>> operator = 'm'
     >>> output_file = ''
     >>> output_file = ImageMath(volume1, volume2, operator, output_file) # doctest: +SKIP
@@ -220,7 +220,7 @@ def ThresholdImage(volume, output_file='', threshlo=1, threshhi=10000):
     >>> from mindboggle.thirdparty.ants import ThresholdImage
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> volume = fetch_data(urls['T1_001'])
+    >>> volume = fetch_data(urls['T1_001'], '', '.nii.gz')
     >>> os.rename(volume, volume + '.nii.gz')
     >>> volume += '.nii.gz'
     >>> output_file = ''
@@ -291,8 +291,8 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None, output_file='',
     >>> from mindboggle.thirdparty.ants import PropagateLabelsThroughMask
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> labels = fetch_data(urls['freesurfer_labels'])
-    >>> mask = fetch_data(urls['ants_mask'])
+    >>> labels = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
+    >>> mask = fetch_data(urls['ants_mask'], '', '.nii.gz')
     >>> mask_index = None
     >>> output_file = ''
     >>> binarize = True
@@ -388,7 +388,7 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
     >>> from mindboggle.thirdparty.ants import ResampleImageBySpacing
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> volume = fetch_data(urls['T1_001'])
+    >>> volume = fetch_data(urls['T1_001'], '', '.nii.gz')
     >>> os.rename(volume, volume + '.nii.gz')
     >>> volume += '.nii.gz'
     >>> output_file = ''
@@ -464,11 +464,11 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
 #     >>> from mindboggle.thirdparty.ants import fill_volume_with_surface_labels
 #     >>> from mindboggle.mio.fetch_data import prep_tests
 #     >>> urls, fetch_data = prep_tests()
-#     >>> labels_left = fetch_data(urls['left_freesurfer_labels'])
-#     >>> labels_right = fetch_data(urls['right_freesurfer_labels'])
+#     >>> labels_left = fetch_data(urls['left_freesurfer_labels'], '', '.vtk')
+#     >>> labels_right = fetch_data(urls['right_freesurfer_labels'], '', '.vtk')
 #     >>> surface_files = [labels_left, labels_left]
-#     >>> left_mask = fetch_data(urls['T1_001'])
-#     >>> right_mask = fetch_data(urls['T1_001'])
+#     >>> left_mask = fetch_data(urls['T1_001'], '', '.nii.gz')
+#     >>> right_mask = fetch_data(urls['T1_001'], '', '.nii.gz')
 #     >>> # For a quick test, simply mask with whole brain:
 #     >>> hemi = 'rh'
 #     >>> mask_index = None
@@ -695,8 +695,8 @@ def ResampleImageBySpacing(volume, output_file='', outxspc=1, outyspc=1,
 #     >>> from mindboggle.thirdparty.ants import ComposeMultiTransform
 #     >>> from mindboggle.mio.fetch_data import prep_tests
 #     >>> urls, fetch_data = prep_tests()
-#     >>> xfm1 = fetch_data(urls['ants_affine_template2subject'])
-#     >>> xfm2 = fetch_data(urls['ants_affine_subject2template'])
+#     >>> xfm1 = fetch_data(urls['ants_affine_template2subject'], '', '.txt')
+#     >>> xfm2 = fetch_data(urls['ants_affine_subject2template'], '', '.txt')
 #     >>> transform_files = [xfm1, xfm2]
 #     >>> inverse_Booleans = [False, False]
 #     >>> output_transform_file = ''

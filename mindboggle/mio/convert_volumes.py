@@ -46,8 +46,8 @@ def convert2nii(input_file, reference_file, output_file='', interp='continuous')
     >>> from mindboggle.mio.convert_volumes import convert2nii
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> input_file = fetch_data(urls['freesurfer_labels'])
-    >>> reference_file = fetch_data(urls['freesurfer_segmentation'])
+    >>> input_file = fetch_data(urls['freesurfer_orig_mgz'], '', '.mgz')
+    >>> reference_file = fetch_data(urls['freesurfer_segmentation'], '', '.nii.gz')
     >>> output_file = 'convert2nii.nii.gz'
     >>> interp = 'nearest'
     >>> output_file = convert2nii(input_file, reference_file, output_file,

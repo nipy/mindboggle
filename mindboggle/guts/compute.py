@@ -499,9 +499,9 @@ def means_per_label(values, labels, include_labels=[], exclude_labels=[], areas=
     >>> from mindboggle.guts.compute import means_per_label
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> values_file = fetch_data(urls['left_mean_curvature'])
-    >>> labels_file = fetch_data(urls['left_freesurfer_labels'])
-    >>> area_file = fetch_data(urls['left_area'])
+    >>> values_file = fetch_data(urls['left_mean_curvature'], '', '.vtk')
+    >>> labels_file = fetch_data(urls['left_freesurfer_labels'], '', '.vtk')
+    >>> area_file = fetch_data(urls['left_area'], '', '.vtk')
     >>> values, name = read_scalars(values_file, True, True)
     >>> labels, name = read_scalars(labels_file)
     >>> areas, name = read_scalars(area_file, True, True)
@@ -626,8 +626,8 @@ def sum_per_label(values, labels, include_labels=[], exclude_labels=[]):
     >>> from mindboggle.guts.compute import sum_per_label
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> values_file = fetch_data(urls['left_mean_curvature'])
-    >>> labels_file = fetch_data(urls['left_freesurfer_labels'])
+    >>> values_file = fetch_data(urls['left_mean_curvature'], '', '.vtk')
+    >>> labels_file = fetch_data(urls['left_freesurfer_labels'], '', '.vtk')
     >>> values, name = read_scalars(values_file, True, True)
     >>> labels, name = read_scalars(labels_file)
     >>> include_labels = []
@@ -726,9 +726,9 @@ def stats_per_label(values, labels, include_labels=[], exclude_labels=[],
     >>> from mindboggle.guts.compute import stats_per_label
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> values_file = fetch_data(urls['left_mean_curvature'])
-    >>> labels_file = fetch_data(urls['left_freesurfer_labels'])
-    >>> area_file = fetch_data(urls['left_area'])
+    >>> values_file = fetch_data(urls['left_mean_curvature'], '', '.vtk')
+    >>> labels_file = fetch_data(urls['left_freesurfer_labels'], '', '.vtk')
+    >>> area_file = fetch_data(urls['left_area'], '', '.vtk')
     >>> values, name = read_scalars(values_file, True, True)
     >>> areas, name = read_scalars(area_file, True, True)
     >>> labels, name = read_scalars(labels_file)
@@ -892,7 +892,7 @@ def count_per_label(labels, include_labels=[], exclude_labels=[]):
     >>> from mindboggle.guts.compute import count_per_label
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> labels_file = fetch_data(urls['freesurfer_labels'])
+    >>> labels_file = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
     >>> img = nb.load(labels_file)
     >>> hdr = img.get_header()
     >>> labels = img.get_data().ravel()
@@ -1059,11 +1059,10 @@ def compute_image_histogram(infile, nbins=100, threshold=0.0):
 
     Examples
     --------
-    >>> import os
     >>> from mindboggle.guts.compute import compute_image_histogram
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> labels_file = fetch_data(urls['freesurfer_labels'])
+    >>> labels_file = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
     >>> nbins = 100
     >>> threshold = 0.5
     >>> histogram_values = compute_image_histogram(labels_file, nbins,

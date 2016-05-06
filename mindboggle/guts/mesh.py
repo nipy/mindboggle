@@ -32,7 +32,7 @@ def find_neighbors_from_file(input_vtk):
     >>> from mindboggle.guts.mesh import find_neighbors_from_file
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> vtk_file = fetch_data(urls['left_mean_curvature'])
+    >>> vtk_file = fetch_data(urls['left_mean_curvature'], '', '.vtk')
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> neighbor_lists[0:3]
     [[1, 4, 48, 49], [0, 4, 5, 49, 2], [1, 5, 6, 49, 50, 54]]
@@ -94,7 +94,7 @@ def find_neighbors(faces, npoints):
     >>> from mindboggle.mio.vtks import read_faces_points
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> vtk_file = fetch_data(urls['left_mean_curvature'])
+    >>> vtk_file = fetch_data(urls['left_mean_curvature'], '', '.vtk')
     >>> faces, points, npoints = read_faces_points(vtk_file)
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> neighbor_lists[0:3]
@@ -264,8 +264,8 @@ def find_endpoints(indices, neighbor_lists):
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> from mindboggle.mio.vtks import read_scalars
     >>> urls, fetch_data = prep_tests()
-    >>> folds_file = fetch_data(urls['left_folds'])
-    >>> fundus_file = fetch_data(urls['left_fundus_per_fold'])
+    >>> folds_file = fetch_data(urls['left_folds'], '', '.vtk')
+    >>> fundus_file = fetch_data(urls['left_fundus_per_fold'], '', '.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> fundi, name = read_scalars(fundus_file, True, True)
     >>> background_value = -1
@@ -630,7 +630,7 @@ def reindex_faces_points(faces, points=[]):
     >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> folds_file = fetch_data(urls['left_folds'])
+    >>> folds_file = fetch_data(urls['left_folds'], '', '.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> fold_numbers = [4]
     >>> indices = [i for i,x in enumerate(folds) if x in fold_numbers]
@@ -790,7 +790,7 @@ def decimate(points, faces, reduction=0.75, smooth_steps=25,
     >>> from mindboggle.mio.vtks import read_vtk
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> input_vtk = fetch_data(urls['left_freesurfer_labels'])
+    >>> input_vtk = fetch_data(urls['left_freesurfer_labels'], '', '.vtk')
     >>> points, f1, f2, faces, scalars, f3, f4, f5 = read_vtk(input_vtk)
     >>> reduction = 0.5
     >>> smooth_steps = 25
@@ -959,7 +959,7 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100,
     >>> from mindboggle.mio.vtks import read_vtk
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> input_vtk = fetch_data(urls['left_freesurfer_labels'])
+    >>> input_vtk = fetch_data(urls['left_freesurfer_labels'], '', '.vtk')
     >>> save_vtk = True
     >>> output_vtk = 'decimate.vtk'
     >>> reduction = 0.5
@@ -1037,7 +1037,7 @@ def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> input_vtk = fetch_data(urls['left_travel_depth'])
+    >>> input_vtk = fetch_data(urls['left_travel_depth'], '', '.vtk')
     >>> indices = []
     >>> nedges = 10
     >>> p = 99
@@ -1148,8 +1148,8 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> input_vtk = fetch_data(urls['left_travel_depth'])
-    >>> labels_or_file = fetch_data(urls['left_folds'])
+    >>> input_vtk = fetch_data(urls['left_travel_depth'], '', '.vtk')
+    >>> labels_or_file = fetch_data(urls['left_folds'], '', '.vtk')
     >>> save_file = True
     >>> output_filestring = 'rescale_by_label'
     >>> background_value = -1
@@ -1240,7 +1240,7 @@ def area_of_faces(points, faces):
     >>> from mindboggle.mio.vtks import read_vtk
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> input_vtk = fetch_data(urls['left_area'])
+    >>> input_vtk = fetch_data(urls['left_area'], '', '.vtk')
     >>> points, f1, f2, faces, f3, f4, f5, f6 = read_vtk(input_vtk)
     >>> area = area_of_faces(points, faces)
     >>> print(np.array_str(area[0:5], precision=5, suppress_small=True))
@@ -1290,8 +1290,8 @@ def dilate(indices, nedges, neighbor_lists):
     >>> from mindboggle.mio.vtks import read_scalars
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> vtk_file = fetch_data(urls['left_travel_depth'])
-    >>> folds_file = fetch_data(urls['left_folds'])
+    >>> vtk_file = fetch_data(urls['left_travel_depth'], '', '.vtk')
+    >>> folds_file = fetch_data(urls['left_folds'], '', '.vtk')
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> nedges = 3
     >>> # Select a single fold:
@@ -1350,8 +1350,8 @@ def erode(indices, nedges, neighbor_lists):
     >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> vtk_file = fetch_data(urls['left_freesurfer_labels'])
-    >>> folds_file = fetch_data(urls['left_folds'])
+    >>> vtk_file = fetch_data(urls['left_freesurfer_labels'], '', '.vtk')
+    >>> folds_file = fetch_data(urls['left_folds'], '', '.vtk')
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> nedges = 3
     >>> # Select a single fold:
@@ -1406,8 +1406,8 @@ def extract_edge(indices, neighbor_lists):
     >>> from mindboggle.mio.vtks import read_scalars, rewrite_scalars
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> vtk_file = fetch_data(urls['left_freesurfer_labels'])
-    >>> folds_file = fetch_data(urls['left_folds'])
+    >>> vtk_file = fetch_data(urls['left_freesurfer_labels'], '', '.vtk')
+    >>> folds_file = fetch_data(urls['left_folds'], '', '.vtk')
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> # Select a single fold:
     >>> folds, name = read_scalars(folds_file, True, True)
@@ -1594,7 +1594,7 @@ def topo_test(index, values, neighbor_lists):
 #     >>> from mindboggle.mio.vtks import read_scalars
 #     >>> from mindboggle.mio.fetch_data import prep_tests
 #     >>> urls, fetch_data = prep_tests()
-#     >>> folds_file = fetch_data(urls['left_folds'])
+#     >>> folds_file = fetch_data(urls['left_folds'], '', '.vtk')
 #     >>> background_value = -1
 #     >>> # Select one fold
 #     >>> folds, name = read_scalars(folds_file, True, True)

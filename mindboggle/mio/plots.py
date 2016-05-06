@@ -34,7 +34,7 @@ def plot_surfaces(vtk_files, use_colormap=False, colormap_file=''):
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> label_file = fetch_data(urls['freesurfer_labels'])
+    >>> label_file = fetch_data(urls['freesurfer_labels'], '', '.vtk')
     >>> use_colormap = True
     >>> colormap_file = '/software/vtk_cpp_tools/colormap.xml' # doctest: +SKIP
     >>> plot_surfaces(vtk_files, use_colormap, colormap_file) # doctest: +SKIP
@@ -46,8 +46,8 @@ def plot_surfaces(vtk_files, use_colormap=False, colormap_file=''):
     >>> from mindboggle.mio.vtks import rewrite_scalars
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> urls, fetch_data = prep_tests()
-    >>> labels_file = fetch_data(urls['left_manual_labels']) #'left_freesurfer_labels'
-    >>> folds_file = fetch_data(urls['left_folds'])
+    >>> labels_file = fetch_data(urls['left_manual_labels'], '', '.vtk') #'left_freesurfer_labels'
+    >>> folds_file = fetch_data(urls['left_folds'], '', '.vtk')
     >>> labels, name = read_scalars(labels_file, True, True)
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> background_value = -1
@@ -134,7 +134,7 @@ def plot_mask_surface(vtk_file, mask_file='', nonmask_value=-1,
     >>> from mindboggle.mio.plots import plot_mask_surface
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> vtk_file = fetch_data(urls['freesurfer_labels'])
+    >>> vtk_file = fetch_data(urls['freesurfer_labels'], '', '.vtk')
     >>> os.rename(vtk_file, vtk_file + '.nii.gz')
     >>> vtk_file = vtk_file + '.nii.gz'
     >>> mask_file = ''
@@ -235,8 +235,8 @@ def plot_volumes(volume_files, command='fslview'):
     >>> from mindboggle.mio.plots import plot_volumes
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> label_file1 = fetch_data(urls['freesurfer_labels'])
-    >>> label_file2 = fetch_data(urls['freesurfer_labels'])
+    >>> label_file1 = fetch_data(urls['freesurfer_labels'], '', '.vtk')
+    >>> label_file2 = fetch_data(urls['freesurfer_labels'], '', '.vtk')
     >>> volume_files = [label_file1, label_file2]
     >>> command = 'fslview'
     >>> command = '/Applications/ITK-SNAP.app/Contents/MacOS/InsightSNAP'
@@ -278,7 +278,7 @@ def histogram_of_vtk_scalars(vtk_file, nbins=100):
     >>> from mindboggle.mio.plots import histogram_of_vtk_scalars
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> vtk_file = fetch_data(urls['left_mean_curvature'])
+    >>> vtk_file = fetch_data(urls['left_mean_curvature'], '', '.vtk')
     >>> os.rename(vtk_file, vtk_file + '.nii.gz')
     >>> vtk_file = vtk_file + '.nii.gz'
     >>> histogram_of_vtk_scalars(vtk_file, nbins=500) # doctest: +SKIP
