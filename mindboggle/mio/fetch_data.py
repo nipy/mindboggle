@@ -10,9 +10,9 @@ Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 
-def hashes_url():
+def cache_hashes():
     """
-    Hashes and URL to verify retrieved data used by the Mindboggle software.
+    Hashes to verify retrieved data cached by the Mindboggle software.
 
     Data include atlases and templates required for registration and labeling.
     See fetch_hash() to create new hashes.
@@ -21,30 +21,20 @@ def hashes_url():
     -------
     hashes : dictionary
         dictionary of data file names and hashes for those files
-    url : string
-        URL to Mindboggle data
-    cache_env : string
-        cache environment variable
-    cache : string
-        default path to cache directory (in case not supplied elsewhere)
 
     """
-    import os
 
     hashes = {}
-    url = 'http://media.mindboggle.info/data/cache/atlases/'
-    cache_env = 'MINDBOGGLE_CACHE'
-    cache = os.environ.get(cache_env, os.path.join(os.environ['HOME'],
-                                                   'mindboggle_cache'))
-    #https://raw.githubusercontent.com/nipy/mindboggle-data/master/OASIS-30_Atropos_template_to_MNI152_affine.txt
-    #https://github.com/nipy/mindboggle-data/blob/master/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152_v2.nii.gz?raw=true
 
     # ------------------------------------------------------------------------
     # Atlases and templates:
     # ------------------------------------------------------------------------
-    # atlas_volume and atropos_to_MNI152_affine:
+    ## atlas_volume and atropos_to_MNI152_affine:
     hashes['OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152_v2.nii.gz'] = 'ef2b6f7116e05b46746c044bfa995546'
     hashes['OASIS-30_Atropos_template_to_MNI152_affine.txt'] = 'f36e3d5d99f7c4a9bb70e2494ed7340b'
+    ## Likelihood parameters:
+    hashes['depth_curv_border_nonborder_parameters.pkl'] = 'a943a0f46c2c2b3bfdfdf5a64176c6c3'
+
     # hashes['OASIS-30_Atropos_template.nii.gz'] = 'f95dbe37ab40e8ad59c1b1eabc7f230c'
     # hashes['OASIS-30_Atropos_template_in_MNI152.nii.gz'] = '2efbe9c0755f4aa4506ad78e60ec319f'
     # hashes['OASIS-30_Atropos_template_to_MNI152_affine.txt'] = 'f36e3d5d99f7c4a9bb70e2494ed7340b'
@@ -57,7 +47,7 @@ def hashes_url():
     # hashes['rh.DKTatlas40.gcs'] = '50150021c84b0e829aed3a68709404d7'
     # hashes['depth_curv_border_nonborder_parameters.pkl'] = 'a943a0f46c2c2b3bfdfdf5a64176c6c3'
 
-    return hashes, url, cache_env, cache
+    return hashes
 
 
 def test_urls():
@@ -73,144 +63,243 @@ def test_urls():
     --------
     >>> from mindboggle.mio.fetch_data import test_urls
     >>> urls = test_urls()
-    >>> urls['left_mean_curvature'] # doctest: +SKIP
+    >>> urls['left_mean_curvature']  # shapes/left_cortical_surface/mean_curvature.vtk
+    'https://osf.io/2q7hb/?action=download&version=1'
 
     """
-    url = 'http://media.mindboggle.info/data/cache/'
-    ATLAS = url + 'atlases/'
-    MAN = url + 'manual/arno/'
-    FS = url + 'freesurfer/arno/'
-    ANTS = url + 'ants/arno/'
-    MBW = url + 'mindboggle_working/arno/Mindboggle/'
-    F = url + 'mindboggled/arno/features/'
-    L = url + 'mindboggled/arno/labels/'
-    S = url + 'mindboggled/arno/shapes/'
-    T = url + 'mindboggled/arno/tables/'
-    left = 'left_cortical_surface/'
-    right = 'right_cortical_surface/'
-    Fleft = F + left
-    Fright = F + right
-    Lleft = L + left
-    Lright = L + right
-    Sleft = S + left
-    Sright = S + right
-    Tleft = T + left
-    Tright = T + right
 
     urls = {}
     # ------------------------------------------------------------------------
     # Atlases and templates:
     # ------------------------------------------------------------------------
+    # OASIS-30_Atropos_template.nii.gz
     urls['OASIS-30_Atropos_template'] = \
-        ATLAS + 'OASIS-30_Atropos_template.nii.gz'
+        'https://osf.io/ktxqy/?action=download&version=1'
+    # OASIS-30_Atropos_template_in_MNI152.nii.gz
     urls['OASIS-30_Atropos_template_in_MNI152'] = \
-        ATLAS + 'OASIS-30_Atropos_template_in_MNI152.nii.gz'
+        'https://osf.io/mgdyw/?action=download&version=1'
+    # OASIS-30_Atropos_template_to_MNI152_affine.txt
     urls['OASIS-30_Atropos_template_to_MNI152_affine'] = \
-        ATLAS + 'OASIS-30_Atropos_template_to_MNI152_affine.txt'
-    urls['OASIS-TRT-20_jointfusion_in_OASIS-30'] = \
-        ATLAS + 'OASIS-TRT-20_jointfusion_in_OASIS-30_v2.nii.gz'
-    urls['OASIS-TRT-20_jointfusion_in_MNI152'] = \
-        ATLAS + 'OASIS-TRT-20_jointfusion_in_MNI152_v2.nii.gz'
-    urls['OASIS-TRT-20_jointfusion_probabilities_in_OASIS-30'] = ATLAS + \
-        'OASIS-TRT-20_jointfusion_probabilities_in_OASIS-30_v2.nii.gz'
-    urls['OASIS-TRT-20_jointfusion_probabilities_in_MNI152'] = ATLAS + \
-        'OASIS-TRT-20_jointfusion_DKT31_CMA_label_probabilities_in_MNI152_v2.nii.gz'
-    urls['MNI152_T1_brain'] = ATLAS + 'MNI152_T1_1mm_brain.nii.gz'
-    urls['left_DKTatlas40'] = ATLAS + 'lh.DKTatlas40.gcs'
-    urls['right_DKTatlas40'] = ATLAS + 'rh.DKTatlas40.gcs'
-    urls['left_DKT31atlas101subjects'] = ATLAS + 'lh.DKT31atlas101subjects.gcs'
-    urls['right_DKT31atlas101subjects'] = ATLAS + 'rh.DKT31atlas101subjects.gcs'
+        'https://osf.io/eyvzm/?action=download&version=1'
+    # OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152_v2.nii.gz
+    urls['OASIS-TRT-20_jointfusion_labels_in_MNI152'] = \
+        'https://osf.io/5q46g/?action=download&version=1'
+    # OASIS-TRT-20_jointfusion_DKT31_CMA_label_probabilities_in_MNI152_v2.nii.gz
+    urls['OASIS-TRT-20_jointfusion_probabilities_in_MNI152'] = \
+        'https://osf.io/dj6px/?action=download&version=1'
+    # MNI152_T1_1mm_brain.nii.gz
+    urls['MNI152_T1_brain'] = \
+        'https://osf.io/tuvx7/?action=download&version=1'
+    # depth_curv_border_nonborder_parameters.pkl
     urls['depth_curv_border_nonborder_parameters'] = \
-        ATLAS + 'depth_curv_border_nonborder_parameters.pkl'
+        'https://osf.io/v9rqe/?action=download&version=1'
     # ------------------------------------------------------------------------
     # Manual labels:
     # ------------------------------------------------------------------------
-    urls['left_manual_labels'] = MAN + 'lh.labels.DKT31.manual.vtk'
-    urls['right_manual_labels'] = MAN + 'rh.labels.DKT31.manual.vtk'
+    # lh.labels.DKT31.manual.vtk
+    urls['left_manual_labels'] = \
+        'https://osf.io/3rmzs/?action=download&version=1'
+    # rh.labels.DKT31.manual.vtk
+    urls['right_manual_labels'] = \
+        'https://osf.io/y2pzr/?action=download&version=1'
     # ------------------------------------------------------------------------
     # FreeSurfer output:
     # ------------------------------------------------------------------------
-    urls['left_freesurfer_aparc_annot'] = FS + 'label/lh.aparc.annot'
-    urls['right_freesurfer_aparc_annot'] = FS + 'label/rh.aparc.annot'
-    urls['freesurfer_orig_mgz'] = FS + 'mri/orig.mgz'
-    urls['freesurfer_001_mgz'] = FS + 'mri/orig/001.mgz'
-    urls['left_freesurfer_pial'] = FS + 'surf/lh.pial'
-    urls['right_freesurfer_pial'] = FS + 'surf/rh.pial'
-    urls['left_freesurfer_thickness'] = FS + 'surf/lh.thickness'
-    urls['right_freesurfer_thickness'] = FS + 'surf/rh.thickness'
-    urls['affine_mni_transform'] = FS + 'mri/t1weighted_brain.MNI152Affine.txt'
+    # label/lh.aparc.annot
+    urls['left_freesurfer_aparc_annot'] = \
+        'https://osf.io/awcbk/?action=download&version=1'
+    # label/rh.aparc.annot
+    urls['right_freesurfer_aparc_annot'] = \
+        'https://osf.io/zhwge/?action=download&version=1'
+    # mri/orig.mgz
+    urls['freesurfer_orig_mgz'] = \
+        'https://osf.io/4jcq3/?action=download&version=1'
+    # mri/orig/001.mgz
+    urls['freesurfer_001_mgz'] = \
+        'https://osf.io/d26ja/?action=download&version=1'
+    # surf/lh.pial
+    urls['left_freesurfer_pial'] = \
+        'https://osf.io/pgqms/?action=download&version=1'
+    # surf/rh.pial
+    urls['right_freesurfer_pial'] = \
+        'https://osf.io/xn8ae/?action=download&version=1'
+    # surf/lh.thickness
+    urls['left_freesurfer_thickness'] = \
+        'https://osf.io/rw6nv/?action=download&version=1'
+    # surf/rh.thickness
+    urls['right_freesurfer_thickness'] = \
+        'https://osf.io/fb6nm/?action=download&version=1'
+    # mri/t1weighted_brain.MNI152Affine.txt
+    urls['affine_mni_transform'] = \
+        'https://osf.io/ez7qx/?action=download&version=1'
     # ------------------------------------------------------------------------
     # ants (antsCorticalThickness.sh) output:
     # ------------------------------------------------------------------------
-    urls['ants_segmentation'] = ANTS + 'antsBrainSegmentation.nii.gz'
-    urls['ants_mask'] = ANTS + 'antsBrainExtractionMask.nii.gz'
-    urls['ants_affine_subject2template'] = ANTS + 'antsSubjectToTemplate0GenericAffine.mat'
-    urls['ants_warp_subject2template'] = ANTS + 'antsSubjectToTemplate1Warp.nii.gz'
-    urls['ants_affine_template2subject'] = ANTS + 'antsTemplateToSubject1GenericAffine.mat'
-    urls['ants_warp_template2subject'] = ANTS + 'antsTemplateToSubject0Warp.nii.gz'
+    # antsBrainSegmentation.nii.gz
+    urls['ants_segmentation'] = \
+        'https://osf.io/tbw95/?action=download&version=1'
+    # antsBrainExtractionMask.nii.gz
+    urls['ants_mask'] = \
+        'https://osf.io/ar35t/?action=download&version=1'
+    # antsSubjectToTemplate0GenericAffine.mat
+    urls['ants_affine_subject2template'] = \
+        'https://osf.io/t6pkv/?action=download&version=1'
+    # antsSubjectToTemplate1Warp.nii.gz
+    urls['ants_warp_subject2template'] = \
+        'https://osf.io/qrhbz/?action=download&version=1'
+    # antsTemplateToSubject0Warp.nii.gz
+    urls['ants_warp_template2subject'] = \
+        'https://osf.io/w5fzx/?action=download&version=1'
+    # antsTemplateToSubject1GenericAffine.mat
+    urls['ants_affine_template2subject'] = \
+        'https://osf.io/n4puk/?action=download&version=1'
     # ------------------------------------------------------------------------
     # Mindboggle working directory (including converted FreeSurfer output):
     # ------------------------------------------------------------------------
-    fseg = 'Volume_labels/Freesurfer_cerebrum_labels_to_graywhite/wmparc.mgz.nii.gz'
-    urls['freesurfer_segmentation'] = MBW + fseg
-    urls['T1_001'] = MBW + 'Convert_MRI_to_nifti_format/001.mgz.nii.gz'
-    urls['left_pial'] = MBW + '_hemi_lh/Surface_to_vtk/lh.pial.vtk'
-    urls['right_pial'] = MBW + '_hemi_rh/Surface_to_vtk/rh.pial.vtk'
+    # Volume_labels/Freesurfer_cerebrum_labels_to_graywhite/wmparc.mgz.nii.gz
+    urls['freesurfer_segmentation'] = \
+        'https://osf.io/gs45h/?action=download&version=1'
+    # Convert_MRI_to_nifti_format/001.mgz.nii.gz
+    urls['T1_001'] = \
+        'https://osf.io/m8vx6/?action=download&version=1'
+    # _hemi_lh/Surface_to_vtk/lh.pial.vtk
+    urls['left_pial'] = \
+        'https://osf.io/fhs53/?action=download&version=1'
+    # _hemi_rh/Surface_to_vtk/rh.pial.vtk
+    urls['right_pial'] = \
+        'https://osf.io/c9j7z/?action=download&version=1'
     # ------------------------------------------------------------------------
     # Mindboggle features:
     # ------------------------------------------------------------------------
-    urls['right_cortex_in_mni'] = Fleft + 'cortex_in_MNI152_space.vtk'
-    urls['left_folds'] = Fleft + 'folds.vtk'
-    urls['left_fundus_per_sulcus'] = Fleft + 'fundus_per_sulcus.vtk'
-    urls['left_fundus_per_fold'] = Fleft + 'fundus_per_fold.vtk'
-    urls['left_sulci'] = Fleft + 'sulci.vtk'
-    urls['right_cortex_in_mni'] = Fright + 'cortex_in_MNI152_space.vtk'
-    urls['right_folds'] = Fright + 'folds.vtk'
-    urls['right_fundi'] = Fright + 'fundus_per_sulcus.vtk'
-    urls['right_sulci'] = Fright + 'sulci.vtk'
+    # cortex_in_MNI152_space.vtk
+    urls['left_cortex_in_mni'] = \
+        'https://osf.io/gv24u/?action=download&version=1'
+    # folds.vtk
+    urls['left_folds'] = \
+        'https://osf.io/z793f/?action=download&version=1'
+    # fundus_per_fold.vtk
+    urls['left_fundus_per_fold'] = \
+        'https://osf.io/syk4t/?action=download&version=1'
+    # fundus_per_sulcus.vtk
+    urls['left_fundus_per_sulcus'] = \
+        'https://osf.io/te5aw/?action=download&version=1'
+    # sulci.vtk
+    urls['left_sulci'] = \
+        'https://osf.io/2839a/?action=download&version=1'
+    # cortex_in_MNI152_space.vtk
+    urls['right_cortex_in_mni'] = \
+        'https://osf.io/48ncx/?action=download&version=1'
+    # folds.vtk
+    urls['right_folds'] = \
+        'https://osf.io/jy7bh/?action=download&version=1'
+    # fundus_per_fold.vtk
+    urls['right_fundus_per_fold'] = \
+        'https://osf.io/7p3m8/?action=download&version=1'
+    # fundus_per_sulcus.vtk
+    urls['right_fundi'] = \
+        'https://osf.io/2ajub/?action=download&version=1'
+    # sulci.vtk
+    urls['right_sulci'] = \
+        'https://osf.io/sy6r8/?action=download&version=1'
     # ------------------------------------------------------------------------
     # Mindboggle labels:
     # ------------------------------------------------------------------------
-    urls['ants_labels'] = L + 'ants_labels_in_hybrid_graywhite.nii.gz'
-    urls['freesurfer_labels'] = L + 'freesurfer_wmparc_labels_in_hybrid_graywhite.nii.gz'
-    urls['left_freesurfer_labels'] = Lleft + 'freesurfer_cortex_labels.vtk'
-    urls['right_freesurfer_labels'] = Lright + 'freesurfer_cortex_labels.vtk'
+    # ants_labels_in_hybrid_graywhite.nii.gz
+    urls['ants_labels'] = \
+        'https://osf.io/9jqg4/?action=download&version=1'
+    # freesurfer_wmparc_labels_in_hybrid_graywhite.nii.gz
+    urls['freesurfer_labels'] = \
+        'https://osf.io/j478b/?action=download&version=1'
+    # freesurfer_cortex_labels.vtk
+    urls['left_freesurfer_labels'] = \
+        'https://osf.io/fj47k/?action=download&version=1'
+    # freesurfer_cortex_labels.vtk
+    urls['right_freesurfer_labels'] = \
+        'https://osf.io/ktcdg/?action=download&version=1'
     # ------------------------------------------------------------------------
     # Mindboggle shapes:
     # ------------------------------------------------------------------------
-    urls['left_area'] = Sleft + 'area.vtk'
-    urls['left_freesurfer_curvature'] = Sleft + 'freesurfer_curvature.vtk'
-    urls['left_freesurfer_sulc'] = Sleft + 'freesurfer_sulc.vtk'
-    urls['left_freesurfer_thickness'] = Sleft + 'freesurfer_thickness.vtk'
-    urls['left_geodesic_depth'] = Sleft + 'geodesic_depth.vtk'
-    urls['left_mean_curvature'] = Sleft + 'mean_curvature.vtk'
-    urls['left_travel_depth'] = Sleft + 'travel_depth.vtk'
-    urls['right_area'] = Sright + 'area.vtk'
-    urls['right_freesurfer_curvature'] = Sright + 'freesurfer_curvature.vtk'
-    urls['right_freesurfer_sulc'] = Sright + 'freesurfer_sulc.vtk'
-    urls['right_freesurfer_thickness'] = Sright + 'freesurfer_thickness.vtk'
-    urls['right_geodesic_depth'] = Sright + 'geodesic_depth.vtk'
-    urls['right_mean_curvature'] = Sright + 'mean_curvature.vtk'
-    urls['right_travel_depth'] = Sright + 'travel_depth.vtk'
+    # area.vtk
+    urls['left_area'] = \
+        'https://osf.io/e56rg/?action=download&version=1'
+    # freesurfer_curvature.vtk
+    urls['left_freesurfer_curvature'] = \
+        'https://osf.io/37dxj/?action=download&version=1'
+    # freesurfer_sulc.vtk
+    urls['left_freesurfer_sulc'] = \
+        'https://osf.io/fhabt/?action=download&version=1'
+    # freesurfer_thickness.vtk
+    urls['left_freesurfer_thickness'] = \
+        'https://osf.io/pwj9u/?action=download&version=1'
+    # geodesic_depth.vtk
+    urls['left_geodesic_depth'] = \
+        'https://osf.io/ru6hp/?action=download&version=1'
+    # mean_curvature.vtk
+    urls['left_mean_curvature'] = \
+        'https://osf.io/2q7hb/?action=download&version=1'
+    # travel_depth.vtk
+    urls['left_travel_depth'] = \
+        'https://osf.io/uzghr/?action=download&version=1'
+    # area.vtk
+    urls['right_area'] = \
+        'https://osf.io/tpxj8/?action=download&version=1'
+    # freesurfer_curvature.vtk
+    urls['right_freesurfer_curvature'] = \
+        'https://osf.io/2g95u/?action=download&version=1'
+    # freesurfer_sulc.vtk
+    urls['right_freesurfer_sulc'] = \
+        'https://osf.io/vn9em/?action=download&version=1'
+    # freesurfer_thickness.vtk
+    urls['right_freesurfer_thickness'] = \
+        'https://osf.io/4me2n/?action=download&version=1'
+    # geodesic_depth.vtk
+    urls['right_geodesic_depth'] = \
+        'https://osf.io/4vc3d/?action=download&version=1'
+    # mean_curvature.vtk
+    urls['right_mean_curvature'] = \
+        'https://osf.io/haqj3/?action=download&version=1'
+    # travel_depth.vtk
+    urls['right_travel_depth'] = \
+        'https://osf.io/da5e2/?action=download&version=1'
     # ------------------------------------------------------------------------
     # Mindboggle tables:
     # ------------------------------------------------------------------------
-    urls['thickinthehead_ants_labels_table'] = \
-        T + 'thickinthehead_per_ants_cortex_label.csv'
-    urls['thickinthehead_freesurfer_labels_table'] = \
-        T + 'thickinthehead_per_freesurfer_cortex_label.csv'
-    urls['volume_ants_labels_table'] = \
-        T + 'volume_per_ants_label.csv'
-    urls['volume_freesurfer_labels_table'] = \
-        T + 'volume_per_freesurfer_label.csv'
-    urls['left_fundus_shapes_table'] = Tleft + 'fundus_shapes.csv'
-    urls['left_label_shapes_table'] = Tleft + 'label_shapes.csv'
-    urls['left_sulcus_shapes_table'] = Tleft + 'sulcus_shapes.csv'
-    urls['left_vertices_table'] = Tleft + 'vertices.csv'
-    urls['right_fundus_shapes_table'] = Tright + 'fundus_shapes.csv'
-    urls['right_label_shapes_table'] = Tright + 'label_shapes.csv'
-    urls['right_sulcus_shapes_table'] = Tright + 'sulcus_shapes.csv'
-    urls['right_vertices_table'] = Tright + 'vertices.csv'
+    # # thickinthehead_per_ants_cortex_label.csv
+    # urls['thickinthehead_ants_labels_table'] = \
+    #     ''
+    # # thickinthehead_per_freesurfer_cortex_label.csv
+    # urls['thickinthehead_freesurfer_labels_table'] = \
+    #     ''
+    # # volume_per_ants_label.csv
+    # urls['volume_ants_labels_table'] = \
+    #     ''
+    # # volume_per_freesurfer_label.csv
+    # urls['volume_freesurfer_labels_table'] = \
+    #     ''
+    # # fundus_shapes.csv
+    # urls['left_fundus_shapes_table'] = \
+    #     ''
+    # # label_shapes.csv
+    # urls['left_label_shapes_table'] = \
+    #     ''
+    # # sulcus_shapes.csv
+    # urls['left_sulcus_shapes_table'] = \
+    #     ''
+    # # vertices.csv
+    # urls['left_vertices_table'] = \
+    #     ''
+    # # fundus_shapes.csv
+    # urls['right_fundus_shapes_table'] = \
+    #     ''
+    # # label_shapes.csv
+    # urls['right_label_shapes_table'] = \
+    #     ''
+    # # sulcus_shapes.csv
+    # urls['right_sulcus_shapes_table'] = \
+    #     ''
+    # # vertices.csv
+    # urls['right_vertices_table'] = \
+    #     ''
 
     return urls
 
@@ -230,13 +319,11 @@ def prep_tests():
     --------
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> urls['left_mean_curvature']
-    'http://media.mindboggle.info/data/cache/mindboggled/arno/shapes/left_cortical_surface/mean_curvature.vtk'
-    >>> fetch_data # doctest: +SKIP
+    >>> urls['left_mean_curvature']  # shapes/left_cortical_surface/mean_curvature.vtk
+    'https://osf.io/2q7hb/?action=download&version=1'
 
     """
-    from mindboggle.mio.fetch_data import fetch_data
-    from mindboggle.mio.fetch_data import test_urls
+    from mindboggle.mio.fetch_data import fetch_data, test_urls
 
     urls = test_urls()
 
@@ -259,12 +346,12 @@ def fetch_hash(data_file):
 
     Examples
     --------
-    >>> from mindboggle.mio.fetch_data import fetch_hash
-    >>> from mindboggle.mio.fetch_data import hashes_url, fetch_data
-    >>> hashes, url, cache_env, cache = hashes_url()
-    >>> data_file = fetch_data(url + 'OASIS-30_Atropos_template.nii.gz')
+    >>> from mindboggle.mio.fetch_data import fetch_hash, fetch_data
+    >>> # osf.io URL for OASIS-30_Atropos_template_to_MNI152_affine.txt
+    >>> url = 'https://osf.io/ufydw/?action=download&version=1'
+    >>> data_file = fetch_data(url)
     >>> fetch_hash(data_file)
-    'f95dbe37ab40e8ad59c1b1eabc7f230c'
+    'f36e3d5d99f7c4a9bb70e2494ed7340b'
 
     """
     from io import open
@@ -301,15 +388,14 @@ def fetch_data(url, output_file='', append=''):
 
     Examples
     --------
-    >>> from mindboggle.mio.fetch_data import fetch_data
-    >>> from mindboggle.mio.fetch_data import hashes_url, fetch_hash
-    >>> hashes, url, cache_env, cache = hashes_url()
+    >>> from mindboggle.mio.fetch_data import fetch_data, fetch_hash
     >>> output_file = ''
     >>> append = ''
-    >>> url += 'OASIS-30_Atropos_template.nii.gz'
+    >>> # osf.io URL for OASIS-30_Atropos_template_to_MNI152_affine.txt
+    >>> url = 'https://osf.io/ufydw/?action=download&version=1'
     >>> output_file = fetch_data(url, output_file, append)
     >>> fetch_hash(output_file)
-    'f95dbe37ab40e8ad59c1b1eabc7f230c'
+    'f36e3d5d99f7c4a9bb70e2494ed7340b'
 
     """
     import os
@@ -342,36 +428,26 @@ def fetch_data(url, output_file='', append=''):
     return output_file
 
 
-def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
-                     return_missing=False, lookup=True, verbose=False):
+def fetch_check_data(data_file, url, hashes, cache_directory='',
+                     verbose=False):
     """
-    Get data file through a URL call and check its hash.
+    Get data file through a URL call and check its hash:
 
-    If hashes are not provided, simply download file
-    or return file path as a string.
-
-    If hashes are provided:
-        1. Check hash table for data file.
+        1. Check hash table for data file name.
         2. Check hash subdirectory within cache directory for data file.
         3. If data file not in cache, download, compute hash, and verify hash.
-        4. If hash correct, save file.
+        4. If hash correct, save file; otherwise, raise an error.
 
     Parameters
     ----------
     data_file : string
-        data file name
+        name of file (not the full path)
     url : string
         URL for data file
     hashes : dictionary
         file names and md5 hashes (if empty, simply download file from url)
-    cache_env : string
-        environment variable name for cache path
-    cache : string
-        in case cache_env is not set, use as cache directory
-    return_missing : bool
-        if data_file not in hash, simply download data_file and return path
-    lookup : bool
-        Simply return data_file path
+    cache_directory : string
+        cache directory (full path)
     verbose : bool
         print statements?
 
@@ -383,12 +459,15 @@ def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
     Examples
     --------
     >>> from mindboggle.mio.fetch_data import fetch_check_data
-    >>> from mindboggle.mio.fetch_data import hashes_url
-    >>> hashes, url, cache_env, cache = hashes_url()
-    >>> data_file = list(hashes)[0] #hashes.keys()[0]
+    >>> from mindboggle.mio.fetch_data import cache_hashes
+    >>> # osf.io URL for OASIS-30_Atropos_template_to_MNI152_affine.txt
+    >>> data_file = 'OASIS-30_Atropos_template_to_MNI152_affine.txt'
+    >>> url = 'https://osf.io/ufydw/?action=download&version=1'
+    >>> hashes = cache_hashes()
+    >>> cache_directory = ''
     >>> verbose = False
-    >>> data_path = fetch_check_data(data_file, url, hashes, cache_env, cache,
-    ...                              verbose)
+    >>> data_path = fetch_check_data(data_file, url, hashes, cache_directory,
+    ...                              verbose) # doctest: +SKIP
 
     """
     import os
@@ -396,111 +475,65 @@ def fetch_check_data(data_file, url='', hashes={}, cache_env='', cache='',
 
     from mindboggle.mio.fetch_data import fetch_data, fetch_hash
 
-    if lookup:
+    # ------------------------------------------------------------------------
+    # Set temporary cache directory if not specified:
+    # ------------------------------------------------------------------------
+    if not cache_directory:
+        cache_directory = os.path.join(os.environ['HOME'], 'hash_temp')
+
+    # ------------------------------------------------------------------------
+    # Check hash table for file name, and store corresponding hash:
+    # ------------------------------------------------------------------------
+    if hashes and data_file in list(hashes):
+        stored_hash = hashes[data_file]
 
         # --------------------------------------------------------------------
-        # If hashes provided, go through steps to check/download file:
+        # Create missing cache and hash directories:
         # --------------------------------------------------------------------
-        if hashes:
-    
-            if not cache_env:
-                cache_env = 'MINDBOGGLE_CACHE'
-            if not cache:
-                cache = os.path.join(os.environ['HOME'], 'hash_temp')
-    
-            # ----------------------------------------------------------------
-            # Check hash table for file:
-            # ----------------------------------------------------------------
-            if data_file not in list(hashes):  #.keys():
-                if return_missing:
-                    data_path = data_file
-                    if verbose:
-                        print("Retrieved file not in hashes: {0}".
-                            format(data_path))
-                    return data_path
-                else:
-                    raise IOError("Data file '{0}' not in hash table.".
-                                  format(data_file))
-            else:
-                stored_hash = hashes[data_file]
-    
-                # ------------------------------------------------------------
-                # Create missing cache and hash directories:
-                # ------------------------------------------------------------
-                if cache_env in list(os.environ):  #.keys():
-                    cache = os.environ[cache_env]
-                if not os.path.exists(cache):
-                    if verbose:
-                            print("Create missing cache directory: {0}".
-                                  format(cache))
-                    os.mkdir(cache)
-                hash_dir = os.path.join(cache, stored_hash)
-                if not os.path.exists(hash_dir):
-                    if verbose:
-                        print("Create missing hash directory: {0}".
-                            format(hash_dir))
-                    os.mkdir(os.path.join(hash_dir))
-        
-                # ------------------------------------------------------------
-                # Check hash subdirectory for file:
-                # ------------------------------------------------------------
-                data_path = os.path.join(hash_dir, data_file)
-                if os.path.exists(data_path):
-                    return data_path
-        
-                # ------------------------------------------------------------
-                # If file not in cache, download, compute hash, and verify:
-                # ------------------------------------------------------------
-                else:
-                    if verbose:
-                        print("Retrieve file from the Mindboggle website: {0}".
-                            format(url+data_file))
-        
-                    # Download file as a temporary file:
-                    temp_file = fetch_data(url+data_file)
-        
-                    # Compute the file's hash:
-                    data_hash = fetch_hash(temp_file)
-        
-                    # If hash matches name of the hash directory, save file:
-                    if os.path.join(cache, data_hash) == hash_dir:
-                        if verbose:
-                            print("Copy file to cache: {0}".format(data_path))
-                        shutil.copyfile(temp_file, data_path)
-                        return data_path
-                    else:
-                        if verbose:
-                            print("Retrieved hash does not match stored hash.")
-    
-        # --------------------------------------------------------------------
-        # If hashes not provided, simply download file:
-        # --------------------------------------------------------------------
-        elif url:
-            # Download file as a temporary file:
-            data_path = fetch_data(url+data_file)
+        if not os.path.exists(cache_directory):
             if verbose:
-                print("Hashes not provided. Retrieved file: {0}".
-                      format(data_path))
-            return data_path
-    
+                print("Create missing cache directory: {0}".
+                      format(cache_directory))
+            os.mkdir(cache_directory)
+        hash_dir = os.path.join(cache_directory, stored_hash)
+        if not os.path.exists(hash_dir):
+            if verbose:
+                print("Create missing hash directory: {0}".format(hash_dir))
+            os.mkdir(os.path.join(hash_dir))
+
         # --------------------------------------------------------------------
-        # If URL also not provided, simply return file path:
+        # Check hash subdirectory for file:
+        # --------------------------------------------------------------------
+        data_path = os.path.join(hash_dir, data_file)
+        if os.path.exists(data_path):
+            if verbose:
+                print("File already exists and matches hash: {0}".format(url))
+            return data_path
+
+        # --------------------------------------------------------------------
+        # If file not in cache, download, compute hash, and verify:
         # --------------------------------------------------------------------
         else:
-            data_path = data_file
             if verbose:
-                print("Neither hashes nor URL provided. "
-                    "Returning file path: {0}".format(data_path))
-            return data_path
+                print("Retrieve file from URL: {0}".format(url))
 
-    # ------------------------------------------------------------------------
-    # Simply return file path:
-    # ------------------------------------------------------------------------
+            # Download file as a temporary file:
+            temp_file = fetch_data(url)
+
+            # Compute the file's hash:
+            data_hash = fetch_hash(temp_file)
+
+            # If hash matches name of the hash directory, save file:
+            if os.path.join(cache_directory, data_hash) == hash_dir:
+                if verbose:
+                    print("Copy file to cache: {0}".format(data_path))
+                shutil.copyfile(temp_file, data_path)
+                return data_path
+            else:
+                raise IOError("Retrieved hash does not match stored hash.")
     else:
-        data_path = data_file
-        if verbose:
-            print("Returning file path: {0}".format(data_path))
-        return data_path
+        raise IOError("Data file '{0}' not in hash table.".
+                      format(data_file))
 
 
 def fetch_ants_data(segmented_file, use_ants_transforms=True):

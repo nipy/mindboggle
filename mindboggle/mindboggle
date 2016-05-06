@@ -48,7 +48,7 @@ from mindboggle.guts.segment import segment_by_region, \
     combine_2labels_in_2volumes
 from mindboggle.guts.utilities import list_strings
 from mindboggle.mio.convert_volumes import convert2nii
-from mindboggle.mio.fetch_data import hashes_url, fetch_check_data, \
+from mindboggle.mio.fetch_data import cache_hashes, fetch_check_data, \
     fetch_ants_data
 from mindboggle.mio.labels import DKTprotocol
 from mindboggle.mio.tables import write_shape_stats, write_vertex_measures
@@ -299,11 +299,15 @@ background_value = -1
 # ----------------------------------------------------------------------------
 # Hashes to verify retrieved data, and output, working, and cache directories:
 # ----------------------------------------------------------------------------
-hashes, url, cache_env, cache = hashes_url()
+hashes = cache_hashes()
 if args.cache:
     cache = args.cache
 elif cache_env in list(os.environ):  #os.environ.keys():
     cache = os.environ[cache_env]
+else:
+    cache_env = 'MINDBOGGLE_CACHE'
+    cache = os.environ.get(cache_env, os.path.join(os.environ['HOME'],
+                                                   'mindboggle_cache'))
 if args.working:
     working = os.path.join(args.working, subject)
 else:
@@ -322,7 +326,9 @@ if not os.path.isdir(cache):
 # ----------------------------------------------------------------------------
 dkt = DKTprotocol()
 atlas_volume = 'OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152_v2.nii.gz'
+atlas_volume_url = 'https://osf.io/9e6wa/?action=download&version=1'
 atropos_to_MNI152_affine = 'OASIS-30_Atropos_template_to_MNI152_affine.txt'
+atropos_to_MNI152_affine_url = 'https://osf.io/ufydw/?action=download&version=1'
 # ----------------------------------------------------------------------------
 # Surface atlas labels:
 # - 'manual': manual edits
@@ -422,7 +428,8 @@ if my_transform:
     affine_template2mni = my_transform
 else:
     affine_template2mni = fetch_check_data(atropos_to_MNI152_affine,
-                                           url, hashes, cache_env, cache)
+                                           atropos_to_MNI152_affine_url,
+                                           hashes, cache, verbose=True)
 # ----------------------------------------------------------------------------
 # Atlas labels:
 # ----------------------------------------------------------------------------
@@ -432,19 +439,15 @@ if do_label and not my_atlas:
                                    input_names=['data_file',
                                                 'url',
                                                 'hashes',
-                                                'cache_env',
                                                 'cache',
-                                                'return_missing',
-                                                'lookup'],
+                                                'verbose'],
                                    output_names=['data_path']))
     mbFlow.add_nodes([FetchAtlas])
     FetchAtlas.inputs.data_file = atlas_volume
-    FetchAtlas.inputs.url = url
+    FetchAtlas.inputs.url = atlas_volume_url
     FetchAtlas.inputs.hashes = hashes
-    FetchAtlas.inputs.cache_env = cache_env
     FetchAtlas.inputs.cache = cache
-    FetchAtlas.inputs.return_missing = False
-    FetchAtlas.inputs.lookup = True
+    FetchAtlas.inputs.verbose = True
 
 # ----------------------------------------------------------------------------
 # ANTs data:
@@ -624,10 +627,10 @@ if not args.no_surfaces:
         #                    SurfLabelFlow, 'mris_ca_label.hemi')
         #     left_classifier_file = 'lh.' + surface_classifier + '.gcs'
         #     right_classifier_file = 'rh.' + surface_classifier + '.gcs'
-        #     left_classifier = fetch_check_data(left_classifier_file, url,
-        #                                     hashes, cache_env, cache)
-        #     right_classifier = fetch_check_data(right_classifier_file, url,
-        #                                      hashes, cache_env, cache)
+        #     left_classifier = fetch_check_data(left_classifier_file, url1,
+        #                                     hashes, cache, verbose=True)
+        #     right_classifier = fetch_check_data(right_classifier_file, url2,
+        #                                      hashes, cache, verbose=True)
         #     Classifier.inputs.left_classifier = left_classifier
         #     Classifier.inputs.right_classifier = right_classifier
         #     Classifier.inputs.annot_file = ''
@@ -1089,8 +1092,11 @@ if not args.no_surfaces:
                 SurfFeatureFlow.add_nodes([LikelihoodNode])
                 border_params_file = \
                     'depth_curv_border_nonborder_parameters.pkl'
-                border_params_path = fetch_check_data(border_params_file, url,
-                                                   hashes, cache_env, cache)
+                border_params_url = \
+                    'https://osf.io/8mkaz/?action=download&version=1'
+                border_params_path = fetch_check_data(border_params_file,
+                                        border_params_url,
+                                        hashes, cache, verbose=True)
                 LikelihoodNode.inputs.trained_file = border_params_path
                 mbFlow.connect([(WholeSurfShapeFlow, SurfFeatureFlow,
                     [('Rescale_travel_depth.rescaled_scalars_file',
