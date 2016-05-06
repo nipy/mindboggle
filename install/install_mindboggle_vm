@@ -57,7 +57,11 @@ Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 import os
 import argparse
 
-mindboggle_version = "1.0.0"
+#-----------------------------------------------------------------------------
+# Set Mindboggle version and vagrant box URL:
+#-----------------------------------------------------------------------------
+version = "1.0.0"
+box_url = "https://osf.io/jucmx/?action=download&version=1"
 
 #=============================================================================
 # Command-line arguments
@@ -73,7 +77,7 @@ This script will generate a Vagrantfile. You must have Vagrant (vagrantup.com)
 and VirtualBox (virtualbox.org) installed, and a good Internet connection.
 Once the virtual machine has been installed and configured as in the
 following Example, log in to the vm to run mindboggle with
-"vagrant up; vagrant ssh" (the vm's username="mind" and password="mindboggle":
+"vagrant up; vagrant ssh" (the vm's username and password are "vagrant"):
 
 Example (default settings except --ants): python install_mindboggle_vm
     --out $HOME/mindboggled
@@ -81,8 +85,7 @@ Example (default settings except --ants): python install_mindboggle_vm
     --cache $HOME/mindboggle_cache
     --freesurfer $SUBJECTS_DIR
     --ants $HOME/antsCorticalThickness/subjects
-    --cpus 1 --cpumax 80 --mem 4096 --version {0}""".
-                                 format(mindboggle_version),
+    --cpus 1 --cpumax 80 --mem 4096""",
                                  formatter_class = lambda prog:
                                  argparse.HelpFormatter(prog,
                                                         max_help_position=40))
@@ -119,11 +122,6 @@ parser.add_argument("--cpumax",
 parser.add_argument("--mem",
                     help='Maximum memory (MB): "--mem 4096" (default)',
                     type=int, default=4096, metavar='INT')
-parser.add_argument("--version",
-                    help='Mindboggle version: "--version {0}" (default)'.
-                    format(mindboggle_version),
-                    type=str, default='{0}'.format(mindboggle_version),
-                    metavar='STR')
 args = parser.parse_args()
 
 #=============================================================================
@@ -162,10 +160,6 @@ if args.atlases:
         format(args.atlases, guest)
 else:
     atlases_str = ''
-if args.version:
-    version = args.version
-else:
-    version = mindboggle_version
 
 #=============================================================================
 # Create Vagrantfile
@@ -188,7 +182,7 @@ Vagrant.configure("2") do |config|
     # Fetch the mindboggle Vagrant virtual box if not already cached:
     config.vm.box = "mindboggle"
     #config.vm.box_url = "mindboggle.{0}.box"
-    config.vm.box_url = "http://media.mindboggle.info/vm/mindboggle.{0}.box"
+    config.vm.box_url = "{1}"
     config.vm.hostname = "boggler"
 
     # Download and configure the mindboggle VM as the user "vagrant":
@@ -200,19 +194,19 @@ Vagrant.configure("2") do |config|
 
     # Share additional folders to the guest VM,
     # with paths on the guest to mount the folder:
-    config.vm.synced_folder {1}
     config.vm.synced_folder {2}
     config.vm.synced_folder {3}
     config.vm.synced_folder {4}
-    {5}
+    config.vm.synced_folder {5}
     {6}
+    {7}
 
     # Configure number of CPUs, maximum % per CPU, and memory (MB RAM):
     config.vm.provider :virtualbox do |vb|
         vb.name = "mindboggleVM"
-        vb.customize ["modifyvm", :id, "--cpus", "{7}"]
-        vb.customize ["modifyvm", :id, "--cpuexecutioncap", "{8}"]
-        vb.customize ["modifyvm", :id, "--memory", "{9}"]
+        vb.customize ["modifyvm", :id, "--cpus", "{8}"]
+        vb.customize ["modifyvm", :id, "--cpuexecutioncap", "{9}"]
+        vb.customize ["modifyvm", :id, "--memory", "{10}"]
         vb.customize ["modifyvm", :id, "--ioapic", "on"]
     end
 
@@ -225,7 +219,7 @@ Vagrant.configure("2") do |config|
     config.ssh.password = "vagrant"
 
 end
-""".format(version, out_str, work_str, cache_str, freesurfer_str,
+""".format(version, box_url, out_str, work_str, cache_str, freesurfer_str,
            ants_str, atlases_str, args.cpus, args.cpumax, args.mem)
 
 #=============================================================================
