@@ -31,8 +31,8 @@ Links:
 - `GitHub <http://github.com/nipy/mindboggle>`_
 - `Contributors <http://mindboggle.info/people.html>`_
 
-* :ref:`genindex`
 * :ref:`modindex`
+* :ref:`genindex`
 
 ------------------------------------------------------------------------------
 Installing Mindboggle
@@ -119,9 +119,9 @@ Preprocessing
 ------------------------------------------------------------------------------
 As you may have inferred from the "Running Mindboggle" examples and example
 data above, Mindboggle currently takes output from
-`FreeSurfer <http://surfer.nmr.mgh.harvard.edu>`_ (preferably v6 or higher)
+`FreeSurfer <http://surfer.nmr.mgh.harvard.edu>`_ (v6 or higher recommended)
 and optionally from `ANTs <http://stnava.github.io/ANTs/>`_
-(preferably v2.1.0rc3 or higher).
+(v2.1.0rc3 or higher recommended).
 
 **FreeSurfer** generates labeled cortical surfaces, and labeled cortical and
 noncortical volumes. Run ``recon-all`` on a T1-weighted IMAGE file
@@ -146,7 +146,7 @@ files (backslash denotes a line return)::
 ------------------------------------------------------------------------------
 Processing steps
 ------------------------------------------------------------------------------
-The following steps are performed by Mindboggle:
+The following steps are performed by Mindboggle (with links to code on GitHub):
 
 1. Create hybrid gray/white segmentation from FreeSurfer and ANTs output (`combine_2labels_in_2volumes <https://github.com/nipy/mindboggle/blob/master/mindboggle/guts/segment.py>`_).
 2. Fill hybrid segmentation with FreeSurfer- or ANTs-registered labels.
