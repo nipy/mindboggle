@@ -368,9 +368,7 @@ def fetch_data(url, output_file='', append=''):
     """
     Download file from a URL to a specified or a temporary file.
 
-    Save temporary file with original append, or with assigned append.
-    Note: Assign append if multiple dot-delimited strings, such as '.tar.gz'
-    ('.nii.gz' and '.tar.gz' are exempt, since they are included in the code).
+    Optionally append to file name.
 
     Parameters
     ----------
@@ -401,29 +399,12 @@ def fetch_data(url, output_file='', append=''):
     import os
     import urllib.request
 
-    if not output_file:
-        output_not_assigned = True
-    else:
-        output_not_assigned = False
-
     output_file, foo = urllib.request.urlretrieve(url, output_file)
 
     # Add append if assigned:
     if append:
         os.rename(output_file, output_file + append)
         output_file += append
-
-    # Add original append if no output file or append assigned:
-    elif output_not_assigned:
-        if url.endswith('.nii.gz'):
-            append_original = '.nii.gz'
-        elif url.endswith('.tar.gz'):
-            append_original = '.tar.gz'
-        else:
-            append_original = url.split('.')[-1]
-        if append_original:
-            os.rename(output_file, output_file + append_original)
-            output_file += append_original
 
     return output_file
 
