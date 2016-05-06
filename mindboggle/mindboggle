@@ -429,7 +429,8 @@ if my_transform:
 else:
     affine_template2mni = fetch_check_data(atropos_to_MNI152_affine,
                                            atropos_to_MNI152_affine_url,
-                                           hashes, cache, verbose=True)
+                                           hashes, cache, append='.txt',
+                                           verbose=True)
 # ----------------------------------------------------------------------------
 # Atlas labels:
 # ----------------------------------------------------------------------------
@@ -440,6 +441,7 @@ if do_label and not my_atlas:
                                                 'url',
                                                 'hashes',
                                                 'cache',
+                                                'append',
                                                 'verbose'],
                                    output_names=['data_path']))
     mbFlow.add_nodes([FetchAtlas])
@@ -447,6 +449,7 @@ if do_label and not my_atlas:
     FetchAtlas.inputs.url = atlas_volume_url
     FetchAtlas.inputs.hashes = hashes
     FetchAtlas.inputs.cache = cache
+    FetchAtlas.inputs.append = '.nii.gz'
     FetchAtlas.inputs.verbose = True
 
 # ----------------------------------------------------------------------------
@@ -628,9 +631,9 @@ if not args.no_surfaces:
         #     left_classifier_file = 'lh.' + surface_classifier + '.gcs'
         #     right_classifier_file = 'rh.' + surface_classifier + '.gcs'
         #     left_classifier = fetch_check_data(left_classifier_file, url1,
-        #                                     hashes, cache, verbose=True)
+        #                                     hashes, cache, '.gcs', True)
         #     right_classifier = fetch_check_data(right_classifier_file, url2,
-        #                                      hashes, cache, verbose=True)
+        #                                      hashes, cache, '.gcs', True)
         #     Classifier.inputs.left_classifier = left_classifier
         #     Classifier.inputs.right_classifier = right_classifier
         #     Classifier.inputs.annot_file = ''
@@ -1096,7 +1099,7 @@ if not args.no_surfaces:
                     'https://osf.io/8mkaz/?action=download&version=1'
                 border_params_path = fetch_check_data(border_params_file,
                                         border_params_url,
-                                        hashes, cache, verbose=True)
+                                        hashes, cache, '.pkl', verbose=True)
                 LikelihoodNode.inputs.trained_file = border_params_path
                 mbFlow.connect([(WholeSurfShapeFlow, SurfFeatureFlow,
                     [('Rescale_travel_depth.rescaled_scalars_file',

@@ -409,7 +409,7 @@ def fetch_data(url, output_file='', append=''):
     return output_file
 
 
-def fetch_check_data(data_file, url, hashes, cache_directory='',
+def fetch_check_data(data_file, url, hashes, cache_directory='', append='',
                      verbose=False):
     """
     Get data file through a URL call and check its hash:
@@ -417,7 +417,7 @@ def fetch_check_data(data_file, url, hashes, cache_directory='',
         1. Check hash table for data file name.
         2. Check hash subdirectory within cache directory for data file.
         3. If data file not in cache, download, compute hash, and verify hash.
-        4. If hash correct, save file; otherwise, raise an error.
+        4. If hash correct, save file (+ append); otherwise, raise an error.
 
     Parameters
     ----------
@@ -429,6 +429,8 @@ def fetch_check_data(data_file, url, hashes, cache_directory='',
         file names and md5 hashes (if empty, simply download file from url)
     cache_directory : string
         cache directory (full path)
+    append : string
+        append to output file (ex: '.nii.gz')
     verbose : bool
         print statements?
 
@@ -446,9 +448,10 @@ def fetch_check_data(data_file, url, hashes, cache_directory='',
     >>> url = 'https://osf.io/ufydw/?action=download&version=1'
     >>> hashes = cache_hashes()
     >>> cache_directory = ''
+    >>> append = ''
     >>> verbose = False
     >>> data_path = fetch_check_data(data_file, url, hashes, cache_directory,
-    ...                              verbose) # doctest: +SKIP
+    ...                              append, verbose) # doctest: +SKIP
 
     """
     import os
@@ -506,6 +509,9 @@ def fetch_check_data(data_file, url, hashes, cache_directory='',
 
             # If hash matches name of the hash directory, save file:
             if os.path.join(cache_directory, data_hash) == hash_dir:
+                # Add append:
+                if append:
+                    data_path += append
                 if verbose:
                     print("Copy file to cache: {0}".format(data_path))
                 shutil.copyfile(temp_file, data_path)
