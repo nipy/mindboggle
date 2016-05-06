@@ -83,10 +83,9 @@ Running Mindboggle
 ------------------------------------------------------------------------------
 To run Mindboggle, you must first preprocess brain MR image data
 (see `Preprocessing`_ below). To get up and running with the following
-examples, download and uncompress ("tar xvfz example.tar.gz") the
-`example.tar.gz <http://media.mindboggle.info/data/cache/example.tar.gz>`_
-directory (over 500MB), which includes abridged FreeSurfer, ANTs, and
-Mindboggle output for one person.
+examples, download and unzip the
+`example.zip <https://osf.io/f9jvw/?action=download&version=1>`_
+directory (450 MB), which contains some preprocessed data (for FreeSurfer and ANTs).
 
 If using the Mindboggle virtual machine, type the commands in step 3 of
 `Installing Mindboggle`_ above to enter the VM before continuing.
@@ -99,20 +98,20 @@ For help after installing, type the following in a terminal window::
 The following bare-bones command runs Mindboggle
 on data processed by FreeSurfer but not ANTs::
 
-    mindboggle $HOME/example/freesurfer_subjects/arno
+    mindboggle $HOME/example/freesurfer/subjects/arno
 
 **Example 2:**
 The same command, but takes advantage of ANTs output
 (backslash denotes line return)::
 
-    mindboggle $HOME/example/freesurfer_subjects/arno \
-    --ants $HOME/example/ants_subjects/arno/antsBrainSegmentation.nii.gz
+    mindboggle $HOME/example/freesurfer/subjects/arno \
+    --ants $HOME/example/ants/subjects/arno/antsBrainSegmentation.nii.gz
 
 **Example 3:**
 To generate only volume (and not surface) labels and shape measures
 from FreeSurfer data, using 8 processors::
 
-    mindboggle $HOME/example/freesurfer_subjects/arno --no_surfaces -p 8
+    mindboggle $HOME/example/freesurfer/subjects/arno --no_surfaces -p 8
 
 ------------------------------------------------------------------------------
 Preprocessing

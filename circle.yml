@@ -28,8 +28,8 @@ machine:
 # Customize dependencies:
 #-----------------------------------------------------------------------------
 dependencies:
-    cache_directories:
-        - $CONDA_ROOT
+    #cache_directories:
+    #    - $CONDA_ROOT
 
     override:
 
