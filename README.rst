@@ -85,7 +85,8 @@ To run Mindboggle, you must first preprocess brain MR image data
 (see `Preprocessing`_ below). To get up and running with the following
 examples, download and unzip the
 `example.zip <https://osf.io/f9jvw/?action=download&version=1>`_
-directory (450 MB), which contains some preprocessed data (for FreeSurfer and ANTs).
+directory (450 MB), which contains some example preprocessed data
+(for FreeSurfer and ANTs).
 
 If using the Mindboggle virtual machine, type the commands in step 3 of
 `Installing Mindboggle`_ above to enter the VM before continuing.
