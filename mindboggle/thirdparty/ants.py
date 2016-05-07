@@ -50,12 +50,12 @@ def antsApplyTransformsToPoints(points, transform_files,
     >>> from mindboggle.mio.vtks import read_points
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> xfm1 = fetch_data(urls['ants_affine_template2subject'], '', '.txt')
-    >>> xfm2 = fetch_data(urls['ants_warp_template2subject'], '', '.txt')
+    >>> xfm1 = fetch_data(urls['ants_affine_template2subject'], '', '.mat')
+    >>> xfm2 = fetch_data(urls['ants_warp_template2subject'], '', '.nii.gz')
     >>> xfm3 = fetch_data(urls['OASIS-30_Atropos_template_to_MNI152_affine'], '', '.txt')
     >>> transform_files = [xfm1, xfm2, xfm3]
     >>> vtk_file = fetch_data(urls['left_pial'], '', '.vtk')
-    >>> points  = read_points(vtk_file)
+    >>> points = read_points(vtk_file)
     >>> inverse_booleans = [0,0,1]
     >>> transformed_points = antsApplyTransformsToPoints(points,
     ...     transform_files, inverse_booleans) # doctest: +SKIP

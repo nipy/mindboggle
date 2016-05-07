@@ -34,7 +34,7 @@ def plot_surfaces(vtk_files, use_colormap=False, colormap_file=''):
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> label_file = fetch_data(urls['freesurfer_labels'], '', '.vtk')
+    >>> label_file = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
     >>> use_colormap = True
     >>> colormap_file = '/software/vtk_cpp_tools/colormap.xml' # doctest: +SKIP
     >>> plot_surfaces(vtk_files, use_colormap, colormap_file) # doctest: +SKIP
