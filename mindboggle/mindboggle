@@ -449,7 +449,7 @@ if do_label and not my_atlas:
                                    input_names=['data_file',
                                                 'url',
                                                 'hashes',
-                                                'cache',
+                                                'cache_directory',
                                                 'append',
                                                 'verbose'],
                                    output_names=['data_path']))
@@ -457,7 +457,7 @@ if do_label and not my_atlas:
     FetchAtlas.inputs.data_file = atlas_volume
     FetchAtlas.inputs.url = atlas_volume_url
     FetchAtlas.inputs.hashes = hashes
-    FetchAtlas.inputs.cache = cache
+    FetchAtlas.inputs.cache_directory = cache
     FetchAtlas.inputs.append = '.nii.gz'
     FetchAtlas.inputs.verbose = True
 
