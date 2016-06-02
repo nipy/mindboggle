@@ -131,7 +131,7 @@ def travel_depth(command, surface_file, verbose=False):
 
 def geodesic_depth(command, surface_file, verbose=False):
     """
-    Measure "travel depth" of each vertex in a surface mesh.
+    Estimate geodesic depth of each vertex in a surface mesh.
     (Calls Joachim Giard's C++ code)
 
     Parameters

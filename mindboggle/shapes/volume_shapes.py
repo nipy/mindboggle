@@ -17,6 +17,10 @@ def volume_per_brain_region(input_file, include_labels=[], exclude_labels=[],
     """
     Compute volume per labeled region in a nibabel-readable image.
 
+    Computing the volume per labeled region is very straightforward:
+    this function simply multiplies the volume per voxel by the number
+    of voxels per region.
+
     Note: Results are truncated at three decimal places because we found that
     volume label propagation led to differences in the third decimal place.
 
@@ -132,13 +136,43 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     """
     Compute a simple thickness measure for each labeled cortex region volume.
 
+    Since Mindboggle accepts FreeSurfer data as input, we include FreeSurfer
+    cortical thickness estimates with Mindboggle’s shape measures.
+    However, surface mesh reconstruction from MRI data does not always
+    produce favorable results. For example, we found that at least a quarter
+    of the over one hundred EMBARC brain images we processed through
+    FreeSurfer clipped ventral cortical regions, resulting in bad surface
+    patches in those regions. For comparison, we built a function called
+    thickinthehead which computes a simple thickness measure for each
+    cortical region using the hybrid segmentation volume rather than surfaces.
+
+    The thickinthehead function first resamples cortex and non-cortex files
+    from, for example, 1mm^3 to 0.5mm^3 voxel dimensions to better represent
+    the contours of the cortex, then extracts outer and inner boundary voxels
+    of the cortex by eroding the cortex by one (resampled) voxel bordering
+    the outside of the brain and bordering the inside of the brain
+    (non-cortex). Then it estimates the middle cortical surface area by the
+    average volume of the outer and inner boundary voxels of the cortex.
+    Finally, it estimates the thickness of a labeled cortical region as the
+    volume of the labeled region divided by the surface area of that region.
+
+    We compared thickinthehead and FreeSurfer cortical thickness estimates
+    for 16 cortical regions in 40 EMBARC control subjects (unpublished
+    results) with published estimates based on manual delineations of MR
+    images (Kabani, 2001). Forty percent of FreeSurfer estimates for the 640
+    labels were in the range of the published values, whereas almost ninety
+    percent of thickinthehead’s estimates were within range. ANTs values
+    deviated further from the published estimates and were less reliable
+    (greater inter-subject ranges) than the FreeSurfer or thickinthehead
+    values.
+
     Note::
 
       - Cortex, noncortex, & label files are from the same coregistered brain.
       - Calls ANTs functions: ImageMath, Threshold, ResampleImageBySpacing
       - There may be slight discrepancies between volumes computed by
-        thickinthehead() and volumes computed by volume_for_each_label();
-        in 31 of 600+ ADNI 1.5T images, some volume_for_each_label() volumes
+        thickinthehead() and volumes computed by volume_per_label();
+        in 31 of 600+ ADNI 1.5T images, some volume_per_label() volumes
         were slightly larger (in the third decimal place), presumably due to
         label propagation through the cortex in thickinthehead().
         This is more pronounced in ANTs vs. FreeSurfer-labeled volumes.
@@ -148,7 +182,7 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
       1. Run Freesurfer and antsCorticalThickness.sh on T1-weighted image.
       2. Convert FreeSurfer volume labels (e.g., wmparc.mgz or aparc+aseg.mgz)
          to cortex (2) and noncortex (3) segments using relabel_volume()
-         function [refer to LABELS.rst or FreeSurferColorLUT labels file].
+         function [refer to labels.rst or FreeSurferColorLUT labels file].
       3. Convert ANTs Atropos-segmented volume (tmpBrainSegmentation.nii.gz)
          to cortex and noncortex segments, by converting 1-labels to 0 and
          4-labels to 3 with the relabel_volume() function

@@ -17,7 +17,25 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     Identify sulci from folds in a brain surface according to a labeling
     protocol that includes a list of label pairs defining each sulcus.
 
-    A fold is a group of connected, deep vertices.
+    Since folds are defined as deep, connected areas of a surface, and since
+    folds may be connected to each other in ways that differ across brains,
+    there usually does not exist a one-to-one mapping between folds of one
+    brain and those of another.  To address the correspondence problem then,
+    we need to find just those portions of the folds that correspond across
+    brains. To accomplish this, Mindboggle segments folds into sulci, which
+    do have a one-to-one correspondence across non-pathological brains.
+    Mindboggle defines a sulcus as a folded portion of cortex whose opposing
+    banks are labeled with one or more sulcus label pairs in the DKT labeling
+    protocol, where each label pair is unique to one sulcus and represents
+    a boundary between two adjacent gyri, and each vertex has one gyrus label.
+
+    This function assigns vertices in a fold to a sulcus in one of two cases.
+    In the first case, vertices whose labels are in only one label pair in
+    the fold are assigned to the label pair’s sulcus if they are connected
+    through similarly labeled vertices to the boundary between the two labels.
+    In the second case, the segment_regions function propagates labels from
+    label borders to vertices whose labels are in multiple label pairs in the
+    fold.
 
     Steps for each fold ::
 

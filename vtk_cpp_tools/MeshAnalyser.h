@@ -171,7 +171,7 @@ public:
     //GeoDistRing(vtkIdType arg1, double arg2)
     //GeoDistRing(vtkIdType arg1, double arg2, double arg3)
     //
-    //Compute a geodiesic distance with or without mesh simplification
+    //Compute a geodesic distance with or without mesh simplification
     //using a front propagation method
     //
     //arg1 = starting point index

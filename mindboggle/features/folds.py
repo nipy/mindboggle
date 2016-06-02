@@ -133,6 +133,20 @@ def extract_folds(depth_file, depth_threshold=2, min_fold_size=50,
     """
     Use depth threshold to extract folds from a triangular surface mesh.
 
+    A fold is a group of connected, deep vertices. To extract folds,
+    a depth threshold is used to segment deep vertices of the surface mesh.
+    We have observed in the histograms of travel depth measures of cortical
+    surfaces that there is a rapidly decreasing distribution of low depth
+    values (corresponding to the outer surface, or gyral crowns) with a
+    long tail of higher depth values (corresponding to the folds).
+
+    The find_depth_threshold function therefore computes a histogram of
+    travel depth measures, smooths the histogram's bin values, convolves
+    to compute slopes, and finds the depth value for the first bin with
+    zero slope. The extract_folds function uses this depth value, segments
+    deep vertices, and removes extremely small folds (empirically set at 50
+    vertices or fewer out of a total mesh size of over 100,000 vertices).
+
     Steps ::
         1. Segment deep vertices as an initial set of folds.
         2. Remove small folds.

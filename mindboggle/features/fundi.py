@@ -16,8 +16,35 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     """
     Extract fundi from folds.
 
-    A fundus is a branching curve that runs along the deepest and most
-    highly curved portions of a fold.
+    A fundus is a branching curve that runs along the deepest and most highly
+    curved portions of a fold. This function extracts one fundus from each
+    fold by finding the deepest vertices inside the fold, finding endpoints
+    along the edge of the fold, and connecting the former to the latter with
+    tracks that run along deep and curved paths (through vertices with high
+    values of travel depth multiplied by curvature), and a final filtration
+    step.
+
+    The deepest vertices are those with values at least two median
+    absolute deviations above the median (non-zero) value, with the higher
+    value chosen if two of the vertices are within (a default of) 10 edges
+    from each other (to reduce the number of possible fundus paths as well
+    as computation time).
+
+    To find the endpoints, the find_outer_endpoints function propagates
+    multiple tracks from seed vertices at median depth in the fold through
+    concentric rings toward the fold’s edge, selecting maximal values within
+    each ring, and terminating at candidate endpoints. The final endpoints
+    are those candidates at the end of tracks that have a high median value,
+    with the higher value chosen if two candidate endpoints are within
+    (a default of) 10 edges from each other (otherwise, the resulting fundi
+    can have spurious branching at the fold’s edge).
+
+    The connect_points_erosion function connects the deepest fold vertices
+    to the endpoints with a skeleton of 1-vertex-thick curves by erosion.
+    It erodes by iteratively removing simple topological points and endpoints
+    in order of lowest to highest values, where a simple topological point
+    is a vertex that when added to or removed from an object on a surface
+    mesh (such as a fundus curve) does not alter the object's topology.
 
     Steps ::
         1. Find fundus endpoints (outer anchors) with find_outer_endpoints().
@@ -182,12 +209,12 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
             if skeleton:
                 skeletons.extend(skeleton)
 
-            # ----------------------------------------------------------------
-            # Remove fundus vertices if they complete triangle faces:
-            # ----------------------------------------------------------------
-            Iremove = find_complete_faces(skeletons, faces)
-            if Iremove:
-                skeletons = list(frozenset(skeletons).difference(Iremove))
+            ## ---------------------------------------------------------------
+            ## Remove fundus vertices if they make complete triangle faces:
+            ## ---------------------------------------------------------------
+            #Iremove = find_complete_faces(skeletons, faces)
+            #if Iremove:
+            #    skeletons = list(frozenset(skeletons).difference(Iremove))
 
     indices_skel = [x for x in skeletons if folds[x] != background_value]
     fundus_per_fold = background_value * np.ones(npoints)
