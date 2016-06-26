@@ -61,7 +61,7 @@ import argparse
 # Set Mindboggle version and vagrant box URL:
 #-----------------------------------------------------------------------------
 version = "1.0.0"
-box_url = "https://osf.io/z8qb7/?action=download&version=1"
+box_url = "https://osf.io/gy3x6/?action=download&version=1"
 
 #=============================================================================
 # Command-line arguments
