@@ -4576,7 +4576,7 @@ def labels_to_adjacency_matrix(label_file, ignore_values=[-1, 999],
 
     # Write adjacency matrix:
     unique_labels = np.unique(pairs)
-    nlabels = len(unique_labels)
+    nlabels = np.size(unique_labels)
     matrix = np.zeros((nlabels, nlabels))
     for pair in pairs:
         index1 = np.where(unique_labels == pair[0])[0][0]
