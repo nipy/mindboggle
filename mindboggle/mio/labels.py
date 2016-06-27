@@ -4513,12 +4513,18 @@ def labels_to_adjacency_matrix(label_file, ignore_values=[-1, 999],
     >>> from mindboggle.mio.labels import labels_to_adjacency_matrix
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> #label_file = fetch_data(urls['left_manual_labels'], '', '.vtk')
-    >>> label_file = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
+    >>> label_file = fetch_data(urls['left_manual_labels'], '', '.vtk')
     >>> ignore_values = [-1, 0]
     >>> add_value = 0
     >>> output_format = 'csv'
-    >>> verbose = True #False
+    >>> verbose = False
+    >>> matrix, output_table = labels_to_adjacency_matrix(label_file,
+    ...     ignore_values, add_value, output_format, verbose)
+    >>> matrix.lookup([20,21,22,23,24,25,26,27,28,29,30],
+    ...               [35,35,35,35,35,35,35,35,35,35,35])
+    array([ 0.,  1.,  0.,  0.,  0.,  0.,  0.,  1.,  1.,  1.,  0.])
+
+    >>> label_file = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
     >>> matrix, output_table = labels_to_adjacency_matrix(label_file,
     ...     ignore_values, add_value, output_format, verbose)
     >>> matrix.lookup([20,21,22,23,24,25,26,27,28,29,30],
@@ -4526,7 +4532,6 @@ def labels_to_adjacency_matrix(label_file, ignore_values=[-1, 999],
     array([ 0.,  1.,  0.,  0.,  0.,  0.,  0.,  1.,  1.,  1.,  0.])
 
     """
-
     import numpy as np
     import pandas as pd
     from nibabel import load
@@ -4544,6 +4549,8 @@ def labels_to_adjacency_matrix(label_file, ignore_values=[-1, 999],
         return_label_pairs = True
         indices_borders, label_pairs, f1 = extract_borders(list(range(npoints)),
             labels, neighbor_lists, ignore_values, return_label_pairs)
+
+        output_table = 'adjacent_surface_labels.' + output_format
 
     # Use scipy to dilate volume files to find neighboring labels:
     elif label_file.endswith('.nii.gz'):
@@ -4564,15 +4571,19 @@ def labels_to_adjacency_matrix(label_file, ignore_values=[-1, 999],
                     if neigh > 0 and neigh in unique_volume_labels:
                     #        and neigh%2==(int(label)%2):
                         label_pairs.append([int(label), int(neigh)])
+
+        output_table = 'adjacent_volume_labels.' + output_format
+
     else:
         raise IOError("Use appropriate input file type.")
 
-    # Find unique pairs:
+    # Find unique pairs (or first two of each list):
     pairs = []
-    for pair in np.unique(label_pairs):
-        if len(pair) == 2:
-            pair = [int(pair[0]), int(pair[1])]
-            pairs.append([pair[0] + add_value, pair[1] + add_value])
+    for pair in label_pairs:
+        new_pair = [int(pair[0]) + add_value,
+                    int(pair[1]) + add_value]
+        if new_pair not in pairs:
+            pairs.append(new_pair)
 
     # Write adjacency matrix:
     unique_labels = np.unique(pairs)
@@ -4587,8 +4598,6 @@ def labels_to_adjacency_matrix(label_file, ignore_values=[-1, 999],
     df2 = pd.DataFrame(matrix, index=None)
     df2.columns = unique_labels
     matrix = pd.concat([df1, df2], axis=1)
-
-    output_table = 'adjacent_labels.' + output_format
 
     if output_format == 'csv':
         matrix.to_csv(output_table, index=False)
