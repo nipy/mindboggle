@@ -4510,6 +4510,7 @@ def labels_to_adjacency_matrix(label_file, ignore_values=[-1, 999],
 
     Examples
     --------
+    >>> from mindboggle.mio.labels import labels_to_adjacency_matrix
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
     >>> #label_file = fetch_data(urls['left_manual_labels'], '', '.vtk')
@@ -4536,7 +4537,7 @@ def labels_to_adjacency_matrix(label_file, ignore_values=[-1, 999],
     from mindboggle.mio.vtks import read_vtk
 
     # Use Mindboggle's extract_borders() function for surface VTK files:
-    if label_file.endswith('.nii.gz'):
+    if label_file.endswith('.vtk'):
         f1,f2,f3, faces, labels, f4, npoints, f5 = read_vtk(label_file,
                                                             True, True)
         neighbor_lists = find_neighbors(faces, npoints)
