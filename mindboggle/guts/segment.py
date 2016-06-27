@@ -15,7 +15,7 @@ def propagate(points, faces, region, seeds, labels,
               max_iters=500, tol=0.001, sigma=10, background_value=-1,
               verbose=False):
     """
-    Propagate labels to segment surface into contiguous regions,
+    Propagate labels to segment a surface into contiguous regions,
     starting from seed vertices.
 
     Imports : mindboggle.guts.rebound
@@ -1267,7 +1267,7 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
 def select_largest(points, faces, exclude_labels=[-1], areas=None,
                    reindex=True, background_value=-1, verbose=False):
     """
-    Select the largest segment (connected set of indices) in a mesh.
+    Select the largest segment (connected set of indices) in a surface mesh.
 
     In case a surface patch is fragmented, we select the largest fragment,
     remove extraneous triangular faces, and reindex indices.
@@ -1445,7 +1445,7 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
 def extract_borders(indices, labels, neighbor_lists,
                     ignore_values=[], return_label_pairs=False):
     """
-    Detect the label borders in a collection of vertices such as a region.
+    Detect surface label borders in a collection of vertices such as a region.
 
     Label borders are the set of all vertices
     whose neighbors do not share the same label.
@@ -1501,10 +1501,14 @@ def extract_borders(indices, labels, neighbor_lists,
     >>> f1,f2,f3, faces, labels, f4, npoints, f5 = read_vtk(label_file,
     ...                                                     True, True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
+    >>> ignore_values = []
+    >>> return_label_pairs = True
     >>> indices_borders, label_pairs, f1 = extract_borders(list(range(npoints)),
-    ...     labels, neighbor_lists)
+    ...     labels, neighbor_lists, ignore_values, return_label_pairs)
     >>> indices_borders[0:10]
     [115, 116, 120, 121, 125, 126, 130, 131, 281, 286]
+    >>> label_pairs[0:5]
+    [[1005, 1011], [1005, 1011], [1005, 1011], [1005, 1011], [1005, 1011]]
 
     Write borders on surfaces to vtk file and view (skip test):
 

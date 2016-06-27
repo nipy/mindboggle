@@ -4417,9 +4417,7 @@ def print_colormap(colormap):
               format(row[0], row[2], row[3], row[4]))
     print('</ColorMap>')
 
-# ----------------------------------------------------------------------------
-# Read FreeSurferColorLUT.txt file:
-# ----------------------------------------------------------------------------
+
 def extract_numbers_names_colors(FreeSurferColorLUT=''):
     """
     Extract lists of numbers, names, and colors representing anatomical brain
@@ -4481,6 +4479,122 @@ def extract_numbers_names_colors(FreeSurferColorLUT=''):
                            int(strings[4])])
 
     return numbers, names, colors
+
+
+def labels_to_adjacency_matrix(label_file, ignore_values=[-1, 999],
+                               add_value=0, output_format='csv',
+                               verbose=True):
+    """
+    Extract surface or volume label boundaries, find unique label pairs,
+    and write adjacency matrix (useful for constructing a colormap).
+
+    Parameters
+    ----------
+    label_file : string
+        path to VTK surface file or nibabel-readable volume file with labels
+    ignore_values : list of integers
+        labels to ignore
+    add_value : integer
+        value to add to labels
+    matrix : pandas dataframe
+        adjacency matrix
+    output_format : string
+        format of adjacency table file name (currently only 'csv')
+    verbose : Boolean
+        print to stdout?
+
+    Returns
+    -------
+    output_table : string
+        adjacency table file name
+
+    Examples
+    --------
+    >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> urls, fetch_data = prep_tests()
+    >>> #label_file = fetch_data(urls['left_manual_labels'], '', '.vtk')
+    >>> label_file = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
+    >>> ignore_values = [-1, 0]
+    >>> add_value = 0
+    >>> output_format = 'csv'
+    >>> verbose = True #False
+    >>> matrix, output_table = labels_to_adjacency_matrix(label_file,
+    ...     ignore_values, add_value, output_format, verbose)
+    >>> matrix.lookup([20,21,22,23,24,25,26,27,28,29,30],
+    ...               [35,35,35,35,35,35,35,35,35,35,35])
+    array([ 0.,  1.,  0.,  0.,  0.,  0.,  0.,  1.,  1.,  1.,  0.])
+
+    """
+
+    import numpy as np
+    import pandas as pd
+    from nibabel import load
+    from scipy import ndimage
+
+    from mindboggle.guts.mesh import find_neighbors
+    from mindboggle.guts.segment import extract_borders
+    from mindboggle.mio.vtks import read_vtk
+
+    # Use Mindboggle's extract_borders() function for surface VTK files:
+    if label_file.endswith('.nii.gz'):
+        f1,f2,f3, faces, labels, f4, npoints, f5 = read_vtk(label_file,
+                                                            True, True)
+        neighbor_lists = find_neighbors(faces, npoints)
+        return_label_pairs = True
+        indices_borders, label_pairs, f1 = extract_borders(list(range(npoints)),
+            labels, neighbor_lists, ignore_values, return_label_pairs)
+
+    # Use scipy to dilate volume files to find neighboring labels:
+    elif label_file.endswith('.nii.gz'):
+
+        L = load(label_file).get_data()
+        unique_volume_labels = np.unique(L)
+
+        label_pairs = []
+        for label in unique_volume_labels:
+
+            if label not in ignore_values:
+
+                B = L * np.logical_xor(ndimage.binary_dilation(L==int(label)),
+                                       (L==int(label)))
+                neighbor_labels = np.unique(np.ravel(B))
+
+                for neigh in neighbor_labels:
+                    if neigh > 0 and neigh in unique_volume_labels:
+                    #        and neigh%2==(int(label)%2):
+                        label_pairs.append([int(label), int(neigh)])
+    else:
+        raise IOError("Use appropriate input file type.")
+
+    # Find unique pairs:
+    pairs = []
+    for pair in np.unique(label_pairs):
+        if len(pair) == 2:
+            pair = [int(pair[0]), int(pair[1])]
+            pairs.append([pair[0] + add_value, pair[1] + add_value])
+
+    # Write adjacency matrix:
+    unique_labels = np.unique(pairs)
+    nlabels = len(unique_labels)
+    matrix = np.zeros((nlabels, nlabels))
+    for pair in pairs:
+        index1 = np.where(unique_labels == pair[0])[0][0]
+        index2 = np.where(unique_labels == pair[1])[0][0]
+        matrix[index1, index2] = 1
+
+    df1 = pd.DataFrame({'ID': unique_labels}, index=None)
+    df2 = pd.DataFrame(matrix, index=None)
+    df2.columns = unique_labels
+    matrix = pd.concat([df1, df2], axis=1)
+
+    output_table = 'adjacent_labels.' + output_format
+
+    if output_format == 'csv':
+        matrix.to_csv(output_table, index=False)
+    else:
+        raise IOError("Set appropriate output file format.")
+
+    return matrix, output_table
 
 
 """
