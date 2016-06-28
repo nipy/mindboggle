@@ -4284,7 +4284,7 @@ class DKTprotocol(object):
         "parietooccipital fissure",
         "calcarine fissure",
         "superior rostral sulcus",
-        "callosal sulcus",
+        # "callosal sulcus",  # REMOVED June 2016: requires corpus callosum
         "lateral H-shaped orbital sulcus",
         "olfactory sulcus",
         "occipitotemporal sulcus",
@@ -4312,7 +4312,7 @@ class DKTprotocol(object):
         "pos",
         "ccs",
         "sros",
-        "cas",
+        # "cas",  # REMOVED June 2016: requires corpus callosum
         "lhos",
         "olfs",
         "ots",
@@ -4347,7 +4347,7 @@ class DKTprotocol(object):
         [[5, 25]],
         [[13, 25], [2, 13], [10, 13], [13, 23], [13, 26]],
         [[14, 28]],
-        [[2, 4], [4, 10], [4, 23], [4, 26]],
+        # [[2, 4], [4, 10], [4, 23], [4, 26]],  # REMOVED June 2016
         [[3, 12], [12, 27], [12, 18], [12, 19], [12, 20]],
         [[12, 14]],
         [[7, 9], [7, 11]],

@@ -179,7 +179,6 @@ and were reassigned to unused numbers in FreeSurferColorLUT.txt:
 -    "parietooccipital fissure"
 -    "calcarine fissure"
 -    "superior rostral sulcus"
--    "callosal sulcus"
 -    "lateral H-shaped orbital sulcus"
 -    "olfactory sulcus"
 -    "occipitotemporal sulcus"
@@ -208,7 +207,6 @@ and were reassigned to unused numbers in FreeSurferColorLUT.txt:
 -    "pos"
 -    "ccs"
 -    "sros"
--    "cas"
 -    "lhos"
 -    "olfs"
 -    "ots"
@@ -242,7 +240,6 @@ cortical label numbers above:
 - [[5,25]],
 - [[13,25], [2,13],[10,13],[13,23],[13,26]],
 - [[14,28]],
-- [[2,4], [4,10], [4,23], [4,26]],
 - [[3,12],[12,27], [12,18],[12,19],[12,20]],
 - [[12,14]],
 - [[7,9], [7,11]],
