@@ -4513,23 +4513,22 @@ def labels_to_adjacency_matrix(label_file, ignore_values=[-1, 999],
     >>> from mindboggle.mio.labels import labels_to_adjacency_matrix
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> label_file = fetch_data(urls['left_manual_labels'], '', '.vtk')
     >>> ignore_values = [-1, 0]
     >>> add_value = 0
     >>> output_format = 'csv'
     >>> verbose = False
+    >>> label_file = fetch_data(urls['left_manual_labels'], '', '.vtk')
     >>> matrix, output_table = labels_to_adjacency_matrix(label_file,
     ...     ignore_values, add_value, output_format, verbose)
-    >>> matrix.lookup([20,21,22,23,24,25,26,27,28,29,30],
-    ...               [35,35,35,35,35,35,35,35,35,35,35])
-    array([ 0.,  1.,  0.,  0.,  0.,  0.,  0.,  1.,  1.,  1.,  0.])
+    >>> matrix.lookup([20,21,22,23,24,25,26,27,28,29],
+    ...               [35,35,35,35,35,35,35,35,35,35])
+    array([ 0.,  1.,  0.,  0.,  0.,  0.,  0.,  1.,  1.,  1.])
 
     >>> label_file = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
     >>> matrix, output_table = labels_to_adjacency_matrix(label_file,
     ...     ignore_values, add_value, output_format, verbose)
-    >>> matrix.lookup([20,21,22,23,24,25,26,27,28,29,30],
-    ...               [35,35,35,35,35,35,35,35,35,35,35])
-    array([ 0.,  1.,  0.,  0.,  0.,  0.,  0.,  1.,  1.,  1.,  0.])
+    >>> matrix.lookup([4,5,7,8,10,11,12,13,14,15], [4,4,4,4,4,4,4,4,4,4])
+    array([ 1.,  1.,  0.,  0.,  0.,  1.,  0.,  0.,  1.,  0.])
 
     """
     import numpy as np
