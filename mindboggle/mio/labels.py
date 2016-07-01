@@ -3929,7 +3929,7 @@ class DKTprotocol(object):
     numbers, names, colors = return_numbers_names_colors()
 
     # ------------------------------------------------------------------------
-    # Cerebral cortex label numbers (DKT31 protocol):
+    # Cerebral cortex label ID numbers, names, groups (DKT31 protocol):
     # ------------------------------------------------------------------------
     DKT31_numbers = [2, 3] + list(range(5, 32)) + [34, 35]
     DKT31_names = ['caudal anterior cingulate',
@@ -3963,6 +3963,8 @@ class DKTprotocol(object):
                    'supramarginal',
                    'transverse temporal',
                    'insula']
+    # 1: frontal; 2: paracentral; 3: parietal;
+    # 4: occipital; 5: temporal; 6: limbic
     DKT31_groups = [6, 1, 4, 6, 3, 5, 3, 6, 4, 1,
                     4, 1, 3, 6, 2, 1, 1, 1, 5, 5,
                     6, 1, 5, 6, 1, 1, 5, 3, 5, 3, 1]
