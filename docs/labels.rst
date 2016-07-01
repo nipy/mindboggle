@@ -157,7 +157,7 @@ and were reassigned to unused numbers in FreeSurferColorLUT.txt:
 - 632, "cerebellar vermal lobules VIII-X"
 
 ------------------------------------------------------------------------------
- Sulcus names from the DKT labeling protocol
+ Sulcus names from the DKT labeling protocol (callosal sulcus removed)
 ------------------------------------------------------------------------------
 -    "frontomarginal sulcus"
 -    "superior frontal sulcus"
