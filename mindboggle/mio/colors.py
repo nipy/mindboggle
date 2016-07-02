@@ -783,6 +783,7 @@ def group_colors(colormap, colormap_name, description='', adjacency_matrix=[],
         # Save new colormap as a json file:
         # ------------------------------------------------------------------------
         write_json_colormap(colormap=new_colors, label_numbers=IDs,
+                            label_names=names,
                             colormap_file=colormap_json_file,
                             colormap_name=colormap_name,
                             description=description)
