@@ -181,6 +181,10 @@ def label_adjacency_matrix(label_file, ignore_values=[-1, 999], add_value=0,
     Extract surface or volume label boundaries, find unique label pairs,
     and write adjacency matrix (useful for constructing a colormap).
 
+    Each row of the (upper triangular) adjacency matrix corresponds to an
+    index to a unique label, where each column has a 1 if the label indexed
+    by that column is adjacent to the label indexed by the row.
+
     Parameters
     ----------
     label_file : string
@@ -289,8 +293,8 @@ def label_adjacency_matrix(label_file, ignore_values=[-1, 999], add_value=0,
     nlabels = np.size(unique_labels)
     matrix = np.zeros((nlabels, nlabels))
     for pair in pairs:
-        index1 = np.where(unique_labels == pair[0])[0][0]
-        index2 = np.where(unique_labels == pair[1])[0][0]
+        index1 = [i for i, x in enumerate(unique_labels) if x == pair[0]]
+        index2 = [i for i, x in enumerate(unique_labels) if x == pair[1]]
         matrix[index1, index2] = 1
 
     df1 = pd.DataFrame({'ID': unique_labels}, index=None)
@@ -313,37 +317,44 @@ def label_adjacency_matrix(label_file, ignore_values=[-1, 999], add_value=0,
     return labels, matrix, output_table
 
 
-def braincolors(colormap, adjacency_matrix, weights=False,
-                IDs=[], names=[], groups=[],
-                save_csv=True, save_json=True, plot_colors=True,
-                plot_graphs=True, out_dir='.', verbose=True):
+def group_colors(colormap, adjacency_matrix=[], IDs=[], names=[], groups=[],
+                 save_text_files=True, plot_colors=True,
+                 plot_graphs=True, out_dir='.', verbose=True):
     """
-    This program takes in a colormap and table with an adjacency matrix,
-    where each non-zero value signifies adjacency between labels,
-    and reorganizes the colormap so that adjacent labels have
-    maximally distinguishable colors in the colormap, with the option
-    of specifying groups of labels to have similar colors:
+    This greedy algoritm reorders a colormap so that labels assigned to
+    the same group have more similar colors, but within a group (usually
+    of adjacent labels), the colors are reordered so that adjacent labels
+    have dissimilar colors:
 
-    1. Read in the table with a binary (or weighted) adjacency matrix,
-       where each row or column represents a label, and each value signifies
-       whether (or the degree to which) a given pair of labels are adjacent.
-         Example:
-            column 0 = label ID number
-            column 1 = label name
-            column 2 = group number (each label is assigned to a group)
-    2. Convert the matrix to a graph, where each node represents a label
+    1. Convert colormap to Lab color space
+       which better represents human perception.
+    2. Load a binary (or weighted) adjacency matrix, where each row or column
+       represents a label, and each value signifies whether (or the degree
+       to which) a given pair of labels are adjacent.
+       If a string (file) is provided instead of a numpy ndarray:
+            column 0 = label "ID" number
+            column 1 = label "name"
+            column 2 = "group" number (each label is assigned to a group)
+            columns 3... = label adjacency matrix
+    3. Sort labels by decreasing number of adjacent labels (adjacency sum).
+    4. Order label groups by decreasing maximum adjacency sum.
+    5. Create a similarity matrix for pairs of colors.
+    6. Sort colors by decreasing perceptual difference from all other colors.
+    7. For each label group:
+        7.1. Select unpicked colors for group that are similar to the first
+             unpicked color (unpicked colors were sorted above by decreasing
+             perceptual difference from all other colors).
+        7.2. Reorder subgraph colors according to label adjacency sum
+             (decreasing number of adjacent labels).
+    8. Assign new colors.
+
+    For plotting graphs and colormap:
+
+    1. Convert the matrix to a graph, where each node represents a label
        and each edge represents the adjacency value between connected nodes.
-    4. Break up the graph into subgraphs, where each subgraph represents
-       a group of adjacent labels (assigned the same group number).
-    5. Compute every permutation of colors for the nodes of each subgraph,
-       with similar colors in the color space.
-    6. Assign each edge in each subgraph the value of the color difference
-       between the colors assigned to its pair of connected nodes.
-       (Multiply the connection matrix for each subgraph by
-        the color difference matrix for each permutation.)
-    7. Find the optimal colors for the subgraph nodes that maximizes the sum
-       of the edge values.
-    8. Plot the colormap, the whole graph, or individual colored subgraphs.
+    2. Break up the graph into subgraphs, where each subgraph contains labels
+       assigned the same group number (which usually means they are adjacent).
+    3. Plot the colormap and colored sub/graphs.
 
     Note: Install pydotplus with the other python libraries imported below.
 
@@ -353,18 +364,14 @@ def braincolors(colormap, adjacency_matrix, weights=False,
         csv file containing rgb colormap, or colormap array
     adjacency_matrix : string or NxN numpy ndarray (N = number of labels)
         csv file containing label adjacency matrix or matrix itself
-    weights : Boolean
-        use weights in adjacency matrix?
     IDs : list of integers
         label ID numbers
     names : list of strings
         label names
     groups : list of integers
         label group numbers (one per label)
-    save_csv : Boolean
-        save colormap as csv file?
-    save_json : Boolean
-        save colormap as json file?
+    save_text_files : Boolean
+        save colormap as csv and json files?
     plot_colors : Boolean
         plot colormap as horizontal bar chart?
     plot_graphs : Boolean
@@ -385,7 +392,7 @@ def braincolors(colormap, adjacency_matrix, weights=False,
     >>> from mindboggle.mio.colors import distinguishable_colors
     >>> colormap = distinguishable_colors(ncolors=31,
     ...     backgrounds=[[0,0,0],[1,1,1]],
-    ...     save_csv=False, plot_colors=False, verbose=False)
+    ...     save_csv=False, plot_colormap=False, verbose=False)
     >>> # Get adjacency matrix:
     >>> from mindboggle.mio.colors import label_adjacency_matrix
     >>> from mindboggle.mio.fetch_data import prep_tests
@@ -394,28 +401,36 @@ def braincolors(colormap, adjacency_matrix, weights=False,
     >>> IDs, adjacency_matrix, output_table = label_adjacency_matrix(label_file,
     ...     ignore_values=[-1, 0], add_value=0, save_table=False,
     ...     output_format='', verbose=False)
+    >>> adjacency_matrix = adjacency_matrix.values
+    >>> adjacency_matrix = adjacency_matrix[:, 1::]
     >>> # Reorganize colormap:
-    >>> from mindboggle.mio.colors import braincolors
+    >>> from mindboggle.mio.colors import group_colors
     >>> from mindboggle.mio.labels import DKTprotocol
     >>> dkt = DKTprotocol()
-    >>> names = dkt.left_cerebrum_cortex_DKT31_names
-    >>> groups = dkt.DKT31_groups
-    >>> weights = False
-    >>> save_csv = True #False
-    >>> save_json = True #False
+    >>> save_text_files = True #False
     >>> plot_colors = True #False
     >>> plot_graphs = True #False
     >>> out_dir = '.'
     >>> verbose = True #False
-    >>> colors = braincolors(colormap, adjacency_matrix, weights,
-    ...     plot_graphs, IDs, names, groups, save_csv, save_json,
-    ...     plot_colors, out_dir, verbose)
+    >>> #IDs = dkt.DKT31_numbers
+    >>> names = dkt.DKT31_names #dkt.left_cerebrum_cortex_DKT31_names
+    >>> groups = dkt.DKT31_groups
+    >>> colors = group_colors(colormap, adjacency_matrix, IDs, names, groups,
+    ...     save_text_files, plot_colors, plot_graphs, out_dir, verbose)
     >>> colors[0]
-    array([ 0.62068966,  0.06896552,  1.        ])
+    [0.7586206896551724, 0.20689655172413793, 0.0]
     >>> colors[1]
-    array([ 0.       ,  0.5862069,  0.       ])
+    [0.48275862068965514, 0.4482758620689655, 0.48275862068965514]
     >>> colors[2]
-    array([ 0.75862069,  0.20689655,  0.        ])
+    [0.3448275862068966, 0.3103448275862069, 0.034482758620689655]
+    >>> colors[-1]
+    [0.7931034482758621, 0.9655172413793103, 0.7931034482758621]
+
+    No groups / subgraphs:
+
+    >>> groups = []
+    >>> colors = group_colors(colormap, adjacency_matrix, IDs, names, groups,
+    ...     save_text_files, plot_colors, plot_graphs, out_dir, verbose)
 
     """
     import os
@@ -430,21 +445,24 @@ def braincolors(colormap, adjacency_matrix, weights=False,
     # ------------------------------------------------------------------------
     # Set parameters for graph layout and output files:
     # ------------------------------------------------------------------------
-    graph_node_color = 'yellow'
-    graph_node_size = 1000
-    graph_edge_width = 2
-    graph_font_size = 10
-    subgraph_node_size = 3000
-    subgraph_edge_width = 5
-    subgraph_font_size = 18
-    axis_buffer = 10
+    if plot_graphs:
+        graph_node_size = 1000
+        graph_edge_width = 2
+        graph_font_size = 10
+        subgraph_node_size = 3000
+        subgraph_edge_width = 5
+        subgraph_font_size = 18
+        axis_buffer = 10
+        graph_image_file = os.path.join(out_dir, "label_graph.png")
+        subgraph_image_file_pre = os.path.join(out_dir, "label_subgraph")
+        subgraph_image_file_post = ".png"
 
-    colormap_csv_file = os.path.join(out_dir, 'label_colormap.csv')
-    colormap_json_file = os.path.join(out_dir, 'label_colormap.json')
-    colormap_image_file = os.path.join(out_dir, 'label_colormap.png')
-    graph_image_file = os.path.join(out_dir, "label_graph.png")
-    subgraph_image_file_pre = os.path.join(out_dir, "label_subgraph")
-    subgraph_image_file_post = ".png"
+    if plot_colors:
+        colormap_image_file = os.path.join(out_dir, 'label_colormap.png')
+
+    if save_text_files:
+        colormap_csv_file = os.path.join(out_dir, 'label_colormap.csv')
+        colormap_json_file = os.path.join(out_dir, 'label_colormap.json')
 
     # ------------------------------------------------------------------------
     # Load colormap:
@@ -461,50 +479,82 @@ def braincolors(colormap, adjacency_matrix, weights=False,
     nlabels = np.shape(colors)[0]
     new_colors = np.copy(colors)
 
+    if not IDs:
+        IDs = range(nlabels)
+    if not names:
+        names = [str(x) for x in range(nlabels)]
+    if not groups:
+        groups = [1 for x in range(nlabels)]
+
     # ------------------------------------------------------------------------
     # Convert to Lab color space which better represents human perception:
     # ------------------------------------------------------------------------
     # https://python-colormath.readthedocs.io/en/latest/illuminants.html
     lab_colors = []
     for rgb in colors:
-        lab_color = convert_color(AdobeRGBColor(rgb[0],
-                                                rgb[1],
-                                                rgb[2]), LabColor)
-        lab_colors.append(lab_color)
+        lab_colors.append(convert_color(AdobeRGBColor(rgb[0], rgb[1], rgb[2]),
+                                        LabColor))
 
     # ------------------------------------------------------------------------
-    # Label adjacency matrix:
+    # Load label adjacency matrix:
     # ------------------------------------------------------------------------
-    if verbose:
-        print("Load label adjacency matrix and convert to a graph.")
-    if isinstance(adjacency_matrix, np.ndarray):
-        matrix = adjacency_matrix
-    elif isinstance(adjacency_matrix, str):
-        matrix = pd.read_csv(adjacency_matrix, sep=',', header=None)
-        matrix = matrix.values
-        IDs = matrix.ID
-        names = matrix.name
-        groups = matrix.group
-    else:
-        raise IOError("Please use correct format for adjacency matrix.")
+    if np.size(adjacency_matrix):
+        if verbose:
+            print("Load label adjacency matrix.")
+        if isinstance(adjacency_matrix, np.ndarray):
+            adjacency_values = adjacency_matrix
+        # If a string (file) is provided instead of a numpy ndarray:
+        #    column 0 = label "ID" number
+        #    column 1 = label "name"
+        #    column 2 = "group" number (each label is assigned to a group)
+        #    columns 3... = label adjacency matrix
+        elif isinstance(adjacency_matrix, str):
+            matrix = pd.read_csv(adjacency_matrix, sep=',', header=None)
+            matrix = matrix.values
+            IDs = matrix.ID
+            names = matrix.name
+            groups = matrix.group
+            adjacency_values = matrix[[str(x) for x in IDs]].values
+        else:
+            raise IOError("Please use correct format for adjacency matrix.")
+        if np.shape(adjacency_values)[0] != nlabels:
+            raise IOError("The colormap and label adjacency matrix don't "
+                          "have the same number of labels.")
 
-    adjacency_values = matrix[[str(x) for x in IDs]].values
-    # Normalize adjacency values:
-    if weights:
+        # Normalize adjacency values:
         adjacency_values = adjacency_values / np.max(adjacency_values)
-    if np.shape(adjacency_values)[0] != nlabels:
-        raise IOError("The colormap and label adjacency matrix don't have "
-                      "the same number of labels.")
+    else:
+        plot_graphs = False
 
     # ------------------------------------------------------------------------
-    # Convert (weighted) connection matrix to (weighted) graph:
+    # Sort labels by decreasing number of adjacent labels (adjacency sum):
     # ------------------------------------------------------------------------
-    adjacency_graph = nx.from_numpy_matrix(adjacency_values)
+    if np.size(adjacency_matrix):
+        adjacency_sums = np.sum(adjacency_values, axis = 1)  # sum rows
+        isort_labels = np.argsort(adjacency_sums)[::-1]
+    else:
+        isort_labels = range(nlabels)
 
-    for inode in range(nlabels):
-        adjacency_graph.node[inode]['ID'] = IDs[inode]
-        adjacency_graph.node[inode]['label'] = names[inode]
-        adjacency_graph.node[inode]['group'] = groups[inode]
+    # ------------------------------------------------------------------------
+    # Order label groups by decreasing maximum adjacency sum:
+    # ------------------------------------------------------------------------
+    label_groups = np.unique(groups)
+    if np.size(adjacency_matrix):
+        max_adjacency_sums = []
+        for label_group in label_groups:
+            igroup = [i for i,x in enumerate(groups) if x == label_group]
+            max_adjacency_sums.append(max(adjacency_sums[igroup]))
+        label_groups = label_groups[np.argsort(max_adjacency_sums)[::-1]]
+
+    # ------------------------------------------------------------------------
+    # Convert adjacency matrix to graph for plotting:
+    # ------------------------------------------------------------------------
+    if plot_graphs:
+        adjacency_graph = nx.from_numpy_matrix(adjacency_values)
+        for inode in range(nlabels):
+            adjacency_graph.node[inode]['ID'] = IDs[inode]
+            adjacency_graph.node[inode]['label'] = names[inode]
+            adjacency_graph.node[inode]['group'] = groups[inode]
 
     # ------------------------------------------------------------------------
     # Create a similarity matrix for pairs of colors:
@@ -516,84 +566,99 @@ def braincolors(colormap, adjacency_matrix, weights=False,
         for icolor2 in range(nlabels):
             dx_matrix[icolor1,icolor2] = delta_e_cie2000(lab_colors[icolor1],
                                                          lab_colors[icolor2])
+    # ------------------------------------------------------------------------
+    # Sort colors by decreasing perceptual difference from all other colors:
+    # ------------------------------------------------------------------------
+    icolors_to_pick = list(np.argsort(np.sum(dx_matrix, axis = 1))[::-1])
 
     # ------------------------------------------------------------------------
-    # Loop through subgraphs:
+    # Loop through label groups:
     # ------------------------------------------------------------------------
-    icolors_to_pick = range(nlabels)
-    for label_group in np.unique(groups):
+    for label_group in label_groups:
         if verbose:
-            print("Subgraph for group {0}...".format(label_group))
-        isubgraph = np.where(matrix.group == label_group)[0]
-        subgraph = adjacency_graph.subgraph(isubgraph)
-        N = len(isubgraph)
+            print("Labels in group {0}...".format(label_group))
+        igroup = [i for i,x in enumerate(groups) if x == label_group]
+        N = len(igroup)
 
         # --------------------------------------------------------------------
-        # Select colors for group that are similar to first unpicked color:
+        # Select unpicked colors for group that are similar to the first
+        # unpicked color (unpicked colors were sorted above by decreasing
+        # perceptual difference from all other colors):
         # --------------------------------------------------------------------
-        ipicks = np.where(np.argsort(dx_matrix[icolors_to_pick[0], :]) < N)[0]
-        icolors_to_pick = np.delete(icolors_to_pick, ipicks)
-        group_colors = [list(colors[x]) for x in ipicks]
-        group_lab_colors = [lab_colors[x] for x in ipicks]
+        isimilar = np.argsort(dx_matrix[icolors_to_pick[0],
+                                        icolors_to_pick])[0:N]
+        icolors_to_pick_copy = icolors_to_pick.copy()
+        group_colors = [list(colors[icolors_to_pick[i]]) for i in isimilar]
+        for iremove in isimilar:
+            icolors_to_pick.remove(icolors_to_pick_copy[iremove])
 
-        # # --------------------------------------------------------------------
-        # # Compute differences between every pair of colors within group:
-        # # --------------------------------------------------------------------
-        # if run_permutations:
-        #     permutation_max = np.zeros(N)
-        #     NxN_matrix = np.zeros((N, N))
-        #
-        #     # ----------------------------------------------------------------
-        #     # Convert subgraph into an adjacency matrix:
-        #     # ----------------------------------------------------------------
-        #     neighbor_matrix = np.array(nx.to_numpy_matrix(subgraph,
-        #                                     nodelist=isubgraph))
-        #     if weights:
-        #         pass
-        #     else:
-        #         neighbor_matrix = (neighbor_matrix > 0).astype(np.uint8)
-        #
-        #     # ----------------------------------------------------------------
-        #     # Permute colors and color pair differences:
-        #     # ----------------------------------------------------------------
-        #     DEmax = 0
-        #     permutations = [np.array(s) for s
-        #                     in itertools.permutations(range(0, N), N)]
-        #     if verbose:
-        #         print(" ".join([str(N),'labels,',
-        #                         str(len(permutations)),
-        #                         'permutations:']))
-        #
-        #     for permutation in permutations:
-        #         delta_matrix = NxN_matrix.copy()
-        #         for i1 in range(N):
-        #           for i2 in range(N):
-        #             if (i2 > i1) and (neighbor_matrix[i1, i2] > 0):
-        #               delta_matrix[i1,i2] = delta_e_cie2000(group_lab_colors[i1],
-        #                                                     group_lab_colors[i2])
-        #         if weights:
-        #             DE = np.sum((delta_matrix * neighbor_matrix))
-        #         else:
-        #             DE = np.sum(delta_matrix)
-        #
-        #         # ------------------------------------------------------------
-        #         # Store color permutation with maximum adjacency cost:
-        #         # ------------------------------------------------------------
-        #         if DE > DEmax:
-        #             DEmax = DE
-        #             permutation_max = permutation
-        #
-        #     # ----------------------------------------------------------------
-        #     # Reorder subgraph colors according to the maximum adjacency cost:
-        #     # ----------------------------------------------------------------
-        #     group_colors = [group_colors[x] for x in permutation_max]
-        #     new_colors[ipicks] = group_colors
+        # --------------------------------------------------------------------
+        # Reorder subgraph colors according to label adjacency sum
+        # (decreasing number of adjacent labels):
+        # --------------------------------------------------------------------
+        isort_group_labels = np.argsort(isort_labels[igroup])
+        group_colors = [group_colors[i] for i in isort_group_labels]
+
+        # --------------------------------------------------------------------
+        # Compute differences between every pair of colors within group:
+        # --------------------------------------------------------------------
+        run_permutations = False
+        weights = False
+        if run_permutations:
+            permutation_max = np.zeros(N)
+            NxN_matrix = np.zeros((N, N))
+            # ----------------------------------------------------------------
+            # Convert subgraph into an adjacency matrix:
+            # ----------------------------------------------------------------
+            neighbor_matrix = np.array(nx.to_numpy_matrix(subgraph,
+                                            nodelist=igroup))
+            if not weights:
+                neighbor_matrix = (neighbor_matrix > 0).astype(np.uint8)
+            # ----------------------------------------------------------------
+            # Permute colors and color pair differences:
+            # ----------------------------------------------------------------
+            DEmax = 0
+            permutations = [np.array(s) for s
+                            in itertools.permutations(range(0, N), N)]
+            if verbose:
+                print(" ".join([str(N),'labels,',
+                                str(len(permutations)),
+                                'permutations:']))
+            for permutation in permutations:
+                delta_matrix = NxN_matrix.copy()
+                for i1 in range(N):
+                  for i2 in range(N):
+                    if (i2 > i1) and (neighbor_matrix[i1, i2] > 0):
+                      delta_matrix[i1,i2] = delta_e_cie2000(group_lab_colors[i1],
+                                                            group_lab_colors[i2])
+                if weights:
+                    DE = np.sum((delta_matrix * neighbor_matrix))
+                else:
+                    DE = np.sum(delta_matrix)
+                # ------------------------------------------------------------
+                # Store color permutation with maximum adjacency cost:
+                # ------------------------------------------------------------
+                if DE > DEmax:
+                    DEmax = DE
+                    permutation_max = permutation
+                # ------------------------------------------------------------
+                # Reorder subgraph colors by the maximum adjacency cost:
+                # ------------------------------------------------------------
+                group_colors = [group_colors[x] for x in permutation_max]
+                new_colors[isimilar] = group_colors
+
+        # --------------------------------------------------------------------
+        # Assign new colors:
+        # --------------------------------------------------------------------
+        else:
+            new_colors[isimilar] = group_colors
 
         # --------------------------------------------------------------------
         # Draw a figure of the colored subgraph:
         # --------------------------------------------------------------------
         if plot_graphs:
             plt.figure(label_group)
+            subgraph = adjacency_graph.subgraph(igroup)
 
             # Layout:
             pos = nx.nx_pydot.graphviz_layout(subgraph,
@@ -622,32 +687,24 @@ def braincolors(colormap, adjacency_matrix, weights=False,
             ax = plt.gca().axis()
             plt.gca().axis([ax[0]-axis_buffer, ax[1]+axis_buffer,
                             ax[2]-axis_buffer, ax[3]+axis_buffer])
-            plt.savefig(subgraph_image_file_pre +
-                        str(int(subgraph.node[subgraph.nodes()[0]]['ID'])) +
+            plt.savefig(subgraph_image_file_pre + str(int(label_group)) +
                         subgraph_image_file_post)
-            plt.axis('off')
-            plt.show()
+            #plt.show()
 
     # ------------------------------------------------------------------------
-    # Plot the whole graph:
+    # Plot the entire graph (without colors):
     # ------------------------------------------------------------------------
     if plot_graphs:
-        plt.figure(nlabels + 1)
+        plt.figure(nlabels)
 
         # Graph:
         pos = nx.nx_pydot.graphviz_layout(adjacency_graph, prog="neato")
         nx.draw(adjacency_graph, pos,
-                node_color=graph_node_color,
+                node_color='yellow',
                 node_size=graph_node_size,
                 width=graph_edge_width,
                 with_labels=False)
-        # Nodes:
-        nodelist = list(adjacency_graph.node.keys())
-        for icolor, new_color in enumerate(new_colors):
-            nx.draw_networkx_nodes(adjacency_graph, pos,
-                                   node_size=graph_node_size,
-                                   nodelist=[nodelist[icolor]],
-                                   node_color=new_color)
+
         # Labels:
         labels={}
         for ilabel in range(nlabels):
@@ -655,9 +712,24 @@ def braincolors(colormap, adjacency_matrix, weights=False,
         nx.draw_networkx_labels(adjacency_graph, pos, labels,
                                 font_size=graph_font_size,
                                 font_color='black')
-        plt.axis('off')
+        # # Nodes:
+        # nodelist = list(adjacency_graph.node.keys())
+        # for icolor, new_color in enumerate(new_colors):
+        #     nx.draw_networkx_nodes(subgraph, pos,
+        #                            node_size=graph_node_size,
+        #                            nodelist=[nodelist[icolor]],
+        #                            node_color=new_color)
+
         plt.savefig(graph_image_file)
         plt.show()
+
+    # ------------------------------------------------------------------------
+    # Plot the subgraphs (colors):
+    # ------------------------------------------------------------------------
+    if plot_graphs:
+        for label_group in label_groups:
+            plt.figure(label_group)
+            plt.show()
 
     # ------------------------------------------------------------------------
     # Plot the colormap as a horizontal bar chart:
@@ -667,32 +739,49 @@ def braincolors(colormap, adjacency_matrix, weights=False,
         for ilabel in range(nlabels):
             ax = plt.subplot(nlabels, 1, ilabel + 1)
             plt.axis("off")
-            rgb = colors[ilabel]
+            rgb = new_colors[ilabel]
             plt.barh(0, 50, 1, 0, color=rgb)
         plt.savefig(colormap_image_file)
         plt.show()
 
     # ------------------------------------------------------------------------
-    # Save csv file with colormap:
+    # Save new colormap as csv and json files:
     # ------------------------------------------------------------------------
-    if save_csv:
+    if save_text_files:
         np.savetxt(colormap_csv_file, new_colors, fmt='%.18e', delimiter=',',
                    newline='\n', header='')
 
-    # ------------------------------------------------------------------------
-    # Save json file with colormap:
-    # ------------------------------------------------------------------------
-    if save_json:
-        fjson = open(colormap_json_file,'w')
-    print(
-        '<ColorMap name="Mindboggle Colormap" space="RGB" indexedLookup="false">')
-    print('  <NaN r="0" g="0" b="0"/>')
-    print('  <Point x="-1" o="0"  r="0" g="0" b="0"/>')
-    for row in colormap:
-        print('  <Point x="{0}" o="1"  '
-              'r="{1:1.2f}" g="{2:1.2f}" b="{3:1.2f}"/>'.
-              format(row[0], row[2], row[3], row[4]))
-    print('</ColorMap>')
+        f = open(colormap_json_file,'w')
+        f.write("""
+{
+  "name": "DKT31colormap",
+  "description": "Colormap for DKT31 human brain cortical labels”,
+   “colormap": [
+""")
 
+        for icolor, color in enumerate(new_colors):
+            if icolor == len(new_colors) - 1:
+                end_comma = ''
+            else:
+                end_comma = ','
+            f.write('''
+            {0}“ID”: "{1}", 
+            “name”: "{2}", 
+            “red”: “{3}”, 
+            “green”: “{4}”, 
+            “blue”: “{5}"{6}{7}
+            '''.format("{", IDs[icolor], names[icolor],
+                       color[0], color[1], color[2], "}", end_comma))
 
-    return new_colors
+        f.write("""
+  ]
+}
+""")
+        f.close()
+
+    # ------------------------------------------------------------------------
+    # Return new colors:
+    # ------------------------------------------------------------------------
+    colors = new_colors.tolist()
+
+    return colors
