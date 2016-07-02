@@ -317,7 +317,8 @@ def label_adjacency_matrix(label_file, ignore_values=[-1, 999], add_value=0,
     return labels, matrix, output_table
 
 
-def group_colors(colormap, adjacency_matrix=[], IDs=[], names=[], groups=[],
+def group_colors(colormap, colormap_name, description='', adjacency_matrix=[],
+                 IDs=[], names=[], groups=[],
                  save_text_files=True, plot_colors=True,
                  plot_graphs=True, out_dir='.', verbose=True):
     """
@@ -362,6 +363,10 @@ def group_colors(colormap, adjacency_matrix=[], IDs=[], names=[], groups=[],
     ----------
     colormap : string or numpy ndarray of ndarrays of 3 floats between 0 and 1
         csv file containing rgb colormap, or colormap array
+    colormap_name : string
+        name of colormap
+    description : string
+        description of colormap
     adjacency_matrix : string or NxN numpy ndarray (N = number of labels)
         csv file containing label adjacency matrix or matrix itself
     IDs : list of integers
@@ -407,15 +412,18 @@ def group_colors(colormap, adjacency_matrix=[], IDs=[], names=[], groups=[],
     >>> from mindboggle.mio.colors import group_colors
     >>> from mindboggle.mio.labels import DKTprotocol
     >>> dkt = DKTprotocol()
-    >>> save_text_files = True #False
-    >>> plot_colors = False
-    >>> plot_graphs = False
+    >>> colormap_name = "DKT31colormap"
+    >>> description = "Colormap for DKT31 human brain cortical labels"
+    >>> save_text_files = True
+    >>> plot_colors = True #False
+    >>> plot_graphs = True #False
     >>> out_dir = '.'
-    >>> verbose = False
+    >>> verbose = True #False
     >>> #IDs = dkt.DKT31_numbers
     >>> names = dkt.DKT31_names #dkt.left_cerebrum_cortex_DKT31_names
     >>> groups = dkt.DKT31_groups
-    >>> colors = group_colors(colormap, adjacency_matrix, IDs, names, groups,
+    >>> colors = group_colors(colormap, colormap_name, description,
+    ...     adjacency_matrix, IDs, names, groups,
     ...     save_text_files, plot_colors, plot_graphs, out_dir, verbose)
     >>> colors[0]
     [0.7586206896551724, 0.20689655172413793, 0.0]
@@ -429,7 +437,8 @@ def group_colors(colormap, adjacency_matrix=[], IDs=[], names=[], groups=[],
     No groups / subgraphs:
 
     >>> groups = []
-    >>> colors = group_colors(colormap, adjacency_matrix, IDs, names, groups,
+    >>> colors = group_colors(colormap, colormap_name, description,
+    ...     adjacency_matrix, IDs, names, groups,
     ...     save_text_files, plot_colors, plot_graphs, out_dir, verbose)
     >>> colors[0]
     [0.5172413793103449, 0.8275862068965517, 1.0]
@@ -449,6 +458,9 @@ def group_colors(colormap, adjacency_matrix=[], IDs=[], names=[], groups=[],
     from colormath.color_diff import delta_e_cie2000
     from colormath.color_objects import LabColor, AdobeRGBColor
     from colormath.color_conversions import convert_color
+    import itertools
+
+    from mindboggle.mio.colors import write_json_colormap, write_xml_colormap
 
     # ------------------------------------------------------------------------
     # Set parameters for graph layout and output files:
@@ -598,11 +610,14 @@ def group_colors(colormap, adjacency_matrix=[], IDs=[], names=[], groups=[],
                                         icolors_to_pick])[0:N]
         icolors_to_pick_copy = icolors_to_pick.copy()
         group_colors = [list(colors[icolors_to_pick[i]]) for i in isimilar]
+        if run_permutations:
+            group_lab_colors = [lab_colors[icolors_to_pick[i]]
+                                for i in isimilar]
         for iremove in isimilar:
             icolors_to_pick.remove(icolors_to_pick_copy[iremove])
 
         # --------------------------------------------------------------------
-        # Reorder subgraph colors according to label adjacency sum
+        # Reorder group colors according to label adjacency sum
         # (decreasing number of adjacent labels):
         # --------------------------------------------------------------------
         isort_group_labels = np.argsort(isort_labels[igroup])
@@ -617,10 +632,9 @@ def group_colors(colormap, adjacency_matrix=[], IDs=[], names=[], groups=[],
             permutation_max = np.zeros(N)
             NxN_matrix = np.zeros((N, N))
             # ----------------------------------------------------------------
-            # Convert subgraph into an adjacency matrix:
+            # Extract group adjacency submatrix:
             # ----------------------------------------------------------------
-            neighbor_matrix = np.array(nx.to_numpy_matrix(subgraph,
-                                            nodelist=igroup))
+            neighbor_matrix = adjacency_values[igroup, :][:, igroup]
             if not weights:
                 neighbor_matrix = (neighbor_matrix > 0).astype(np.uint8)
             # ----------------------------------------------------------------
@@ -651,7 +665,7 @@ def group_colors(colormap, adjacency_matrix=[], IDs=[], names=[], groups=[],
                     DEmax = DE
                     permutation_max = permutation
                 # ------------------------------------------------------------
-                # Reorder subgraph colors by the maximum adjacency cost:
+                # Reorder group colors by the maximum adjacency cost:
                 # ------------------------------------------------------------
                 group_colors = [group_colors[x] for x in permutation_max]
                 new_colors[isimilar] = group_colors
@@ -767,49 +781,17 @@ def group_colors(colormap, adjacency_matrix=[], IDs=[], names=[], groups=[],
         # ------------------------------------------------------------------------
         # Save new colormap as a json file:
         # ------------------------------------------------------------------------
-        f = open(colormap_json_file,'w')
-        f.write("""
-{
-  "name": "DKT31colormap",
-  "description": "Colormap for DKT31 human brain cortical labels”,
-   “colormap": [
-""")
-
-        for icolor, color in enumerate(new_colors):
-            if icolor == len(new_colors) - 1:
-                end_comma = ''
-            else:
-                end_comma = ','
-            f.write('''
-            {0}“ID”: "{1}", 
-            “name”: "{2}", 
-            “red”: “{3}”, 
-            “green”: “{4}”, 
-            “blue”: “{5}"{6}{7}
-            '''.format("{", IDs[icolor], names[icolor],
-                       color[0], color[1], color[2], "}", end_comma))
-
-        f.write("""
-  ]
-}
-""")
-        f.close()
+        write_json_colormap(colormap=new_colors, label_numbers=IDs,
+                            colormap_file=colormap_json_file,
+                            colormap_name=colormap_name,
+                            description=description)
 
         # ------------------------------------------------------------------------
         # Save new colormap as an xml file:
         # ------------------------------------------------------------------------
-        f = open(colormap_xml_file,'w')
-        f.write("""
-<ColorMap name="DKT31colormap" space="RGB">
-""")
-        for icolor, color in enumerate(new_colors):
-            f.write('''
-<Point x="{0}" o="{0}" r="{1}" g="{2}" b="{3}"/>
-            '''.format(IDs[icolor] / max(IDs), color[0], color[1], color[2]))
-        f.write("""
-</ColorMap>
-""")
-        f.close()
+        write_xml_colormap(colormap=new_colors, label_numbers=IDs,
+                           colormap_file=colormap_xml_file,
+                           colormap_name=colormap_name)
 
     # ------------------------------------------------------------------------
     # Return new colors:
@@ -817,3 +799,137 @@ def group_colors(colormap, adjacency_matrix=[], IDs=[], names=[], groups=[],
     colors = new_colors.tolist()
 
     return colors
+
+
+def write_json_colormap(colormap, label_numbers, label_names=[],
+                        colormap_file='', colormap_name='', description=''):
+    """
+    Write colormap to json format.
+
+    Parameters
+    ----------
+    colormap : numpy ndarray or list of lists of string and floats
+        label, 1, red, green, blue
+    label_names : list of strings
+        label names
+    label_numbers : list of integers
+        label numbers
+    colormap_file : string
+        output json file name
+    colormap_name : string
+        name of colormap
+    description : string
+        description of colormap
+
+    Examples
+    --------
+    >>> from mindboggle.mio.colors import write_xml_colormap
+    >>> from mindboggle.mio.labels import DKTprotocol
+    >>> dkt = DKTprotocol()
+    >>> colormap = dkt.colormap_normalized
+    >>> label_numbers = dkt.label_numbers
+    >>> label_names = dkt.label_names
+    >>> colormap_file = ''
+    >>> colormap_name = "DKT31colormap"
+    >>> description = "Colormap for DKT31 human brain cortical labels"
+    >>> colormap[0]
+    [3, 1, 0.803921568627451, 0.24313725490196078, 0.3058823529411765]
+    >>> colormap[1]
+    [19, 1, 0.3137254901960784, 0.7686274509803922, 0.3843137254901961]
+    >>> colormap[2]
+    [20, 1, 0.23529411764705882, 0.22745098039215686, 0.8235294117647058]
+    >>> write_xml_colormap(colormap, label_numbers, label_names,
+    ...     colormap_file, colormap_name)
+    """
+
+    if not colormap_file:
+        colormap_file = 'label_colormap.xml'
+    if not colormap_name:
+        colormap_name = 'Colormap'
+
+    f = open(colormap_file,'w')
+    f.write('''
+{
+  "name": "{0}",
+  "description": "{1}”,
+   “colormap": [
+'''.format(colormap_name, description))
+
+
+    for icolor, color in enumerate(colormap):
+        if icolor == len(colormap) - 1:
+            end_comma = ''
+        else:
+            end_comma = ','
+        f.write('''
+        {0}“ID”: "{1}", 
+        “name”: "{2}", 
+        “red”: “{3}”, 
+        “green”: “{4}”, 
+        “blue”: “{5}"{6}{7}
+        '''.format("{", label_numbers[icolor], label_names[icolor],
+                   color[0], color[1], color[2], "}", end_comma))
+
+    f.write('''
+  ]
+}
+''')
+    f.close()
+
+
+def write_xml_colormap(colormap, label_numbers, colormap_file='',
+                       colormap_name=''):
+    """
+    Write colormap to xml format.
+
+    Parameters
+    ----------
+    colormap : numpy ndarray or list of lists of string and floats
+        label, 1, red, green, blue
+    label_numbers : list of integers
+        label numbers
+    colormap_file : string
+        output xml file name
+    colormap_name : string
+        name of colormap
+
+    Examples
+    --------
+    >>> from mindboggle.mio.colors import write_xml_colormap
+    >>> from mindboggle.mio.labels import DKTprotocol
+    >>> dkt = DKTprotocol()
+    >>> colormap = dkt.colormap_normalized
+    >>> label_numbers = dkt.label_numbers
+    >>> colormap_file = ''
+    >>> colormap_name = 'DKT31colormap'
+    >>> colormap[0]
+    [3, 1, 0.803921568627451, 0.24313725490196078, 0.3058823529411765]
+    >>> colormap[1]
+    [19, 1, 0.3137254901960784, 0.7686274509803922, 0.3843137254901961]
+    >>> colormap[2]
+    [20, 1, 0.23529411764705882, 0.22745098039215686, 0.8235294117647058]
+    >>> write_xml_colormap(colormap, label_numbers, colormap_file,
+    ...     colormap_name)
+    """
+
+    if not colormap_file:
+        colormap_file = 'label_colormap.xml'
+    if not colormap_name:
+        colormap_name = 'Colormap'
+
+    f = open(colormap_file,'w')
+    f.write('''
+<ColorMap name="{0}" space="RGB">
+    <NaN r="0" g="0" b="0"/>
+    <Point x="-1" o="0"  r="0" g="0" b="0"/>
+'''.format(colormap_name))
+
+    for icolor, color in enumerate(colormap):
+        f.write('''    <Point x="{0}" o="1" r="{1}" g="{2}" b="{3}"/>
+        '''.format(label_numbers[icolor], color[0], color[1], color[2]))
+
+    f.write('''
+</ColorMap>
+''')
+    f.close()
+
