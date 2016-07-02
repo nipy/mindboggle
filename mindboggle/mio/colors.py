@@ -415,10 +415,10 @@ def group_colors(colormap, colormap_name, description='', adjacency_matrix=[],
     >>> colormap_name = "DKT31colormap"
     >>> description = "Colormap for DKT31 human brain cortical labels"
     >>> save_text_files = True
-    >>> plot_colors = True #False
-    >>> plot_graphs = True #False
+    >>> plot_colors = False
+    >>> plot_graphs = False
     >>> out_dir = '.'
-    >>> verbose = True #False
+    >>> verbose = False
     >>> #IDs = dkt.DKT31_numbers
     >>> names = dkt.DKT31_names #dkt.left_cerebrum_cortex_DKT31_names
     >>> groups = dkt.DKT31_groups
@@ -484,6 +484,8 @@ def group_colors(colormap, colormap_name, description='', adjacency_matrix=[],
         colormap_csv_file = os.path.join(out_dir, 'label_colormap.csv')
         colormap_json_file = os.path.join(out_dir, 'label_colormap.json')
         colormap_xml_file = os.path.join(out_dir, 'label_colormap.xml')
+
+    run_permutations = False
 
     # ------------------------------------------------------------------------
     # Load colormap:
@@ -626,7 +628,6 @@ def group_colors(colormap, colormap_name, description='', adjacency_matrix=[],
         # --------------------------------------------------------------------
         # Compute differences between every pair of colors within group:
         # --------------------------------------------------------------------
-        run_permutations = False
         weights = False
         if run_permutations:
             permutation_max = np.zeros(N)
