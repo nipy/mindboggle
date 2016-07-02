@@ -406,10 +406,10 @@ def group_colors(colormap, adjacency_matrix=[], IDs=[], names=[], groups=[],
     >>> from mindboggle.mio.labels import DKTprotocol
     >>> dkt = DKTprotocol()
     >>> save_text_files = True #False
-    >>> plot_colors = True #False
-    >>> plot_graphs = True #False
+    >>> plot_colors = False
+    >>> plot_graphs = False
     >>> out_dir = '.'
-    >>> verbose = True #False
+    >>> verbose = False
     >>> #IDs = dkt.DKT31_numbers
     >>> names = dkt.DKT31_names #dkt.left_cerebrum_cortex_DKT31_names
     >>> groups = dkt.DKT31_groups
@@ -469,6 +469,7 @@ def group_colors(colormap, adjacency_matrix=[], IDs=[], names=[], groups=[],
     if save_text_files:
         colormap_csv_file = os.path.join(out_dir, 'label_colormap.csv')
         colormap_json_file = os.path.join(out_dir, 'label_colormap.json')
+        colormap_xml_file = os.path.join(out_dir, 'label_colormap.xml')
 
     # ------------------------------------------------------------------------
     # Load colormap:
@@ -751,15 +752,19 @@ def group_colors(colormap, adjacency_matrix=[], IDs=[], names=[], groups=[],
         plt.show()
 
     # ------------------------------------------------------------------------
-    # Save new colormap as csv and json files:
+    # Save new colormap as text files:
     # ------------------------------------------------------------------------
     if save_text_files:
+
         # ------------------------------------------------------------------------
-        # Save new colormap as csv and json files:
+        # Save new colormap as a csv file:
         # ------------------------------------------------------------------------
         np.savetxt(colormap_csv_file, new_colors, fmt='%.18e', delimiter=',',
                    newline='\n', header='')
 
+        # ------------------------------------------------------------------------
+        # Save new colormap as a json file:
+        # ------------------------------------------------------------------------
         f = open(colormap_json_file,'w')
         f.write("""
 {
@@ -785,6 +790,22 @@ def group_colors(colormap, adjacency_matrix=[], IDs=[], names=[], groups=[],
         f.write("""
   ]
 }
+""")
+        f.close()
+
+        # ------------------------------------------------------------------------
+        # Save new colormap as an xml file:
+        # ------------------------------------------------------------------------
+        f = open(colormap_xml_file,'w')
+        f.write("""
+<ColorMap name="DKT31colormap" space="RGB">
+""")
+        for icolor, color in enumerate(new_colors):
+            f.write('''
+<Point x="{0}" o="1" r="{1}" g="{2}" b="{3}"/>
+            '''.format(icolor / (ncolors - 1), color[0], color[1], color[2]))
+        f.write("""
+</ColorMap>
 """)
         f.close()
 
