@@ -356,6 +356,8 @@ def group_colors(colormap, adjacency_matrix=[], IDs=[], names=[], groups=[],
        assigned the same group number (which usually means they are adjacent).
     3. Plot the colormap and colored sub/graphs.
 
+    NOTE: Requires pydotplus
+
     Parameters
     ----------
     colormap : string or numpy ndarray of ndarrays of 3 floats between 0 and 1
