@@ -754,6 +754,9 @@ def group_colors(colormap, adjacency_matrix=[], IDs=[], names=[], groups=[],
     # Save new colormap as csv and json files:
     # ------------------------------------------------------------------------
     if save_text_files:
+        # ------------------------------------------------------------------------
+        # Save new colormap as csv and json files:
+        # ------------------------------------------------------------------------
         np.savetxt(colormap_csv_file, new_colors, fmt='%.18e', delimiter=',',
                    newline='\n', header='')
 
