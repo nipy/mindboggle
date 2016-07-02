@@ -46,7 +46,7 @@ dependencies:
     - matplotlib
     - numpy
     - pandas
-    - colormath
+    - python-colormath
     #-------------------------------------------------------------------------
     # additional testing tools:
     #-------------------------------------------------------------------------
