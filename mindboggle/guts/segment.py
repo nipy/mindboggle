@@ -94,7 +94,7 @@ def propagate(points, faces, region, seeds, labels,
     >>> segments = propagate(points, faces, region, seeds, labels,
     ...                      max_iters, tol, sigma, background_value, verbose)
     >>> np.unique(segments)[0:10]
-    array([ -1.,   3.,  12.,  23.])
+    array([ -1.,   3.,  12.,  22.])
     >>> len_segments = [len(np.where(segments == x)[0])
     ...                 for x in np.unique(segments) if x != background_value]
     >>> len_segments[0:10]
