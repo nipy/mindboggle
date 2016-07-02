@@ -803,7 +803,7 @@ def group_colors(colormap, adjacency_matrix=[], IDs=[], names=[], groups=[],
         for icolor, color in enumerate(new_colors):
             f.write('''
 <Point x="{0}" o="{0}" r="{1}" g="{2}" b="{3}"/>
-            '''.format(icolor / (nlabels - 1), color[0], color[1], color[2]))
+            '''.format(IDs[icolor], color[0], color[1], color[2]))
         f.write("""
 </ColorMap>
 """)
