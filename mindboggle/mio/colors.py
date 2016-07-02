@@ -827,53 +827,42 @@ def write_json_colormap(colormap, label_numbers, label_names=[],
     >>> from mindboggle.mio.labels import DKTprotocol
     >>> dkt = DKTprotocol()
     >>> colormap = dkt.colormap_normalized
+    >>> colormap = [[x[2], x[3], x[4]] for x in colormap]
     >>> label_numbers = dkt.label_numbers
     >>> label_names = dkt.label_names
     >>> colormap_file = ''
     >>> colormap_name = "DKT31colormap"
     >>> description = "Colormap for DKT31 human brain cortical labels"
     >>> colormap[0]
-    [3, 1, 0.803921568627451, 0.24313725490196078, 0.3058823529411765]
-    >>> colormap[1]
-    [19, 1, 0.3137254901960784, 0.7686274509803922, 0.3843137254901961]
-    >>> colormap[2]
-    [20, 1, 0.23529411764705882, 0.22745098039215686, 0.8235294117647058]
-    >>> write_xml_colormap(colormap, label_numbers, label_names,
-    ...     colormap_file, colormap_name)
+    [0.803921568627451, 0.24313725490196078, 0.3058823529411765]
+    >>> write_json_colormap(colormap, label_numbers, label_names,
+    ...     colormap_file, colormap_name, description)
     """
 
     if not colormap_file:
-        colormap_file = 'label_colormap.xml'
+        colormap_file = 'label_colormap.json'
     if not colormap_name:
         colormap_name = 'Colormap'
 
-    f = open(colormap_file,'w')
-    f.write('''
-{
-  "name": "{0}",
-  "description": "{1}”,
-   “colormap": [
-'''.format(colormap_name, description))
+    f = open(colormap_file, 'w')
+    f.write("{\n")
+    f.write('    "name": "{0}",\n'.format(colormap_name))
+    f.write('    "description": "{0}",\n'.format(description))
+    f.write('    "colormap": [\n')
 
 
     for icolor, color in enumerate(colormap):
+
         if icolor == len(colormap) - 1:
             end_comma = ''
         else:
             end_comma = ','
-        f.write('''
-        {0}“ID”: "{1}", 
-        “name”: "{2}", 
-        “red”: “{3}”, 
-        “green”: “{4}”, 
-        “blue”: “{5}"{6}{7}
-        '''.format("{", label_numbers[icolor], label_names[icolor],
-                   color[0], color[1], color[2], "}", end_comma))
 
-    f.write('''
-  ]
-}
-''')
+        f.write('    {0}"ID": "{1}", "name": "{2}", '
+                '"red": "{3}", "green": "{4}", "blue": "{5}"{6}{7}\n'.
+                format("{", label_numbers[icolor], label_names[icolor],
+                       color[0], color[1], color[2], "}", end_comma))
+    f.write(']}')
     f.close()
 
 
@@ -899,15 +888,12 @@ def write_xml_colormap(colormap, label_numbers, colormap_file='',
     >>> from mindboggle.mio.labels import DKTprotocol
     >>> dkt = DKTprotocol()
     >>> colormap = dkt.colormap_normalized
+    >>> colormap = [[x[2], x[3], x[4]] for x in colormap]
     >>> label_numbers = dkt.label_numbers
     >>> colormap_file = ''
     >>> colormap_name = 'DKT31colormap'
     >>> colormap[0]
-    [3, 1, 0.803921568627451, 0.24313725490196078, 0.3058823529411765]
-    >>> colormap[1]
-    [19, 1, 0.3137254901960784, 0.7686274509803922, 0.3843137254901961]
-    >>> colormap[2]
-    [20, 1, 0.23529411764705882, 0.22745098039215686, 0.8235294117647058]
+    [0.803921568627451, 0.24313725490196078, 0.3058823529411765]
     >>> write_xml_colormap(colormap, label_numbers, colormap_file,
     ...     colormap_name)
     """
