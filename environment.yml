@@ -39,7 +39,7 @@ dependencies:
         - traits
         - xvfbwrapper
         - https://github.com/nipy/nipype/archive/master.zip
-        - python-colormath
+        - colormath
     #-------------------------------------------------------------------------
     # mindboggle's remaining dependencies:
     #-------------------------------------------------------------------------
