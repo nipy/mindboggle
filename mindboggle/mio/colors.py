@@ -431,6 +431,14 @@ def group_colors(colormap, adjacency_matrix=[], IDs=[], names=[], groups=[],
     >>> groups = []
     >>> colors = group_colors(colormap, adjacency_matrix, IDs, names, groups,
     ...     save_text_files, plot_colors, plot_graphs, out_dir, verbose)
+    >>> colors[0]
+    [0.5172413793103449, 0.8275862068965517, 1.0]
+    >>> colors[1]
+    [0.13793103448275862, 0.0, 0.24137931034482757]
+    >>> colors[2]
+    [0.3793103448275862, 0.27586206896551724, 0.48275862068965514]
+    >>> colors[-1]
+    [0.6206896551724138, 0.48275862068965514, 0.3448275862068966]
 
     """
     import os
