@@ -146,10 +146,12 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     thickinthehead which computes a simple thickness measure for each
     cortical region using the hybrid segmentation volume rather than surfaces.
 
-    The thickinthehead function first resamples cortex and non-cortex files
-    from, for example, 1mm^3 to 0.5mm^3 voxel dimensions to better represent
-    the contours of the cortex, then extracts outer and inner boundary voxels
-    of the cortex by eroding the cortex by one (resampled) voxel bordering
+    The thickinthehead function first saves a brain volume that has been
+    segmented into cortex and non-cortex voxels into separate binary files,
+    then resamples these cortex and non-cortex files from, for example,
+    1mm^3 to 0.5mm^3 voxel dimensions to better represent the contours
+    of the cortex, then extracts outer and inner boundary voxels of the cortex
+    by morphologically eroding the cortex by one (resampled) voxel bordering
     the outside of the brain and bordering the inside of the brain
     (non-cortex). Then it estimates the middle cortical surface area by the
     average volume of the outer and inner boundary voxels of the cortex.

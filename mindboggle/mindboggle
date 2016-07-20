@@ -1230,7 +1230,7 @@ if not args.no_surfaces:
                            SurfFeatureShapeFlow, 'Spectra_labels.vtk_file')
             SpectraLabels.inputs.spectrum_size = spectra
             SpectraLabels.inputs.exclude_labels = [0]
-            SpectraLabels.inputs.normalization = "area"
+            SpectraLabels.inputs.normalization = "areaindex"
             SpectraLabels.inputs.area_file = ""
             SpectraLabels.inputs.largest_segment = True
             SpectraLabels.inputs.verbose = True
