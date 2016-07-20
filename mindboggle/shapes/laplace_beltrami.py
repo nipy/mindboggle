@@ -413,7 +413,8 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization="areaindex",
     spectrum_size : integer
         number of eigenvalues to be computed (the length of the spectrum)
     normalization : string
-        the method used to normalize eigenvalues ('area' or None)
+        the method used to normalize eigenvalues
+        if None, no normalization is used
         if "area", use area of the 2D structure as in Reuter et al. 2006
         if "index", divide eigenvalue by index to account for linear trend
         if "areaindex", do both (default)
@@ -569,7 +570,8 @@ def spectrum_of_largest(points, faces, spectrum_size=10, exclude_labels=[-1],
     exclude_labels : list of integers
         background values to exclude
     normalization : string
-        the method used to normalize eigenvalues ('area' or None)
+        the method used to normalize eigenvalues
+        if None, no normalization is used
         if "area", use area of the 2D structure as in Reuter et al. 2006
         if "index", divide eigenvalue by index to account for linear trend
         if "areaindex", do both (default)
@@ -680,6 +682,7 @@ def spectrum_from_file(vtk_file, spectrum_size=10, exclude_labels=[-1],
         labels to be excluded
     normalization : string
         the method used to normalize eigenvalues
+        if None, no normalization is used
         if "area", use area of the 2D structure as in Reuter et al. 2006
         if "index", divide eigenvalue by index to account for linear trend
         if "areaindex", do both (default)
@@ -710,9 +713,9 @@ def spectrum_from_file(vtk_file, spectrum_size=10, exclude_labels=[-1],
     >>> spectrum = spectrum_from_file(vtk_file, spectrum_size=6,
     ...     exclude_labels=[-1], normalization="areaindex", area_file="",
     ...     verbose=False)
-    >>> print("{0:2.5f} {1:2.5f} {2:2.5f} {3:2.5f} {4:2.5f}".format(
-    ...     spectrum[1], spectrum[2], spectrum[3], spectrum[4], spectrum[5]))
-    14.12801 14.93573 11.75397 12.93141 12.69348
+    >>> print(np.array_str(np.array(spectrum[1::]),
+    ...                    precision=5, suppress_small=True))
+    [ 14.12801  14.93573  11.75397  12.93141  12.69348]
     """
     from mindboggle.mio.vtks import read_vtk, read_scalars
     from mindboggle.shapes.laplace_beltrami import spectrum_of_largest
@@ -748,7 +751,8 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
     exclude_labels : list of integers
         labels to be excluded
     normalization : string
-        the method used to normalize eigenvalues ('area' or None)
+        the method used to normalize eigenvalues
+        if None, no normalization is used
         if "area", use area of the 2D structure as in Reuter et al. 2006
         if "index", divide eigenvalue by index to account for linear trend
         if "areaindex", do both (default)
