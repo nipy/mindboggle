@@ -272,12 +272,10 @@ def index_normalize(spectrum):
     >>> print(np.array_str(np.array(spectrum[1::]),
     ...       precision=5, suppress_small=True))
     [ 4.58359  4.8    ]
-    >>> new_spectrum = area_normalize(points, faces, spectrum)
-    [ 27.50155  28.8    ]
-    >>> new_spectrum = index_normalize(new_spectrum)
+    >>> new_spectrum = index_normalize(spectrum)
     >>> print(np.array_str(np.array(new_spectrum[1::]),
     ...       precision=5, suppress_small=True))
-
+    [ 4.58359  2.4    ]
 
     """
 
@@ -704,11 +702,15 @@ def spectrum_from_file(vtk_file, spectrum_size=10, exclude_labels=[-1],
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
     >>> vtk_file = fetch_data(urls['left_freesurfer_labels'], '', '.vtk')
-    >>> spectrum = spectrum_from_file(vtk_file, spectrum_size=6)
+    >>> spectrum = spectrum_from_file(vtk_file, spectrum_size=6,
+    ...     exclude_labels=[-1], normalization=none, area_file="", verbose=False)
     >>> print(np.array_str(np.array(spectrum[1::]),
     ...                    precision=5, suppress_small=True))
     [ 0.00013  0.00027  0.00032  0.00047  0.00058]
-
+    >>> spectrum = spectrum_from_file(vtk_file, spectrum_size=6,
+    ...     exclude_labels=[-1], normalization="areaindex", area_file="",
+    ...     verbose=False)
+    [ 14.12801  14.93573  11.75397  12.93141  12.69348]
     """
     from mindboggle.mio.vtks import read_vtk, read_scalars
     from mindboggle.shapes.laplace_beltrami import spectrum_of_largest
