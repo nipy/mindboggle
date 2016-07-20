@@ -29,13 +29,14 @@ NOTE ::
     when inverting matrices because some rows are all zeros.
 
 Acknowledgments:
-    - Dr. Martin Reuter, MIT, provided his MATLAB code and assisted us in
-      understanding his articles about the Laplace-Beltrami operator.
+    - Dr. Martin Reuter, Harvard Medical School, provided his MATLAB code, and
+      contributed code and bug fixes. He also assisted us in understanding his
+      articles about the Laplace-Beltrami operator.
     - Dr. Eric You Xu, Google (http://www.youxu.info/),
       explained how eigenvalue problems are solved numerically.
 
 Authors:
-    - Martin Reuter, 2009-2016, http://reuter.mit.edu/ (original MATLAB code)
+    - Martin Reuter, 2009-2016, http://reuter.mit.edu/
     - Eliezer Stavsky, 2012  (eli.stavsky@gmail.com)
     - Forrest Sheng Bao, 2012-2013  (forrest.bao@gmail.com)  http://fsbao.net
     - Arno Klein, 2012-2016  (arno@mindboggle.info)  http://binarybottle.com
@@ -240,6 +241,58 @@ def area_normalize(points, faces, spectrum):
     return new_spectrum
 
 
+def index_normalize(spectrum):
+    """
+    Normalize a spectrum by division of index to account for linear increase of
+    Eigenvalue magnitude (Weyl's law in 2D) as suggested in Reuter et al. (2006)
+    and used in BrainPrint (Wachinger et al. 2015)
+
+    Parameters
+    ----------
+    spectrum : list of floats
+        LB spectrum of a given shape
+
+    Returns
+    -------
+    new_spectrum : list of floats
+        Linearly re-weighted LB spectrum
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from mindboggle.shapes.laplace_beltrami import area_normalize
+    >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian
+    >>> # Define a cube:
+    >>> points = [[0,0,0], [0,1,0], [1,1,0], [1,0,0],
+    ...           [0,0,1], [0,1,1], [1,1,1], [1,0,1]]
+    >>> faces = [[0,1,2], [2,3,0], [4,5,6], [6,7,4], [0,4,7], [7,3,0],
+    ...          [0,4,5], [5,1,0], [1,5,6], [6,2,1], [3,7,6], [6,2,3]]
+    >>> spectrum = fem_laplacian(points, faces, spectrum_size=3,
+    ...                          normalization=None)
+    >>> print(np.array_str(np.array(spectrum[1::]),
+    ...       precision=5, suppress_small=True))
+    [ 4.58359  4.8    ]
+    >>> new_spectrum = area_normalize(points, faces, spectrum)
+    [ 27.50155  28.8    ]
+    >>> new_spectrum = index_normalize(new_spectrum)
+    >>> print(np.array_str(np.array(new_spectrum[1::]),
+    ...       precision=5, suppress_small=True))
+
+
+    """
+
+    # define index list of floats
+    idx = [float(i) for i in range(1,len(spectrum) + 1)]
+    # if first entry is zero, shift index
+    if (abs(spectrum[0]<1e-09)):
+        idx = [i-1 for i in idx]
+        idx[0] = 1.0
+    # divide each element by its index
+    new_spectrum = [x/i for x, i in zip(spectrum, idx)]
+
+    return new_spectrum
+
+
 def wesd(EVAL1, EVAL2, Vol1, Vol2, show_error=False, N=3):
     """
     Weighted Spectral Distance. See Konukoglu et al. (2012)
@@ -299,7 +352,7 @@ def wesd(EVAL1, EVAL2, Vol1, Vol2, show_error=False, N=3):
     return WESD
 
 
-def fem_laplacian(points, faces, spectrum_size=10, normalization=None,
+def fem_laplacian(points, faces, spectrum_size=10, normalization="areaindex",
                   verbose=False):
     """
     Compute linear finite-element method Laplace-Beltrami spectrum
@@ -364,6 +417,8 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None,
     normalization : string
         the method used to normalize eigenvalues ('area' or None)
         if "area", use area of the 2D structure as in Reuter et al. 2006
+        if "index", divide eigenvalue by index to account for linear trend
+        if "areaindex", do both (default)
     verbose : bool
         print statements?
 
@@ -442,6 +497,8 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None,
 
         # eigs is for nonsymmetric matrices while
         # eigsh is for real-symmetric or complex-Hermitian matrices:
+        # Martin Reuter: "small sigma shift helps prevent numerical
+        #   instabilities with zero eigenvalue"
         eigenvalues, eigenvectors = eigsh(A, k=spectrum_size, M=B,
                                           sigma=-0.01)
         spectrum = eigenvalues.tolist()
@@ -477,6 +534,17 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None,
         if verbose:
             print("Compute area-normalized linear FEM Laplace-Beltrami "
                   "spectrum")
+    elif normalization == "index":
+        spectrum = index_normalize(spectrum)
+        if verbose:
+            print("Compute index-normalized linear FEM Laplace-Beltrami"
+                  " spectrum")
+    elif normalization == "areaindex":
+        spectrum = index_normalize(spectrum)
+        spectrum = area_normalize(points,faces,spectrum)
+        if verbose:
+            print("Compute area and index-normalized linear FEM "
+                  "Laplace-Beltrami spectrum")
     else:
         if verbose:
             print("Compute linear FEM Laplace-Beltrami spectrum")
@@ -485,7 +553,7 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None,
 
 
 def spectrum_of_largest(points, faces, spectrum_size=10, exclude_labels=[-1],
-                        normalization=None, areas=None, verbose=False):
+                        normalization="areaindex", areas=None, verbose=False):
     """
     Compute Laplace-Beltrami spectrum on largest connected segment.
 
@@ -505,6 +573,8 @@ def spectrum_of_largest(points, faces, spectrum_size=10, exclude_labels=[-1],
     normalization : string
         the method used to normalize eigenvalues ('area' or None)
         if "area", use area of the 2D structure as in Reuter et al. 2006
+        if "index", divide eigenvalue by index to account for linear trend
+        if "areaindex", do both (default)
     areas : numpy array or list of floats (or None)
         surface area scalar values for all vertices
     verbose : bool
@@ -598,7 +668,7 @@ def spectrum_of_largest(points, faces, spectrum_size=10, exclude_labels=[-1],
 
 
 def spectrum_from_file(vtk_file, spectrum_size=10, exclude_labels=[-1],
-                       normalization=None, area_file='', verbose=False):
+                       normalization="areaindex", area_file='', verbose=False):
     """
     Compute Laplace-Beltrami spectrum of a 3D shape in a VTK file.
 
@@ -613,6 +683,8 @@ def spectrum_from_file(vtk_file, spectrum_size=10, exclude_labels=[-1],
     normalization : string
         the method used to normalize eigenvalues ('area' or None)
         if "area", use area of the 2D structure as in Reuter et al. 2006
+        if "index", divide eigenvalue by index to account for linear trend
+        if "areaindex", do both (default)
     area_file :  string
         name of VTK file with surface area scalar values
     verbose : bool
@@ -658,7 +730,7 @@ def spectrum_from_file(vtk_file, spectrum_size=10, exclude_labels=[-1],
 
 
 def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
-                       normalization='area', area_file='',
+                       normalization='areaindex', area_file='',
                        largest_segment=True, verbose=False):
     """
     Compute Laplace-Beltrami spectrum per labeled region in a file.
@@ -674,6 +746,8 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
     normalization : string
         the method used to normalize eigenvalues ('area' or None)
         if "area", use area of the 2D structure as in Reuter et al. 2006
+        if "index", divide eigenvalue by index to account for linear trend
+        if "areaindex", do both (default)
     area_file :  string (optional)
         name of VTK file with surface area scalar values
     largest_segment :  bool
