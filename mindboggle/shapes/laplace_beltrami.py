@@ -710,7 +710,9 @@ def spectrum_from_file(vtk_file, spectrum_size=10, exclude_labels=[-1],
     >>> spectrum = spectrum_from_file(vtk_file, spectrum_size=6,
     ...     exclude_labels=[-1], normalization="areaindex", area_file="",
     ...     verbose=False)
-    [ 14.12801  14.93573  11.75397  12.93141  12.69348]
+    >>> print("{0:2.5f} {1:2.5f} {2:2.5f} {3:2.5f} {4:2.5f}".format(
+    ...     spectrum[1], spectrum[2], spectrum[3], spectrum[4], spectrum[5]))
+    14.12801 14.93573 11.75397 12.93141 12.69348
     """
     from mindboggle.mio.vtks import read_vtk, read_scalars
     from mindboggle.shapes.laplace_beltrami import spectrum_of_largest
