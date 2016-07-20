@@ -679,7 +679,7 @@ def spectrum_from_file(vtk_file, spectrum_size=10, exclude_labels=[-1],
     exclude_labels : list of integers
         labels to be excluded
     normalization : string
-        the method used to normalize eigenvalues ('area' or None)
+        the method used to normalize eigenvalues
         if "area", use area of the 2D structure as in Reuter et al. 2006
         if "index", divide eigenvalue by index to account for linear trend
         if "areaindex", do both (default)
@@ -703,7 +703,7 @@ def spectrum_from_file(vtk_file, spectrum_size=10, exclude_labels=[-1],
     >>> urls, fetch_data = prep_tests()
     >>> vtk_file = fetch_data(urls['left_freesurfer_labels'], '', '.vtk')
     >>> spectrum = spectrum_from_file(vtk_file, spectrum_size=6,
-    ...     exclude_labels=[-1], normalization=none, area_file="", verbose=False)
+    ...     exclude_labels=[-1], normalization=None, area_file="", verbose=False)
     >>> print(np.array_str(np.array(spectrum[1::]),
     ...                    precision=5, suppress_small=True))
     [ 0.00013  0.00027  0.00032  0.00047  0.00058]
