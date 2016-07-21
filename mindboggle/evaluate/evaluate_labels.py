@@ -251,7 +251,8 @@ if __name__ == "__main__":
                                      surf, 'vertices.csv')
                 print(file1)
                 print(file2)
-                output_file = "{0}_{1}_overlaps.csv".format(subject, surf)
+                output_file = "{0}_{1}_surface_label_overlaps.csv".\
+                    format(subject, surf)
                 evaluate_surface_overlaps(dkt.cerebrum_cortex_DKT31_numbers,
                                           index, file1, file2, output_file)
 
