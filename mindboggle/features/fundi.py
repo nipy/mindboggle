@@ -142,7 +142,7 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     from mindboggle.guts.compute import median_abs_dev
     from mindboggle.guts.paths import find_max_values
     from mindboggle.guts.mesh import find_neighbors_from_file
-    from mindboggle.guts.mesh import find_complete_faces
+    #from mindboggle.guts.mesh import find_complete_faces
     from mindboggle.guts.paths import find_outer_endpoints
     from mindboggle.guts.paths import connect_points_erosion
 
