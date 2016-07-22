@@ -239,14 +239,18 @@ if __name__ == "__main__":
 
     measure_feature_distances = False
     maxd = 53
-    plot_fundus_distances = True
-    use_all_subjects = False
+    feature_dir = '/homedir/fundus_evaluation_2014/fundi_vtk'
+
+    plot_and_describe_fundus_distances = True
+    use_all_subjects = True
     exclude_sulci = [20] # Sulcus 20 removed from protocol since initial run
     colors = viridis_colormap()
     #from matplotlib import cm as cmaps
     #import matplotlib.pyplot as plt
     #plt.register_cmap(name='viridis', cmap=cmaps.viridis)
     #plt.set_cmap(cmaps.viridis)
+
+    compute_results = True
 
     mindboggled = '/mnt/nfs-share/Mindboggle101/mindboggled/manual'
     labels_dir = '/mnt/nfs-share/Mindboggle101/mindboggled/manual'
@@ -277,6 +281,8 @@ if __name__ == "__main__":
     labels = [str(x) for x in range(len(dkt.sulcus_names))]
     label_names = dkt.sulcus_names
     nsulci = len(label_names)
+    #if exclude_sulci:
+    #    nsulci = nsulci - len(exclude_sulci)
 
     # ------------------------------------------------------------------------
     # Measure feature distances:
@@ -295,7 +301,6 @@ if __name__ == "__main__":
             # 3 = gang li
             # 4 = olivier coulon
             nmethod = 0
-            feature_dir = '/homedir/fundus_evaluation_2014/fundi_vtk'
             fmethods = ['mindboggle_fundi',
                         'ForrestBao_scalar_fundi',
                         'ForrestBao_line_fundi',
@@ -464,9 +469,9 @@ if __name__ == "__main__":
 
 
     # ------------------------------------------------------------------------
-    # Plot fundus distances:
+    # Plot and describe fundus distances:
     # ------------------------------------------------------------------------
-    if plot_fundus_distances:
+    if plot_and_describe_fundus_distances:
 
         # --------------------------------------------------------------------
         # Features:
@@ -477,8 +482,6 @@ if __name__ == "__main__":
         # 2 = forrest lines
         # 3 = gang li
         # 4 = olivier coulon
-        nmethod = 0
-        feature_dir = '/homedir/fundus_evaluation_2014/fundi_vtk'
         fmethods = ['mindboggle_fundi',
                     'ForrestBao_fundi',
                     'GangLi_fundi',
@@ -497,7 +500,6 @@ if __name__ == "__main__":
                          "Forrest Bao's fundi",
                          "Gang Li's fundi",
                          "Olivier Coulon's_fundi"]
-        fmethod_dir = fmethod_dirs[nmethod]
 
         feature_tables_dir = '/Users/arno/Data/tables_fundus_label_distances'
 
@@ -524,9 +526,9 @@ if __name__ == "__main__":
             table3 = fmethod + '_mean_distances_to_border_right'
             table4 = fmethod + '_mean_distances_from_border_right'
             table5 = fmethod + '_sd_distances_to_border_left'
-            table6 = fmethod + '_sd_distances_to_border_left'
+            table6 = fmethod + '_sd_distances_from_border_left'
             table7 = fmethod + '_sd_distances_to_border_right'
-            table8 = fmethod + '_sd_distances_to_border_right'
+            table8 = fmethod + '_sd_distances_from_border_right'
             tables = [table1, table2, table3, table4, table5, table6, table7, table8]
             feature_tables = [os.path.join(feature_tables_dir, x + '.csv')
                               for x in tables]
@@ -538,8 +540,8 @@ if __name__ == "__main__":
                 title = descriptions[itable]
                 table = tables[itable]
 
-                summary_file = table + '.csv'
-                html_file = table + '.html'
+                summary_file = table + '_summary.csv'
+                html_file = table + '_summary.html'
 
                 data_file = feature_table
                 data = pd.read_csv(data_file, sep=" ",
@@ -588,6 +590,7 @@ if __name__ == "__main__":
                            plot_width=plot_width, plot_height=plot_height,
                            x_axis_location="above", tools=TOOLS)
 
+
                 p.grid.grid_line_color = None
                 p.axis.axis_line_color = None
                 p.axis.major_tick_line_color = None
@@ -607,3 +610,89 @@ if __name__ == "__main__":
                 #show(p)      # show the plot
                 #import sys; sys.exit()
                 save(p)      # save the plot
+
+    # ------------------------------------------------------------------------
+    # Compute results from descriptions of fundus distances:
+    # ------------------------------------------------------------------------
+    if compute_results:
+
+        fmethods = ['mindboggle_fundi',
+                    'ForrestBao_fundi',
+                    'GangLi_fundi']
+                    #'OlivierCoulon_fundi']
+
+        # --------------------------------------------------------------------
+        # Loop through methods:
+        # --------------------------------------------------------------------
+        mean_to_border_left = []
+        mean_to_border_right = []
+        mean_from_border_left = []
+        mean_from_border_right = []
+        sd_to_border_left = []
+        sd_to_border_right = []
+        sd_from_border_left = []
+        sd_from_border_right = []
+        # --------------------------------------------------------------------
+        # Tables of mean distances:
+        # --------------------------------------------------------------------
+        table_lists = []
+        for imethod, fmethod in enumerate(fmethods):
+            mean_to_border_left.append(fmethod + '_mean_distances_to_border_left')
+            mean_from_border_left.append(fmethod + '_mean_distances_from_border_left')
+            mean_to_border_right.append(fmethod + '_mean_distances_to_border_right')
+            mean_from_border_right.append(fmethod + '_mean_distances_from_border_right')
+            sd_to_border_left.append(fmethod + '_sd_distances_to_border_left')
+            sd_from_border_left.append(fmethod + '_sd_distances_from_border_left')
+            sd_to_border_right.append(fmethod + '_sd_distances_to_border_right')
+            sd_from_border_right.append(fmethod + '_sd_distances_from_border_right')
+        table_lists = [mean_to_border_left, mean_from_border_left,
+                       mean_to_border_right, mean_from_border_right,
+                       sd_to_border_left, sd_from_border_left,
+                       sd_to_border_right, sd_from_border_right]
+
+        # --------------------------------------------------------------------
+        # Find which method has minimum value for each summary statistic:
+        # min_values.shape = (8, 24, 4):
+        #     8 tables (mean_distances_to_border_left, etc.),
+        #     24 sulci (frontomarginal, etc.),
+        #     4 measures (mean, sd, min, max)
+        # --------------------------------------------------------------------
+        counts = np.zeros(len(fmethods))
+        min_values = np.zeros((len(table_lists), nsulci, 4))
+        for itable_list, table_list in enumerate(table_lists):
+            mu_sd_min_max_tables = np.zeros((len(table_list), nsulci, 4))
+            for itable, table in enumerate(table_list):
+                summary_file = table + '_summary.csv'
+                data = pd.read_csv(summary_file, sep=",",
+                                   index_col='Unnamed: 0')
+                mu_sd_min_max_tables[itable, :, :] = data.iloc[[1, 2, 3, 7],
+                                                     :].transpose()
+                #print(summary_file)
+                #print(data.values[0])
+                if itable_list == 0:
+                    counts[itable] = np.sum(101 - data.values[0])
+            min_values[itable_list, :, :] = mu_sd_min_max_tables.argmin(axis=0)
+
+        # --------------------------------------------------------------------
+        # Count how many sulci have minimum values for each method:
+        # number_of_min_values.shape = (8, 4, 3):
+        #     8 tables (mean_distances_to_border_left, etc.),
+        #     4 measures (mean, sd, min, max)
+        #     3 methods (mindboggle, etc.)
+        # --------------------------------------------------------------------
+        number_of_min_values = 10 * np.ones((len(table_lists), 4, len(fmethods)))
+        for itable, table in enumerate(min_values):
+            for ivalue in range(4):
+                for imethod  in range(len(fmethods)):
+                    number_of_min_values[itable, ivalue, imethod] = \
+                        np.size(np.where(table[:, ivalue] == imethod))
+
+        # Save results as separate tables:
+        np.savetxt('mean-to-border-left_mu-sd-min-max_mb-bao-li.csv', number_of_min_values[0,:,:], delimiter=',')
+        np.savetxt('mean-from-border-left_mu-sd-min-max_mb-bao-li.csv', number_of_min_values[1,:,:], delimiter=',')
+        np.savetxt('mean-to-border-right_mu-sd-min-max_mb-bao-li.csv', number_of_min_values[2,:,:], delimiter=',')
+        np.savetxt('mean-from-border-right_mu-sd-min-max_mb-bao-li.csv', number_of_min_values[3,:,:], delimiter=',')
+        np.savetxt('sd-to-border-left_mu-sd-min-max_mb-bao-li.csv', number_of_min_values[4,:,:], delimiter=',')
+        np.savetxt('sd-from-border-left_mu-sd-min-max_mb-bao-li.csv', number_of_min_values[5,:,:], delimiter=',')
+        np.savetxt('sd-to-border-right_mu-sd-min-max_mb-bao-li.csv', number_of_min_values[6,:,:], delimiter=',')
+        np.savetxt('sd-from-border-right_mu-sd-min-max_mb-bao-li.csv', number_of_min_values[7,:,:], delimiter=',')
