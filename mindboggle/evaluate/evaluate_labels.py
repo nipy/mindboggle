@@ -363,7 +363,7 @@ if __name__ == "__main__":
                 file = os.path.join(vol_overlap_path, file)
                 columns = pd.read_csv(file)
                 for ilabel, label in enumerate(labels):
-                    for irow in range(columns.size):
+                    for irow in range(columns.shape[0]):
                         if int(columns.iloc[irow][0].split()[0]) == label:
                             row = columns.iloc[irow][0].split()[1::]
                             dices[ifile, ilabel] = np.float(row[0])

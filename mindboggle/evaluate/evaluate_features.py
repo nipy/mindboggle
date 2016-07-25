@@ -241,7 +241,7 @@ if __name__ == "__main__":
     maxd = 53
     feature_dir = '/homedir/fundus_evaluation_2014/fundi_vtk'
 
-    plot_and_describe_fundus_distances = True
+    plot_and_describe_fundus_distances = False
     use_all_subjects = True
     exclude_sulci = [20] # Sulcus 20 removed from protocol since initial run
     colors = viridis_colormap()
@@ -651,48 +651,95 @@ if __name__ == "__main__":
                        sd_to_border_right, sd_from_border_right]
 
         # --------------------------------------------------------------------
-        # Find which method has minimum value for each summary statistic:
-        # min_values.shape = (8, 24, 4):
+        # Sort methods by a given statistic (mean):
+        # sort_values.shape = (8, 24, 3):
         #     8 tables (mean_distances_to_border_left, etc.),
         #     24 sulci (frontomarginal, etc.),
-        #     4 measures (mean, sd, min, max)
+        #     3 methods (save the ascending sort order)
         # --------------------------------------------------------------------
         counts = np.zeros(len(fmethods))
-        min_values = np.zeros((len(table_lists), nsulci, 4))
+        sort_values = np.zeros((len(table_lists), nsulci, 3))
+        min_values = np.zeros((len(table_lists), nsulci))
+        mean_values= np.zeros((len(table_lists), len(fmethods)))
+        mean_max_values= np.zeros((len(table_lists), len(fmethods)))
         for itable_list, table_list in enumerate(table_lists):
-            mu_sd_min_max_tables = np.zeros((len(table_list), nsulci, 4))
+            mean_tables = np.zeros((len(table_list), nsulci))
+            max_tables = np.zeros((len(table_list), nsulci))
             for itable, table in enumerate(table_list):
                 summary_file = table + '_summary.csv'
                 data = pd.read_csv(summary_file, sep=",",
                                    index_col='Unnamed: 0')
-                mu_sd_min_max_tables[itable, :, :] = data.iloc[[1, 2, 3, 7],
-                                                     :].transpose()
-                #print(summary_file)
-                #print(data.values[0])
+                mean_tables[itable, :] = data.iloc[[1], :]
+                max_tables[itable, :] = data.iloc[[7], :]
                 if itable_list == 0:
-                    counts[itable] = np.sum(101 - data.values[0])
-            min_values[itable_list, :, :] = mu_sd_min_max_tables.argmin(axis=0)
+                    counts[itable] = np.sum(nsubjects - data.values[0])
+            sort_values[itable_list, :, :] = mean_tables.argsort(axis=0).transpose()
+            min_values[itable_list, :] = mean_tables.argmin(axis=0)
+            mean_values[itable_list, :] = mean_tables.mean(axis=1)
+            mean_max_values[itable_list, :] = max_tables.mean(axis=1)
+
+        # --------------------------------------------------------------------
+        # Save table with sum of sort indices. Minimum values are best:
+        # --------------------------------------------------------------------
+        np.savetxt('sort_8tables_3methods-mb-bao-li.csv',
+                   sort_values.sum(axis=1), delimiter=',')
+
+        # --------------------------------------------------------------------
+        # Save table with mean values. Minimum values are best:
+        # --------------------------------------------------------------------
+        np.savetxt('means_8tables_3methods-mb-bao-li.csv',
+                   mean_values, delimiter=',')
+        # Save results as separate tables:
+        np.savetxt('mean-to-border_mb-bao-li.csv',
+                   (mean_values[0] + mean_values[2]) / 2, delimiter=',')
+        np.savetxt('mean-from-border_mb-bao-li.csv',
+                   (mean_values[1] + mean_values[3]) / 2, delimiter=',')
+        np.savetxt('sd-to-border_mb-bao-li.csv',
+                   (mean_values[4] + mean_values[6]) / 2, delimiter=',')
+        np.savetxt('sd-from-border_mb-bao-li.csv',
+                   (mean_values[5] + mean_values[7]) / 2, delimiter=',')
+
+        # --------------------------------------------------------------------
+        # Save table with mean of maximum values. Minimum values are best:
+        # --------------------------------------------------------------------
+        np.savetxt('mean-of-max_8tables_3methods-mb-bao-li.csv',
+                   mean_max_values, delimiter=',')
+        # Save results as separate tables:
+        np.savetxt('mean-of-max-to-border_mb-bao-li.csv',
+                   (mean_max_values[0] + mean_max_values[2]) / 2, delimiter=',')
+        np.savetxt('mean-of-max-from-border_mb-bao-li.csv',
+                   (mean_max_values[1] + mean_max_values[3]) / 2, delimiter=',')
+        np.savetxt('sd-mean-of-max-to-border_mb-bao-li.csv',
+                   (mean_max_values[4] + mean_max_values[6]) / 2, delimiter=',')
+        np.savetxt('sd-mean-of-max-from-border_mb-bao-li.csv',
+                   (mean_max_values[5] + mean_max_values[7]) / 2, delimiter=',')
 
         # --------------------------------------------------------------------
         # Count how many sulci have minimum values for each method:
-        # number_of_min_values.shape = (8, 4, 3):
+        # number_of_sort_values.shape = (8, 4, 3):
         #     8 tables (mean_distances_to_border_left, etc.),
         #     4 measures (mean, sd, min, max)
         #     3 methods (mindboggle, etc.)
         # --------------------------------------------------------------------
-        number_of_min_values = 10 * np.ones((len(table_lists), 4, len(fmethods)))
+        number_of_min_values = 10 * np.ones((len(table_lists), len(fmethods)))
         for itable, table in enumerate(min_values):
-            for ivalue in range(4):
-                for imethod  in range(len(fmethods)):
-                    number_of_min_values[itable, ivalue, imethod] = \
-                        np.size(np.where(table[:, ivalue] == imethod))
+            for imethod  in range(len(fmethods)):
+                number_of_min_values[itable, imethod] = \
+                    np.size(np.where(table == imethod))
 
-        # Save results as separate tables:
-        np.savetxt('mean-to-border-left_mu-sd-min-max_mb-bao-li.csv', number_of_min_values[0,:,:], delimiter=',')
-        np.savetxt('mean-from-border-left_mu-sd-min-max_mb-bao-li.csv', number_of_min_values[1,:,:], delimiter=',')
-        np.savetxt('mean-to-border-right_mu-sd-min-max_mb-bao-li.csv', number_of_min_values[2,:,:], delimiter=',')
-        np.savetxt('mean-from-border-right_mu-sd-min-max_mb-bao-li.csv', number_of_min_values[3,:,:], delimiter=',')
-        np.savetxt('sd-to-border-left_mu-sd-min-max_mb-bao-li.csv', number_of_min_values[4,:,:], delimiter=',')
-        np.savetxt('sd-from-border-left_mu-sd-min-max_mb-bao-li.csv', number_of_min_values[5,:,:], delimiter=',')
-        np.savetxt('sd-to-border-right_mu-sd-min-max_mb-bao-li.csv', number_of_min_values[6,:,:], delimiter=',')
-        np.savetxt('sd-from-border-right_mu-sd-min-max_mb-bao-li.csv', number_of_min_values[7,:,:], delimiter=',')
+        # --------------------------------------------------------------------
+        # Save table with number of minimum values. Maximum values are best:
+        # --------------------------------------------------------------------
+        np.savetxt('number_of_min_values_8tables_3methods-mb-bao-li.csv',
+                   number_of_min_values, delimiter=',')
+
+        # # Save results as separate tables:
+        # np.savetxt('mean-to-border-left_mu-sd-min-max_mb-bao-li.csv', number_of_min_values[0,:,:], delimiter=',')
+        # np.savetxt('mean-from-border-left_mu-sd-min-max_mb-bao-li.csv', number_of_min_values[1,:,:], delimiter=',')
+        # np.savetxt('mean-to-border-right_mu-sd-min-max_mb-bao-li.csv', number_of_min_values[2,:,:], delimiter=',')
+        # np.savetxt('mean-from-border-right_mu-sd-min-max_mb-bao-li.csv', number_of_min_values[3,:,:], delimiter=',')
+        # np.savetxt('sd-to-border-left_mu-sd-min-max_mb-bao-li.csv', number_of_min_values[4,:,:], delimiter=',')
+        # np.savetxt('sd-from-border-left_mu-sd-min-max_mb-bao-li.csv', number_of_min_values[5,:,:], delimiter=',')
+        # np.savetxt('sd-to-border-right_mu-sd-min-max_mb-bao-li.csv', number_of_min_values[6,:,:], delimiter=',')
+        # np.savetxt('sd-from-border-right_mu-sd-min-max_mb-bao-li.csv', number_of_min_values[7,:,:], delimiter=',')
+
