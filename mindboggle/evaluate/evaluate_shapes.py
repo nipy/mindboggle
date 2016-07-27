@@ -2,7 +2,7 @@
 """
 Evaluate the consistency of Mindboggle shape measures for rescanned MRI data.
 
-Results have been saved to https://osf.io/x3up7/
+Results have been saved to https://osf.io/mhc37/
 
 Examples
 --------
