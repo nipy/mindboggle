@@ -17,309 +17,636 @@ Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 # ----------------------------------------------------------------------------
-# Evaluate consistency of Mindboggle shape measures for rescanned MRI data.
-# To evaluate Mindboggle shape measure consistency, run Mindboggle on 41
-# Mindboggle-101 subjects for which there is a second MRI scan (OASIS-TRT-20
-# and MMRR-21 groups). Since cortical surface reconstruction results in a
-# different number of vertices for the two scans, we compared median values
-# for each cortical region across the two scans.
-#
-# Note: some right hemisphere surfaces had NaN values, so we analyzed whole
-# volumes and left hemisphere surfaces.
+# (1) Compare surface shape measures across subjects for each label.
+# (2) Compare thickness measures across subjects for each label.
+# (3) Evaluate consistency of Mindboggle shape measures for rescanned MRI data.
 # ----------------------------------------------------------------------------
 if __name__ == "__main__":
 
-    import os
-    import numpy as np
-    import pandas as pd
-
-    # For plotting:
-    from math import pi
-    from bokeh.models import HoverTool
-    from bokeh.plotting import ColumnDataSource, figure, show, save, output_file
-    from mindboggle.mio.colors import viridis_colormap
-    from mindboggle.mio.labels import DKTprotocol
-    #from mindboggle.mio.plots import histograms_of_lists
-
-    titles = ["Fractional difference between re/scan volumes",
-              "Fractional difference between re/scan thickinthehead cortical thicknesses",
-              "Fractional difference between re/scan left cortical label median areas",
-              "Fractional difference between re/scan left cortical label median travel depths",
-              "Fractional difference between re/scan left cortical label median geodesic depths",
-              "Fractional difference between re/scan left cortical label median mean curvatures",
-              "Fractional difference between re/scan left cortical label median FreeSurfer curvatures",
-              "Fractional difference between re/scan left cortical label median FreeSurfer thicknesses"]
-              # "Fractional difference between re/scan right cortical label median areas",
-              # "Fractional difference between re/scan right cortical label median travel depths",
-              # "Fractional difference between re/scan right cortical label median geodesic depths",
-              # "Fractional difference between re/scan right cortical label median mean curvatures",
-              # "Fractional difference between re/scan right cortical label median FreeSurfer curvatures",
-              # "Fractional difference between re/scan right cortical label median FreeSurfer thicknesses"]
-              # "Fractional difference between re/scan right cortical label median FreeSurfer convexities"]
-    names = ["volume_for_each_freesurfer_label",
-             "thickinthehead_per_freesurfer_cortex_label",
-             "median_area_per_freesurfer_left_cortex_label",
-             "median_travel_depth_per_freesurfer_left_cortex_label",
-             "median_geodesic_depth_per_freesurfer_left_cortex_label",
-             "median_mean_curvatures_per_freesurfer_left_cortex_label",
-             "median_freesurfer_curvature_per_freesurfer_left_cortex_label",
-             "median_freesurfer_thickness_per_freesurfer_left_cortex_label"]
-             # "median_area_per_freesurfer_right_cortex_label",
-             # "median_travel_depth_per_freesurfer_right_cortex_label",
-             # "median_geodesic_depth_per_freesurfer_right_cortex_label",
-             # "median_mean_curvatures_per_freesurfer_right_cortex_label",
-             # "median_freesurfer_curvature_per_freesurfer_right_cortex_label",
-             # "median_freesurfer_thickness_per_freesurfer_right_cortex_label"]
-             # "median_freesurfer_convexity_per_freesurfer_right_cortex_label"]
-    table_dir = '/Users/arno/Data/shape_tables_for_auto_labels_of_Mindboggle101_rescans'
-    tables = [os.path.join('tables', 'volume_for_each_freesurfer_label.csv'),
-              os.path.join('tables', 'thickinthehead_per_freesurfer_cortex_label.csv'),
-              os.path.join('tables', 'left_cortical_surface', 'label_shapes.csv'),
-              os.path.join('tables', 'left_cortical_surface', 'label_shapes.csv'),
-              os.path.join('tables', 'left_cortical_surface', 'label_shapes.csv'),
-              os.path.join('tables', 'left_cortical_surface', 'label_shapes.csv'),
-              os.path.join('tables', 'left_cortical_surface', 'label_shapes.csv'),
-              os.path.join('tables', 'left_cortical_surface', 'label_shapes.csv')]
-              # os.path.join('tables', 'right_cortical_surface', 'label_shapes.csv'),
-              # os.path.join('tables', 'right_cortical_surface', 'label_shapes.csv'),
-              # os.path.join('tables', 'right_cortical_surface', 'label_shapes.csv'),
-              # os.path.join('tables', 'right_cortical_surface', 'label_shapes.csv'),
-              # os.path.join('tables', 'right_cortical_surface', 'label_shapes.csv'),
-              # os.path.join('tables', 'right_cortical_surface', 'label_shapes.csv')]
-    column_indices = [1, 1, 1, 2, 10, 18, 26, 34] #, 1, 2, 10, 18, 26, 34] #, 42]
+    compare_shapes_across_hemispheres = False
+    #compare_shapes_across_hemispheres_by_vertex = True
+    compare_surface_shape_measures = False
+    compare_surface_shape_measures_by_vertex = True
+    compare_thickness_measures = False
+    evaluate_rescan_shape_consistency = False
 
     # ------------------------------------------------------------------------
-    # Alternating left, right cortex label numbers (for volume shapes):
+    # Compare surface shapes across hemispheres:
     # ------------------------------------------------------------------------
-    dkt = DKTprotocol()
-    labels_left = dkt.left_cerebrum_cortex_DKT31_numbers
-    labels_right = dkt.right_cerebrum_cortex_DKT31_numbers
-    DKT31_names = dkt.DKT31_names
-    label_list = []
-    label_name_list = []
-    for ilabel, label_left in enumerate(labels_left):
-        label_list.append(label_left)
-        label_list.append(labels_right[ilabel])
-        label_name_list.append(DKT31_names[ilabel] + ' (left)')
-        label_name_list.append(DKT31_names[ilabel] + ' (right)')
-    label_list = [str(x) for x in label_list]
-    #exclude_sulci = [20] # Sulcus 20 removed from protocol since initial run
+    if compare_shapes_across_hemispheres:
 
-    label_lists = [label_list,
-                   label_list,
-                   labels_left, labels_left, labels_left,
-                   labels_left, labels_left, labels_left, labels_left,
-                   labels_right, labels_right, labels_right,
-                   labels_right, labels_right, labels_right, labels_right]
-    label_name_lists = [DKT31_names for x in range (len(titles))]
-    label_name_lists[0] = label_name_list
-    label_name_lists[1] = label_name_list
+        import os
+        import pandas as pd
+        import numpy as np
 
-    # ------------------------------------------------------------------------
-    # Colors:
-    # ------------------------------------------------------------------------
-    colors = viridis_colormap()
-    #from matplotlib import cm as cmaps
-    #import matplotlib.pyplot as plt
-    #plt.register_cmap(name='viridis', cmap=cmaps.viridis)
-    #plt.set_cmap(cmaps.viridis)
+        from mindboggle.guts.compute import distcorr
+        from mindboggle.mio.labels import DKTprotocol
 
-    scale_rect = 40
+        dkt = DKTprotocol()
+        label_names = dkt.cerebrum_cortex_DKT31_names
+        label_names_bilateral = dkt.DKT31_names
 
-    # ------------------------------------------------------------------------
-    # Subjects with second scans:
-    # ------------------------------------------------------------------------
-    groups = ['OASIS-TRT-20', 'MMRR-21']
-    numbers = [20, 21]
-    nsubjects = sum(numbers)
-    subjects = []
-    subjects2 = []
-    for igroup, group in enumerate(groups):
-        for n in range(1, numbers[igroup]+1):
-            subjects.append(group+'-'+str(n))
-            subjects2.append(group+'-rescan-'+str(n))
+        subject_list = '/Users/arno/Data/subject_list_Mindboggle101.txt'
+        fid = open(subject_list, 'r')
+        subjects = [x.strip() for x in fid.readlines()]
 
-    # ------------------------------------------------------------------------
-    # Loop through tables:
-    # ------------------------------------------------------------------------
-    data_summaries = np.zeros((len(titles), 8))
-    for ititle, title in enumerate(titles):
-        table = tables[ititle]
-        name = names[ititle]
-        index = column_indices[ititle]
-        labels = label_lists[ititle]
-        label_names = label_name_lists[ititle]
+        table_dir = '/Users/arno/Data/manual_tables'
+        table_pathL = 'tables/left_cortical_surface/label_shapes.csv'
+        table_pathR = 'tables/right_cortical_surface/label_shapes.csv'
+        table_path2 = 'tables/thickinthehead_per_freesurfer_cortex_label.csv'
 
         # --------------------------------------------------------------------
-        # Loop through subjects:
+        # Loop through subjects and save distance correlations
+        # between hemispheres:
         # --------------------------------------------------------------------
-        subject_shapes = np.zeros((nsubjects, len(labels)))
-        subject2_shapes = np.zeros((nsubjects, len(labels)))
+        Z = np.zeros((len(subjects), len(label_names_bilateral), 2))
+        areas = Z.copy()
+        thickintheheads = Z.copy()
+        fs_thicknesses = Z.copy()
+        mean_curvatures = Z.copy()
+        fs_curvatures = Z.copy()
+        travel_depths = Z.copy()
+        geodesic_depths = Z.copy()
         for isubject, subject in enumerate(subjects):
-            subject2 = subjects2[isubject]
-            table_file = os.path.join(table_dir, subject, table)
-            table_file2 = os.path.join(table_dir, subject2, table)
-            columns = pd.read_csv(table_file, sep=",", index_col='name')
-            columns2 = pd.read_csv(table_file2, sep=",", index_col='name')
+            # Load shape tables:
+            tableL = os.path.join(table_dir, subject, table_pathL)
+            tableR = os.path.join(table_dir, subject, table_pathR)
+            table2 = os.path.join(table_dir, subject, table_path2)
+            columnsL = pd.read_csv(tableL, sep=",", index_col='name')
+            columnsR = pd.read_csv(tableR, sep=",", index_col='name')
+            columns2 = pd.read_csv(table2, sep=",", index_col='name')
+            columnsL = columnsL.iloc[0:len(label_names_bilateral), :]
+            columnsR = columnsR.iloc[len(label_names_bilateral):len(label_names), :]
 
-            # ----------------------------------------------------------------
-            # Loop through labels:
-            # ----------------------------------------------------------------
-            for ilabel, label in enumerate(labels):
-                for irow in range(columns.shape[0]):
-                    if int(columns.iloc[irow][0]) == int(label):
-                        value = columns.iloc[irow][index]
-                        value2 = columns2.iloc[irow][index]
-                        subject_shapes[isubject, ilabel] = value
-                        subject2_shapes[isubject, ilabel] = value2
+            # area:
+            columnL = columnsL['area']
+            columnR = columnsR['area']
+            areas[isubject, :, 0] = columnL
+            areas[isubject, :, 1] = columnR
+            columnLindex = columnL.index
+            columnRindex = columnR.index
+
+            # thickinthehead:
+            column2 = columns2.iloc[:, 1]
+            column2L_match = []
+            column2R_match = []
+            for icolumn2, column2_index in enumerate(column2.index):
+                if column2_index in columnLindex:
+                    column2L_match.append(column2[icolumn2])
+                elif column2_index in columnRindex:
+                    column2R_match.append(column2[icolumn2])
+            thickintheheads[isubject, :, 0] = column2L_match
+            thickintheheads[isubject, :, 1] = column2R_match
+
+            # FreeSurfer thickness:
+            columnL = columnsL['freesurfer thickness: median']
+            columnR = columnsR['freesurfer thickness: median']
+            fs_thicknesses[isubject, :, 0] = columnL
+            fs_thicknesses[isubject, :, 1] = columnR
+
+            # mean curvature:
+            columnL = columnsL['mean curvature: median']
+            columnR = columnsR['mean curvature: median']
+            mean_curvatures[isubject, :, 0] = columnL
+            mean_curvatures[isubject, :, 1] = columnR
+
+            # FreeSurfer curvature:
+            columnL = columnsL['freesurfer curvature: median']
+            columnR = columnsR['freesurfer curvature: median']
+            fs_curvatures[isubject, :, 0] = columnL
+            fs_curvatures[isubject, :, 1] = columnR
+
+            # travel depth:
+            columnL = columnsL['travel depth: median']
+            columnR = columnsR['travel depth: median']
+            travel_depths[isubject, :, 0] = columnL
+            travel_depths[isubject, :, 1] = columnR
+
+            # geodesic depth:
+            columnL = columnsL['geodesic depth: median']
+            columnR = columnsR['geodesic depth: median']
+            geodesic_depths[isubject, :, 0] = columnL
+            geodesic_depths[isubject, :, 1] = columnR
+
+        dcors = np.zeros((len(label_names_bilateral), 7))
+        for ilabel in range(len(label_names_bilateral)):
+            dcors[ilabel, 0] = distcorr(areas[:, ilabel, 0],
+                                        areas[:, ilabel, 1])
+            dcors[ilabel, 1] = distcorr(thickintheheads[:, ilabel, 0],
+                                        thickintheheads[:, ilabel, 1])
+            dcors[ilabel, 2] = distcorr(fs_thicknesses[:, ilabel, 0],
+                                        fs_thicknesses[:, ilabel, 1])
+            dcors[ilabel, 3] = distcorr(mean_curvatures[:, ilabel, 0],
+                                        mean_curvatures[:, ilabel, 1])
+            dcors[ilabel, 4] = distcorr(fs_curvatures[:, ilabel, 0],
+                                        fs_curvatures[:, ilabel, 1])
+            dcors[ilabel, 5] = distcorr(travel_depths[:, ilabel, 0],
+                                        travel_depths[:, ilabel, 1])
+            dcors[ilabel, 6] = distcorr(geodesic_depths[:, ilabel, 0],
+                                        geodesic_depths[:, ilabel, 1])
 
         # --------------------------------------------------------------------
         # Save csv files:
         # --------------------------------------------------------------------
-        data = pd.DataFrame(subject_shapes, index=subjects, columns=labels)
-        data.to_csv(name + '_scans.csv')
-        data_summary = data.describe(include='all')
-        data_summary.to_csv(name + '_scans_summary.csv')
+        data = pd.DataFrame(dcors, index=label_names_bilateral, #index=columns1.columns)
+                            columns=['area', 'thickinthehead',
+                                     'freesurfer thickness', 'mean curvature',
+                                     'freesurfer curvature', 'travel depth',
+                                     'geodesic depth'])
+        data.to_csv('distance_correlations_for_shapes_between_hemispheres_'
+                    'per_label_Mindboggle101.csv')
 
-        data = pd.DataFrame(subject2_shapes, index=subjects, columns=labels)
-        data.to_csv(name + '_rescans.csv')
-        data_summary = data.describe(include='all')
-        data_summary.to_csv(name + '_rescans_summary.csv')
 
-        subject_shape_diffs = subject2_shapes - subject_shapes
-        data = pd.DataFrame(subject_shape_diffs, index=subjects, columns=labels)
-        data.to_csv(name + '_differences.csv')
-        data_summary = data.describe(include='all')
-        data_summary.to_csv(name + '_differences_summary.csv')
+    # ------------------------------------------------------------------------
+    # Compare surface shape measures across subjects for each label:
+    # ------------------------------------------------------------------------
+    if compare_surface_shape_measures:
 
-        subject_shape_abs_diffs = np.abs(subject_shape_diffs)
-        max_diffs = subject_shape_abs_diffs.max(axis=0)
-        subject_shape_frac_diffs = subject_shape_diffs / subject_shapes
-        data = pd.DataFrame(subject_shape_frac_diffs,
-                            index=subjects, columns=labels)
-        #iInf, jInf = np.where(data.values == np.inf)
-        #data.iloc[iInf, jInf] = 'NaN'
-        data.to_csv(name + '_fractional_differences.csv')
-        data_summary = data.describe(include='all')
-        data_summary.to_csv(name + '_fractional_differences_summary.csv')
+        import os
+        import pandas as pd
+        import numpy as np
 
-        # max_array = np.zeros((nsubjects, len(labels), 2))
-        # max_array[:, :, 0] = subject_shapes
-        # max_array[:, :, 1] = subject2_shapes
-        # max_diff = np.abs(np.max(max_array, axis=2))
+        from mindboggle.guts.compute import distcorr
+        from mindboggle.mio.labels import DKTprotocol
 
-        # maxs = np.max(np.max([subject_shapes, subject2_shapes], axis=0), axis=0)
-        # mins = np.min(np.min([subject_shapes, subject2_shapes], axis=0), axis=0)
-        # max_diff = np.abs(maxs - mins)
+        dkt = DKTprotocol()
+        label_names = dkt.cerebrum_cortex_DKT31_names
 
-        # max_diff = np.max([subject_shapes, subject2_shapes]) -\
-        #           np.min([subject_shapes, subject2_shapes])
+        subject_list = '/Users/arno/Data/subject_list_Mindboggle101.txt'
+        fid = open(subject_list, 'r')
+        subjects = [x.strip() for x in fid.readlines()]
 
-        subject_shape_frac_abs_diffs = np.abs(subject_shape_abs_diffs / subject_shapes)
-        data = pd.DataFrame(subject_shape_frac_abs_diffs,
-                            index=subjects, columns=labels)
-        n50 = len(np.where(data.values > 0.5)[0])
-        n25 = len(np.where(data.values > 0.25)[0])
-        n10 = len(np.where(data.values > 0.1)[0])
-        print(title)
-        print("Fractional absolute differences above "
-              "0.5: {0}; 0.25: {1}; 0.1: {2}".format(n50, n25, n10))
-        print("")
-        #iInf, jInf = np.where(data.values == np.inf)
-        #data.iloc[iInf, jInf] = 'NaN'
-        data.to_csv(name + '_fractional_abs_differences.csv')
-        data_summary = data.describe(include='all')
-        data_summary.to_csv(name + '_fractional_abs_differences_summary.csv')
-
-        data_summaries[ititle, :] = data_summary.max(axis=1)
-
-        # ignore_columns = []
-        # nbins = 100
-        # axis_limits = []
-        # histograms_of_lists(subject_shape_diffs, title, ignore_columns,
-        #                     nbins, axis_limits, [title])
+        table_dir = '/Users/arno/Data/manual_tables'
+        table_pathL = 'tables/left_cortical_surface/label_shapes.csv'
+        table_pathR = 'tables/right_cortical_surface/label_shapes.csv'
 
         # --------------------------------------------------------------------
-        # Plot heatmap for labels X subjects array for each table:
+        # Loop through subjects and save distance correlations between
+        # different curvature and between different depth shape measures:
         # --------------------------------------------------------------------
-        html_file = name + '_fractional_abs_differences.html'
-        print(html_file)
+        mean_curvatures = np.zeros((len(subjects), len(label_names)))
+        fs_curvatures = np.zeros((len(subjects), len(label_names)))
+        geodesic_depths = np.zeros((len(subjects), len(label_names)))
+        travel_depths = np.zeros((len(subjects), len(label_names)))
+        for isubject, subject in enumerate(subjects):
+            # Load shape tables:
+            tableL = os.path.join(table_dir, subject, table_pathL)
+            tableR = os.path.join(table_dir, subject, table_pathR)
+            columnsL = pd.read_csv(tableL, sep=",", index_col='name')
+            columnsR = pd.read_csv(tableR, sep=",", index_col='name')
+            column = columnsL['mean curvature: median'] + \
+                     columnsR['mean curvature: median']
+            mean_curvatures[isubject, :] = column
+            column = columnsL['freesurfer curvature: median'] + \
+                     columnsR['freesurfer curvature: median']
+            fs_curvatures[isubject, :] = column
+            column = columnsL['travel depth: median'] + \
+                     columnsR['travel depth: median']
+            travel_depths[isubject, :] = column
+            column = columnsL['geodesic depth: median'] + \
+                     columnsR['geodesic depth: median']
+            geodesic_depths[isubject, :] = column
 
-        # Set up the data for plotting. We will need to have values for every
-        # pair of subject/label names. Map the value to a color.
-        subjectx = []
-        labelx = []
-        label_namex = []
-        value1x = []
-        value2x = []
-        differencex = []
-        fractionx = []
-        colorx = []
-        for ilabel, label in enumerate(labels):
+        dcors = np.zeros((len(label_names), 2))
+        for ilabel in range(len(label_names)):
+            dcors[ilabel, 0] = distcorr(mean_curvatures[:, ilabel],
+                                        fs_curvatures[:, ilabel])
+            dcors[ilabel, 1] = distcorr(geodesic_depths[:, ilabel],
+                                        travel_depths[:, ilabel])
+
+        # --------------------------------------------------------------------
+        # Save csv files:
+        # --------------------------------------------------------------------
+        data = pd.DataFrame(dcors, index=label_names, #index=columns1.columns)
+                            columns=['mean / freesurfer curvature distance correlation',
+                                     'geodesic / travel depth distance correlation'])
+        data.to_csv('mean_and_FS_curvature_geodesic_and_travel_depth_distance_correlations_'
+                    'per_label_Mindboggle101.csv')
+
+
+    # ------------------------------------------------------------------------
+    # Compare surface shape measures across subjects for each label BY VERTEX:
+#    # NOTE: Would need to do this per label, because pdist uses squareform!
+    # ------------------------------------------------------------------------
+    if compare_surface_shape_measures_by_vertex:
+
+        import os
+        import pandas as pd
+        import numpy as np
+
+        from mindboggle.guts.compute import distcorr
+        from mindboggle.mio.labels import DKTprotocol
+
+        dkt = DKTprotocol()
+        label_names = dkt.cerebrum_cortex_DKT31_names
+        labels = dkt.cerebrum_cortex_DKT31_numbers
+
+        subject_list = '/Users/arno/Data/subject_list_Mindboggle101.txt'
+        fid = open(subject_list, 'r')
+        subjects = [x.strip() for x in fid.readlines()]
+
+        table_dir = '/Users/arno/Data/manual_tables'
+        table_pathL = 'tables/left_cortical_surface/vertices.csv'
+        table_pathR = 'tables/right_cortical_surface/vertices.csv'
+
+        # --------------------------------------------------------------------
+        # Loop through subjects and save distance correlations between
+        # different curvature and between different depth shape measures:
+        # --------------------------------------------------------------------
+        dcors = np.zeros((len(subjects), len(label_names), 2))
+        for isubject, subject in enumerate(subjects):
+
+            # Load shape tables:
+            tableL = os.path.join(table_dir, subject, table_pathL)
+            tableR = os.path.join(table_dir, subject, table_pathR)
+            columnsL = pd.read_csv(tableL, sep=",", index_col="label ID")
+            columnsR = pd.read_csv(tableR, sep=",", index_col="label ID")
+
+            for ilabel, label in enumerate(labels):
+                column1 = columnsL.loc[[label], ['mean curvature']]
+                column2 = columnsL.loc[[label], ['freesurfer curvature']]
+                column3 = columnsL.loc[[label], ['travel depth']]
+                column4 = columnsL.loc[[label], ['geodesic depth']]
+
+                # Compute distance correlations:
+                dcors[isubject, 0] = distcorr(column1, column2)
+                dcors[isubject, 1] = distcorr(column3, column4)
+
+        # --------------------------------------------------------------------
+        # Save csv files:
+        # --------------------------------------------------------------------
+        data = pd.DataFrame(dcors, index=label_names, #index=columns1.columns)
+                            columns=['mean / freesurfer curvature distance correlation',
+                                     'geodesic / travel depth distance correlation'])
+        data.to_csv('mean_and_FS_curvature_geodesic_and_travel_depth_distance_correlations_'
+                    'per_label_Mindboggle101.csv')
+
+
+    # ------------------------------------------------------------------------
+    # Compare thickness measures across subjects for each label:
+    # ------------------------------------------------------------------------
+    if compare_thickness_measures:
+
+        import os
+        import pandas as pd
+        import numpy as np
+
+        from mindboggle.guts.compute import distcorr
+        from mindboggle.mio.labels import DKTprotocol
+
+        dkt = DKTprotocol()
+        label_names = dkt.cerebrum_cortex_DKT31_names
+
+        subject_list = '/Users/arno/Data/subject_list_Mindboggle101.txt'
+        fid = open(subject_list, 'r')
+        subjects = [x.strip() for x in fid.readlines()]
+
+        table_dir = '/Users/arno/Data/manual_tables'
+        table_path1a = 'tables/left_cortical_surface/label_shapes.csv'
+        table_path1b = 'tables/right_cortical_surface/label_shapes.csv'
+        table_path2 = 'tables/thickinthehead_per_freesurfer_cortex_label.csv'
+
+        # --------------------------------------------------------------------
+        # Loop through subjects and table columns:
+        # --------------------------------------------------------------------
+        subjects_by_labels1 = np.zeros((len(subjects), len(label_names)))
+        subjects_by_labels2 = np.zeros((len(subjects), len(label_names)))
+        for isubject, subject in enumerate(subjects):
+            # Load shape tables:
+            table1a = os.path.join(table_dir, subject, table_path1a)
+            table1b = os.path.join(table_dir, subject, table_path1b)
+            table2 = os.path.join(table_dir, subject,  table_path2)
+            columns1a = pd.read_csv(table1a, sep=",", index_col='name')
+            columns1b = pd.read_csv(table1b, sep=",", index_col='name')
+            column1 = columns1a['freesurfer thickness: median'] + \
+                      columns1b['freesurfer thickness: median']
+            column1index = column1.index
+            columns2 = pd.read_csv(table2, sep=",", index_col='name')
+            column2 = columns2.iloc[:, 1]
+            column2_match = []
+            for icolumn2, column2_index in enumerate(column2.index):
+                if column2_index in column1index:
+                    column2_match.append(column2[icolumn2])
+            subjects_by_labels1[isubject, :] = column1
+            subjects_by_labels2[isubject, :] = column2_match
+
+        dcors = []
+        for ilabel in range(len(label_names)):
+            dcors.append(distcorr(subjects_by_labels1[:, ilabel],
+                                  subjects_by_labels2[:, ilabel]))
+
+        # --------------------------------------------------------------------
+        # Save csv files:
+        # --------------------------------------------------------------------
+        data = pd.DataFrame(dcors, index=label_names, #index=columns1.columns)
+                            columns=['freesurfer / thickinthehead cortical thickness distance correlation'])
+        data.to_csv('thickinthehead_FSthickness_distance_correlations_'
+                    'per_label_Mindboggle101.csv')
+
+
+    # ------------------------------------------------------------------------
+    # Evaluate consistency of Mindboggle shape measures for rescan MRI data.
+    # To evaluate Mindboggle shape measure consistency, run Mindboggle on 41
+    # Mindboggle-101 subjects for which there is a second MRI scan
+    # (OASIS-TRT-20 and MMRR-21 groups). Since cortical surface reconstruction
+    # results in a different number of vertices for the two scans, we compared
+    # median values for each cortical region across the two scans.
+    #
+    # Note: some right hemisphere surfaces had NaN values, so we analyzed
+    # whole volumes and left hemisphere surfaces.
+    # ------------------------------------------------------------------------
+    if evaluate_rescan_shape_consistency:
+        import os
+        import numpy as np
+        import pandas as pd
+
+        # For plotting:
+        from math import pi
+        from bokeh.models import HoverTool
+        from bokeh.plotting import ColumnDataSource, figure, show, save, output_file
+        from mindboggle.mio.colors import viridis_colormap
+        from mindboggle.mio.labels import DKTprotocol
+        #from mindboggle.mio.plots import histograms_of_lists
+
+        titles = ["Fractional difference between re/scan volumes",
+                  "Fractional difference between re/scan thickinthehead cortical thicknesses"]#,
+                  "Fractional difference between re/scan left cortical label median areas",
+                  "Fractional difference between re/scan left cortical label median travel depths",
+                  "Fractional difference between re/scan left cortical label median geodesic depths",
+                  "Fractional difference between re/scan left cortical label median mean curvatures",
+                  "Fractional difference between re/scan left cortical label median FreeSurfer curvatures",
+                  "Fractional difference between re/scan left cortical label median FreeSurfer thicknesses"]
+                  # "Fractional difference between re/scan right cortical label median areas",
+                  # "Fractional difference between re/scan right cortical label median travel depths",
+                  # "Fractional difference between re/scan right cortical label median geodesic depths",
+                  # "Fractional difference between re/scan right cortical label median mean curvatures",
+                  # "Fractional difference between re/scan right cortical label median FreeSurfer curvatures",
+                  # "Fractional difference between re/scan right cortical label median FreeSurfer thicknesses"]
+                  # "Fractional difference between re/scan right cortical label median FreeSurfer convexities"]
+        names = ["volume_for_each_freesurfer_label",
+                 "thickinthehead_per_freesurfer_cortex_label",
+                 "median_area_per_freesurfer_left_cortex_label",
+                 "median_travel_depth_per_freesurfer_left_cortex_label",
+                 "median_geodesic_depth_per_freesurfer_left_cortex_label",
+                 "median_mean_curvatures_per_freesurfer_left_cortex_label",
+                 "median_freesurfer_curvature_per_freesurfer_left_cortex_label",
+                 "median_freesurfer_thickness_per_freesurfer_left_cortex_label"]
+                 # "median_area_per_freesurfer_right_cortex_label",
+                 # "median_travel_depth_per_freesurfer_right_cortex_label",
+                 # "median_geodesic_depth_per_freesurfer_right_cortex_label",
+                 # "median_mean_curvatures_per_freesurfer_right_cortex_label",
+                 # "median_freesurfer_curvature_per_freesurfer_right_cortex_label",
+                 # "median_freesurfer_thickness_per_freesurfer_right_cortex_label"]
+                 # "median_freesurfer_convexity_per_freesurfer_right_cortex_label"]
+        table_dir = '/Users/arno/Data/shape_tables_for_auto_labels_of_Mindboggle101_rescans'
+        tables = [os.path.join('tables', 'volume_for_each_freesurfer_label.csv'),
+                  os.path.join('tables', 'thickinthehead_per_freesurfer_cortex_label.csv'),
+                  os.path.join('tables', 'left_cortical_surface', 'label_shapes.csv'),
+                  os.path.join('tables', 'left_cortical_surface', 'label_shapes.csv'),
+                  os.path.join('tables', 'left_cortical_surface', 'label_shapes.csv'),
+                  os.path.join('tables', 'left_cortical_surface', 'label_shapes.csv'),
+                  os.path.join('tables', 'left_cortical_surface', 'label_shapes.csv'),
+                  os.path.join('tables', 'left_cortical_surface', 'label_shapes.csv')]
+                  # os.path.join('tables', 'right_cortical_surface', 'label_shapes.csv'),
+                  # os.path.join('tables', 'right_cortical_surface', 'label_shapes.csv'),
+                  # os.path.join('tables', 'right_cortical_surface', 'label_shapes.csv'),
+                  # os.path.join('tables', 'right_cortical_surface', 'label_shapes.csv'),
+                  # os.path.join('tables', 'right_cortical_surface', 'label_shapes.csv'),
+                  # os.path.join('tables', 'right_cortical_surface', 'label_shapes.csv')]
+        column_indices = [1, 1, 1, 2, 10, 18, 26, 34] #, 1, 2, 10, 18, 26, 34] #, 42]
+
+        # --------------------------------------------------------------------
+        # Alternating left, right cortex label numbers (for volume shapes):
+        # --------------------------------------------------------------------
+        dkt = DKTprotocol()
+        labels_left = dkt.left_cerebrum_cortex_DKT31_numbers
+        labels_right = dkt.right_cerebrum_cortex_DKT31_numbers
+        DKT31_names = dkt.DKT31_names
+        label_list = []
+        label_name_list = []
+        for ilabel, label_left in enumerate(labels_left):
+            label_list.append(label_left)
+            label_list.append(labels_right[ilabel])
+            label_name_list.append(DKT31_names[ilabel] + ' (left)')
+            label_name_list.append(DKT31_names[ilabel] + ' (right)')
+        label_list = [str(x) for x in label_list]
+        #exclude_sulci = [20] # Sulcus 20 removed from protocol since initial run
+
+        label_lists = [label_list,
+                       label_list,
+                       labels_left, labels_left, labels_left,
+                       labels_left, labels_left, labels_left, labels_left,
+                       labels_right, labels_right, labels_right,
+                       labels_right, labels_right, labels_right, labels_right]
+        label_name_lists = [DKT31_names for x in range (len(titles))]
+        label_name_lists[0] = label_name_list
+        label_name_lists[1] = label_name_list
+
+        # --------------------------------------------------------------------
+        # Colors:
+        # --------------------------------------------------------------------
+        colors = viridis_colormap()
+        #from matplotlib import cm as cmaps
+        #import matplotlib.pyplot as plt
+        #plt.register_cmap(name='viridis', cmap=cmaps.viridis)
+        #plt.set_cmap(cmaps.viridis)
+
+        scale_rect = 40
+
+        # --------------------------------------------------------------------
+        # Subjects with second scans:
+        # --------------------------------------------------------------------
+        groups = ['OASIS-TRT-20', 'MMRR-21']
+        numbers = [20, 21]
+        nsubjects = sum(numbers)
+        subjects = []
+        subjects2 = []
+        for igroup, group in enumerate(groups):
+            for n in range(1, numbers[igroup]+1):
+                subjects.append(group+'-'+str(n))
+                subjects2.append(group+'-rescan-'+str(n))
+
+        # --------------------------------------------------------------------
+        # Loop through tables:
+        # --------------------------------------------------------------------
+        data_summaries = np.zeros((len(titles), 8))
+        for ititle, title in enumerate(titles):
+            table = tables[ititle]
+            name = names[ititle]
+            index = column_indices[ititle]
+            labels = label_lists[ititle]
+            label_names = label_name_lists[ititle]
+
+            # ----------------------------------------------------------------
+            # Loop through subjects:
+            # ----------------------------------------------------------------
+            subject_shapes = np.zeros((nsubjects, len(labels)))
+            subject2_shapes = np.zeros((nsubjects, len(labels)))
             for isubject, subject in enumerate(subjects):
-                labelx.append(label)
-                label_namex.append(label_names[ilabel])
-                subjectx.append(subject)
-                value1 = subject_shapes[isubject, ilabel]
-                value2 = subject2_shapes[isubject, ilabel]
-                difference = subject_shape_diffs[isubject, ilabel]
-                value1x.append(value1)
-                value2x.append(value2)
-                differencex.append(difference)
-                fraction = subject_shape_frac_diffs[isubject, ilabel]
-                fractionx.append(fraction)
-                abs_fraction = subject_shape_frac_abs_diffs[isubject, ilabel]
-                if np.isnan(value) or np.isnan(abs_fraction):
-                    rgb = [0, 0, 0]
-                elif abs_fraction > 1.0:
-                    rgb = [1, 1, 1]
-                else:
-                    rgb = [np.int(255 * x) for x in
-                           colors[np.int(255 * abs_fraction)]]
-                hex = "#%02x%02x%02x" % tuple(rgb)
-                colorx.append(hex)
+                subject2 = subjects2[isubject]
+                table_file = os.path.join(table_dir, subject, table)
+                table_file2 = os.path.join(table_dir, subject2, table)
+                columns = pd.read_csv(table_file, sep=",", index_col='name')
+                columns2 = pd.read_csv(table_file2, sep=",", index_col='name')
 
-        output_file(html_file, title=title)
-        source = ColumnDataSource(dict(subject=subjectx,
-                                       label=labelx,
-                                       label_name=label_namex,
-                                       color=colorx,
-                                       value1=value1x,
-                                       value2=value2x,
-                                       difference=differencex,
-                                       fraction=fractionx))
-        TOOLS = "hover,save,pan,box_zoom,wheel_zoom"
+                # ------------------------------------------------------------
+                # Loop through labels:
+                # ------------------------------------------------------------
+                for ilabel, label in enumerate(labels):
+                    for irow in range(columns.shape[0]):
+                        if int(columns.iloc[irow][0]) == int(label):
+                            value = columns.iloc[irow][index]
+                            value2 = columns2.iloc[irow][index]
+                            subject_shapes[isubject, ilabel] = value
+                            subject2_shapes[isubject, ilabel] = value2
 
-        plot_width = len(subjects) * scale_rect
-        plot_height = len(labels) * scale_rect
-        p = figure(title=title, x_range=subjects, y_range=list(reversed(label_names)),
-                   plot_width=plot_width, plot_height=plot_height,
-                   x_axis_location="above", tools=TOOLS)
-        p.grid.grid_line_color = None
-        p.axis.axis_line_color = None
-        p.axis.major_tick_line_color = None
-        p.axis.major_label_text_font_size = "10pt"
-        p.axis.major_label_standoff = 0
-        p.xaxis.major_label_orientation = pi/3
-        p.rect(x="subject", y="label_name", width=1, height=1,
-               source=source, color="color", line_color=None)
+            # ----------------------------------------------------------------
+            # Save csv files:
+            # ----------------------------------------------------------------
+            data = pd.DataFrame(subject_shapes, index=subjects, columns=labels)
+            data.to_csv(name + '_scans.csv')
+            data_summary = data.describe(include='all')
+            data_summary.to_csv(name + '_scans_summary.csv')
 
-        p.select_one(HoverTool).tooltips = [
-            ('subject', '@subject'),
-            ('label', '@label'),
-            ('label name', '@label_name'),
-            ('value1', '@value1'),
-            ('value2', '@value2'),
-            ('difference', '@difference'),
-            ('fraction', '@fraction'),
-        ]
+            data = pd.DataFrame(subject2_shapes, index=subjects, columns=labels)
+            data.to_csv(name + '_rescans.csv')
+            data_summary = data.describe(include='all')
+            data_summary.to_csv(name + '_rescans_summary.csv')
 
-        #show(p)      # show the plot
-        #import sys; sys.exit()
-        save(p)      # save the plot
+            subject_shape_diffs = subject2_shapes - subject_shapes
+            data = pd.DataFrame(subject_shape_diffs, index=subjects, columns=labels)
+            data.to_csv(name + '_differences.csv')
+            data_summary = data.describe(include='all')
+            data_summary.to_csv(name + '_differences_summary.csv')
 
-    data_summaries_df = pd.DataFrame(data_summaries,
-                                     index=names,
-                                     columns=data_summary.index)
-    data_summaries_df.to_csv('summary_of_rescan_fractional_abs_shape_differences.csv')
+            subject_shape_abs_diffs = np.abs(subject_shape_diffs)
+            max_diffs = subject_shape_abs_diffs.max(axis=0)
+            subject_shape_frac_diffs = subject_shape_diffs / subject_shapes
+            data = pd.DataFrame(subject_shape_frac_diffs,
+                                index=subjects, columns=labels)
+            #iInf, jInf = np.where(data.values == np.inf)
+            #data.iloc[iInf, jInf] = 'NaN'
+            data.to_csv(name + '_fractional_differences.csv')
+            data_summary = data.describe(include='all')
+            data_summary.to_csv(name + '_fractional_differences_summary.csv')
+
+            # max_array = np.zeros((nsubjects, len(labels), 2))
+            # max_array[:, :, 0] = subject_shapes
+            # max_array[:, :, 1] = subject2_shapes
+            # max_diff = np.abs(np.max(max_array, axis=2))
+
+            # maxs = np.max(np.max([subject_shapes, subject2_shapes], axis=0), axis=0)
+            # mins = np.min(np.min([subject_shapes, subject2_shapes], axis=0), axis=0)
+            # max_diff = np.abs(maxs - mins)
+
+            # max_diff = np.max([subject_shapes, subject2_shapes]) -\
+            #           np.min([subject_shapes, subject2_shapes])
+
+            subject_shape_frac_abs_diffs = np.abs(subject_shape_abs_diffs / subject_shapes)
+            data = pd.DataFrame(subject_shape_frac_abs_diffs,
+                                index=subjects, columns=labels)
+            n50 = len(np.where(data.values > 0.5)[0])
+            n25 = len(np.where(data.values > 0.25)[0])
+            n10 = len(np.where(data.values > 0.1)[0])
+            print(title)
+            print("Fractional absolute differences above "
+                  "0.5: {0}; 0.25: {1}; 0.1: {2}".format(n50, n25, n10))
+            print("")
+            #iInf, jInf = np.where(data.values == np.inf)
+            #data.iloc[iInf, jInf] = 'NaN'
+            data.to_csv(name + '_fractional_abs_differences.csv')
+            data_summary = data.describe(include='all')
+            data_summary.to_csv(name + '_fractional_abs_differences_summary.csv')
+
+            data_summaries[ititle, :] = data_summary.max(axis=1)
+
+            # ignore_columns = []
+            # nbins = 100
+            # axis_limits = []
+            # histograms_of_lists(subject_shape_diffs, title, ignore_columns,
+            #                     nbins, axis_limits, [title])
+
+            # ----------------------------------------------------------------
+            # Plot heatmap for labels X subjects array for each table:
+            # ----------------------------------------------------------------
+            html_file = name + '_fractional_abs_differences.html'
+            print(html_file)
+
+            # Set up the data for plotting. We will need to have values for every
+            # pair of subject/label names. Map the value to a color.
+            subjectx = []
+            labelx = []
+            label_namex = []
+            value1x = []
+            value2x = []
+            differencex = []
+            fractionx = []
+            colorx = []
+            for ilabel, label in enumerate(labels):
+                for isubject, subject in enumerate(subjects):
+                    labelx.append(label)
+                    label_namex.append(label_names[ilabel])
+                    subjectx.append(subject)
+                    value1 = subject_shapes[isubject, ilabel]
+                    value2 = subject2_shapes[isubject, ilabel]
+                    difference = subject_shape_diffs[isubject, ilabel]
+                    value1x.append(value1)
+                    value2x.append(value2)
+                    differencex.append(difference)
+                    fraction = subject_shape_frac_diffs[isubject, ilabel]
+                    fractionx.append(fraction)
+                    abs_fraction = subject_shape_frac_abs_diffs[isubject, ilabel]
+                    if np.isnan(value) or np.isnan(abs_fraction):
+                        rgb = [0, 0, 0]
+                    elif abs_fraction > 1.0:
+                        rgb = [1, 1, 1]
+                    else:
+                        rgb = [np.int(255 * x) for x in
+                               colors[np.int(255 * abs_fraction)]]
+                    hex = "#%02x%02x%02x" % tuple(rgb)
+                    colorx.append(hex)
+
+            output_file(html_file, title=title)
+            source = ColumnDataSource(dict(subject=subjectx,
+                                           label=labelx,
+                                           label_name=label_namex,
+                                           color=colorx,
+                                           value1=value1x,
+                                           value2=value2x,
+                                           difference=differencex,
+                                           fraction=fractionx))
+            TOOLS = "hover,save,pan,box_zoom,wheel_zoom"
+
+            plot_width = len(subjects) * scale_rect
+            plot_height = len(labels) * scale_rect
+            p = figure(title=title, x_range=subjects, y_range=list(reversed(label_names)),
+                       plot_width=plot_width, plot_height=plot_height,
+                       x_axis_location="above", tools=TOOLS)
+            p.grid.grid_line_color = None
+            p.axis.axis_line_color = None
+            p.axis.major_tick_line_color = None
+            p.axis.major_label_text_font_size = "10pt"
+            p.axis.major_label_standoff = 0
+            p.xaxis.major_label_orientation = pi/3
+            p.rect(x="subject", y="label_name", width=1, height=1,
+                   source=source, color="color", line_color=None)
+
+            p.select_one(HoverTool).tooltips = [
+                ('subject', '@subject'),
+                ('label', '@label'),
+                ('label name', '@label_name'),
+                ('value1', '@value1'),
+                ('value2', '@value2'),
+                ('difference', '@difference'),
+                ('fraction', '@fraction'),
+            ]
+
+            #show(p)      # show the plot
+            #import sys; sys.exit()
+            save(p)      # save the plot
+
+        data_summaries_df = pd.DataFrame(data_summaries,
+                                         index=names,
+                                         columns=data_summary.index)
+        data_summaries_df.to_csv('summary_of_rescan_fractional_abs_shape_differences.csv')
 

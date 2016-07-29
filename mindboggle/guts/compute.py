@@ -15,8 +15,22 @@ def distcorr(X, Y):
     """
     Compute the distance correlation function.
 
+    Parameters
+    ----------
+    X : list or array of numbers
+    Y : list or array of numbers
+
+    Returns
+    -------
+    dcor : float
+        distance correlation
+
+    Examples
+    --------
+    >>> from mindboggle.guts.compute import distcorr
+    >>> import numpy as np
     >>> a = [1,2,3,4,5]
-    >>> b = np.array([1,2,9,4,4])
+    >>> b = [1,2,9,4,4]
     >>> distcorr(a, b)
     0.762676242417
 
@@ -47,6 +61,7 @@ def distcorr(X, Y):
     dcov2_xx = (A * A).sum()/float(n * n)
     dcov2_yy = (B * B).sum()/float(n * n)
     dcor = np.sqrt(dcov2_xy)/np.sqrt(np.sqrt(dcov2_xx) * np.sqrt(dcov2_yy))
+
     return dcor
 
 
