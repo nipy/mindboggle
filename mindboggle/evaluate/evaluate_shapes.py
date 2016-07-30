@@ -17,21 +17,22 @@ Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 # ----------------------------------------------------------------------------
-# (1) Compare surface shape measures across subjects for each label.
-# (2) Compare thickness measures across subjects for each label.
-# (3) Evaluate consistency of Mindboggle shape measures for rescanned MRI data.
+# (1) Compare surface shape measures between hemispheres for each label.
+# (2) Compare surface shape measures across subjects for each label.
+# (3) Compare surface shape measures across subjects for each label BY VERTEX.
+# (4) Compare thickness measures across subjects for each label.
+# (5) Evaluate consistency of Mindboggle shape measures for rescanned MRI data.
 # ----------------------------------------------------------------------------
 if __name__ == "__main__":
 
     compare_shapes_across_hemispheres = False
-    #compare_shapes_across_hemispheres_by_vertex = True
     compare_surface_shape_measures = False
-    compare_surface_shape_measures_by_vertex = True
+    compare_surface_shape_measures_by_vertex = False
     compare_thickness_measures = False
     evaluate_rescan_shape_consistency = False
 
     # ------------------------------------------------------------------------
-    # Compare surface shapes across hemispheres:
+    # Compare surface shapes across hemispheres per label:
     # ------------------------------------------------------------------------
     if compare_shapes_across_hemispheres:
 
@@ -88,15 +89,15 @@ if __name__ == "__main__":
 
             # thickinthehead:
             column2 = columns2.iloc[:, 1]
-            column2L_match = []
-            column2R_match = []
+            columnt2L = []
+            columnt2R = []
             for icolumn2, column2_index in enumerate(column2.index):
                 if column2_index in columnLindex:
-                    column2L_match.append(column2[icolumn2])
+                    columnt2L.append(column2[icolumn2])
                 elif column2_index in columnRindex:
-                    column2R_match.append(column2[icolumn2])
-            thickintheheads[isubject, :, 0] = column2L_match
-            thickintheheads[isubject, :, 1] = column2R_match
+                    columnt2R.append(column2[icolumn2])
+            thickintheheads[isubject, :, 0] = columnt2L
+            thickintheheads[isubject, :, 1] = columnt2R
 
             # FreeSurfer thickness:
             columnL = columnsL['freesurfer thickness: median']
@@ -226,7 +227,7 @@ if __name__ == "__main__":
 
     # ------------------------------------------------------------------------
     # Compare surface shape measures across subjects for each label BY VERTEX:
-#    # NOTE: Would need to do this per label, because pdist uses squareform!
+    # NOTE: SLOW!
     # ------------------------------------------------------------------------
     if compare_surface_shape_measures_by_vertex:
 
@@ -238,8 +239,11 @@ if __name__ == "__main__":
         from mindboggle.mio.labels import DKTprotocol
 
         dkt = DKTprotocol()
-        label_names = dkt.cerebrum_cortex_DKT31_names
-        labels = dkt.cerebrum_cortex_DKT31_numbers
+        label_namesL = dkt.left_cerebrum_cortex_DKT31_names
+        label_namesR = dkt.right_cerebrum_cortex_DKT31_names
+        labelsL = dkt.left_cerebrum_cortex_DKT31_numbers
+        labelsR = dkt.right_cerebrum_cortex_DKT31_numbers
+        label_names_bilateral = dkt.DKT31_names
 
         subject_list = '/Users/arno/Data/subject_list_Mindboggle101.txt'
         fid = open(subject_list, 'r')
@@ -253,7 +257,7 @@ if __name__ == "__main__":
         # Loop through subjects and save distance correlations between
         # different curvature and between different depth shape measures:
         # --------------------------------------------------------------------
-        dcors = np.zeros((len(subjects), len(label_names), 2))
+        dcors = np.zeros((len(subjects), len(labelsL), 4))
         for isubject, subject in enumerate(subjects):
 
             # Load shape tables:
@@ -262,24 +266,59 @@ if __name__ == "__main__":
             columnsL = pd.read_csv(tableL, sep=",", index_col="label ID")
             columnsR = pd.read_csv(tableR, sep=",", index_col="label ID")
 
-            for ilabel, label in enumerate(labels):
-                column1 = columnsL.loc[[label], ['mean curvature']]
-                column2 = columnsL.loc[[label], ['freesurfer curvature']]
-                column3 = columnsL.loc[[label], ['travel depth']]
-                column4 = columnsL.loc[[label], ['geodesic depth']]
+            for ilabel, labelL in enumerate(labelsL):
+                print(subject + ', ' + str(labelL))
+                labelR = labelsR[ilabel]
+                columnc1L = columnsL.loc[[labelL], ['mean curvature']].iloc[:,0].values
+                columnc2L = columnsL.loc[[labelL], ['freesurfer curvature']].iloc[:,0].values
+                columnd1L = columnsL.loc[[labelL], ['travel depth']].iloc[:,0].values
+                columnd2L = columnsL.loc[[labelL], ['geodesic depth']].iloc[:,0].values
+                columnc1R = columnsR.loc[[labelR], ['mean curvature']].iloc[:,0].values
+                columnc2R = columnsR.loc[[labelR], ['freesurfer curvature']].iloc[:,0].values
+                columnd1R = columnsR.loc[[labelR], ['travel depth']].iloc[:,0].values
+                columnd2R = columnsR.loc[[labelR], ['geodesic depth']].iloc[:,0].values
 
                 # Compute distance correlations:
-                dcors[isubject, 0] = distcorr(column1, column2)
-                dcors[isubject, 1] = distcorr(column3, column4)
+                dcors[isubject, ilabel, 0] = distcorr(columnc1L, columnc2L)
+                dcors[isubject, ilabel, 1] = distcorr(columnc1R, columnc2R)
+                dcors[isubject, ilabel, 2] = distcorr(columnd1L, columnd2L)
+                dcors[isubject, ilabel, 3] = distcorr(columnd1R, columnd2R)
 
         # --------------------------------------------------------------------
         # Save csv files:
         # --------------------------------------------------------------------
-        data = pd.DataFrame(dcors, index=label_names, #index=columns1.columns)
-                            columns=['mean / freesurfer curvature distance correlation',
-                                     'geodesic / travel depth distance correlation'])
+        data = pd.DataFrame(dcors[:,:,0].transpose(),
+                            index=label_names_bilateral,
+                            columns=[x for x in range(101)])
+        data.to_csv('mean_and_FS_curvature_distance_correlation_'
+                    'per_left_label_vertices_Mindboggle101.csv')
+
+        data = pd.DataFrame(dcors[:,:,1].transpose(),
+                            index=label_names_bilateral,
+                            columns=[x for x in range(101)])
+        data.to_csv('mean_and_FS_curvature_distance_correlation_'
+                    'per_right_label_vertices_Mindboggle101.csv')
+
+        data = pd.DataFrame(dcors[:,:,2].transpose(),
+                            index=label_names_bilateral,
+                            columns=[x for x in range(101)])
+        data.to_csv('geodesic_and_travel_depth_distance_correlation_'
+                    'per_left_label_vertices_Mindboggle101.csv')
+
+        data = pd.DataFrame(dcors[:,:,3].transpose(),
+                            index=label_names_bilateral,
+                            columns=[x for x in range(101)])
+        data.to_csv('geodesic_and_travel_depth_distance_correlation_'
+                    'per_right_label_vertices_Mindboggle101.csv')
+
+        data = dcors.mean(axis=0)
+        data = pd.DataFrame(data, index=label_names_bilateral,
+                            columns=['mean / freesurfer curvature distance correlation (left)',
+                                     'mean / freesurfer curvature distance correlation (right)',
+                                     'geodesic / travel depth distance correlation (left)',
+                                     'geodesic / travel depth distance correlation (right)'])
         data.to_csv('mean_and_FS_curvature_geodesic_and_travel_depth_distance_correlations_'
-                    'per_label_Mindboggle101.csv')
+                    'per_label_vertices_Mindboggle101.csv')
 
 
     # ------------------------------------------------------------------------
