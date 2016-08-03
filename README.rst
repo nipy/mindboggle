@@ -136,7 +136,7 @@ noncortical volumes. Run ``recon-all`` on a T1-weighted $IMAGE file
 registration-based labeling. To generate the ANTs transforms and segmentation
 files used by Mindboggle, run the ``antsCorticalThickness.sh`` script on the
 same $IMAGE file, set an output $PREFIX, and provide paths to the
-`OASIS-30 Atropos template <https://osf.io/bx35m/?action=download&version=1>`_
+`OASIS-30 Atropos template <https://osf.io/rh9km/?action=download&version=1>`_
 files (backslash denotes a line return)::
 
     antsCorticalThickness.sh -d 3 -a $IMAGE -o $PREFIX \
