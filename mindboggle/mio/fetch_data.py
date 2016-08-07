@@ -74,13 +74,13 @@ def test_urls():
     # ------------------------------------------------------------------------
     # OASIS-30_Atropos_template.nii.gz
     urls['OASIS-30_Atropos_template'] = \
-        'https://osf.io/ktxqy/?action=download&version=1'
+        'https://osf.io/n6myv/?action=download&version=1'
     # OASIS-30_Atropos_template_in_MNI152.nii.gz
     urls['OASIS-30_Atropos_template_in_MNI152'] = \
-        'https://osf.io/mgdyw/?action=download&version=1'
+        'https://osf.io/kmfau/?action=download&version=1'
     # OASIS-30_Atropos_template_to_MNI152_affine.txt
     urls['OASIS-30_Atropos_template_to_MNI152_affine'] = \
-        'https://osf.io/eyvzm/?action=download&version=1'
+        'https://osf.io/t2pq9/?action=download&version=1'
     # OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152_v2.nii.gz
     urls['OASIS-TRT-20_jointfusion_labels_in_MNI152'] = \
         'https://osf.io/5q46g/?action=download&version=1'
