@@ -53,8 +53,7 @@ def find_depth_threshold(depth_file, min_vertices=10000, verbose=False):
     >>> verbose = False
     >>> depth_threshold, bins, bin_edges = find_depth_threshold(depth_file,
     ...     min_vertices, verbose)
-    >>> np.float(np.array_str(np.array([depth_threshold]),
-    ...     precision=5).strip('[').strip(']').strip())
+    >>> np.float("{0:.{1}f}".format(depth_threshold, 5))
     2.36089
 
     View threshold histogram plots (skip test):

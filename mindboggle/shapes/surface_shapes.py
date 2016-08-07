@@ -44,8 +44,7 @@ def area(command, surface_file, verbose=False):
     >>> command = os.path.join(ccode_path, 'area', 'PointAreaMain')
     >>> area_file = area(command, surface_file, verbose)
     >>> scalars, name = read_scalars(area_file)
-    >>> print(np.array_str(np.array(scalars[0:8]), precision=5,
-    ...     suppress_small=True))
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in scalars[0:8]]
     [ 0.4827   0.39661  0.57813  0.70574  0.84318  0.57643  0.66942  0.7063 ]
 
     """
@@ -103,9 +102,8 @@ def travel_depth(command, surface_file, verbose=False):
     >>> command = os.path.join(ccode_path, 'travel_depth', 'TravelDepthMain')
     >>> depth_file = travel_depth(command, surface_file, verbose)
     >>> scalars, name = read_scalars(depth_file)
-    >>> print(np.array_str(np.array(scalars[0:8]), precision=5,
-    ...     suppress_small=True))
-    [ 0.02026  0.06009  0.12859  0.04564  0.00774  0.05284  0.05354  0.01316]
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in scalars[0:8]]
+    [0.02026, 0.06009, 0.12859, 0.04564, 0.00774, 0.05284, 0.05354, 0.01316]
 
     """
     import os
@@ -160,9 +158,8 @@ def geodesic_depth(command, surface_file, verbose=False):
     >>> command = os.path.join(ccode_path, 'geodesic_depth', 'GeodesicDepthMain')
     >>> depth_file = geodesic_depth(command, surface_file, verbose)
     >>> scalars, name = read_scalars(depth_file)
-    >>> print(np.array_str(np.array(scalars[0:8]), precision=5,
-    ...     suppress_small=True))
-    [ 0.02026  0.06009  0.12859  0.04564  0.00774  0.05284  0.05354  0.01316]
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in scalars[0:8]]
+    [0.02026, 0.06009, 0.12859, 0.04564, 0.00774, 0.05284, 0.05354, 0.01316]
 
     """
     import os
@@ -273,9 +270,8 @@ def curvature(command, method, arguments, surface_file, verbose=False):
     >>> mean_curvature_file, f1,f2,f3,f4 = curvature(command, method,
     ...     arguments, surface_file, verbose)
     >>> scalars, name = read_scalars(mean_curvature_file)
-    >>> print(np.array_str(np.array(scalars[0:8]), precision=5,
-    ...     suppress_small=True))
-    [-5.81361 -5.9313  -6.28055 -5.621   -5.69631 -5.80399 -5.87265 -5.7107 ]
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in scalars[0:8]]
+    [-5.81361, -5.9313, -6.28055, -5.621, -5.69631, -5.80399, -5.87265, -5.7107]
 
     """
     import os

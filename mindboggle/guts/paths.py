@@ -71,8 +71,8 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> values = depths * curvs
-    >>> print(np.array_str(values[0:5], precision=5, suppress_small=True))
-    [-0.11778 -0.35642 -0.80759 -0.25654 -0.04411]
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in values[0:5]]
+    [-0.11778, -0.35642, -0.80759, -0.25654, -0.04411]
     >>> neighbor_lists = find_neighbors_from_file(curv_file)
     >>> background_value = -1
     >>> # Limit number of folds to speed up the test:
@@ -678,7 +678,7 @@ def smooth_skeletons(skeletons, bounds, vtk_file, likelihoods, wN_max=1.0,
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> vtk_file = curv_file
     >>> likelihoods = depths * curvs
-    >>> print(np.array_str(likelihoods[0:5], precision=5, suppress_small=True))
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in likelihoods[0:5]]
     [-0.11778 -0.35642 -0.80759 -0.25654 -0.04411]
     >>> bounds, name = read_scalars(folds_file, True, True)
     >>> skeletons, name = read_scalars(fundus_file, True, True)
@@ -1244,7 +1244,7 @@ def find_max_values(points, values, min_separation=10, thr=0.5):
     >>> points, f1,f2,f3, curvs, f4,f5,f6 = read_vtk(curv_file, True,True)
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> values = depths * curvs
-    >>> print(np.array_str(values[0:5], precision=5, suppress_small=True))
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in values[0:5]]
     [-0.11778 -0.35642 -0.80759 -0.25654 -0.04411]
     >>> min_separation = 10
     >>> values0 = [x for x in values if x > 0]
@@ -1370,8 +1370,8 @@ def find_max_values(points, values, min_separation=10, thr=0.5):
 #     >>> seed
 #     65804
 #     >>> values = depths
-#     >>> print(np.array_str(values[0:5], precision=5, suppress_small=True))
-#     [ 0.02026  0.06009  0.12859  0.04564  0.00774]
+#     >>> [np.float("{0:.{1}f}".format(x, 5)) values[0:5]]
+#     [0.02026, 0.06009, 0.12859, 0.04564, 0.00774]
 #     >>> sink = []
 #     >>> track = track_values(seed, indices, neighbor_lists, values, sink)
 #     >>> track[0:10]

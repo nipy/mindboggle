@@ -31,8 +31,9 @@ def distcorr(X, Y):
     >>> import numpy as np
     >>> a = [1,2,3,4,5]
     >>> b = [1,2,9,4,4]
-    >>> distcorr(a, b)
-    0.762676242417
+    >>> dcor = distcorr(a, b)
+    >>> np.float("{0:.{1}f}".format(dcor, 5))
+    0.76268
 
     Copyright (2014-2015) MIT
     Written by Satrajit S. Ghosh (Apache License v2.0) as part of the
@@ -564,21 +565,17 @@ def means_per_label(values, labels, include_labels=[], exclude_labels=[], areas=
     >>> # Compute mean curvature per label normalized by area:
     >>> means, sdevs, label_list, label_areas = means_per_label(values, labels,
     ...     include_labels, exclude_labels, areas)
-    >>> print(np.array_str(np.array(means[0:5]),
-    ...       precision=5, suppress_small=True))
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in means[0:5]]
     [-1.1793  -1.21405 -2.49318 -3.58116 -3.34987]
-    >>> print(np.array_str(np.array(sdevs[0:5]),
-    ...       precision=5, suppress_small=True))
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in sdevs[0:5]]
     [ 2.43827  2.33857  2.0185   3.25964  2.8274 ]
     >>> # Compute mean curvature per label:
     >>> areas = []
     >>> means, sdevs, label_list, label_areas = means_per_label(values, labels,
     ...     include_labels, exclude_labels, areas)
-    >>> print(np.array_str(np.array(means[0:5]),
-    ...       precision=5, suppress_small=True))
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in means[0:5]]
     [-0.99077 -0.3005  -1.59342 -2.03939 -2.31815]
-    >>> print(np.array_str(np.array(sdevs[0:5]),
-    ...       precision=5, suppress_small=True))
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in sdevs[0:5]]
     [ 2.3486   2.4023   2.3253   3.31023  2.91794]
 
     >>> # FIX: compute mean coordinates per label:
@@ -689,9 +686,8 @@ def sum_per_label(values, labels, include_labels=[], exclude_labels=[]):
     >>> # Compute sum area per label:
     >>> sums, label_list = sum_per_label(values, labels, include_labels,
     ...                                  exclude_labels)
-    >>> print(np.array_str(np.array(sums[0:5]),
-    ...       precision=5, suppress_small=True))
-    [-8228.32913  -424.90109 -1865.8959  -8353.33769 -5130.06613]
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in sums[0:5]]
+    [-8228.32913, -424.90109, -1865.8959, -8353.33769, -5130.06613]
 
     """
     import numpy as np
@@ -792,17 +788,13 @@ def stats_per_label(values, labels, include_labels=[], exclude_labels=[],
     >>> precision = 1
     >>> medians, mads, means, sdevs, skews, kurts, lower_quarts, upper_quarts, label_list = stats_per_label(values,
     ...     labels, include_labels, exclude_labels, weights, precision)
-    >>> print(np.array_str(np.array(medians[0:5]),
-    ...       precision=5, suppress_small=True))
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in medians[0:5]]
     [-1.13602 -1.22961 -2.49665 -3.80782 -3.37309]
-    >>> print(np.array_str(np.array(mads[0:5]),
-    ...       precision=5, suppress_small=True))
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in mads[0:5]]
     [ 1.17026  1.5045   1.28234  2.11515  1.69333]
-    >>> print(np.array_str(np.array(means[0:5]),
-    ...       precision=5, suppress_small=True))
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in means[0:5]]
     [-1.1793  -1.21405 -2.49318 -3.58116 -3.34987]
-    >>> print(np.array_str(np.array(kurts[0:5]),
-    ...       precision=5, suppress_small=True))
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in kurts[0:5]]
     [ 2.34118 -0.3969  -0.55787 -0.73993  0.3807 ]
 
     """

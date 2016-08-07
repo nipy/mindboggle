@@ -255,8 +255,7 @@ def read_scalars(filename, return_first=True, return_array=False):
     >>> depths, name = read_scalars(depth_file)
     >>> name
     'scalars'
-    >>> print(np.array_str(np.array(depths[0:5]),
-    ...       precision=5, suppress_small=True))
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in depths[0:5]]
     [ 0.02026  0.06009  0.12859  0.04564  0.00774]
 
     """
@@ -365,9 +364,8 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
      [-14.9617  -76.2497   -2.62924]
      [-12.4807  -76.1401   -3.98634]
      [-13.3426  -76.1914   -3.3657 ]]
-    >>> print(np.array_str(np.array(scalars[0:5]),
-    ...       precision=5, suppress_small=True))
-    [ 0.02026  0.06009  0.12859  0.04564  0.00774]
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in scalars[0:5]]
+    [0.02026, 0.06009, 0.12859, 0.04564, 0.00774]
     >>> faces[0:5]
     [[0, 1, 4], [5, 4, 1], [0, 48, 49], [0, 49, 1], [0, 4, 48]]
 

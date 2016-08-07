@@ -645,12 +645,10 @@ def reindex_faces_points(faces, points=[]):
     ...     points)
     >>> new_faces[0:3]
     [[277, 690, 276], [689, 691, 692], [690, 698, 699]]
-    >>> print(np.array_str(np.array(points[0]),
-    ...       precision=5, suppress_small=True))
-    [-13.7924  -76.0973   -2.57594]
-    >>> print(np.array_str(np.array(new_points[0]),
-    ...       precision=5, suppress_small=True))
-    [-13.7802 -12.3814  57.4042]
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in points[0]]
+    [-13.7924, -76.0973, -2.57594]
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in new_points[0]]
+    [-13.7802, -12.3814, 57.4042]
 
     View reindexed fold on surface (skip test):
 
@@ -1243,8 +1241,8 @@ def area_of_faces(points, faces):
     >>> input_vtk = fetch_data(urls['left_area'], '', '.vtk')
     >>> points, f1, f2, faces, f3, f4, f5, f6 = read_vtk(input_vtk)
     >>> area = area_of_faces(points, faces)
-    >>> print(np.array_str(area[0:5], precision=5, suppress_small=True))
-    [ 0.21703  0.27139  0.29033  0.1717   0.36011]
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in area[0:5]]
+    [0.21703, 0.27139, 0.29033, 0.1717, 0.36011]
 
     """
     import numpy as np

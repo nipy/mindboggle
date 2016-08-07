@@ -264,17 +264,13 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files,
     >>> scalar_range = np.linspace(-1, 1, 101, endpoint=True) # (-1 to 1 by 0.02)
     >>> curv_border, curv_nonborder = estimate_distribution(scalar_files,
     ...     scalar_range, fold_files, label_files, verbose)
-    >>> print(np.array_str(np.array(depth_border['means']),
-    ...       precision=5, suppress_small=True))
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in depth_border['means']]
     [ 13.0869   0.       0.    ]
-    >>> print(np.array_str(np.array(depth_nonborder['means']),
-    ...       precision=5, suppress_small=True))
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in depth_nonborder['means']]
     [ 14.59311   6.16008   0.     ]
-    >>> print(np.array_str(np.array(curv_border['means']),
-    ...       precision=5, suppress_small=True))
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in curv_border['means']]
     [ 3.06449 -0.76109 -3.43184]
-    >>> print(np.array_str(np.array(curv_nonborder['means']),
-    ...       precision=5, suppress_small=True))
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in curv_nonborder['means']]
     [ 0.62236 -1.55192 -5.19359]
     >>> pickle.dump([depth_border, curv_border, depth_nonborder, curv_nonborder],
     ...     open("depth_curv_border_nonborder_parameters.pkl", "wb"))
@@ -356,12 +352,10 @@ def concatenate_sulcus_scalars(scalar_files, fold_files, label_files,
     >>> background_value = -1
     >>> border, nonborder = concatenate_sulcus_scalars(scalar_files,
     ...     fold_files, label_files, background_value)
-    >>> print(np.array_str(np.array(border[0:5]),
-    ...       precision=5, suppress_small=True))
-    [ 3.48284  2.57157  4.27596  4.56549  3.84881]
-    >>> print(np.array_str(np.array(nonborder[0:5]),
-    ...       precision=5, suppress_small=True))
-    [ 2.87204  2.89388  3.55364  2.81681  3.70736]
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in border[0:5]]
+    [3.48284, 2.57157, 4.27596, 4.56549, 3.84881]
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in nonborder[0:5]]
+    [2.87204, 2.89388, 3.55364, 2.81681, 3.70736]
 
     """
     import numpy as np
@@ -452,12 +446,12 @@ def fit_normals_to_histogram(data, x, verbose=False):
     >>> x = np.linspace(0, 1, 51, endpoint=True)
     >>> verbose = False
     >>> means, sigmas, weights = fit_normals_to_histogram(scalars, x, verbose)
-    >>> print(np.array_str(means, precision=5, suppress_small=True))
-    [ 13.38742   3.90712   0.10946]
-    >>> print(np.array_str(sigmas, precision=5, suppress_small=True))
-    [ 5.80721  2.58297  0.10209]
-    >>> print(np.array_str(weights, precision=5, suppress_small=True))
-    [ 0.43959  0.39286  0.16755]
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in means]
+    [13.38742, 3.90712, 0.10946]
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in sigmas]
+    [5.80721, 2.58297, 0.10209]
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in weights]
+    [0.43959, 0.39286, 0.16755]
 
     """
     import numpy as np
