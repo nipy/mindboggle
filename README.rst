@@ -127,19 +127,19 @@ Example input data can be found
 on Mindboggle's `examples <https://osf.io/8cf5z>`_ site on osf.io.
 
 **FreeSurfer** generates labeled cortical surfaces, and labeled cortical and
-noncortical volumes. Run ``recon-all`` on a T1-weighted IMAGE file
-(e.g., subject1.nii.gz) and set the output SUBJECT name (e.g., subject1)::
+noncortical volumes. Run ``recon-all`` on a T1-weighted $IMAGE file
+(e.g., subject1.nii.gz) and set the output $SUBJECT name (e.g., subject1)::
 
-    recon-all -all -i IMAGE -s SUBJECT
+    recon-all -all -i $IMAGE -s $SUBJECT
 
 **ANTs** provides brain volume extraction, segmentation, and
 registration-based labeling. To generate the ANTs transforms and segmentation
 files used by Mindboggle, run the ``antsCorticalThickness.sh`` script on the
-same IMAGE file, set an output PREFIX, and provide paths to the
-`OASIS-30 Atropos template <https://osf.io/bx35m/?action=download&version=1>`_
+same $IMAGE file, set an output $PREFIX, and provide paths to the
+`OASIS-30 Atropos template <https://osf.io/rh9km/?action=download&version=1>`_
 files (backslash denotes a line return)::
 
-    antsCorticalThickness.sh -d 3 -a IMAGE -o PREFIX \
+    antsCorticalThickness.sh -d 3 -a $IMAGE -o $PREFIX \
       -e OASIS-30_Atropos_template/T_template0.nii.gz \
       -t OASIS-30_Atropos_template/T_template0_BrainCerebellum.nii.gz \
       -m OASIS-30_Atropos_template/T_template0_BrainCerebellumProbabilityMask.nii.gz \
@@ -220,7 +220,7 @@ The following include outputs from most, but not all, optional arguments.
 |    tables/     |tables of shape measures (per label/feature/vertex) | .csv         |
 +----------------+----------------------------------------------------+--------------+
 
-**mindboggled** / SUBJECT /
+**mindboggled** / $SUBJECT /
 
     **labels** /
 
