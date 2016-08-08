@@ -1608,7 +1608,7 @@ def extract_borders_2nd_surface(labels_file, values_file='',
     >>> border_file, values, I = extract_borders_2nd_surface(label_file,
     ...     values_file, output_file, background_value)
     >>> [np.float("{0:.{1}f}".format(x, 5)) for x in np.unique(values)[0:8]]
-    [-1., 0., 0.00012, 0.00023, 0.00032, 0.00044, 0.00047, 0.00051]
+    [-1.0, 0.0, 0.00012, 0.00023, 0.00032, 0.00044, 0.00047, 0.00051]
     >>> I[0:10]
     [115, 116, 120, 121, 125, 126, 130, 131, 281, 286]
 

@@ -223,10 +223,10 @@ def area_normalize(points, faces, spectrum):
     >>> spectrum = fem_laplacian(points, faces, spectrum_size=3,
     ...                          normalization=None)
     >>> [np.float("{0:.{1}f}".format(x, 5)) for x in spectrum[1::]]
-    [ 4.58359  4.8    ]
+    [4.58359, 4.8]
     >>> new_spectrum = area_normalize(points, faces, spectrum)
     >>> [np.float("{0:.{1}f}".format(x, 5)) for x in new_spectrum[1::]]
-    [ 27.50155  28.8    ]
+    [27.50155, 28.8]
 
     """
     from mindboggle.guts.mesh import area_of_faces
@@ -267,11 +267,11 @@ def index_normalize(spectrum):
     ...          [0,4,5], [5,1,0], [1,5,6], [6,2,1], [3,7,6], [6,2,3]]
     >>> spectrum = fem_laplacian(points, faces, spectrum_size=3,
     ...                          normalization=None)
-    >>>     >>> [np.float("{0:.{1}f}".format(x, 5)) for x in spectrum[1::]]
-    [ 4.58359  4.8    ]
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in spectrum[1::]]
+    [4.5835, 4.8]
     >>> new_spectrum = index_normalize(spectrum)
     >>> [np.float("{0:.{1}f}".format(x, 5)) for x in new_spectrum[1::]]
-    [ 4.58359  2.4    ]
+    [4.58359, 2.4]
 
     """
 
@@ -434,11 +434,11 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization="areaindex",
     >>> spectrum = fem_laplacian(points, faces, spectrum_size=3,
     ...                          normalization=None, verbose=False)
     >>> [np.float("{0:.{1}f}".format(x, 5)) for x in spectrum[1::]]
-    [ 4.58359  4.8    ]
+    [4.58359, 4.8]
     >>> spectrum = fem_laplacian(points, faces, spectrum_size=3,
     ...                          normalization="area", verbose=False)
     >>> [np.float("{0:.{1}f}".format(x, 5)) for x in spectrum[1::]]
-    [ 27.50155  28.8    ]
+    [27.50155, 28.8]
     >>> # Spectrum for entire left hemisphere of Twins-2-1:
     >>> from mindboggle.mio.vtks import read_vtk
     >>> from mindboggle.mio.fetch_data import prep_tests
@@ -448,7 +448,7 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization="areaindex",
     >>> spectrum = fem_laplacian(points, faces, spectrum_size=6,
     ...                          normalization=None, verbose=False)
     >>> [np.float("{0:.{1}f}".format(x, 5)) for x in spectrum[1::]]
-    [ 0.00013  0.00027  0.00032  0.00047  0.00058]
+    [0.00013, 0.00027, 0.00032, 0.00047, 0.00058]
     >>> # Spectrum for Twins-2-1 left postcentral pial surface (22):
     >>> from mindboggle.guts.mesh import keep_faces, reindex_faces_points
     >>> I22 = [i for i,x in enumerate(labels) if x==1022] # postcentral
@@ -698,7 +698,7 @@ def spectrum_from_file(vtk_file, spectrum_size=10, exclude_labels=[-1],
     >>> spectrum = spectrum_from_file(vtk_file, spectrum_size=6,
     ...     exclude_labels=[-1], normalization=None, area_file="", verbose=False)
     >>> [np.float("{0:.{1}f}".format(x, 5)) for x in spectrum[1::]]
-    [ 0.00013  0.00027  0.00032  0.00047  0.00058]
+    [0.00013, 0.00027, 0.00032, 0.00047, 0.00058]
     >>> spectrum = spectrum_from_file(vtk_file, spectrum_size=6,
     ...     exclude_labels=[-1], normalization="areaindex", area_file="",
     ...     verbose=False)
@@ -775,8 +775,8 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
     >>> spectrum_lists, label_list = spectrum_per_label(vtk_file,
     ...     spectrum_size, exclude_labels, None, area_file, largest_segment,
     ...     verbose)
-    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in spectrum[1::]]
-    [ 0.00054  0.00244  0.00291  0.00456  0.00575]
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in spectrum_lists[0]]
+    [0.0, 0.00054, 0.00244, 0.00291, 0.00456, 0.00575]
     >>> label_list[0:10]
     [1029, 1005, 1011, 1021, 1008, 1025, 999, 1013, 1007, 1022]
 

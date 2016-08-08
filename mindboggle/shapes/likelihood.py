@@ -265,13 +265,13 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files,
     >>> curv_border, curv_nonborder = estimate_distribution(scalar_files,
     ...     scalar_range, fold_files, label_files, verbose)
     >>> [np.float("{0:.{1}f}".format(x, 5)) for x in depth_border['means']]
-    [ 13.0869   0.       0.    ]
+    [13.0869, 0.0, 0.0]
     >>> [np.float("{0:.{1}f}".format(x, 5)) for x in depth_nonborder['means']]
-    [ 14.59311   6.16008   0.     ]
+    [14.59311, 6.16008, 0.0]
     >>> [np.float("{0:.{1}f}".format(x, 5)) for x in curv_border['means']]
-    [ 3.06449 -0.76109 -3.43184]
+    [3.06449, -0.76109, -3.43184]
     >>> [np.float("{0:.{1}f}".format(x, 5)) for x in curv_nonborder['means']]
-    [ 0.62236 -1.55192 -5.19359]
+    [0.62236, -1.55192, -5.19359]
     >>> pickle.dump([depth_border, curv_border, depth_nonborder, curv_nonborder],
     ...     open("depth_curv_border_nonborder_parameters.pkl", "wb"))
 

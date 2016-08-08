@@ -45,7 +45,7 @@ def area(command, surface_file, verbose=False):
     >>> area_file = area(command, surface_file, verbose)
     >>> scalars, name = read_scalars(area_file)
     >>> [np.float("{0:.{1}f}".format(x, 5)) for x in scalars[0:8]]
-    [ 0.4827   0.39661  0.57813  0.70574  0.84318  0.57643  0.66942  0.7063 ]
+    [0.4827, 0.39661, 0.57813, 0.70574, 0.84318, 0.57643, 0.66942, 0.7063]
 
     """
     import os

@@ -679,7 +679,7 @@ def smooth_skeletons(skeletons, bounds, vtk_file, likelihoods, wN_max=1.0,
     >>> vtk_file = curv_file
     >>> likelihoods = depths * curvs
     >>> [np.float("{0:.{1}f}".format(x, 5)) for x in likelihoods[0:5]]
-    [-0.11778 -0.35642 -0.80759 -0.25654 -0.04411]
+    [-0.11778, -0.35642, -0.80759, -0.25654, -0.04411]
     >>> bounds, name = read_scalars(folds_file, True, True)
     >>> skeletons, name = read_scalars(fundus_file, True, True)
     >>> background_value = -1
@@ -1245,7 +1245,7 @@ def find_max_values(points, values, min_separation=10, thr=0.5):
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> values = depths * curvs
     >>> [np.float("{0:.{1}f}".format(x, 5)) for x in values[0:5]]
-    [-0.11778 -0.35642 -0.80759 -0.25654 -0.04411]
+    [-0.11778, -0.35642, -0.80759, -0.25654, -0.04411]
     >>> min_separation = 10
     >>> values0 = [x for x in values if x > 0]
     >>> thr = np.median(values0) + 2 * median_abs_dev(values0)

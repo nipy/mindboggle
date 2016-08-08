@@ -256,7 +256,7 @@ def read_scalars(filename, return_first=True, return_array=False):
     >>> name
     'scalars'
     >>> [np.float("{0:.{1}f}".format(x, 5)) for x in depths[0:5]]
-    [ 0.02026  0.06009  0.12859  0.04564  0.00774]
+    [0.02026, 0.06009, 0.12859, 0.04564, 0.00774]
 
     """
     #import os
