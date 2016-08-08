@@ -268,7 +268,7 @@ def index_normalize(spectrum):
     >>> spectrum = fem_laplacian(points, faces, spectrum_size=3,
     ...                          normalization=None)
     >>> [np.float("{0:.{1}f}".format(x, 5)) for x in spectrum[1::]]
-    [4.5835, 4.8]
+    [4.58359, 4.8]
     >>> new_spectrum = index_normalize(spectrum)
     >>> [np.float("{0:.{1}f}".format(x, 5)) for x in new_spectrum[1::]]
     [4.58359, 2.4]

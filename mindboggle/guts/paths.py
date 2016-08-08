@@ -478,7 +478,7 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists,
     N_array_shape = np.shape(N_array)
     N_flat = np.ravel(N_array)
     N_flat_list = N_flat.tolist()
-    H_N = np.reshape(H[N_flat_list], N_array_shape)
+    H_N = np.reshape(H[[np.int(x) for x in N_flat_list]], N_array_shape)
     ind_flat = [i for i,x in enumerate(N_flat_list) if x > 0]
     len_flat = len(N_flat_list)
 
@@ -507,7 +507,7 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists,
         # Update neighborhood H values:
         #H_N = np.reshape(H[N_flat_list], N_array_shape)
         H_N = np.zeros(len_flat)
-        H_N[ind_flat] = H[N_flat[ind_flat].tolist()]
+        H_N[ind_flat] = H[[np.int(x) for x in N_flat[ind_flat]]]
         H_N = np.reshape(H_N, N_array_shape)
 
         # Compute the cost gradient for the HMMF values:
