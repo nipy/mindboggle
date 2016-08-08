@@ -133,9 +133,9 @@ def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
         elif Meshes.shape[1] == 2:
             edge_mat = Meshes
         # Augment matrix to contain edge weight in the third column
-        weighted_edges = np.asarray([[Indices[i], Indices[j],
-            kernel(Nodes[[x for x in Indices[np.int(i)]]],
-                   Nodes[[x for x in Indices[np.int(j)]]], sigma)]
+        weighted_edges = np.asarray([[Indices[np.int(i)], Indices[np.int(j)],
+            kernel(Nodes[Indices[np.int(i)]],
+                   Nodes[Indices[np.int(j)]], sigma)]
                    for [i, j] in edge_mat])
 
         # Add weights to graph
