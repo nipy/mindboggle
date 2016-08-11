@@ -1,0 +1,37 @@
+# Internal notes to aid Mindboggle development:
+
+# ----------------------------------------------------------------------------
+# Running Mindboggle:
+# ----------------------------------------------------------------------------
+mindboggle /home/vagrant/freesurfer_subjects/Twins-2-1 --ants ~/ants_subjects/Twins-2-1/antsBrainSegmentation.nii.gz —fundi
+mindboggle ~/freesurfer_subjects/Twins-2-1 --ants ~/ants_subjects/Twins-2-1/antsBrainSegmentation.nii.gz
+
+# ----------------------------------------------------------------------------
+# Conda-forge installation:
+# ----------------------------------------------------------------------------
+1. release on the github repo
+2. use the release number in the conda forge yaml file
+
+# ----------------------------------------------------------------------------
+# Printing floats/arrays in docstring tests:
+# ----------------------------------------------------------------------------
+# float:
+    >>> np.float("{0:.{1}f}".format(depth_threshold, 5))
+    0.21345
+# array of floats:
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in means[0:5]]
+    [-1.1793, -1.21405, -2.49318, -3.58116, -3.34987]
+# array of floats with condition:
+    >>> [np.float("{0:.{1}f}".format(x, 5)) ...  for x in [y for y in volumes if y > 0][0:5]] 
+# ndarray of floats:
+    >>> print(np.array_str(np.array(vector_distances),
+    ...       precision=5, suppress_small=True))
+    [[ 0.       0.8165   0.89753  0.74536]
+     [ 0.       0.       0.16667  1.52753]
+     [ 0.       0.       0.       1.60728]
+     [ 0.       0.       0.       0.     ]]
+
+
+
+
+
