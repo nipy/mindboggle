@@ -59,15 +59,12 @@ int main(int argc, char** argv)
     MeshAnalyser* depthComputer = new MeshAnalyser(argv[argc-2]);
     depthComputer->ComputeTravelDepthFromClosed(normalized);
     depthComputer->WriteIntoFile(argv[argc-1],(char*)"depth");
-    
+
     if(wrapperExported) {
             depthComputer->WriteIntoFile(argv[wrapperNameId],(char*)"closed");
     }
-    
+
 
     cout<<"Elapsed time (meshTest): "<<time(NULL)-start<<" s"<<endl;
     return 0;
 }
-
-
-

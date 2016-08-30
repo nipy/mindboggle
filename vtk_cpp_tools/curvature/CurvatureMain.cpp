@@ -162,6 +162,3 @@ int main(int argc, char** argv)
     cout<<"Elapsed time: "<<time(NULL)-start<<" s"<<endl;
     return 0;
 }
-
-
-
