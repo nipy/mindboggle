@@ -50,8 +50,8 @@ add_library(
 MeshAnalyser MeshAnalyser.cpp
 )
 install(TARGETS MeshAnalyser
-        LIBRARY DESTINATION /lib
-        ARCHIVE DESTINATION /lib)
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
 
 add_library(
 FsSurfaceReader FsSurfaceReader.cpp

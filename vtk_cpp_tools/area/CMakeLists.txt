@@ -11,7 +11,7 @@ add_executable(
 PointAreaMain PointAreaMain.cpp
 )
 install(TARGETS PointAreaMain
-    RUNTIME DESTINATION /bin)
+    RUNTIME DESTINATION bin)
 
 target_link_libraries(
 PointAreaMain

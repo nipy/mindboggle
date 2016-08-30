@@ -12,7 +12,7 @@ add_executable(
 TravelDepthMain TravelDepthMain.cpp
 )
 install(TARGETS TravelDepthMain
-    RUNTIME DESTINATION /bin)
+    RUNTIME DESTINATION bin)
 
 target_link_libraries(
 TravelDepthMain

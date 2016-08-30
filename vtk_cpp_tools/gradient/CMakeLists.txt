@@ -11,7 +11,7 @@ add_executable(
 GradientMain GradientMain.cpp
 )
 install(TARGETS GradientMain
-    RUNTIME DESTINATION /bin)
+    RUNTIME DESTINATION bin)
 
 target_link_libraries(
 GradientMain
