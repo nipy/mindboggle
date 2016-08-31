@@ -13,6 +13,8 @@
 
 #include "MeshAnalyser.h"
 #include <vtkPolyDataReader.h>
+#include <vtkMNIObjectReader.h>
+#include <vtkSTLReader.h>
 #include <vtkPolyDataWriter.h>
 #include <vtkHull.h>
 #include <vtkPointLocator.h>
@@ -37,30 +39,46 @@
 #include <vtkImageData.h>
 #include <vtkLinearSubdivisionFilter.h>
 #include <vtkTubeFilter.h>
+#include <vtksys/SystemTools.hxx>
 
 #include <algorithm>
 #include <map>
 
+template<class TReader> vtkPolyData *ReadObject(const char*fileName)
+{
+  vtkSmartPointer<TReader> reader =
+    vtkSmartPointer<TReader>::New();
+  reader->SetFileName(fileName);
+
+  reader->Update();
+  reader->GetOutput()->Register(reader);
+  return reader->GetOutput();
+}
+
 MeshAnalyser::MeshAnalyser(char* fileName)
 {
 
-    vtkPolyDataReader* reader=vtkPolyDataReader::New();
-    reader->SetFileName(fileName);
-    reader->Update();
+  vtkPolyData *dataSet;
+  std::string extension =
+    vtksys::SystemTools::GetFilenameLastExtension(fileName);
+  if (extension == ".vtk")
+    dataSet = ReadObject<vtkPolyDataReader> (fileName);
+  else if (extension == ".obj")
+    dataSet = ReadObject<vtkMNIObjectReader> (fileName);
+  else if (extension == ".stl")
+    dataSet = ReadObject<vtkSTLReader> (fileName);
 
     vtkTriangleFilter* tf = vtkTriangleFilter::New();
 
 //  VTK6 Update: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Replacement_of_SetInput
 //  Old: tf->SetInputData(reader->GetOutput());
-    tf->SetInputConnection(reader->GetOutputPort());
+    tf->SetInputData(dataSet);
 
 //  Relevant?: http://www.vtk.org/Wiki/VTK/VTK_6_Migration/Removal_of_Update
     tf->Update();
 
     this->mesh=vtkPolyData::New();
     this->mesh->DeepCopy(tf->GetOutput());
-
-    reader->Delete();
 
     Initialize();
 
@@ -2122,4 +2140,3 @@ void MeshAnalyser::ComputeHistogram(vtkDataArray* data, int nbBinsNU)
     }
     cout<<endl;
 }
-
