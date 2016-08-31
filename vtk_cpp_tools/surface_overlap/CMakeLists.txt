@@ -11,7 +11,7 @@ add_executable(
 SurfaceOverlapMain SurfaceOverlapMain.cpp
 )
 install(TARGETS SurfaceOverlapMain
-    RUNTIME DESTINATION /bin)
+    RUNTIME DESTINATION bin)
 
 target_link_libraries(
 SurfaceOverlapMain

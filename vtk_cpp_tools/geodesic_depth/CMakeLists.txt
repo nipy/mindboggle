@@ -11,7 +11,7 @@ add_executable(
 GeodesicDepthMain GeodesicDepthMain.cpp
 )
 install(TARGETS GeodesicDepthMain
-    RUNTIME DESTINATION /bin)
+    RUNTIME DESTINATION bin)
 
 target_link_libraries(
 GeodesicDepthMain

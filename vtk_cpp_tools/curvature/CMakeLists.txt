@@ -11,7 +11,7 @@ add_executable(
 CurvatureMain CurvatureMain.cpp
 )
 install(TARGETS CurvatureMain
-    RUNTIME DESTINATION /bin)
+    RUNTIME DESTINATION bin)
 
 target_link_libraries(
 CurvatureMain

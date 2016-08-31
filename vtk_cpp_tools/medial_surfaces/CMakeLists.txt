@@ -15,7 +15,7 @@ add_executable(
 MedialSurfaceMain MedialSurfaceMain.cpp
 )
 install(TARGETS MedialSurfaceMain
-    RUNTIME DESTINATION /bin)
+    RUNTIME DESTINATION bin)
 
 target_link_libraries(
 MedialSurfaceMain
