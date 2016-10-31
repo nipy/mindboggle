@@ -52,13 +52,13 @@ NOTE::
 
     https://docs.docker.com/engine/installation/
 
-2. Clone the Mindboggle Docker container app (only once):
+2. Clone the Mindboggle Docker container app:
 
     git clone https://github.com/BIDS-Apps/mindboggle
 
     cd mindboggle
 
-3. Set the path on the host and enter the bash shell of the container:
+3. Set the path on the host to be accessed by the Docker container, and enter the bash shell of the container:
 
     PATH_ON_HOST=/
 
@@ -93,7 +93,7 @@ Set path environment variables:
         --out $HOST/mindboggled --working $HOST/working
 
 
-For help after installing, type the following in a terminal window::
+For help with the Mindboggle command, type the following in a terminal window::
 
     mindboggle -h
 
@@ -101,20 +101,20 @@ For help after installing, type the following in a terminal window::
 The following bare-bones command runs Mindboggle
 on data processed by FreeSurfer but not ANTs::
 
-    mindboggle $HOME/mindboggle_input_example/freesurfer/subjects/arno
+    mindboggle $PATH_TO_FREESURFER/arno
 
 **Example 2:**
 The same command, but takes advantage of ANTs output
 (backslash denotes line return)::
 
-    mindboggle $HOME/mindboggle_input_example/freesurfer/subjects/arno \
-    --ants $HOME/mindboggle_input_example/ants/subjects/arno/antsBrainSegmentation.nii.gz
+    mindboggle $PATH_TO_FREESURFER/arno \
+    --ants $PATH_TO_ANTS/arno/antsBrainSegmentation.nii.gz
 
 **Example 3:**
 To generate only volume (and not surface) labels and shape measures
 from FreeSurfer data, using 8 processors::
 
-    mindboggle $HOME/mindboggle_input_example/freesurfer/subjects/arno --no_surfaces -p 8
+    mindboggle $PATH_TO_FREESURFER/arno --no_surfaces -p 8
 
 ------------------------------------------------------------------------------
 Preprocessing
