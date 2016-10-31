@@ -1,5 +1,5 @@
 ==============================================================================
-Software -- UNDERGOING ALPHA TESTING
+Software
 ==============================================================================
 .. role:: red
 
@@ -48,19 +48,20 @@ NOTE::
 
     DOCKER INSTALLATION IS UNDERGOING TESTS!
 
-1. Install and run Docker (only once): 
+1. Install and run Docker: 
 
     https://docs.docker.com/engine/installation/
 
-
-2. Clone the mindboggle Docker container app (only once):
+2. Clone the Mindboggle Docker container app (only once):
 
     git clone https://github.com/BIDS-Apps/mindboggle
+
     cd mindboggle
 
 3. Set the path on the host and enter the bash shell of the container:
 
     PATH_ON_HOST=/
+
     docker run --rm -ti -v $PATH_ON_HOST:/root/data \
                --entrypoint /bin/bash bids/mindboggle 
 
