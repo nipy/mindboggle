@@ -84,7 +84,7 @@ Set path environment variables:
 
     If using Docker:
 
-    1. Set HOST to /root/data/ plus the host's $HOME directory:
+    1. Set HOST to /root/data/ plus the host's $HOME directory. For example:
 
         HOST=/root/data/Users/arno.klein
 
