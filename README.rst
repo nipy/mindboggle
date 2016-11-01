@@ -62,7 +62,7 @@ NOTE::
 
     PATH_ON_HOST=/
 
-    docker run \--rm -ti -v $PATH_ON_HOST:/root/data -\-entrypoint /bin/bash bids/mindboggle 
+    docker run - -rm -ti -v $PATH_ON_HOST:/root/data "--"entrypoint /bin/bash bids/mindboggle 
 
 ------------------------------------------------------------------------------
 Running Mindboggle
