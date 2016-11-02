@@ -37,28 +37,27 @@ Links:
 ------------------------------------------------------------------------------
 Installing Mindboggle
 ------------------------------------------------------------------------------
-Mindboggle comes as a single installation script,
-`install_mindboggle.sh <https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle.sh>`_,
-that may be directly called to install Mindboggle on a Linux machine
+We recommend installing Mindboggle as a cross-platform Docker container 
+for greater convenience and better reproducibility of results.
+Alternatively, Mindboggle can be installed from scratch on a Linux machine 
+using the installation script `install_mindboggle.sh <https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle.sh>`_ 
 ($ ``source install_mindboggle.sh``).
-However, for reasons of convenience and reproducibility of results,
-we recommend installing Mindboggle as a cross-platform Docker container.
 
 NOTE::
 
-    DOCKER INSTALLATION IS UNDERGOING TESTS!
+    DOCKER INSTALLATION IS UNDERGOING TESTS RIGHT NOW, SO PLEASE WAIT!
 
 1. Install and run Docker: 
 
     https://docs.docker.com/engine/installation/
 
-2. Clone the Mindboggle Docker container app:
+2. Clone the Mindboggle Docker app:
 
     git clone https://github.com/BIDS-Apps/mindboggle
 
     cd mindboggle
 
-3. Set the path on the host to be accessed by the Docker container, and enter the bash shell of the container:
+3. Set the path on the host to be accessed by the Docker container, and enter the container's bash shell:
 
     PATH_ON_HOST=/
 
@@ -75,22 +74,11 @@ directory (450 MB), which contains some example preprocessed data.
 More example input and output data can be found
 on Mindboggle's `examples <https://osf.io/8cf5z>`_ osf.io site.
 
-Set path environment variables:
+Set path environment variables (if not using Docker, HOST=$HOME):
 
-    HOST=$HOME
+    HOST=/root/data$PATH_ON_HOST
     PATH_TO_FREESURFER=$HOST/mindboggle_input_example/freesurfer/subjects
     PATH_TO_ANTS=$HOST/mindboggle_input_example/ants/subjects
-
-    If using Docker:
-
-    1. Set HOST to /root/data/ plus the host's $HOME directory. For example:
-
-        HOST=/root/data/Users/arno.klein
-
-    2. Set the output and working directories for Mindboggle by adding the following to the commands below:
-
-        --out $HOST/mindboggled --working $HOST/working
-
 
 For help with the Mindboggle command, type the following in a terminal window::
 
@@ -101,19 +89,22 @@ The following bare-bones command runs Mindboggle
 on data processed by FreeSurfer but not ANTs::
 
     mindboggle $PATH_TO_FREESURFER/arno
+        --out $HOST/mindboggled --working $HOST/working
 
 **Example 2:**
 The same command, but takes advantage of ANTs output
 (backslash denotes line return)::
 
     mindboggle $PATH_TO_FREESURFER/arno \
-    --ants $PATH_TO_ANTS/arno/antsBrainSegmentation.nii.gz
+        --ants $PATH_TO_ANTS/arno/antsBrainSegmentation.nii.gz
+        --out $HOST/mindboggled --working $HOST/working
 
 **Example 3:**
 To generate only volume (and not surface) labels and shape measures
 from FreeSurfer data, using 8 processors::
 
     mindboggle $PATH_TO_FREESURFER/arno --no_surfaces -p 8
+        --out $HOST/mindboggled --working $HOST/working
 
 ------------------------------------------------------------------------------
 Preprocessing
