@@ -74,7 +74,8 @@ on Mindboggle's `examples <https://osf.io/8cf5z>`_ osf.io site.
 **Set paths:**
 
 For brevity in the commands below, we set path variables to the example data
-and Mindboggle working and output directories (copy into a terminal window)::
+and Mindboggle working and output directories
+(copy each line into a terminal window)::
 
     HOST=/root/data/Users/arno
     FREESURFER_SUBJECT=$HOST/mindboggle_input_example/freesurfer/subjects/arno
