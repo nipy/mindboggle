@@ -56,7 +56,7 @@ NOTE::
     git clone https://github.com/BIDS-Apps/mindboggle
     cd mindboggle
 
-3. Set the path on the host to be accessed by the Docker container, and enter the container's bash shell::
+3. Set the path on the host to be accessed by the Docker container (here the root directory, /), and enter the container's bash shell::
 
     PATH_ON_HOST=/
     docker run --rm -ti -v $PATH_ON_HOST:/root/data --entrypoint /bin/bash bids/mindboggle 
@@ -71,8 +71,9 @@ directory (450 MB), which contains some example preprocessed data.
 More example input and output data can be found
 on Mindboggle's `examples <https://osf.io/8cf5z>`_ osf.io site.
 
-Set path environment variables (if not using Docker, HOST=$HOME)::
+Set path environment variables (if not using Docker, ignore PATH_ON_HOST and set HOST=$HOME if mindboggle_input_example was saved to the home directory)::
 
+    PATH_ON_HOST=/Users/arno
     HOST=/root/data$PATH_ON_HOST
     PATH_TO_FREESURFER=$HOST/mindboggle_input_example/freesurfer/subjects
     PATH_TO_ANTS=$HOST/mindboggle_input_example/ants/subjects
