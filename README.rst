@@ -42,6 +42,11 @@ for greater convenience and reproducibility of results.
 Alternatively, Mindboggle can be installed from scratch on a Linux machine 
 using the installation script `install_mindboggle.sh <https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle.sh>`_.
 
+NOTE::
+
+    Docker installation under construction!
+
+
 1. Install and run Docker on your (macOS, Linux, or Windows) host machine:  
 
     https://docs.docker.com/engine/installation/
