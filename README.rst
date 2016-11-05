@@ -57,8 +57,8 @@ NOTE::
     git clone https://github.com/BIDS-Apps/mindboggle; cd mindboggle
 
 3. Set the path on your host machine for the Docker container to access
-Mindboggle input and output directories (the root directory in this example), and enter
-the container's bash shell (the backslash denotes a line return)::
+Mindboggle input and output directories (the root directory in this example),
+and enter the container's bash shell (the backslash denotes a line return)::
 
     PATH_ON_HOST=/
     docker run --rm -ti -v $PATH_ON_HOST:/root/data \
@@ -79,7 +79,7 @@ on Mindboggle's `examples <https://osf.io/8cf5z>`_ osf.io site.
 
 For brevity in the commands below, we set path variables to the example data
 and Mindboggle working and output directories
-(copy each line into a terminal window)::
+(modify and copy each line into a terminal window)::
 
     HOST=/root/data/Users/arno
     FREESURFER_SUBJECT=$HOST/mindboggle_input_example/freesurfer/subjects/arno
