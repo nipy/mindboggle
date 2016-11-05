@@ -46,7 +46,8 @@ using the installation script `install_mindboggle.sh <https://raw.githubusercont
 
     https://docs.docker.com/engine/installation/
 
-2. Clone the Mindboggle Docker app and change to its directory::
+2. Clone the Mindboggle Docker app and change to its directory
+(copy each line to a terminal window)::
 
     git clone https://github.com/BIDS-Apps/mindboggle
     cd mindboggle
