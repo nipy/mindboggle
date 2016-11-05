@@ -85,7 +85,7 @@ For help with the Mindboggle command, type the following in a terminal window::
 The following bare-bones command runs Mindboggle
 on data processed by FreeSurfer but not ANTs::
 
-    mindboggle $PATH_TO_FREESURFER/arno
+    mindboggle $PATH_TO_FREESURFER/arno \
         --out $HOST/mindboggled --working $HOST/working
 
 **Example 2:**
@@ -93,14 +93,14 @@ The same command, but takes advantage of ANTs output
 (backslash denotes line return)::
 
     mindboggle $PATH_TO_FREESURFER/arno \
-        --ants $PATH_TO_ANTS/arno/antsBrainSegmentation.nii.gz
+        --ants $PATH_TO_ANTS/arno/antsBrainSegmentation.nii.gz \
         --out $HOST/mindboggled --working $HOST/working
 
 **Example 3:**
 To generate only volume (and not surface) labels and shape measures
 from FreeSurfer data, using 8 processors::
 
-    mindboggle $PATH_TO_FREESURFER/arno --no_surfaces -p 8
+    mindboggle $PATH_TO_FREESURFER/arno --no_surfaces -p 8 \
         --out $HOST/mindboggled --working $HOST/working
 
 ------------------------------------------------------------------------------
