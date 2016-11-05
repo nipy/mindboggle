@@ -116,12 +116,12 @@ from FreeSurfer and ANTs data, using 8 processors::
 ------------------------------------------------------------------------------
 Preprocessing
 ------------------------------------------------------------------------------
-As you may have inferred from the "Running Mindboggle" examples and example
-data above, Mindboggle currently takes output from
+As you may have inferred from the "Running Mindboggle" examples above,
+Mindboggle currently takes output from
 `FreeSurfer <http://surfer.nmr.mgh.harvard.edu>`_ (v6 or higher recommended)
 and optionally from `ANTs <http://stnava.github.io/ANTs/>`_
 (v2.1.0rc3 or higher recommended; v2.1.0 is included in the Docker app).
-Example input data can be found
+Example preprocessed data can be found
 on Mindboggle's `examples <https://osf.io/8cf5z>`_ site on osf.io.
 
 **FreeSurfer** generates labeled cortical surfaces, and labeled cortical and
@@ -135,7 +135,7 @@ registration-based labeling. To generate the ANTs transforms and segmentation
 files used by Mindboggle, run the ``antsCorticalThickness.sh`` script on the
 same $IMAGE file, set an output $PREFIX, and provide paths to the
 `OASIS-30 Atropos template <https://osf.io/rh9km/?action=download&version=1>`_
-files (backslash denotes a line return)::
+files ("\" denotes a line return)::
 
     antsCorticalThickness.sh -d 3 -a $IMAGE -o $PREFIX \
       -e OASIS-30_Atropos_template/T_template0.nii.gz \
