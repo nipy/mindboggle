@@ -113,7 +113,7 @@ Same as #1, but takes advantage of ANTs output::
 To generate only volume (and not surface) labels and shape measures
 from FreeSurfer and ANTs data, using 8 processors::
 
-    mindboggle $FREESURFER_SUBJECT/arno --no_surfaces -p 8 \
+    mindboggle $FREESURFER_SUBJECT --no_surfaces -p 8 \
         --working $MINDBOGGLING --out $MINDBOGGLED \
         --ants $ANTS_SUBJECT/antsBrainSegmentation.nii.gz
 
