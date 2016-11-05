@@ -91,7 +91,7 @@ and ANTs preprocessed data (if available)::
 **Help and options:**
 
 For help with the Mindboggle command and to learn about all of its
-command-line options, type the following in a terminal window::
+options, type the following in a terminal window::
 
     mindboggle -h
 
