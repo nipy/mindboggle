@@ -60,7 +60,7 @@ using the installation script `install_mindboggle.sh <https://raw.githubusercont
 ------------------------------------------------------------------------------
 Running Mindboggle
 ------------------------------------------------------------------------------
-To run Mindboggle, you must first preprocess brain MR image data
+Mindboggle takes as its input preprocessed brain MR image data
 (see `Preprocessing`_ below). To get up and running with the following
 examples, download and unzip the
 `mindboggle_input_example.zip <https://osf.io/3xfb8/?action=download&version=1>`_
@@ -68,7 +68,8 @@ directory (455 MB), which contains some example preprocessed data.
 More example input and output data can be found
 on Mindboggle's `examples <https://osf.io/8cf5z>`_ osf.io site.
 
-Set path environment variables (if not using Docker, ignore PATH_ON_HOST and set HOST=$HOME if mindboggle_input_example was unzipped to the home directory, such as "/Users/arno")::
+For brevity in the commands below, I set path variables to the example data 
+(unzipped to /root/data/Users/arno/mindboggle_input_example):
 
     PATH_ON_HOST=/Users/arno
     HOST=/root/data$PATH_ON_HOST
