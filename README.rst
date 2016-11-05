@@ -79,7 +79,7 @@ and Mindboggle working and output directories
 
     HOST=/root/data/Users/arno
     FREESURFER_SUBJECT=$HOST/mindboggle_input_example/freesurfer/subjects/arno
-    MINDBOGGLING=$HOST/mindboggle_working
+    MINDBOGGLING=$HOST/mindboggling
     MINDBOGGLED=$HOST/mindboggled
 
 Additional paths access ANTs commands (if ANTs is installed)
