@@ -70,8 +70,10 @@ directory (455 MB), which contains some example preprocessed data.
 More example input and output data can be found
 on Mindboggle's `examples <https://osf.io/8cf5z>`_ osf.io site.
 
+**Set paths:**
+
 For brevity in the commands below, we set path variables to the example data
-and Mindboggle output and working directories::
+and Mindboggle working and output directories::
 
     HOST=/root/data/Users/arno
     FREESURFER_SUBJECT=$HOST/mindboggle_input_example/freesurfer/subjects/arno
@@ -83,7 +85,10 @@ Additional paths optionally access ANTs commands and ANTs preprocessed data::
     ANTSPATH=$HOST/ants/bin
     ANTS_SUBJECT=$HOST/mindboggle_input_example/ants/subjects/arno
 
-For help with the Mindboggle command, type the following in a terminal window::
+**Help and options:**
+
+For help with the Mindboggle command and to learn about all of its
+command-line options, type the following in a terminal window::
 
     mindboggle -h
 
@@ -95,7 +100,7 @@ on data processed by FreeSurfer but not ANTs (backslash denotes line return)::
         --working $MINDBOGGLING --out $MINDBOGGLED
 
 **Example 2:**
-The same command, but takes advantage of ANTs output::
+Same as #1, but takes advantage of ANTs output::
 
     mindboggle $FREESURFER_SUBJECT \
         --working $MINDBOGGLING --out $MINDBOGGLED \
