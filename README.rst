@@ -51,7 +51,9 @@ using the installation script `install_mindboggle.sh <https://raw.githubusercont
     git clone https://github.com/BIDS-Apps/mindboggle
     cd mindboggle
 
-3. Set the path on your host machine for the Docker container to access inputs and outputs (the root directory in this example), and enter the container's bash shell::
+3. Set the path on your host machine for the Docker container to access
+inputs and outputs (the root directory in this example), and enter the
+container's bash shell (backslash denotes line return)::
 
     PATH_ON_HOST=/
     docker run --rm -ti -v $PATH_ON_HOST:/root/data \
@@ -68,13 +70,13 @@ directory (455 MB), which contains some example preprocessed data.
 More example input and output data can be found
 on Mindboggle's `examples <https://osf.io/8cf5z>`_ osf.io site.
 
-For brevity in the commands below, I set path variables to the example data 
-(unzipped to /root/data/Users/arno/mindboggle_input_example)::
+For brevity in the commands below, we set path variables to the example data::
 
-    PATH_ON_HOST=/Users/arno
-    HOST=/root/data$PATH_ON_HOST
-    PATH_TO_FREESURFER=$HOST/mindboggle_input_example/freesurfer/subjects
-    PATH_TO_ANTS=$HOST/mindboggle_input_example/ants/subjects
+    HOST=/root/data/Users/arno
+    FREESURFER_SUBJECT=$HOST/mindboggle_input_example/freesurfer/subjects
+    ANTS_SUBJECT=$HOST/mindboggle_input_example/ants/subjects
+    MINDBOGGLED=$HOST/mindboggled
+    MINDBOGGLE_WORKING=$HOST/mindboggle_working
 
 For help with the Mindboggle command, type the following in a terminal window::
 
@@ -82,25 +84,24 @@ For help with the Mindboggle command, type the following in a terminal window::
 
 **Example 1:**
 The following bare-bones command runs Mindboggle
-on data processed by FreeSurfer but not ANTs::
+on data processed by FreeSurfer but not ANTs (backslash denotes line return)::
 
-    mindboggle $PATH_TO_FREESURFER/arno \
-        --out $HOST/mindboggled --working $HOST/mindboggle_working
+    mindboggle $FREESURFER_SUBJECT \
+        --out $MINDBOGGLED --working $MINDBOGGLE_WORKING
 
 **Example 2:**
-The same command, but takes advantage of ANTs output
-(backslash denotes line return)::
+The same command, but takes advantage of ANTs output::
 
-    mindboggle $PATH_TO_FREESURFER/arno \
-        --ants $PATH_TO_ANTS/arno/antsBrainSegmentation.nii.gz \
-        --out $HOST/mindboggled --working $HOST/mindboggle_working
+    mindboggle $FREESURFER_SUBJECT \
+        --out $MINDBOGGLED --working $MINDBOGGLE_WORKING \
+        --ants $ANTS_SUBJECT/antsBrainSegmentation.nii.gz
 
 **Example 3:**
 To generate only volume (and not surface) labels and shape measures
 from FreeSurfer data, using 8 processors::
 
-    mindboggle $PATH_TO_FREESURFER/arno --no_surfaces -p 8 \
-        --out $HOST/mindboggled --working $HOST/mindboggle_working
+    mindboggle $FREESURFER_SUBJECT/arno --no_surfaces -p 8 \
+        --out $MINDBOGGLED --working $MINDBOGGLE_WORKING
 
 ------------------------------------------------------------------------------
 Preprocessing
