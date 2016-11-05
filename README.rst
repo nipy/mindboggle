@@ -69,7 +69,7 @@ More example input and output data can be found
 on Mindboggle's `examples <https://osf.io/8cf5z>`_ osf.io site.
 
 For brevity in the commands below, I set path variables to the example data 
-(unzipped to /root/data/Users/arno/mindboggle_input_example):
+(unzipped to /root/data/Users/arno/mindboggle_input_example)::
 
     PATH_ON_HOST=/Users/arno
     HOST=/root/data$PATH_ON_HOST
