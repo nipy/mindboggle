@@ -47,22 +47,19 @@ NOTE::
 
     DOCKER INSTALLATION IS UNDERGOING TESTS RIGHT NOW, SO PLEASE WAIT!
 
-1. Install and run Docker: 
+1. Install and run Docker:
 
     https://docs.docker.com/engine/installation/
 
-2. Clone the Mindboggle Docker app:
+2. Clone the Mindboggle Docker app::
 
     git clone https://github.com/BIDS-Apps/mindboggle
-
     cd mindboggle
 
-3. Set the path on the host to be accessed by the Docker container, and enter the container's bash shell:
+3. Set the path on the host to be accessed by the Docker container, and enter the container's bash shell::
 
     PATH_ON_HOST=/
-
-    docker run - -rm -ti -v $PATH_ON_HOST:/root/data "--"entrypoint /bin/bash bids/mindboggle 
-
+    docker run --rm -ti -v $PATH_ON_HOST:/root/data --entrypoint /bin/bash bids/mindboggle 
 ------------------------------------------------------------------------------
 Running Mindboggle
 ------------------------------------------------------------------------------
@@ -74,7 +71,7 @@ directory (450 MB), which contains some example preprocessed data.
 More example input and output data can be found
 on Mindboggle's `examples <https://osf.io/8cf5z>`_ osf.io site.
 
-Set path environment variables (if not using Docker, HOST=$HOME):
+Set path environment variables (if not using Docker, HOST=$HOME)::
 
     HOST=/root/data$PATH_ON_HOST
     PATH_TO_FREESURFER=$HOST/mindboggle_input_example/freesurfer/subjects
