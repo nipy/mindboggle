@@ -80,7 +80,8 @@ and Mindboggle working and output directories::
     MINDBOGGLING=$HOST/mindboggle_working
     MINDBOGGLED=$HOST/mindboggled
 
-Additional paths optionally access ANTs commands and ANTs preprocessed data::
+Additional paths optionally access ANTs commands (if ANTs is installed)
+and ANTs preprocessed data::
 
     ANTSPATH=$HOST/ants/bin
     ANTS_SUBJECT=$HOST/mindboggle_input_example/ants/subjects/arno
