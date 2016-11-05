@@ -70,7 +70,7 @@ examples, download and unzip the
 `mindboggle_input_example.zip <https://osf.io/3xfb8/?action=download&version=1>`_
 directory (455 MB), which contains some example preprocessed data.
 More example input and output data can be found
-on Mindboggle's `examples <https://osf.io/8cf5z>`_ osf.io site.
+on Mindboggle's `examples <https://osf.io/8cf5z>`_ site.
 
 **Set paths:**
 
@@ -122,7 +122,7 @@ Mindboggle currently takes output from
 and optionally from `ANTs <http://stnava.github.io/ANTs/>`_
 (v2.1.0rc3 or higher recommended; v2.1.0 is included in the Docker app).
 Example preprocessed data can be found
-on Mindboggle's `examples <https://osf.io/8cf5z>`_ site on osf.io.
+on Mindboggle's `examples <https://osf.io/8cf5z>`_ site.
 
 **FreeSurfer** generates labeled cortical surfaces, and labeled cortical and
 noncortical volumes. Run ``recon-all`` on a T1-weighted $IMAGE file
