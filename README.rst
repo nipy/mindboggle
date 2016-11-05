@@ -8,7 +8,7 @@ and features extracted from human brain magnetic resonance image data.
 Mindboggle can be run as a single command, and can be installed as a
 cross-platform Docker container for convenience and reproducibility of results.
 Behind the scenes, open source Python 3 and C++ code run within a modular
-Nipype pipeline framework on Linux (tested with Python 3.5.1 on Ubuntu 14.04).
+Nipype pipeline framework on Linux (tested with Python 3.5 on Ubuntu 14.04).
 
 ..
     1. Installing Mindboggle
@@ -37,30 +37,25 @@ Links:
 ------------------------------------------------------------------------------
 Installing Mindboggle
 ------------------------------------------------------------------------------
-We recommend installing Mindboggle as a cross-platform Docker container 
-for greater convenience and reproducibility of results.
-Alternatively, Mindboggle can be installed from scratch on a Linux machine 
-using the installation script `install_mindboggle.sh <https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle.sh>`_.
+We recommend installing Mindboggle and its dependencies as a cross-platform
+Docker container for greater convenience and reproducibility of results.
+(Alternatively, Mindboggle can be installed from scratch on a Linux machine
+using the installation script
+`install_mindboggle.sh <https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle.sh>`_).
 
-NOTE::
-
-    Docker installation under construction!
-
-
-1. Install and run Docker on your (macOS, Linux, or Windows) host machine:  
+1. Install and run Docker on your (macOS, Linux, or Windows) host machine:
 
     https://docs.docker.com/engine/installation/
 
-2. Clone and build the Mindboggle Docker app and go to its directory
-(copy each line into a terminal window)::
+2. Clone and build the Mindboggle Docker app (copy into a terminal window)::
 
     git clone https://github.com/BIDS-Apps/mindboggle;
     cd mindboggle;
     docker build -t bids/mindboggle .;
 
 3. Set the path on your host machine for the Docker container to access
-Mindboggle input and output directories (the root directory in this example),
-and enter the container's bash shell (the backslash denotes a line return)::
+Mindboggle input and output directories ("/" in this example),
+and enter the container's bash shell ("\" denotes a line return)::
 
     PATH_ON_HOST=/;
     docker run --rm -ti -v $PATH_ON_HOST:/root/data \
@@ -85,25 +80,20 @@ to point to the example data and to Mindboggle working and output directories
 
     HOST=/root/data/Users/arno;
     FREESURFER_SUBJECT=$HOST/mindboggle_input_example/freesurfer/subjects/arno;
+    ANTS_SUBJECT=$HOST/mindboggle_input_example/ants/subjects/arno;
     MINDBOGGLING=$HOST/mindboggling;
     MINDBOGGLED=$HOST/mindboggled;
 
-Additional paths access ANTs commands (if ANTs is installed)
-and ANTs preprocessed data::
-
-    ANTSPATH=$HOST/ants/bin;
-    ANTS_SUBJECT=$HOST/mindboggle_input_example/ants/subjects/arno;
-
 **Help and options:**
 
-For help with the Mindboggle command and to learn about all of its
-options, type the following in a terminal window::
+For help with the Mindboggle command and to learn about all of its options,
+type the following in a terminal window::
 
     mindboggle -h
 
 **Example 1:**
 The following bare-bones command runs Mindboggle
-on data processed by FreeSurfer but not ANTs (backslash denotes line return)::
+on data processed by FreeSurfer but not ANTs ("\" denotes a line return)::
 
     mindboggle $FREESURFER_SUBJECT \
         --working $MINDBOGGLING --out $MINDBOGGLED
@@ -119,7 +109,7 @@ Same as #1, but takes advantage of ANTs output::
 To generate only volume (and not surface) labels and shape measures
 from FreeSurfer and ANTs data, using 8 processors::
 
-    mindboggle $FREESURFER_SUBJECT --no_surfaces -p 8 \
+    mindboggle $FREESURFER_SUBJECT --no_surfaces --cpus 8 \
         --working $MINDBOGGLING --out $MINDBOGGLED \
         --ants $ANTS_SUBJECT/antsBrainSegmentation.nii.gz
 
@@ -130,7 +120,7 @@ As you may have inferred from the "Running Mindboggle" examples and example
 data above, Mindboggle currently takes output from
 `FreeSurfer <http://surfer.nmr.mgh.harvard.edu>`_ (v6 or higher recommended)
 and optionally from `ANTs <http://stnava.github.io/ANTs/>`_
-(v2.1.0rc3 or higher recommended).
+(v2.1.0rc3 or higher recommended; v2.1.0 is included in the Docker app).
 Example input data can be found
 on Mindboggle's `examples <https://osf.io/8cf5z>`_ site on osf.io.
 
