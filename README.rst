@@ -71,7 +71,7 @@ directory (455 MB), which contains some example preprocessed data.
 More example input and output data can be found
 on Mindboggle's `examples <https://osf.io/8cf5z>`_ osf.io site.
 
-Set path environment variables (if not using Docker, ignore PATH_ON_HOST and set HOST=$HOME if mindboggle_input_example was saved to the home directory)::
+Set path environment variables (if not using Docker, ignore PATH_ON_HOST and set HOST=$HOME if mindboggle_input_example was unzipped to the home directory)::
 
     PATH_ON_HOST=/Users/arno
     HOST=/root/data$PATH_ON_HOST
