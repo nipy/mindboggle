@@ -53,8 +53,8 @@ using the installation script `install_mindboggle.sh <https://raw.githubusercont
     cd mindboggle
 
 3. Set the path on your host machine for the Docker container to access
-inputs and outputs (the root directory in this example), and enter the
-container's bash shell (backslash denotes line return)::
+input and output directories (the root directory in this example), and enter
+the container's bash shell (backslash denotes line return)::
 
     PATH_ON_HOST=/
     docker run --rm -ti -v $PATH_ON_HOST:/root/data \
