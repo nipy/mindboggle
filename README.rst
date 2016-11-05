@@ -67,7 +67,7 @@ To run Mindboggle, you must first preprocess brain MR image data
 (see `Preprocessing`_ below). To get up and running with the following
 examples, download and unzip the
 `mindboggle_input_example.zip <https://osf.io/3xfb8/?action=download&version=1>`_
-directory (450 MB), which contains some example preprocessed data.
+directory (455 MB), which contains some example preprocessed data.
 More example input and output data can be found
 on Mindboggle's `examples <https://osf.io/8cf5z>`_ osf.io site.
 
