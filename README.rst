@@ -51,18 +51,20 @@ NOTE::
 
     https://docs.docker.com/engine/installation/
 
-2. Clone the Mindboggle Docker app and go to its directory
-(copy to a terminal window)::
+2. Clone and build the Mindboggle Docker app and go to its directory
+(copy each line into a terminal window)::
 
-    git clone https://github.com/BIDS-Apps/mindboggle; cd mindboggle
+    git clone https://github.com/BIDS-Apps/mindboggle;
+    cd mindboggle;
+    docker build -t bids/mindboggle .;
 
 3. Set the path on your host machine for the Docker container to access
 Mindboggle input and output directories (the root directory in this example),
 and enter the container's bash shell (the backslash denotes a line return)::
 
-    PATH_ON_HOST=/
+    PATH_ON_HOST=/;
     docker run --rm -ti -v $PATH_ON_HOST:/root/data \
-        --entrypoint /bin/bash bids/mindboggle 
+        --entrypoint /bin/bash bids/mindboggle;
 
 ------------------------------------------------------------------------------
 Running Mindboggle
@@ -77,20 +79,20 @@ on Mindboggle's `examples <https://osf.io/8cf5z>`_ osf.io site.
 
 **Set paths:**
 
-For brevity in the commands below, we set path variables to the example data
-and Mindboggle working and output directories
+For brevity in the commands below, we set the following path variables
+to point to the example data and to Mindboggle working and output directories
 (modify and copy each line into a terminal window)::
 
-    HOST=/root/data/Users/arno
-    FREESURFER_SUBJECT=$HOST/mindboggle_input_example/freesurfer/subjects/arno
-    MINDBOGGLING=$HOST/mindboggling
-    MINDBOGGLED=$HOST/mindboggled
+    HOST=/root/data/Users/arno;
+    FREESURFER_SUBJECT=$HOST/mindboggle_input_example/freesurfer/subjects/arno;
+    MINDBOGGLING=$HOST/mindboggling;
+    MINDBOGGLED=$HOST/mindboggled;
 
 Additional paths access ANTs commands (if ANTs is installed)
 and ANTs preprocessed data::
 
-    ANTSPATH=$HOST/ants/bin
-    ANTS_SUBJECT=$HOST/mindboggle_input_example/ants/subjects/arno
+    ANTSPATH=$HOST/ants/bin;
+    ANTS_SUBJECT=$HOST/mindboggle_input_example/ants/subjects/arno;
 
 **Help and options:**
 
