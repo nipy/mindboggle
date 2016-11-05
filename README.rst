@@ -76,7 +76,7 @@ For brevity in the commands below, we set path variables to the example data::
     FREESURFER_SUBJECT=$HOST/mindboggle_input_example/freesurfer/subjects
     ANTS_SUBJECT=$HOST/mindboggle_input_example/ants/subjects
     MINDBOGGLED=$HOST/mindboggled
-    MINDBOGGLE_WORKING=$HOST/mindboggle_working
+    MINDBOGGLING=$HOST/mindboggle_working
 
 For help with the Mindboggle command, type the following in a terminal window::
 
@@ -87,21 +87,22 @@ The following bare-bones command runs Mindboggle
 on data processed by FreeSurfer but not ANTs (backslash denotes line return)::
 
     mindboggle $FREESURFER_SUBJECT \
-        --out $MINDBOGGLED --working $MINDBOGGLE_WORKING
+        --out $MINDBOGGLED --working $MINDBOGGLING
 
 **Example 2:**
 The same command, but takes advantage of ANTs output::
 
     mindboggle $FREESURFER_SUBJECT \
-        --out $MINDBOGGLED --working $MINDBOGGLE_WORKING \
+        --out $MINDBOGGLED --working $MINDBOGGLING \
         --ants $ANTS_SUBJECT/antsBrainSegmentation.nii.gz
 
 **Example 3:**
 To generate only volume (and not surface) labels and shape measures
-from FreeSurfer data, using 8 processors::
+from FreeSurfer and ANTs data, using 8 processors::
 
     mindboggle $FREESURFER_SUBJECT/arno --no_surfaces -p 8 \
-        --out $MINDBOGGLED --working $MINDBOGGLE_WORKING
+        --out $MINDBOGGLED --working $MINDBOGGLING \
+        --ants $ANTS_SUBJECT/antsBrainSegmentation.nii.gz
 
 ------------------------------------------------------------------------------
 Preprocessing
