@@ -38,20 +38,20 @@ Links:
 Installing Mindboggle
 ------------------------------------------------------------------------------
 We recommend installing Mindboggle as a cross-platform Docker container 
-for greater convenience and better reproducibility of results.
+for greater convenience and reproducibility of results.
 Alternatively, Mindboggle can be installed from scratch on a Linux machine 
 using the installation script `install_mindboggle.sh <https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle.sh>`_.
 
-1. Install and run Docker:
+1. Install and run Docker on your (macOS, Linux, or Windows) host machine:  
 
     https://docs.docker.com/engine/installation/
 
-2. Clone the Mindboggle Docker app::
+2. Clone the Mindboggle Docker app and change to its directory::
 
     git clone https://github.com/BIDS-Apps/mindboggle
     cd mindboggle
 
-3. Set the path on the host to be accessed by the Docker container (here the root directory, /), and enter the container's bash shell::
+3. Set the path on the host for the Docker container to access inputs and outputs (here the root directory, /), and enter the container's bash shell::
 
     PATH_ON_HOST=/
     docker run --rm -ti -v $PATH_ON_HOST:/root/data --entrypoint /bin/bash bids/mindboggle 
