@@ -51,10 +51,12 @@ using the installation script `install_mindboggle.sh <https://raw.githubusercont
     git clone https://github.com/BIDS-Apps/mindboggle
     cd mindboggle
 
-3. Set the path on the host for the Docker container to access inputs and outputs (here the root directory, /), and enter the container's bash shell::
+3. Set the path on your host machine for the Docker container to access inputs and outputs (the root directory in this example), and enter the container's bash shell::
 
     PATH_ON_HOST=/
-    docker run --rm -ti -v $PATH_ON_HOST:/root/data --entrypoint /bin/bash bids/mindboggle 
+    docker run --rm -ti -v $PATH_ON_HOST:/root/data \
+        --entrypoint /bin/bash bids/mindboggle 
+
 ------------------------------------------------------------------------------
 Running Mindboggle
 ------------------------------------------------------------------------------
