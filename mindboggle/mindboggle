@@ -2,9 +2,9 @@
 """
 This is the main program to run Mindboggle (http://mindboggle.info).
 
-Mindboggle is an open source neuroinformatics platform that takes in
-preprocessed T1-weighted MRI data, and outputs volume, surface, and tabular
-data containing label, feature, and shape information for further analysis.
+Mindboggle is an open source brain morphometry platform that takes in preprocessed T1-weighted MRI data and outputs volume,
+surface, and tabular data containing label, feature, and shape information
+for further analysis.
 
 Mindboggle can be run on the command line as "mindboggle" and can be
 installed as a cross-platform virtual machine for convenience and
@@ -13,7 +13,7 @@ in Python 3 and Python-wrapped C++ code called within a modular Nipype
 pipeline framework (http://www.nipy.org/nipype/) to promote a modular,
 flexible design that captures provenance information (this file).
 
-We have tested the software most extensively for Python 3.5.1 on Ubuntu 14.04.
+We have tested the software most extensively for Python 3.5 on Ubuntu 14.04.
 
 For help in using Mindboggle ::
 
