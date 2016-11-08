@@ -146,37 +146,6 @@ from FreeSurfer and ANTs data, using 8 processors::
         --ants $ANTS_SUBJECT/antsBrainSegmentation.nii.gz
 
 ------------------------------------------------------------------------------
-Before running Mindboggle
-------------------------------------------------------------------------------
-As you may have inferred from the "Run Mindboggle" examples above,
-Mindboggle currently takes output from
-`FreeSurfer <http://surfer.nmr.mgh.harvard.edu>`_ (v6 or higher recommended)
-and optionally from `ANTs <http://stnava.github.io/ANTs/>`_
-(v2.1.0rc3 or higher recommended; v2.1.0 is included in the Docker app).
-Example preprocessed data can be found
-on Mindboggle's `examples <https://osf.io/8cf5z>`_ site.
-
-**FreeSurfer** generates labeled cortical surfaces, and labeled cortical and
-noncortical volumes. Run ``recon-all`` on a T1-weighted $IMAGE file
-(e.g., subject1.nii.gz) and set the output $SUBJECT name (e.g., subject1)::
-
-    recon-all -all -i $IMAGE -s $SUBJECT
-
-**ANTs** provides brain volume extraction, segmentation, and
-registration-based labeling. To generate the ANTs transforms and segmentation
-files used by Mindboggle, run the ``antsCorticalThickness.sh`` script on the
-same $IMAGE file, set an output $PREFIX, and provide paths to the
-`OASIS-30 Atropos template <https://osf.io/rh9km/?action=download&version=1>`_
-files ("\" denotes a line return)::
-
-    antsCorticalThickness.sh -d 3 -a $IMAGE -o $PREFIX \
-      -e OASIS-30_Atropos_template/T_template0.nii.gz \
-      -t OASIS-30_Atropos_template/T_template0_BrainCerebellum.nii.gz \
-      -m OASIS-30_Atropos_template/T_template0_BrainCerebellumProbabilityMask.nii.gz \
-      -f OASIS-30_Atropos_template/T_template0_BrainCerebellumExtractionMask.nii.gz \
-      -p OASIS-30_Atropos_template/Priors2/priors%d.nii.gz
-
-------------------------------------------------------------------------------
 Mindboggle processing steps
 ------------------------------------------------------------------------------
 The following steps are performed by Mindboggle (with links to code on GitHub):
