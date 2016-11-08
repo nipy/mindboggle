@@ -101,7 +101,7 @@ files ("\" denotes a line return)::
 ------------------------------------------------------------------------------
 Run Mindboggle
 ------------------------------------------------------------------------------
-See `Before runnig Mindboggle`_ above for instructions on how to prepare data
+See `Before running Mindboggle`_ above for instructions on how to prepare data
 for processing by Mindboggle, or to obtain example data to get started.
 
 **Set paths:**
