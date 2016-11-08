@@ -35,7 +35,7 @@ Links:
 * :ref:`genindex`
 
 ------------------------------------------------------------------------------
-Installing Mindboggle
+Install Mindboggle
 ------------------------------------------------------------------------------
 We recommend installing Mindboggle and its dependencies as a cross-platform
 Docker container for greater convenience and reproducibility of results.
@@ -62,7 +62,7 @@ and enter the container's bash shell ("\" denotes a line return)::
         --entrypoint /bin/bash bids/mindboggle;
 
 ------------------------------------------------------------------------------
-Running Mindboggle
+Run Mindboggle
 ------------------------------------------------------------------------------
 Mindboggle takes as its input preprocessed brain MR image data
 (see `Preprocessing`_ below). To get up and running with the following
@@ -114,7 +114,7 @@ from FreeSurfer and ANTs data, using 8 processors::
         --ants $ANTS_SUBJECT/antsBrainSegmentation.nii.gz
 
 ------------------------------------------------------------------------------
-Preprocessing
+Preprocessing before Mindboggle
 ------------------------------------------------------------------------------
 As you may have inferred from the "Running Mindboggle" examples above,
 Mindboggle currently takes output from
@@ -145,7 +145,7 @@ files ("\" denotes a line return)::
       -p OASIS-30_Atropos_template/Priors2/priors%d.nii.gz
 
 ------------------------------------------------------------------------------
-Processing steps
+Processing steps of Mindboggle
 ------------------------------------------------------------------------------
 The following steps are performed by Mindboggle (with links to code on GitHub):
 
@@ -191,7 +191,7 @@ The following steps are performed by Mindboggle (with links to code on GitHub):
     - upper quartile
 
 ------------------------------------------------------------------------------
-Output
+Output of Mindboggle
 ------------------------------------------------------------------------------
 Example output data can be found
 on Mindboggle's `examples <https://osf.io/8cf5z>`_ site on osf.io.
