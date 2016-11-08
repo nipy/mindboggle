@@ -35,7 +35,7 @@ Links:
 * :ref:`genindex`
 
 ------------------------------------------------------------------------------
-Install Mindboggle
+Installing Mindboggle
 ------------------------------------------------------------------------------
 We recommend installing Mindboggle and its dependencies as a cross-platform
 Docker container for greater convenience and reproducibility of results.
@@ -65,7 +65,7 @@ and enter the container's bash shell ("\" denotes a line return)::
 Before running Mindboggle
 ------------------------------------------------------------------------------
 Mindboggle takes as its input preprocessed brain MR image data.
-To get up and running with the `Run Mindboggle`_ examples below,
+To get up and running with the `Running Mindboggle`_ examples below,
 download and unzip the
 `mindboggle_input_example.zip <https://osf.io/3xfb8/?action=download&version=1>`_
 directory (455 MB), which contains some example preprocessed data,
@@ -99,7 +99,7 @@ files ("\" denotes a line return)::
       -p OASIS-30_Atropos_template/Priors2/priors%d.nii.gz
 
 ------------------------------------------------------------------------------
-Run Mindboggle
+Running Mindboggle
 ------------------------------------------------------------------------------
 See `Before running Mindboggle`_ above for instructions on how to prepare data
 for processing by Mindboggle, or to obtain example data to get started.
