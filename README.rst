@@ -65,7 +65,7 @@ and enter the container's bash shell ("\" denotes a line return)::
 Run Mindboggle
 ------------------------------------------------------------------------------
 Mindboggle takes as its input preprocessed brain MR image data
-(see `Preprocessing`_ below). To get up and running with the following
+(see `Before running Mindboggle`_ below). To get up and running with the following
 examples, download and unzip the
 `mindboggle_input_example.zip <https://osf.io/3xfb8/?action=download&version=1>`_
 directory (455 MB), which contains some example preprocessed data.
@@ -114,9 +114,9 @@ from FreeSurfer and ANTs data, using 8 processors::
         --ants $ANTS_SUBJECT/antsBrainSegmentation.nii.gz
 
 ------------------------------------------------------------------------------
-Preprocessing before Mindboggle
+Before running Mindboggle
 ------------------------------------------------------------------------------
-As you may have inferred from the "Running Mindboggle" examples above,
+As you may have inferred from the "Run Mindboggle" examples above,
 Mindboggle currently takes output from
 `FreeSurfer <http://surfer.nmr.mgh.harvard.edu>`_ (v6 or higher recommended)
 and optionally from `ANTs <http://stnava.github.io/ANTs/>`_
@@ -145,7 +145,7 @@ files ("\" denotes a line return)::
       -p OASIS-30_Atropos_template/Priors2/priors%d.nii.gz
 
 ------------------------------------------------------------------------------
-Processing steps of Mindboggle
+Mindboggle processing steps
 ------------------------------------------------------------------------------
 The following steps are performed by Mindboggle (with links to code on GitHub):
 
@@ -191,7 +191,7 @@ The following steps are performed by Mindboggle (with links to code on GitHub):
     - upper quartile
 
 ------------------------------------------------------------------------------
-Output of Mindboggle
+Mindboggle output
 ------------------------------------------------------------------------------
 Example output data can be found
 on Mindboggle's `examples <https://osf.io/8cf5z>`_ site on osf.io.
