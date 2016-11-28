@@ -40,7 +40,7 @@ Support, bugs, and help
 ------------------------------------------------------------------------------
 **Questions about Mindboggle?**  -- Please `post questions <https://neurostars.org/t/mindboggle/>`_ with the tag "mindboggle" on NeuroStars.
 
-**Bugs?** -- Please `submit an issue <https://github.com/nipy/mindboggle/issues>`_ on GitHub.
+**Found a bug?** -- Please `submit an issue <https://github.com/nipy/mindboggle/issues>`_ on GitHub.
 
 **Command-line options?** -- After installation, type the following in a terminal window::
 
