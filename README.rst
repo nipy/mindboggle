@@ -38,9 +38,9 @@ Links:
 ------------------------------------------------------------------------------
 Support, bugs, and help
 ------------------------------------------------------------------------------
-To ask questions about Mindboggle, please `post questions with the tag "mindboggle" <https://neurostars.org/t/mindboggle/>`_ on NeuroStars.
+Please `post Mindboggle-related questions <https://neurostars.org/t/mindboggle/>`_ with the tag "mindboggle" on NeuroStars.
 
-To report a bug, please `submit an issue <https://github.com/nipy/mindboggle/issues>`_ on GitHub.
+If you find a bug, big or small, please `submit an issue <https://github.com/nipy/mindboggle/issues>`_ on GitHub.
 
 To learn about all of Mindboggle's command-line options after installation,
 type the following in a terminal window::
