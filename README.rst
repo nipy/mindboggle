@@ -38,8 +38,7 @@ Links:
 ------------------------------------------------------------------------------
 Support, bugs, and help with Mindboggle
 ------------------------------------------------------------------------------
-To ask a question about Mindboggle, please `post with the tag "mindboggle" <https://neurostars.org/t/mindboggle/>`_
- on NeuroStars.
+To ask a question about Mindboggle, please `post with the tag "mindboggle" <https://neurostars.org/t/mindboggle/>`_ on NeuroStars.
 
 To report bugs, please `submit an issue <https://github.com/nipy/mindboggle/issues>`_ on GitHub.
 
