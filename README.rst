@@ -43,7 +43,7 @@ To ask a question about Mindboggle, please `post with the tag "mindboggle" <http
 
 To report bugs, please `submit an issue <https://github.com/nipy/mindboggle/issues>`_ on GitHub.
 
-To learn about all of Mindboggle's options after installation,
+To learn about all of Mindboggle's command-line options after installation,
 type the following in a terminal window::
 
     mindboggle -h
