@@ -11,11 +11,12 @@ Behind the scenes, open source Python 3 and C++ code run within a modular
 Nipype pipeline framework on Linux (tested with Python 3.5 on Ubuntu 14.04).
 
 ..
-    1. Installing Mindboggle
-    2. Running Mindboggle
-    3. Preprocessing
-    4. Processing steps
-    5. Output
+    1. Support, bugs, and help with Mindboggle
+    2. Installing Mindboggle
+    3. Running Mindboggle
+    4. Preprocessing
+    5. Processing steps
+    6. Output
 
 :Release: |version|
 :Date: |today|
@@ -33,6 +34,19 @@ Links:
 
 * :ref:`modindex`
 * :ref:`genindex`
+
+------------------------------------------------------------------------------
+Support, bugs, and help with Mindboggle
+------------------------------------------------------------------------------
+To ask a question about Mindboggle, please `post with the tag "mindboggle" <https://neurostars.org/t/mindboggle/`_
+ on NeuroStars.
+
+To report bugs, please `submit an issue <https://github.com/nipy/mindboggle/issues>`_ on GitHub.
+
+To learn about all of Mindboggle's options after installation,
+type the following in a terminal window::
+
+    mindboggle -h
 
 ------------------------------------------------------------------------------
 Installing Mindboggle
