@@ -23,7 +23,7 @@
 #               <absolute path to home directory (default is /home/vagrant)>
 #
 #     Example:
-#     source yes ./install_mindboggle.sh /home/vagrant/downloads \
+#     source ./install_mindboggle.sh yes /home/vagrant/downloads \
 #                /home/vagrant/install /home/vagrant/.bash_profile
 #
 # Authors:
