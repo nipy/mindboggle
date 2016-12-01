@@ -67,7 +67,7 @@ using the installation script
 
 3. Set the path on your host machine for the Docker container to access
 Mindboggle input and output directories ("/" in this example),
-and enter the container's bash shell ("\" denotes a line return)::
+and enter the container's bash shell ("\\" denotes a line return)::
 
     PATH_ON_HOST=/;
     docker run --rm -ti -v $PATH_ON_HOST:/root/data \
@@ -92,7 +92,9 @@ and optionally from `ANTs <http://stnava.github.io/ANTs/>`_
 
 **FreeSurfer** generates labeled cortical surfaces, and labeled cortical and
 noncortical volumes. Run ``recon-all`` on a T1-weighted $IMAGE file
-(e.g., subject1.nii.gz) and set the output $SUBJECT name (e.g., subject1)::
+(e.g., subject1.nii.gz) and set the output $SUBJECT name (e.g., subject1)
+(if using a version older than 6, include "-gcs DKTatlas40.gcs"
+for recon-all to output DKT surface labels)::
 
     recon-all -all -i $IMAGE -s $SUBJECT
 
@@ -101,7 +103,7 @@ registration-based labeling. To generate the ANTs transforms and segmentation
 files used by Mindboggle, run the ``antsCorticalThickness.sh`` script on the
 same $IMAGE file, set an output $PREFIX, and provide paths to the
 `OASIS-30 Atropos template <https://osf.io/rh9km/?action=download&version=1>`_
-files ("\" denotes a line return)::
+files ("\\" denotes a line return)::
 
     antsCorticalThickness.sh -d 3 -a $IMAGE -o $PREFIX \
       -e OASIS-30_Atropos_template/T_template0.nii.gz \
@@ -137,7 +139,7 @@ type the following in a terminal window::
 
 **Example 1:**
 The following bare-bones command runs Mindboggle
-on data processed by FreeSurfer but not ANTs ("\" denotes a line return)::
+on data processed by FreeSurfer but not ANTs ("\\" denotes a line return)::
 
     mindboggle $FREESURFER_SUBJECT \
         --working $MINDBOGGLING --out $MINDBOGGLED
