@@ -53,7 +53,7 @@ We recommend installing Mindboggle and its dependencies as a cross-platform
 Docker container for greater convenience and reproducibility of results.
 (Alternatively, Mindboggle can be installed from scratch on a Linux machine
 using the installation script
-`install_mindboggle.sh <https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle.sh>`_).
+`install_mindboggle.sh <https://raw.githubusercontent.com/nipy/mindboggle/master/install_mindboggle.sh>`_).
 
 1. Install and run Docker on your (macOS, Linux, or Windows) host machine:
 
@@ -93,10 +93,11 @@ and optionally from `ANTs <http://stnava.github.io/ANTs/>`_
 **FreeSurfer** generates labeled cortical surfaces, and labeled cortical and
 noncortical volumes. Run ``recon-all`` on a T1-weighted $IMAGE file
 (e.g., subject1.nii.gz) and set the output $SUBJECT name (e.g., subject1).
-Version 6 and later generate by default both surface and volume DKT labels
-that work best with Mindboggle (v5.3 generates surface DKT labels by default;
-if using an older version, add "-gcs DKTatlas40.gcs" to generate surface
-DKT labels)::
+Version 6 is recommended because by default it uses Mindboggle’s DKT-100
+surface-based atlas (with the DKT31 labeling protocol) to generate labels
+on the cortical surfaces and corresponding labels in the cortical and
+non-cortical volumes (v5.3 generates these surface labels by default;
+older versions require "-gcs DKTatlas40.gcs" to generate these surface labels)::
 
     recon-all -all -i $IMAGE -s $SUBJECT
 

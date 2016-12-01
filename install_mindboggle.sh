@@ -16,15 +16,14 @@
 #
 #     Or with arguments:
 #     source ./install_mindboggle.sh
-#               <install ants: yes or no? (default is yes)>
 #               <absolute path to download directory (create if empty)>
 #               <absolute path to install directory (create if empty)>
 #               <absolute path to environment file (or create .bash_profile)>
-#               <absolute path to home directory (default is /home/vagrant)>
+#               <install ants: yes or no? (default is yes)>
 #
 #     Example:
-#     source ./install_mindboggle.sh yes /home/vagrant/downloads \
-#                /home/vagrant/install /home/vagrant/.bash_profile
+#     source ./install_mindboggle.sh /home/arno/downloads \
+#                /home/arno/install /home/arno/.bash_profile yes
 #
 # Authors:
 #     - Daniel Clark, 2014
@@ -36,11 +35,10 @@
 #-----------------------------------------------------------------------------
 # Path arguments:
 #-----------------------------------------------------------------------------
-ANTS=$1
-DOWNLOAD=$2
-INSTALL=$3
-ENV=$4
-HOME=$5
+DOWNLOAD=$1
+INSTALL=$2
+ENV=$3
+ANTS=$4
 
 #-----------------------------------------------------------------------------
 # OS and sudo:
@@ -51,12 +49,6 @@ SUDO=1
 #-----------------------------------------------------------------------------
 # Create folders and file if they don't exist:
 #-----------------------------------------------------------------------------
-if [ -z "$HOME" ]; then
-    HOME="/home/vagrant"
-fi
-if [ -z "$ANTS" ]; then
-    ANTS="yes"
-fi
 if [ -z "$DOWNLOAD" ]; then
     DOWNLOAD="$HOME/downloads"
 fi
@@ -80,6 +72,9 @@ fi
 if [ ! -w "$ENV" ] ; then
     echo cannot write to $ENV
     exit 1
+fi
+if [ -z "$ANTS" ]; then
+    ANTS="yes"
 fi
 if [ -z "$OS" ]; then
     OS="Linux"
