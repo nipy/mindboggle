@@ -92,9 +92,10 @@ and optionally from `ANTs <http://stnava.github.io/ANTs/>`_
 
 **FreeSurfer** generates labeled cortical surfaces, and labeled cortical and
 noncortical volumes. Run ``recon-all`` on a T1-weighted $IMAGE file
-(e.g., subject1.nii.gz) and set the output $SUBJECT name (e.g., subject1)
-(if using a version older than 6, include "-gcs DKTatlas40.gcs"
-for recon-all to output DKT surface labels)::
+(e.g., subject1.nii.gz) and set the output $SUBJECT name (e.g., subject1).
+Version 6 and later output DKT surface and volume labels that work best with
+Mindboggle (if using an older version, add "-gcs DKTatlas40.gcs"
+to output DKT surface labels)::
 
     recon-all -all -i $IMAGE -s $SUBJECT
 
