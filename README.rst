@@ -52,8 +52,8 @@ Installing Mindboggle
 We recommend installing Mindboggle and its dependencies as a cross-platform
 Docker container for greater convenience and reproducibility of results.
 (Alternatively, Mindboggle can be installed from scratch on a Linux machine
-using the installation script
-`install_mindboggle.sh <https://raw.githubusercontent.com/nipy/mindboggle/master/install_mindboggle.sh>`_).
+using an
+`installation script <https://raw.githubusercontent.com/nipy/mindboggle/master/install_mindboggle.sh>`_).
 
 1. Install and run Docker on your (macOS, Linux, or Windows) host machine:
 
