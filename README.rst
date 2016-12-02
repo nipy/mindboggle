@@ -67,7 +67,8 @@ using an
 
 3. Set the path on your host machine for the Docker container to access
 Mindboggle input and output directories ("/" in this example),
-and enter the container's bash shell ("\\" denotes a line return)::
+and enter the container's bash shell ("\\" allows for the command to continue
+on the next line)::
 
     PATH_ON_HOST=/;
     docker run --rm -ti -v $PATH_ON_HOST:/root/data \
@@ -106,7 +107,7 @@ registration-based labeling. To generate the ANTs transforms and segmentation
 files used by Mindboggle, run the ``antsCorticalThickness.sh`` script on the
 same $IMAGE file, set an output $PREFIX, and provide paths to the
 `OASIS-30 Atropos template <https://osf.io/rh9km/?action=download&version=1>`_
-files ("\\" denotes a line return)::
+files ("\\" allows for the command to continue on the next line)::
 
     antsCorticalThickness.sh -d 3 -a $IMAGE -o $PREFIX \
       -e OASIS-30_Atropos_template/T_template0.nii.gz \
@@ -142,7 +143,8 @@ type the following in a terminal window::
 
 **Example 1:**
 The following bare-bones command runs Mindboggle
-on data processed by FreeSurfer but not ANTs ("\\" denotes a line return)::
+on data processed by FreeSurfer but not ANTs ("\\" allows for the command to
+continue on the next line)::
 
     mindboggle $FREESURFER_SUBJECT \
         --working $MINDBOGGLING --out $MINDBOGGLED
