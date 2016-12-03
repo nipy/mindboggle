@@ -29,8 +29,7 @@ Links:
     FAQ <faq.rst>
     license
 
-- `GitHub <http://github.com/nipy/mindboggle>`_ and `Circleci tests <https://circleci.com/gh/
-nipy/mindboggle>`_
+- `GitHub <http://github.com/nipy/mindboggle>`_ and `Circleci tests <https://circleci.com/gh/nipy/mindboggle>`_
 - `Contributors <http://mindboggle.info/people.html>`_
 
 * :ref:`modindex`
