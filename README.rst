@@ -59,11 +59,9 @@ using an
 
     https://docs.docker.com/engine/installation/
 
-2. Clone and build the Mindboggle Docker app (copy into a terminal window)::
+2. Pull the Mindboggle Docker app (copy into a terminal window)::
 
-    git clone https://github.com/BIDS-Apps/mindboggle;
-    cd mindboggle;
-    docker build -t bids/mindboggle .;
+    docker pull bids/mindboggle
 
 3. Set the path on your host machine for the Docker container to access
 Mindboggle input and output directories ("/" in this example),
