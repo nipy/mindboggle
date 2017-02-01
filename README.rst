@@ -3,12 +3,16 @@ Software
 ==============================================================================
 .. role:: red
 
-The Mindboggle software package automates shape analysis of anatomical labels
-and features extracted from human brain magnetic resonance image data.
-Mindboggle can be run as a single command, and can be installed as a
-cross-platform Docker container for convenience and reproducibility of results.
-Behind the scenes, open source Python 3 and C++ code run within a modular
-Nipype pipeline framework on Linux (tested with Python 3.5 on Ubuntu 14.04).
+Mindboggle's open source brain morphometry platform takes in preprocessed T1-weighted
+MRI data, and outputs volume, surface, and tabular data containing label, feature, and shape
+information for further analysis. Mindboggle can be run on the command line as "mindboggle"
+and also exists as a cross-platform Docker container for convenience and reproducibility
+of results. The software runs on Linux and is written in Python 3 and Python-wrapped C++ code 
+called within a `Nipype <http://nipy.org/nipype>`_ pipeline framework. 
+We have tested the software most extensively with Python 3.5.1 on Ubuntu Linux 14.04.
+Running Mindboggle on the Docker installation on a Macbook Pro (2.6 GHz Intel Core i7
+with 16 GB memory; macOS 10.12) took about 100 minutes, of which 20 minutes were spent
+optionally computing Laplace-Beltrami spectra and Zernike moments.
 
 ..
     1. Support, bugs, and help
@@ -38,7 +42,8 @@ Links:
 ------------------------------------------------------------------------------
 Support, bugs, and help
 ------------------------------------------------------------------------------
-If you have any questions about Mindboggle, or have found a bug, big or small,
+If you have any questions about Mindboggle, please post to `NeuroStars <https://neurostars.org/tags/mindboggle/>`_ 
+with the tag "mindboggle"; if you have found a bug, big or small,
 please `submit an issue <https://github.com/nipy/mindboggle/issues>`_ on GitHub.
 
 To learn about command-line options after installing Mindboggle,
@@ -118,7 +123,7 @@ Running Mindboggle
 ------------------------------------------------------------------------------
 See `Before running Mindboggle`_ above for instructions on how to prepare data
 for processing by Mindboggle, or to obtain example data to get started.
-Also, if using the Mindboggle Docker container, precede the following steps with Step 3 in `Installing mindboggle <https://github.com/nipy/mindboggle/blob/master/README.rst#installing-mindboggle>`_ above.
+Also, if using the Mindboggle Docker container, precede the following steps with Step 3 in `Installing mindboggle <http://http://mindboggle.readthedocs.io/en/latest/#running-mindboggle>`_ above.
 
 **Set paths:**
 
