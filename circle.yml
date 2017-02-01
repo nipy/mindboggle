@@ -1,0 +1,15 @@
+## Configuration file for circleci.com continuous integration (testing)
+##
+## All dependencies are accounted for in the environment.yml file.
+##
+## Authors:
+##    - Arno Klein, 2016  (arno@mindboggle.info)  http://binarybottle.com
+##
+## Copyright 2016,  Mindboggle team (mindboggle.info), Apache v2.0 License
+
+#-----------------------------------------------------------------------------
+# No tests:
+#-----------------------------------------------------------------------------
+test:
+  override:
+    - echo "test"
