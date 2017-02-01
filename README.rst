@@ -10,9 +10,6 @@ and also exists as a cross-platform Docker container for convenience and reprodu
 of results. The software runs on Linux and is written in Python 3 and Python-wrapped C++ code 
 called within a `Nipype <http://nipy.org/nipype>`_ pipeline framework. 
 We have tested the software most extensively with Python 3.5.1 on Ubuntu Linux 14.04.
-Running Mindboggle on the Docker installation on a Macbook Pro (2.6 GHz Intel Core i7
-with 16 GB memory; macOS 10.12) took about 100 minutes, of which 20 minutes were spent
-optionally computing Laplace-Beltrami spectra and Zernike moments.
 
 ..
     1. Support, bugs, and help
