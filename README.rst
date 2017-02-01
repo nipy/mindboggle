@@ -118,6 +118,7 @@ Running Mindboggle
 ------------------------------------------------------------------------------
 See `Before running Mindboggle`_ above for instructions on how to prepare data
 for processing by Mindboggle, or to obtain example data to get started.
+Also, if using the Mindboggle Docker container, precede the following steps with Step 3 in `Installing mindboggle <https://github.com/nipy/mindboggle/blob/master/README.rst#installing-mindboggle>`_ above.
 
 **Set paths:**
 
