@@ -8,4 +8,5 @@
    faq/why_mindboggle
    faq/why_license
    faq/why_python
+   faq/run_time
    labels
