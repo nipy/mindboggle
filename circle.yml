@@ -31,6 +31,9 @@ dependencies:
     #cache_directories:
     #    - $CONDA_ROOT
 
+    pre:
+        - sudo apt-get update; sudo apt-get install libllvm-3.3
+    
     override:
 
         #-------------------------------------------------------------------------
