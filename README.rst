@@ -121,7 +121,7 @@ Running Mindboggle
 See `Before running Mindboggle`_ above for instructions on how to prepare data
 for processing by Mindboggle, or to obtain example data to get started.
 Also, if using the Mindboggle Docker container, make sure to enter the Docker container (Step 3 of 
-`Installing Mindboggle <http://http://mindboggle.readthedocs.io/en/latest/#running-mindboggle>`_) 
+`Installing Mindboggle <http://mindboggle.readthedocs.io/en/latest/#installing-mindboggle>`_) 
 before proceeding.
 
 **Set paths:**
