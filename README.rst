@@ -11,13 +11,6 @@ of results. The software runs on Linux and is written in Python 3 and Python-wra
 called within a `Nipype <http://nipy.org/nipype>`_ pipeline framework. 
 We have tested the software most extensively with Python 3.5.1 on Ubuntu Linux 14.04.
 
-**Primary reference for citing Mindboggle::**
-
-    A Klein, SS Ghosh, FS Bao, J Giard, Y Hame, E Stavsky, N Lee, B Rossa, M Reuter, EC Neto, A Keshavan. 2017. 
-    **Mindboggling morphometry of human brains**. 
-    *PLoS Computational Biology* 13(3): e1005350. `doi:10.1371/journal.pcbi.1005350 <http://dx.doi.org/10.1371/journal.pcbi.1005350>`_
-    ----
-
 ..
     1. Support, bugs, and help
     2. Installing Mindboggle
@@ -42,6 +35,12 @@ Links:
 
 * :ref:`modindex`
 * :ref:`genindex`
+
+**Primary reference for citing Mindboggle::**
+
+    A Klein, SS Ghosh, FS Bao, J Giard, Y Hame, E Stavsky, N Lee, B Rossa, M Reuter, EC Neto, A Keshavan. 2017. 
+    **Mindboggling morphometry of human brains**. 
+    *PLoS Computational Biology* 13(3): e1005350. `doi:10.1371/journal.pcbi.1005350 <http://dx.doi.org/10.1371/journal.pcbi.1005350>`_
 
 ------------------------------------------------------------------------------
 Support, bugs, and help
