@@ -12,7 +12,7 @@ called within a `Nipype <http://nipy.org/nipype>`_ pipeline framework.
 We have tested the software most extensively with Python 3.5.1 on Ubuntu Linux 14.04.
 
 ..
-    1. Support, bugs, and help
+    1. Citation, support, bugs, and help
     2. Installing Mindboggle
     3. Running Mindboggle
     4. Preprocessing
@@ -37,7 +37,7 @@ Links:
 * :ref:`genindex`
 
 ------------------------------------------------------------------------------
-Support, bugs, and help
+Citation, support, bugs, and help
 ------------------------------------------------------------------------------
 If you have any questions about Mindboggle, please post to `NeuroStars <https://neurostars.org/tags/mindboggle/>`_ 
 with the tag "mindboggle"; if you have found a bug, big or small,
@@ -47,6 +47,10 @@ To learn about command-line options after installing Mindboggle,
 type the following in a terminal window::
 
     mindboggle -h
+
+The following article serves as the primary reference for citing Mindboggle:
+
+Klein A, Ghosh SS, Bao FS, Giard J, Hame Y, Stavsky E, Lee N, Rossa B, Reuter M, Neto EC, Keshavan A. (2017) Mindboggling morphometry of human brains. PLoS Computational Biology 13(3): e1005350. `doi:10.1371/journal.pcbi.1005350 <http://dx.doi.org/10.1371/journal.pcbi.1005350>`_
 
 ------------------------------------------------------------------------------
 Installing Mindboggle
