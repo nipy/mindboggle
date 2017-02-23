@@ -36,7 +36,7 @@ Links:
 * :ref:`modindex`
 * :ref:`genindex`
 
-**Primary reference for citing Mindboggle::**
+**Primary reference for citing Mindboggle:**
 
     A Klein, SS Ghosh, FS Bao, J Giard, Y Hame, E Stavsky, N Lee, B Rossa, M Reuter, EC Neto, A Keshavan. 2017. 
     **Mindboggling morphometry of human brains**. 
