@@ -135,8 +135,9 @@ before proceeding.
 **Set paths:**
 
 For brevity in the commands below, we set the following path variables
-to point to the example data and to Mindboggle working and output directories
-(modify and copy each line into a terminal window)::
+to point to the example data and to Mindboggle working and output directories.
+Be sure to modify the HOST path ("Users/arno" is specific to the user arno on a Mac)
+and copy each line into a terminal window::
 
     HOST=/root/data/Users/arno;
     FREESURFER_SUBJECT=$HOST/mindboggle_input_example/freesurfer/subjects/arno;
