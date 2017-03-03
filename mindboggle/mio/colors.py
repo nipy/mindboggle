@@ -502,11 +502,11 @@ def group_colors(colormap, colormap_name, description='', adjacency_matrix=[],
     nlabels = np.shape(colors)[0]
     new_colors = np.copy(colors)
 
-    if not IDs:
+    if len(IDs) == 0:
         IDs = range(nlabels)
-    if not names:
+    if len(names) == 0:
         names = [str(x) for x in range(nlabels)]
-    if not groups:
+    if len(groups) == 0:
         groups = [1 for x in range(nlabels)]
 
     # ------------------------------------------------------------------------
