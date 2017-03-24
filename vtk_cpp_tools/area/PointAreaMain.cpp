@@ -34,8 +34,8 @@ int main(int argc, char** argv)
 {
     time_t start= time(NULL);
     vtkPolyData *dataSet;
-    std::string extension =
-      vtksys::SystemTools::GetFilenameLastExtension(argv[1]);
+    std::string extension = ".vtk";
+      //vtksys::SystemTools::GetFilenameLastExtension(argv[1]);
     if (extension == ".vtk")
       dataSet = ReadObject<vtkPolyDataReader> (argv[1]);
     else if (extension == ".obj")

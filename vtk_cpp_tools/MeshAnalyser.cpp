@@ -59,8 +59,8 @@ MeshAnalyser::MeshAnalyser(char* fileName)
 {
 
   vtkPolyData *dataSet;
-  std::string extension =
-    vtksys::SystemTools::GetFilenameLastExtension(fileName);
+  std::string extension = ".vtk";
+    //vtksys::SystemTools::GetFilenameLastExtension(fileName);
   if (extension == ".vtk")
     dataSet = ReadObject<vtkPolyDataReader> (fileName);
   else if (extension == ".obj")
