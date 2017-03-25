@@ -37,10 +37,10 @@ int main(int argc, char** argv)
     vtkPolyData* data1;
     vtkPolyData* data2;
 
-    std::string extension1 =
-      vtksys::SystemTools::GetFilenameLastExtension(argv[1]);
-    std::string extension2 =
-      vtksys::SystemTools::GetFilenameLastExtension(argv[2]);
+    std::string extension1 = ".vtk";
+      //vtksys::SystemTools::GetFilenameLastExtension(argv[1]);
+    std::string extension2 = ".vtk";
+      //vtksys::SystemTools::GetFilenameLastExtension(argv[2]);
 
       if (extension1 == ".vtk")
         data1 = ReadObject<vtkPolyDataReader> (argv[1]);
