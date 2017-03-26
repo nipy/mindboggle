@@ -113,7 +113,7 @@ older versions require "-gcs DKTatlas40.gcs" to generate these surface labels)*:
 registration-based labeling. To generate the ANTs transforms and segmentation
 files used by Mindboggle, run the ``antsCorticalThickness.sh`` script on the
 same $IMAGE file, set an output $PREFIX, and provide paths to the
-`OASIS-30 Atropos template <https://osf.io/rh9km/?action=download&version=1>`_
+`OASIS-30 Atropos template <https://osf.io/rh9km/?action=download&version=2>`_
 files ("\\" splits command to next line)::
 
     antsCorticalThickness.sh -d 3 -a $IMAGE -o $PREFIX \
