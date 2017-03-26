@@ -1650,15 +1650,6 @@ def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk='',
     """
     Load a FreeSurfer .annot file and save as a VTK format file.
 
-    Note regarding current pip install nibabel (fixed in github master repo)::
-
-        The 'True' flag in nibabel.freesurfer.read_annot(annot_file, True)
-        gives the original FreeSurfer label values, not the FreeSurferColorLUT
-        labels, and when set to 'False' assigns all otherwise unlabeled
-        left cortical vertices to 3, which is also assigned to the caudal
-        middle frontal gyrus.  To correct this ambiguity, this program assigns
-        -1 to all vertices with label 0 in the original ('True') labels.
-
     Parameters
     ----------
     annot_file : string
@@ -1709,11 +1700,20 @@ def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk='',
 
     labels, ctab, names = nb.freesurfer.read_annot(annot_file)
 
-    # CAN REMOVE THE FOLLOWING FEW LINES WHEN
-    # https://github.com/nipy/nibabel/issues/205#issuecomment-25294009
-    # RESOLUTION IN THE PIP INSTALL VERSION OF NIBABEL:
-    labels_orig, ctab, names = nb.freesurfer.read_annot(annot_file, True)
-    labels[np.where(labels_orig == 0)[0]] = background_value
+    # Note regarding 2013 version of pip install nibabel:
+    # (https://github.com/nipy/nibabel/issues/205#issuecomment-25294009)
+    #
+    # The 'True' flag in nibabel.freesurfer.read_annot(annot_file, True)
+    # gives the original FreeSurfer label values, not the FreeSurferColorLUT
+    # labels, and when set to 'False' assigns all otherwise unlabeled
+    # left cortical vertices to 3, which is also assigned to the caudal
+    # middle frontal gyrus.  To correct this ambiguity, this program assigns
+    # -1 to all vertices with label 0 in the original ('True') labels.
+    #
+    # Resolution:
+    #labels_orig, ctab, names = nb.freesurfer.read_annot(annot_file, True)
+    #labels[np.where(labels_orig == 0)[0]] = background_value
+    #
     # Test removal of unlabeled cortex from label 3:
     #labels[np.where(labels==3)[0]]=1000
 
