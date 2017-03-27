@@ -957,7 +957,7 @@ def select_column_from_mindboggle_tables(subjects, hemi, index, tables_dir,
     return tables, columns, output_table
 
 
-def explode_table(input_table='', column_headers=[], output_path='',
+def explode_table(input_table='', column_headers=[], output_path='.',
                   output_stem='', break_column='label ID', verbose=False):
     """
     Break up a table into separate tables,
@@ -1029,7 +1029,7 @@ def explode_table(input_table='', column_headers=[], output_path='',
                 raise IOError(out_file + " not found")
 
 
-def explode_mindboggle_tables(subject_path='', output_path='',
+def explode_mindboggle_tables(subject_path='', output_path='.',
                               break_column='label ID', verbose=False):
     """
     Given the path to a subject's Mindboggle output data,
@@ -1089,7 +1089,7 @@ def explode_mindboggle_tables(subject_path='', output_path='',
                                   'freesurfer convexity (sulc)']
                 output_stem = ''.join(break_column.split(' '))
                 output_tables = explode_table(vertices_table, column_headers,
-                                              output_path, output_stem,
+                                              output_dir, output_stem,
                                               break_column, verbose)
             else:
                 raise IOError('Directory {0} does not exist.'.
