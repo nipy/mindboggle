@@ -957,8 +957,8 @@ def select_column_from_mindboggle_tables(subjects, hemi, index, tables_dir,
     return tables, columns, output_table
 
 
-def explode_table(input_table='', output_stem='',
-                  break_column='label ID', verbose=False):
+def explode_table(input_table='', column_headers=[], output_path='',
+                  output_stem='', break_column='label ID', verbose=False):
     """
     Break up a table into separate tables,
     one for each index value for a given column.
@@ -967,8 +967,12 @@ def explode_table(input_table='', output_stem='',
     ----------
     input_table : string
         path to input table to be broken up into separate tables
+    column_headers : list of strings
+        headers for columns to break up by break_column indices
     output_path : string
         output path/directory
+    output_stem : string
+        append string to output file name
     break_column : string
         column header that contains the integers to break up into tables
     verbose : bool
@@ -985,10 +989,15 @@ def explode_table(input_table='', output_stem='',
     >>> from mindboggle.mio.tables import explode_table
     >>> input_table = os.path.join(os.environ['MINDBOGGLE_DATA'],
     ...     'left_cortical_surface', 'vertices.csv') # doctest: +SKIP
+    >>> column_headers = ['travel depth', 'geodesic depth', 'mean curvature',
+    ...                   'freesurfer curvature', 'freesurfer thickness',
+    ...                   'freesurfer convexity (sulc)']
     >>> output_path = '.'
+    >>> output_stem = 'label'
     >>> break_column = 'label ID'
     >>> verbose = False
-    >>> output_tables = explode_table(input_table, output_path, break_column,
+    >>> output_tables = explode_table(input_table, column_headers,
+    ...                               output_path, output_stem, break_column,
     ...                               verbose) # doctest: +SKIP
     """
     import os
@@ -996,36 +1005,24 @@ def explode_table(input_table='', output_stem='',
     import pandas as pd
 
     if not os.path.exists(output_path):
-        raise IOError('Unable to make directory {0}'.format(output_path))
+        raise IOError('Directory {0} does not exist.'.format(output_path))
     else:
-        shape_column_names = ['travel depth',
-                              'geodesic depth',
-                              'mean curvature',
-                              'freesurfer curvature',
-                              'freesurfer thickness',
-                              'freesurfer convexity (sulc)']
-        shape_column_names2 = ['travel_depth',
-                               'geodesic_depth',
-                               'mean_curvature',
-                               'freesurfer_curvature',
-                               'freesurfer_thickness',
-                               'freesurfer_sulc']
-
         if verbose:
             print("Explode {0} by {1} values".format(input_table,
                                                      break_column))
 
         df = pd.read_csv(input_table, header=0, index_col=break_column)
 
-        df1 = df[shape_column_names]
-        unique_labels = np.unique(df1.index)
+        df1 = df[column_headers]
+        unique_labels = [int(x) for x in np.unique(df1.index)]
 
-        df1.columns = shape_column_names2
+        df1.columns = column_headers
 
         for label in unique_labels:
             label_table = df1.loc[label]
 
-            out_file = os.path.join(output_path, str(label) + '.csv')
+            out_file = os.path.join(output_path,
+                                    output_stem + str(label) + '.csv')
             label_table.to_csv(out_file, index=False)
 
             if not os.path.exists(out_file):
@@ -1062,8 +1059,6 @@ def explode_mindboggle_tables(subject_path='', output_path='',
     ...                           verbose) # doctest: +SKIP
     """
     import os
-    import numpy as np
-    import pandas as pd
 
     if not os.path.exists(output_path):
         if verbose:
@@ -1083,43 +1078,21 @@ def explode_mindboggle_tables(subject_path='', output_path='',
                 vertices_table = os.path.join(subject_path, 'tables',
                                               side + '_cortical_surface',
                                               'vertices.csv')
-                shape_column_names = ['travel depth',
-                                      'geodesic depth',
-                                      'mean curvature',
-                                      'freesurfer curvature',
-                                      'freesurfer thickness',
-                                      'freesurfer convexity (sulc)']
-                shape_column_names2 = ['travel_depth',
-                                       'geodesic_depth',
-                                       'mean_curvature',
-                                       'freesurfer_curvature',
-                                       'freesurfer_thickness',
-                                       'freesurfer_sulc']
-
                 if verbose:
                     print("Explode {0} by {1} values".
                         format(vertices_table, break_column))
 
-                df = pd.read_csv(vertices_table,
-                        header=0,
-                        index_col=break_column)
-                        #usecols=shape_column_names)
-
-                df1 = df[shape_column_names]
-                unique_labels = np.unique(df1.index)
-
-                df1.columns = shape_column_names2
-
-                for label in unique_labels:
-                    label_table = df1.loc[label]
-
-                    out_file = os.path.join(output_dir, str(label) + '.csv')
-                    label_table.to_csv(out_file, index=False)
-
-                    if not os.path.exists(out_file):
-                        raise IOError(out_file + " not found")
+                column_headers = ['travel depth', 'geodesic depth',
+                                  'mean curvature',
+                                  'freesurfer curvature',
+                                  'freesurfer thickness',
+                                  'freesurfer convexity (sulc)']
+                output_stem = ''.join(break_column.split(' '))
+                output_tables = explode_table(vertices_table, column_headers,
+                                              output_path, output_stem,
+                                              break_column, verbose)
             else:
-                raise IOError('Unable to make directory {0}'.
+                raise IOError('Directory {0} does not exist.'.
                               format(output_dir))
 
 
