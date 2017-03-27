@@ -111,7 +111,7 @@ def read_lines(filename):
     print("Loading the scalar {0}".format(Reader.GetScalarsNameInFile(0)))
     ScalarsArray = PointData.GetArray(Reader.GetScalarsNameInFile(0))
     scalars = [ScalarsArray.GetValue(i)
-               for i in range(0, ScalarsArray.GetSize())]
+               for i in range(0, ScalarsArray.GetDataSize())]
 
     return lines, scalars
 
@@ -288,7 +288,7 @@ def read_scalars(filename, return_first=True, return_array=False):
 
             scalar_array = PointData.GetArray(scalar_name)
             scalar = [scalar_array.GetValue(i)
-                      for i in range(scalar_array.GetSize())]
+                      for i in range(scalar_array.GetDataSize())]
             scalars.append(scalar)
             scalar_names.append(scalar_name)
 
@@ -425,7 +425,7 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
             scalar_array = PointData.GetArray(scalar_name)
             if scalar_array:
                 scalar = [scalar_array.GetValue(i)
-                          for i in range(scalar_array.GetSize())]
+                          for i in range(scalar_array.GetDataSize())]
                 scalars.append(scalar)
                 scalar_names.append(scalar_name)
 
