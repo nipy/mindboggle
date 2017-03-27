@@ -957,6 +957,81 @@ def select_column_from_mindboggle_tables(subjects, hemi, index, tables_dir,
     return tables, columns, output_table
 
 
+def explode_table(input_table='', output_stem='',
+                  break_column='label ID', verbose=False):
+    """
+    Break up a table into separate tables,
+    one for each index value for a given column.
+
+    Parameters
+    ----------
+    input_table : string
+        path to input table to be broken up into separate tables
+    output_path : string
+        output path/directory
+    break_column : string
+        column header that contains the integers to break up into tables
+    verbose : bool
+        print statements?
+
+    Returns
+    -------
+    output_tables : list of strings
+        paths to output tables
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.mio.tables import explode_table
+    >>> input_table = os.path.join(os.environ['MINDBOGGLE_DATA'],
+    ...     'left_cortical_surface', 'vertices.csv') # doctest: +SKIP
+    >>> output_path = '.'
+    >>> break_column = 'label ID'
+    >>> verbose = False
+    >>> output_tables = explode_table(input_table, output_path, break_column,
+    ...                               verbose) # doctest: +SKIP
+    """
+    import os
+    import numpy as np
+    import pandas as pd
+
+    if not os.path.exists(output_path):
+        raise IOError('Unable to make directory {0}'.format(output_path))
+    else:
+        shape_column_names = ['travel depth',
+                              'geodesic depth',
+                              'mean curvature',
+                              'freesurfer curvature',
+                              'freesurfer thickness',
+                              'freesurfer convexity (sulc)']
+        shape_column_names2 = ['travel_depth',
+                               'geodesic_depth',
+                               'mean_curvature',
+                               'freesurfer_curvature',
+                               'freesurfer_thickness',
+                               'freesurfer_sulc']
+
+        if verbose:
+            print("Explode {0} by {1} values".format(input_table,
+                                                     break_column))
+
+        df = pd.read_csv(input_table, header=0, index_col=break_column)
+
+        df1 = df[shape_column_names]
+        unique_labels = np.unique(df1.index)
+
+        df1.columns = shape_column_names2
+
+        for label in unique_labels:
+            label_table = df1.loc[label]
+
+            out_file = os.path.join(output_path, str(label) + '.csv')
+            label_table.to_csv(out_file, index=False)
+
+            if not os.path.exists(out_file):
+                raise IOError(out_file + " not found")
+
+
 def explode_mindboggle_tables(subject_path='', output_path='',
                               break_column='label ID', verbose=False):
     """

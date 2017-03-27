@@ -60,10 +60,11 @@ from mindboggle.mio.convert_volumes import convert2nii
 from mindboggle.mio.fetch_data import cache_hashes, fetch_check_data, \
     fetch_ants_data
 from mindboggle.mio.labels import DKTprotocol
-from mindboggle.mio.tables import write_shape_stats, write_vertex_measures
+from mindboggle.mio.tables import write_shape_stats, write_vertex_measures, \
+    explode_table
 from mindboggle.mio.vtks import read_vtk, apply_affine_transforms, \
     freesurfer_surface_to_vtk, freesurfer_curvature_to_vtk, \
-    freesurfer_annot_to_vtk
+    freesurfer_annot_to_vtk, explode_scalars
 from mindboggle.shapes.laplace_beltrami import spectrum_per_label
 from mindboggle.shapes.likelihood import compute_likelihood
 from mindboggle.shapes.surface_shapes import area, curvature, travel_depth, \
@@ -178,6 +179,8 @@ adv_args.add_argument("--my_transform",
 adv_args.add_argument("--graph",
                       help='plot workflow: "hier", "exec" (need graphviz)',
                       choices=['hier', 'flat', 'exec'], metavar='STR')
+adv_args.add_argument("--roygbiv", action='store_true',
+                      help='prepare data for visualization with ROYGBIV')
 adv_args.add_argument("--plugin", dest="plugin",
                       default='Linear',
                       help="nipype plugin (see nipype documentation)")
@@ -1518,6 +1521,91 @@ if not args.no_surfaces:
                 mbFlow.connect(TransformPoints, 'output_file',
                                Sink, 'features.@surface_in_MNI152')
 
+        # --------------------------------------------------------------------
+        # Surface shape visualization: prepare data for ROYGBIV
+        # --------------------------------------------------------------------
+        if args.roygbiv:
+            # ----------------------------------------------------------------
+            # Explode surface shape files by label values:
+            # ----------------------------------------------------------------
+            ExplodeLabels = Node(name='Explode_Labels',
+                                 interface=Fn(function=explode_scalars,
+                                     input_names=['input_indices_vtk',
+                                                  'input_values_vtk',
+                                                  'output_stem',
+                                                  'exclude_values',
+                                                  'background_value',
+                                                  'output_scalar_name',
+                                                  'remove_background_faces',
+                                                  'reindex',
+                                                  'verbose'],
+                                     output_names=['output_files']))
+            mbFlow.connect(ReindexLabels, 'output_file',
+                           ExplodeLabels, 'input_indices_vtk')
+            ExplodeLabels.inputs.input_values_vtk = ''
+            ExplodeLabels.inputs.output_stem = 'label'
+            ExplodeLabels.inputs.exclude_values = [-1]
+            ExplodeLabels.inputs.background_value = -1
+            ExplodeLabels.inputs.output_scalar_name = 'scalars'
+            ExplodeLabels.inputs.remove_background_faces = True
+            ExplodeLabels.inputs.reindex = True
+            ExplodeLabels.inputs.verbose = True
+            if save_all:
+                mbFlow.connect(ExplodeLabels, 'output_files',
+                               Sink, 'exploded.@labels')
+
+            # ----------------------------------------------------------------
+            # Explode surface shape files by sulcus indices:
+            # ----------------------------------------------------------------
+            if do_sulci:
+                ExplodeSulci = ExplodeLabels.clone('Explode_Sulci')
+                SurfFeatureShapeFlow.add_nodes([ExplodeSulci])
+                mbFlow.connect(SurfFeatureFlow, 'Sulci.sulci_file',
+                               ExplodeSulci, 'input_indices_vtk')
+                ExplodeSulci.inputs.output_stem = 'sulcus'
+                if save_all:
+                    mbFlow.connect(ExplodeSulci, 'output_files',
+                                   Sink, 'exploded.@sulci')
+
+            # ----------------------------------------------------------------
+            # Explode surface shape files by fundus indices:
+            # ----------------------------------------------------------------
+            if do_fundi:
+                ExplodeFundi = ExplodeLabels.clone('Explode_Fundi')
+                SurfFeatureShapeFlow.add_nodes([ExplodeFundi])
+                mbFlow.connect(SurfFeatureFlow,
+                               'Fundus_per_sulcus.segment_per_region_file',
+                               ExplodeFundi, 'input_indices_vtk')
+                ExplodeFundi.inputs.output_stem = 'sulcus'
+                if save_all:
+                    mbFlow.connect(ExplodeFundi, 'output_files',
+                                   Sink, 'exploded.@fundi')
+
+            # ----------------------------------------------------------------
+            # Explode surface shape tables by label values:
+            # ----------------------------------------------------------------
+            # ExplodeTables = Node(name='Explode_Tables',
+            #                      interface=Fn(
+            #                          function=explode_mindboggle_tables,
+            #                          input_names=['subject_path',
+            #                                       'output_path',
+            #                                       'break_column',
+            #                                       'verbose'],
+            #                          output_names=[]))
+            # ExplodeTables.inputs.subject_path = os.environ[
+            #     'MINDBOGGLE_DATA']
+            # ExplodeTables.inputs.output_path = ''
+            # ExplodeTables.inputs.break_column = 'label ID' #'sulcus ID'
+            # ExplodeTables.inputs.verbose = True
+            ####mbFlow.connect(Sink, 'tables.@labels', ExplodeLabels, 'pieces')
+            # mbFlow.connect(ExplodeTables, '???????',
+            #                Sink, 'features.@roygbiv_tables')
+            # if do_sulci:
+            #     mbFlow.connect(ShapeTables, 'sulcus_table', Sink,
+            #                    'tables.@sulci')
+            # if do_fundi:
+            #     mbFlow.connect(ShapeTables, 'fundus_table', Sink,
+            #                    'tables.@fundi')
 
 # ============================================================================
 # ----------------------------------------------------------------------------
