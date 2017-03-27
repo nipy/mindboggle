@@ -895,6 +895,11 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     verbose : bool
         print statements?
 
+    Returns
+    -------
+    output_files : list of strings
+        paths to output VTK files
+
     Examples
     --------
     >>> # Example 1:  explode sulci with thickness values
@@ -910,8 +915,8 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     >>> remove_background_faces = True
     >>> reindex = True
     >>> verbose = False
-    >>> explode_scalars(input_indices_vtk, input_values_vtk, output_stem,
-    ...     exclude_values, background_value, output_scalar_name,
+    >>> output_files = explode_scalars(input_indices_vtk, input_values_vtk,
+    ...     output_stem, exclude_values, background_value, output_scalar_name,
     ...     remove_background_faces, reindex, verbose)
 
     View Example 1 results (skip test):
@@ -968,6 +973,7 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
         unique_scalars = [x for x in unique_scalars
                           if x not in exclude_values]
 
+    output_files =[]
     for scalar in unique_scalars:
 
         # Remove background (keep only faces with the scalar):
@@ -1007,21 +1013,23 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
                       select_values.tolist(), output_scalar_name,
                       scalar_type=scalar_type)
 
+            output_files.append(output_vtk)
 
-def explode_scalars_mindboggle(subject, subject_path='', output_path='',
+    return output_files
+
+
+def explode_scalars_mindboggle(subject_path, output_path='',
                                pieces='labels', background_value=-1,
                                verbose=False):
     """
-    Given a subject name corresponding to Mindboggle shape surface outputs,
-    take each shape surface VTK file, and create a separate VTK file for each
-    label index in a label surface file.
+    Given the path to a subject's Mindboggle output data,
+    break up each shape surface VTK file into separate VTK files,
+    one for each label/sulcus index.
 
     Parameters
     ----------
-    subject : string
-        name of subject run through Mindboggle
     subject_path : string
-        path to subject's parent directory
+        path to subject directory
     output_path : string
         output path/directory
     pieces : string
@@ -1036,13 +1044,12 @@ def explode_scalars_mindboggle(subject, subject_path='', output_path='',
     >>> # Explode surface shape files by label values:
     >>> import os
     >>> from mindboggle.mio.vtks import explode_scalars_mindboggle
-    >>> subject = 'Twins-2-1'
-    >>> subject_path = '/Users/arno/mindboggled'
+    >>> subject_path = '/Users/arno/mindboggled/Twins-2-1'
     >>> output_path = os.getcwd()
     >>> pieces = 'labels'
     >>> background_value = -1
     >>> verbose = False
-    >>> explode_scalars_mindboggle(subject, subject_path, output_path, pieces,
+    >>> explode_scalars_mindboggle(subject_path, output_path, pieces,
     ...                            background_value, verbose) # doctest: +SKIP
 
     View example result (skip test):
@@ -1081,8 +1088,8 @@ def explode_scalars_mindboggle(subject, subject_path='', output_path='',
                     raise IOError("Choose from: {'labels', 'sulci'}")
                                   #'fundus_per_sulcus', 'folds'}")
 
-                labels_vtk = os.path.join(subject_path, subject, File)
-                shapes_path = os.path.join(subject_path, subject, 'shapes',
+                labels_vtk = os.path.join(subject_path, File)
+                shapes_path = os.path.join(subject_path, 'shapes',
                                            side + '_cortical_surface')
                 shape_names = ['travel_depth',
                                'geodesic_depth',
@@ -1099,7 +1106,7 @@ def explode_scalars_mindboggle(subject, subject_path='', output_path='',
                         print("Explode {0} by {1} values from {2}").\
                             format(shape_vtk, pieces, labels_vtk)
 
-                    explode_scalars(labels_vtk, shape_vtk,
+                    output_files = explode_scalars(labels_vtk, shape_vtk,
                                     os.path.join(output_dir,
                                                  shape_name + '_'),
                                     [background_value], background_value,

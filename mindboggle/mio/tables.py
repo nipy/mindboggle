@@ -960,8 +960,9 @@ def select_column_from_mindboggle_tables(subjects, hemi, index, tables_dir,
 def explode_mindboggle_tables(subject_path='', output_path='',
                               break_column='label ID', verbose=False):
     """
-    Given a subject name corresponding to Mindboggle outputs, break up each
-    hemisphere's vertices.csv file into a separate table file for each label.
+    Given the path to a subject's Mindboggle output data,
+    break up each surface's shape table into separate tables,
+    one for each label/sulcus index.
 
     Parameters
     ----------
