@@ -1018,6 +1018,7 @@ def explode_table(input_table='', column_headers=[], output_path='.',
 
         df1.columns = column_headers
 
+        output_tables = []
         for label in unique_labels:
             label_table = df1.loc[label]
 
@@ -1027,6 +1028,10 @@ def explode_table(input_table='', column_headers=[], output_path='.',
 
             if not os.path.exists(out_file):
                 raise IOError(out_file + " not found")
+            else:
+                output_tables.append(out_file)
+
+        return output_tables
 
 
 def explode_mindboggle_tables(subject_path='', output_path='.',

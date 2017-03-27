@@ -1603,37 +1603,37 @@ if not args.no_surfaces:
             ExplodeLabelTable.inputs.output_stem = 'label'
             ExplodeLabelTable.inputs.break_column = 'label ID'
             ExplodeLabelTable.inputs.verbose = True
-            # if save_all:
-            #     mbFlow.connect(ExplodeLabelTable, 'output_tables',
-            #                    Sink, 'exploded.@label_tables')
+            if save_all:
+                mbFlow.connect(ExplodeLabelTable, 'output_tables',
+                               Sink, 'exploded.@label_tables')
 
             # ----------------------------------------------------------------
             # Explode surface shape tables by sulcus indices:
             # ----------------------------------------------------------------
             if do_sulci:
                 ExplodeSulcusTable = ExplodeLabelTable.clone('Explode_Sulcus_Table')
-                #mbFlow.connect(VertexTable, 'output_table',
-                #               ExplodeSulcusTable, 'input_table')
-                #ExplodeSulcusTable.inputs.output_path = '.'
+                mbFlow.connect(VertexTable, 'output_table',
+                               ExplodeSulcusTable, 'input_table')
+                ExplodeSulcusTable.inputs.output_path = '.'
                 ExplodeSulcusTable.inputs.output_stem = 'sulcus'
                 ExplodeSulcusTable.inputs.break_column = 'sulcus ID'
-                # if save_all:
-                #     mbFlow.connect(ExplodeSulcusTable, 'output_files',
-                #                    Sink, 'exploded.@sulcus_tables')
+                if save_all:
+                    mbFlow.connect(ExplodeSulcusTable, 'output_tables',
+                                   Sink, 'exploded.@sulcus_tables')
 
             # ----------------------------------------------------------------
             # Explode surface shape tables by fundus indices:
             # ----------------------------------------------------------------
             if do_fundi:
                 ExplodeFundusTable = ExplodeLabels.clone('Explode_Fundus_Table')
-                #mbFlow.connect(VertexTable, 'output_table',
-                #               ExplodeFundusTable, 'input_table')
-                #ExplodeFundusTable.inputs.output_path = ','
+                mbFlow.connect(VertexTable, 'output_table',
+                               ExplodeFundusTable, 'input_table')
+                ExplodeFundusTable.inputs.output_path = ','
                 ExplodeFundusTable.inputs.output_stem = 'fundus'
                 ExplodeFundusTable.inputs.break_column = 'fundus ID'
-                # if save_all:
-                #     mbFlow.connect(ExplodeFundusTable, 'output_files',
-                #                    Sink, 'exploded.@fundus_tables')
+                if save_all:
+                    mbFlow.connect(ExplodeFundusTable, 'output_tables',
+                                   Sink, 'exploded.@fundus_tables')
 
 # ============================================================================
 # ----------------------------------------------------------------------------
