@@ -957,7 +957,7 @@ def select_column_from_mindboggle_tables(subjects, hemi, index, tables_dir,
     return tables, columns, output_table
 
 
-def explode_table(input_table='', column_headers=[], output_path='.',
+def explode_table(input_table='', column_headers=[], output_path=None,
                   output_stem='', break_column='label ID', verbose=False):
     """
     Break up a table into separate tables,
@@ -1004,34 +1004,37 @@ def explode_table(input_table='', column_headers=[], output_path='.',
     import numpy as np
     import pandas as pd
 
-    if not os.path.exists(output_path):
-        raise IOError('Directory {0} does not exist.'.format(output_path))
-    else:
-        if verbose:
-            print("Explode {0} by {1} values".format(input_table,
-                                                     break_column))
+    if output_path is None:
+        output_path = os.getcwd()
+    elif not os.path.exists(output_path):
+        raise(ValueError,
+              'output_path {0} does not exist.'.format(output_path))
 
-        df = pd.read_csv(input_table, header=0, index_col=break_column)
+    if verbose:
+        print("Explode {0} by {1} values".format(input_table,
+                                                 break_column))
 
-        df1 = df[column_headers]
-        unique_labels = [int(x) for x in np.unique(df1.index)]
+    df = pd.read_csv(input_table, header=0, index_col=break_column)
 
-        df1.columns = column_headers
+    df1 = df[column_headers]
+    unique_labels = [int(x) for x in np.unique(df1.index)]
 
-        output_tables = []
-        for label in unique_labels:
-            label_table = df1.loc[label]
+    df1.columns = column_headers
 
-            out_file = os.path.join(output_path,
-                                    output_stem + str(label) + '.csv')
-            label_table.to_csv(out_file, index=False)
+    output_tables = []
+    for label in unique_labels:
+        label_table = df1.loc[label]
 
-            if not os.path.exists(out_file):
-                raise IOError(out_file + " not found")
-            else:
-                output_tables.append(out_file)
+        out_file = os.path.join(output_path,
+                                output_stem + str(label) + '.csv')
+        label_table.to_csv(out_file, index=False)
 
-        return output_tables
+        if not os.path.exists(out_file):
+            raise IOError(out_file + " not found")
+        else:
+            output_tables.append(out_file)
+
+    return output_tables
 
 
 def explode_mindboggle_tables(subject_path='', output_path='.',

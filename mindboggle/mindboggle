@@ -1599,7 +1599,7 @@ if not args.no_surfaces:
                                                 'freesurfer curvature',
                                                 'freesurfer thickness',
                                                 'freesurfer convexity (sulc)']
-            ExplodeLabelTable.inputs.output_path = '.'
+            ExplodeLabelTable.inputs.output_path = None
             ExplodeLabelTable.inputs.output_stem = 'label'
             ExplodeLabelTable.inputs.break_column = 'label ID'
             ExplodeLabelTable.inputs.verbose = True
@@ -1614,7 +1614,7 @@ if not args.no_surfaces:
                 ExplodeSulcusTable = ExplodeLabelTable.clone('Explode_Sulcus_Table')
                 mbFlow.connect(VertexTable, 'output_table',
                                ExplodeSulcusTable, 'input_table')
-                ExplodeSulcusTable.inputs.output_path = '.'
+                ExplodeSulcusTable.inputs.output_path = None
                 ExplodeSulcusTable.inputs.output_stem = 'sulcus'
                 ExplodeSulcusTable.inputs.break_column = 'sulcus ID'
                 if save_all:
@@ -1628,7 +1628,7 @@ if not args.no_surfaces:
                 ExplodeFundusTable = ExplodeLabels.clone('Explode_Fundus_Table')
                 mbFlow.connect(VertexTable, 'output_table',
                                ExplodeFundusTable, 'input_table')
-                ExplodeFundusTable.inputs.output_path = ','
+                ExplodeFundusTable.inputs.output_path = None
                 ExplodeFundusTable.inputs.output_stem = 'fundus'
                 ExplodeFundusTable.inputs.break_column = 'fundus ID'
                 if save_all:
