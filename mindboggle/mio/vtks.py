@@ -932,8 +932,8 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     >>> input_values_vtk = ''
     >>> output_stem = 'explode_scalars_label'
     >>> output_scalar_name = 'labels'
-    >>> explode_scalars(input_indices_vtk, input_values_vtk, output_stem,
-    ...     exclude_values, background_value, output_scalar_name,
+    >>> output_files = explode_scalars(input_indices_vtk, input_values_vtk, 
+    ...     output_stem, exclude_values, background_value, output_scalar_name,
     ...     remove_background_faces, reindex, verbose)
 
     View Example 2 results (skip test):
