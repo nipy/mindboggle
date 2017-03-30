@@ -903,6 +903,7 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     Examples
     --------
     >>> # Example 1:  explode sulci with thickness values
+    >>> import os
     >>> from mindboggle.mio.vtks import explode_scalars
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
@@ -918,6 +919,8 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     >>> output_files = explode_scalars(input_indices_vtk, input_values_vtk,
     ...     output_stem, exclude_values, background_value, output_scalar_name,
     ...     remove_background_faces, reindex, verbose)
+    >>> os.path.basename(output_files[0])
+    'explode_scalars_sulcus_depth1.vtk'
 
     View Example 1 results (skip test):
 
@@ -930,9 +933,11 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     >>> input_values_vtk = ''
     >>> output_stem = 'explode_scalars_label'
     >>> output_scalar_name = 'labels'
-    >>> explode_scalars(input_indices_vtk, input_values_vtk, output_stem,
-    ...     exclude_values, background_value, output_scalar_name,
+    >>> output_files = explode_scalars(input_indices_vtk, input_values_vtk, 
+    ...     output_stem, exclude_values, background_value, output_scalar_name,
     ...     remove_background_faces, reindex, verbose)
+    >>> os.path.basename(output_files[0])
+    'explode_scalars_label999.vtk'
 
     View Example 2 results (skip test):
 
