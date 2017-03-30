@@ -903,6 +903,7 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     Examples
     --------
     >>> # Example 1:  explode sulci with thickness values
+    >>> import os
     >>> from mindboggle.mio.vtks import explode_scalars
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
