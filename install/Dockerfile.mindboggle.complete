@@ -1,0 +1,237 @@
+# Dockerfile.mindboggle.complete
+#-----------------------------------------------------------------------------
+# This Dockerfile installs mindboggle and all of its dependencies,
+# including preprocessing software packages FreeSurfer and ANTs,
+# and visualization software roygbiv.
+#
+# -- Adapted from dockerfiles created by Satrajit Ghosh <satra@mit.edu>
+#    for a nipype workshop held at MIT in March 2017
+#    (in turn adapted from https://github.com/miykael/nipype_env)
+#
+# Steps:
+# 1.  Update OS dependencies and set up neurodebian
+# 2.  Install FreeSurfer
+# 3.  Install ANTS
+# 4.  Update and install conda dependencies
+# 5.  Install mindboggle's C++ library dependencies
+# 6.  Install nipype
+# 7.  Install mindboggle
+# 8.  Install mindboggle's OASIS-30_Atropos_template data for use by ANTs
+# 9.  Install roygbiv for mindboggle output visualization
+# 10. Clear apt cache and other empty folders
+#
+# To build the docker image:
+# docker build -t mindboggle -f Dockerfile.mindboggle.complete .
+#
+# To run the docker container:
+# docker run --rm -ti -v /homedir:/home/jovyan/work -p 8888:8888 -p 5000:5000 mindboggle bash
+#
+# (c) 2017 by Arno Klein <arno@mindboggle.info> (CC-BY license)
+#-----------------------------------------------------------------------------
+
+FROM jupyter/base-notebook
+MAINTAINER Arno Klein <arno@mindboggle.info>
+
+#-----------------------------------------------------------------------------
+# Update OS dependencies and set up neurodebian
+# (graphviz conda version doesn't work)
+#-----------------------------------------------------------------------------
+USER root
+RUN apt-get update -qq && \
+    apt-get install -yq --no-install-recommends bzip2 \
+                                                ca-certificates \
+                                                curl \
+                                                tree \
+                                                unzip \
+                                                wget \
+                                                zip \
+                                                vim \
+                                                emacs-nox \
+                                                xvfb \
+                                                graphviz \
+                                                less \
+                                                git && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
+    mkdir /opt/src && \
+    mkdir /opt/data && \
+    chown $NB_USER /opt && \
+    chown $NB_USER /opt/src && \
+    chown $NB_USER /opt/data
+
+#-----------------------------------------------------------------------------
+# Install FreeSurfer
+# (Use a specific license -- echo command -- until env variable is supported.)
+#-----------------------------------------------------------------------------
+USER $NB_USER
+WORKDIR /opt/src
+RUN curl -sSL https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/6.0.0/freesurfer-Linux-centos6_x86_64-stable-pub-v6.0.0.tar.gz | tar zx -C /opt \
+    --exclude='freesurfer/trctrain' \
+    --exclude='freesurfer/subjects/fsaverage_sym' \
+    --exclude='freesurfer/subjects/fsaverage3' \
+    --exclude='freesurfer/subjects/fsaverage4' \
+    --exclude='freesurfer/subjects/fsaverage5' \
+    --exclude='freesurfer/subjects/fsaverage6' \
+    --exclude='freesurfer/subjects/cvs_avg35' \
+    --exclude='freesurfer/subjects/cvs_avg35_inMNI152' \
+    --exclude='freesurfer/subjects/bert' \
+    --exclude='freesurfer/subjects/V1_average' \
+    --exclude='freesurfer/average/mult-comp-cor' \
+    --exclude='freesurfer/lib/cuda' \
+    --exclude='freesurfer/lib/qt' && \
+    ( echo "cHJpbnRmICJrcnp5c3p0b2YuZ29yZ29sZXdza2lAZ21haWwuY29tXG41MTcyXG4gKkN2dW12RVYzelRmZ1xuRlM1Si8yYzFhZ2c0RVxuIiA+IC9vcHQvZnJlZXN1cmZlci9saWNlbnNlLnR4dAo=" | base64 -d | sh )
+ENV FSL_DIR=/usr/share/fsl/5.0 \
+    OS=Linux \
+    FS_OVERRIDE=0 \
+    FIX_VERTEX_AREA= \
+    FSF_OUTPUT_FORMAT=nii.gz \
+    FREESURFER_HOME=/opt/freesurfer
+ENV SUBJECTS_DIR=$FREESURFER_HOME/subjects \
+    FUNCTIONALS_DIR=$FREESURFER_HOME/sessions \
+    MNI_DIR=$FREESURFER_HOME/mni \
+    LOCAL_DIR=$FREESURFER_HOME/local \
+    FSFAST_HOME=$FREESURFER_HOME/fsfast \
+    MINC_BIN_DIR=$FREESURFER_HOME/mni/bin \
+    MINC_LIB_DIR=$FREESURFER_HOME/mni/lib \
+    MNI_DATAPATH=$FREESURFER_HOME/mni/data \
+    FMRI_ANALYSIS_DIR=$FREESURFER_HOME/fsfast
+ENV PERL5LIB=$MINC_LIB_DIR/perl5/5.8.5 \
+    MNI_PERL5LIB=$MINC_LIB_DIR/perl5/5.8.5 \
+    PATH=$FREESURFER_HOME/bin:$FSFAST_HOME/bin:$FREESURFER_HOME/tktools:$MINC_BIN_DIR:$PATH
+
+#-----------------------------------------------------------------------------
+# Install ANTS
+#-----------------------------------------------------------------------------
+# USER root
+# RUN apt-get update -qq && apt-get install -yq --no-install-recommends \
+#        build-essential && \
+#    apt-get clean && \
+#    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# USER $NB_USER
+# WORKDIR /tmp
+# RUN git clone https://github.com/stnava/ANTs.git && \
+#    cd ANTs && \
+#    git checkout 767f756bc0e423cd503a24c806b6578aaeb5b82f && \
+#    mkdir build && cd build && cmake .. && make && \
+#    mkdir -p /opt/ants && \
+#    cp bin/* /opt/ants && cp ../Scripts/* /opt/ants && \
+#    cd /tmp && rm -rf ANTs
+#-----------------------------------------------------------------------------
+# ANTs compilation takes longer than Dockerhub allows (2 hours),
+# so it was compiled according to the uncommented section above
+# and the results made available at the link below.
+#-----------------------------------------------------------------------------
+USER $NB_USER
+WORKDIR /opt/src
+RUN curl -sSL https://dl.dropbox.com/s/btep51gtglp7kwh/ants.tgz?dl=0 | tar zx -C /
+ENV ANTSPATH=/opt/ants/ \
+    PATH=/opt/ants:$PATH
+
+#-----------------------------------------------------------------------------
+# Update and install conda dependencies for nipype,
+# mindboggle (vtk and cmake), and
+# mindboggle visualization in a jupyter notebook (pythreejs)
+#-----------------------------------------------------------------------------
+USER $NB_USER
+RUN conda install --quiet --yes nomkl \
+                                pandas \
+                                matplotlib \
+                                pip \
+                                reprozip \
+                                reprounzip \
+                                prov \
+                                pytest \
+                                docutils \
+                                xvfbwrapper \
+                                traits \
+                                scipy \
+                                cmake \
+                                pythreejs && \
+    conda install --quiet --yes -c clinicalgraphics vtk=7.1.0 && \
+    conda clean -tipsy && \
+    jupyter nbextension enable --py --sys-prefix widgetsnbextension && \
+    jupyter nbextension enable --py --sys-prefix pythreejs
+
+#-------------------------------------------------------------------
+# Update pip, nibabel and matplotlib
+#-------------------------------------------------------------------
+RUN pip install --upgrade --quiet pip && \
+    pip install --quiet pybids==0.1 && \
+    pip install --upgrade --quiet matplotlib --upgrade-strategy only-if-needed && \
+    pip install --quiet https://github.com/nipy/nibabel/archive/ca977abeb77f95ed3a40b7b89c310b286b9885b7.zip && \
+    rm -rf ~/.cache/pip
+
+#-----------------------------------------------------------------------------
+# Install mindboggle's C++ library dependencies
+#-----------------------------------------------------------------------------
+USER root
+RUN apt-get update -qq && \
+    apt-get install -yq --no-install-recommends \
+            build-essential libsm-dev libx11-dev libxt-dev libxext-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+#-----------------------------------------------------------------------------
+# Install nipype
+#-----------------------------------------------------------------------------
+USER $NB_USER
+RUN git clone https://github.com/nipy/nipype && \
+    cd nipype && \
+    git checkout 368e1844b164b599496db817f095c53c72332b9f && \
+    python setup.py install
+
+#-----------------------------------------------------------------------------
+# Install mindboggle
+# (latest version before tagging with "mit_nipype_workshop")
+#-----------------------------------------------------------------------------
+USER $NB_USER
+WORKDIR /opt/src
+RUN git clone https://github.com/nipy/mindboggle && \
+    cd /opt/src/mindboggle && \
+    git checkout 1131711ee612b93d472e60c4728e942a97bc87b8 && \
+    python setup.py install && \
+    mkdir /opt/mindboggle && \
+    mkdir /opt/mindboggle/vtk_cpp_tools && \
+    cd /opt/mindboggle/vtk_cpp_tools && \
+    cmake /opt/src/mindboggle/vtk_cpp_tools -DCMAKE_EXE_LINKER_FLAGS="-L /opt/conda/lib" && \
+    make
+# cd ..
+# rm -rf /opt/src/mindboggle
+ENV vtk_cpp_tools=/opt/mindboggle/vtk_cpp_tools
+
+#-----------------------------------------------------------------------------
+# Install mindboggle's OASIS-30_Atropos_template data for use by ANTs
+#-----------------------------------------------------------------------------
+USER $NB_USER
+WORKDIR /opt/data
+RUN curl -sSL https://osf.io/rh9km/?action=download\&version=2 -o templates.zip && \
+    unzip templates.zip && \
+    rm -rf templates.zip
+
+#-----------------------------------------------------------------------------
+# Install roygbiv for mindboggle output visualization
+#-----------------------------------------------------------------------------
+USER $NB_USER
+WORKDIR /opt/src
+RUN conda install -y flask && \
+    git clone https://github.com/akeshavan/roygbiv && \
+    cd /opt/src/roygbiv && \
+    git checkout fbbf31c29952d0ea22ed05d98e0a5a7e7d0827f9 && \
+    python setup.py install && \
+    cd /opt/src && \
+    git clone https://github.com/akeshavan/nbpapaya && \
+    cd /opt/src/nbpapaya && \
+    git checkout 60119b6e1de651f250af26a3541d9cb18e971526 && \
+    python setup.py install
+    # rm -rf /opt/src/roygbiv /opt/src/nbpapaya
+
+#-----------------------------------------------------------------------------
+# Clear apt cache and other empty folders
+#-----------------------------------------------------------------------------
+USER root
+RUN apt-get clean && apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /boot /media /mnt /srv && \
+    chmod a+w /tmp
+
+WORKDIR /home/$NB_USER/work
+USER $NB_USER
