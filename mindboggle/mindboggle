@@ -2,9 +2,10 @@
 """
 This is the main program to run Mindboggle (http://mindboggle.info).
 
-Mindboggle is an open source brain morphometry platform that takes in preprocessed T1-weighted MRI data and outputs volume,
-surface, and tabular data containing label, feature, and shape information
-for further analysis.
+Mindboggle is an open source brain morphometry platform
+that takes in preprocessed T1-weighted MRI data and outputs volume,
+surface, and tabular data containing label, feature,
+and shape information for further analysis.
 
 Mindboggle can be run on the command line as "mindboggle" and can be
 installed as a cross-platform virtual machine for convenience and
@@ -59,7 +60,6 @@ from mindboggle.guts.utilities import list_strings
 from mindboggle.mio.convert_volumes import convert2nii
 from mindboggle.mio.fetch_data import cache_hashes, fetch_check_data, \
     fetch_ants_data
-from mindboggle.mio.labels import DKTprotocol
 from mindboggle.mio.tables import write_shape_stats, write_vertex_measures, \
     explode_table
 from mindboggle.mio.vtks import read_vtk, apply_affine_transforms, \
