@@ -119,8 +119,8 @@ older versions require "-gcs DKTatlas40.gcs" to generate these surface labels)*:
 **ANTs** provides brain volume extraction, segmentation, and
 registration-based labeling. To generate the ANTs transforms and segmentation
 files used by Mindboggle, run the ``antsCorticalThickness.sh`` script on the
-same $IMAGE file, set an output $PREFIX (like "/data/subject1/ants" for outputs
-like "/data/subject1/antsBrainSegmentation.nii.gz"), and a $TEMPLATE path to
+same $IMAGE file, set an output $PREFIX ("/data/subject1/ants" for outputs
+including "/data/subject1/antsBrainSegmentation.nii.gz"), and a $TEMPLATE path to
 the `OASIS-30_Atropos_template <https://osf.io/rh9km/?action=download&version=2>`_
 directory ("\\" splits command to next line)::
 
