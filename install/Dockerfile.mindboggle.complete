@@ -38,7 +38,9 @@ MAINTAINER Arno Klein <arno@mindboggle.info>
 #-----------------------------------------------------------------------------
 USER root
 RUN apt-get update -qq && \
-    apt-get install -yq --no-install-recommends bzip2 \
+    apt-get install -yq --no-install-recommends tcsh \
+                                                bc \
+                                                bzip2 \
                                                 ca-certificates \
                                                 curl \
                                                 tree \

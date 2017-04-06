@@ -90,6 +90,10 @@ download and unzip the
 `mindboggle_input_example.zip <https://osf.io/3xfb8/?action=download&version=1>`_
 directory (455 MB), which contains some example preprocessed data,
 and skip this section until you wish to process your own data.
+Or download and unzip the
+`example_mri_data.zip <https://osf.io/k3m94/?action=download&version=1>`_
+directory, which contains some example MRI data,
+and run the FreeSurfer and ANTs commands below to prepare data for Mindboggle.
 More example input and output data can be found
 on Mindboggle's `examples <https://osf.io/8cf5z>`_ site.
 
@@ -100,7 +104,8 @@ and optionally from `ANTs <http://stnava.github.io/ANTs/>`_
 
 **FreeSurfer** generates labeled cortical surfaces, and labeled cortical and
 noncortical volumes. Run ``recon-all`` on a T1-weighted $IMAGE file
-(e.g., subject1.nii.gz) and set the output $SUBJECT name (e.g., subject1).
+(e.g., /data/example_mri_data/T1.nii.gz) and set the output $SUBJECT name
+(e.g., subject1).
 *Version 6 is recommended because by default it uses Mindboggle’s DKT-100
 surface-based atlas (with the DKT31 labeling protocol) to generate labels
 on the cortical surfaces and corresponding labels in the cortical and
@@ -112,16 +117,17 @@ older versions require "-gcs DKTatlas40.gcs" to generate these surface labels)*:
 **ANTs** provides brain volume extraction, segmentation, and
 registration-based labeling. To generate the ANTs transforms and segmentation
 files used by Mindboggle, run the ``antsCorticalThickness.sh`` script on the
-same $IMAGE file, set an output $PREFIX, and provide paths to the
-`OASIS-30 Atropos template <https://osf.io/rh9km/?action=download&version=2>`_
-files ("\\" splits command to next line)::
+same $IMAGE file, set an output $PREFIX (like "/data/subject1/ants" for outputs
+like "/data/subject1/antsBrainSegmentation.nii.gz"), and a $TEMPLATE path to
+the `OASIS-30_Atropos_template <https://osf.io/rh9km/?action=download&version=2>`_
+directory ("\\" splits command to next line)::
 
     antsCorticalThickness.sh -d 3 -a $IMAGE -o $PREFIX \
-      -e OASIS-30_Atropos_template/T_template0.nii.gz \
-      -t OASIS-30_Atropos_template/T_template0_BrainCerebellum.nii.gz \
-      -m OASIS-30_Atropos_template/T_template0_BrainCerebellumProbabilityMask.nii.gz \
-      -f OASIS-30_Atropos_template/T_template0_BrainCerebellumExtractionMask.nii.gz \
-      -p OASIS-30_Atropos_template/Priors2/priors%d.nii.gz
+      -e $TEMPLATE/T_template0.nii.gz \
+      -t $TEMPLATE/T_template0_BrainCerebellum.nii.gz \
+      -m $TEMPLATE/T_template0_BrainCerebellumProbabilityMask.nii.gz \
+      -f $TEMPLATE/T_template0_BrainCerebellumExtractionMask.nii.gz \
+      -p $TEMPLATE/Priors2/priors%d.nii.gz
 
 ------------------------------------------------------------------------------
 Running Mindboggle
