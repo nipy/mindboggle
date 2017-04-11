@@ -30,9 +30,7 @@ public:
     void WriteIntoFile(char* fileName);
 
 private:
-    vtkDoubleArray *ComputeThridArea();
-    vtkDoubleArray *ComputeVoronoiArea();
-
+    vtkDoubleArray* ComputeVoronoiArea();
 
     vtkDoubleArray* m_pointsArea;
 
