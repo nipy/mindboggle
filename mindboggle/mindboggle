@@ -60,6 +60,7 @@ from mindboggle.guts.utilities import list_strings
 from mindboggle.mio.convert_volumes import convert2nii
 from mindboggle.mio.fetch_data import cache_hashes, fetch_check_data, \
     fetch_ants_data
+from mindboggle.mio.labels import DKTprotocol
 from mindboggle.mio.tables import write_shape_stats, write_vertex_measures, \
     explode_table
 from mindboggle.mio.vtks import read_vtk, apply_affine_transforms, \
