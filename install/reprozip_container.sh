@@ -16,8 +16,8 @@
 # Retain only those portions of the docker container that are required
 #-----------------------------------------------------------------------------
 DATA=/home/jovyan/work/Data
-T1=$DATA/mindboggle_input_example/raw/T1.nii.gz
-T2=$DATA/mindboggle_input_example/raw/T2.nii.gz
+T1=$DATA/example_mri_data/T1.nii.gz
+T2=$DATA/example_mri_data/T2.nii.gz
 SUBJECT=arno
 TEMPLATE=$DATA/OASIS-30_Atropos_template
 FREESURFER_SUBJECTS=$DATA/freesurfer_subjects
