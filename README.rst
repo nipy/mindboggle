@@ -150,8 +150,8 @@ and copy each line into a terminal window::
     HOST=/root/data/Users/arno;
     FREESURFER_SUBJECT=$HOST/mindboggle_input_example/freesurfer/subjects/arno;
     ANTS_SUBJECT=$HOST/mindboggle_input_example/ants/subjects/arno;
-    MINDBOGGLING=$HOST/mindboggling;
     MINDBOGGLED=$HOST/mindboggled;
+    MINDBOGGLING=$MINDBOGGLED/mindboggling;
 
 **Help and options:**
 

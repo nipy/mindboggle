@@ -8,7 +8,7 @@ In setup.py we execute this file, so it cannot import mindboggle.
 # Mindboggle version information.  An empty _version_extra corresponds to a
 # full release.  '.dev' as a _version_extra string means a development version
 _version_major = 1
-_version_minor = 0
+_version_minor = 1
 _version_micro = 0
 _version_extra = ''
 
@@ -18,7 +18,7 @@ __version__ = "{0}.{1}.{2}{3}".format(_version_major,
                                       _version_micro,
                                       _version_extra)
 
-CLASSIFIERS = ["Development Status :: 3 - Alpha",
+CLASSIFIERS = ["Development Status :: Beta",
                "Environment :: Console",
                "Intended Audience :: Science/Research",
                "License :: OSI Approved :: Apache v2.0",

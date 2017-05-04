@@ -51,15 +51,13 @@ from mindboggle.features.folds import find_depth_threshold, extract_folds
 from mindboggle.features.fundi import extract_fundi
 from mindboggle.features.sulci import extract_sulci
 from mindboggle.guts.mesh import rescale_by_neighborhood
-from mindboggle.guts.paths import smooth_skeletons
 from mindboggle.guts.relabel import relabel_surface, relabel_volume, \
     keep_volume_labels, remove_volume_labels, overwrite_volume_labels
 from mindboggle.guts.segment import segment_by_region, \
     combine_2labels_in_2volumes
 from mindboggle.guts.utilities import list_strings
 from mindboggle.mio.convert_volumes import convert2nii
-from mindboggle.mio.fetch_data import cache_hashes, fetch_check_data, \
-    fetch_ants_data
+from mindboggle.mio.fetch_data import fetch_ants_data
 from mindboggle.mio.labels import DKTprotocol
 from mindboggle.mio.tables import write_shape_stats, write_vertex_measures, \
     explode_table
@@ -67,7 +65,6 @@ from mindboggle.mio.vtks import read_vtk, apply_affine_transforms, \
     freesurfer_surface_to_vtk, freesurfer_curvature_to_vtk, \
     freesurfer_annot_to_vtk, explode_scalars
 from mindboggle.shapes.laplace_beltrami import spectrum_per_label
-from mindboggle.shapes.likelihood import compute_likelihood
 from mindboggle.shapes.surface_shapes import area, curvature, travel_depth, \
     geodesic_depth
 from mindboggle.shapes.volume_shapes import thickinthehead, \
@@ -121,10 +118,6 @@ out_args.add_argument("--working",
                       default=os.path.join(os.environ['HOME'],
                                            'mindboggling'),
                       metavar='STR')
-out_args.add_argument("--cache",
-                      help='download folder (if not $HOME/mindboggle_cache)',
-                      default=os.path.join(os.environ['HOME'],
-                                           'mindboggle_cache'), metavar='STR')
 out_args.add_argument("--no_volumes", action='store_true',
                       help="no volume labels, features, or shape tables")
 out_args.add_argument("--no_surfaces", action='store_true',
@@ -307,20 +300,11 @@ ccode_path = os.environ['vtk_cpp_tools']  # Mindboggle C++ code directory
 overwrite_cerebrum_with_cerebellum = True
 fill_noncortex_with_ants_labels = False
 do_surfaces_in_mni = True
-do_smooth_fundi = False
 background_value = -1
 # ----------------------------------------------------------------------------
-# Hashes to verify retrieved data, and output, working, and cache directories:
+# Output and working directories:
 # ----------------------------------------------------------------------------
-hashes = cache_hashes()
-if args.cache:
-    cache = args.cache
-elif cache_env in list(os.environ):  #os.environ.keys():
-    cache = os.environ[cache_env]
-else:
-    cache_env = 'MINDBOGGLE_CACHE'
-    cache = os.environ.get(cache_env, os.path.join(os.environ['HOME'],
-                                                   'mindboggle_cache'))
+# hashes = cache_hashes()
 if args.working:
     working = os.path.join(args.working, subject)
 else:
@@ -331,17 +315,12 @@ if not os.path.isdir(args.out):
 if not os.path.isdir(working):
     print("Create missing working directory: {0}".format(working))
     os.makedirs(working)
-if not os.path.isdir(cache):
-    print("Create missing cache directory: {0}".format(cache))
-    os.makedirs(cache)
 # ----------------------------------------------------------------------------
 # Labeling protocol information and volume atlases:
 # ----------------------------------------------------------------------------
 dkt = DKTprotocol()
 atlas_volume = 'OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152_v2.nii.gz'
-atlas_volume_url = 'https://osf.io/9e6wa/?action=download&version=1'
 atropos_to_MNI152_affine = 'OASIS-30_Atropos_template_to_MNI152_affine.txt'
-atropos_to_MNI152_affine_url = 'https://osf.io/ufydw/?action=download&version=1'
 # ----------------------------------------------------------------------------
 # Surface atlas labels:
 # - 'manual': manual edits
@@ -425,8 +404,7 @@ Sink.inputs.substitutions = [ ('lh.', ''), ('rh.', ''),
     (fs_filled, fs_filled_rename),
     (ants_filled_ants, ants_filled_ants_rename),
     (ants_filled, ants_filled_rename),
-    ('segment_per_region.vtk', 'fundus_per_sulcus.vtk'),
-    ('smooth_skeletons.vtk', 'smooth_fundi.vtk')]
+    ('segment_per_region.vtk', 'fundus_per_sulcus.vtk')]
 # Substitutions for additional atlas names:
 Sink.inputs.regexp_substitutions = [
     (r'/_atlas_(.*)/ants_added_atlas_labels.nii.gz', r'/\1_labels.nii.gz'),
@@ -440,30 +418,7 @@ Sink.inputs.regexp_substitutions = [
 if my_transform:
     affine_template2mni = my_transform
 else:
-    affine_template2mni = fetch_check_data(atropos_to_MNI152_affine,
-                                           atropos_to_MNI152_affine_url,
-                                           hashes, cache, append='.txt',
-                                           verbose=True)
-# ----------------------------------------------------------------------------
-# Atlas labels:
-# ----------------------------------------------------------------------------
-if do_label and not my_atlas:
-    FetchAtlas = Node(name='Fetch_Mindboggle_atlas',
-                      interface=Fn(function=fetch_check_data,
-                                   input_names=['data_file',
-                                                'url',
-                                                'hashes',
-                                                'cache_directory',
-                                                'append',
-                                                'verbose'],
-                                   output_names=['data_path']))
-    mbFlow.add_nodes([FetchAtlas])
-    FetchAtlas.inputs.data_file = atlas_volume
-    FetchAtlas.inputs.url = atlas_volume_url
-    FetchAtlas.inputs.hashes = hashes
-    FetchAtlas.inputs.cache_directory = cache
-    FetchAtlas.inputs.append = '.nii.gz'
-    FetchAtlas.inputs.verbose = True
+    affine_template2mni = atropos_to_MNI152_affine
 
 # ----------------------------------------------------------------------------
 # ANTs data:
@@ -617,64 +572,6 @@ if not args.no_surfaces:
     # ========================================================================
     if do_label:
         SurfLabelFlow = Workflow(name='Surface_labels')
-
-        # ====================================================================
-        # Initialize labels with the DKT classifier atlas
-        # NOTE: This can now be done by running FreeSurfer's recon-all (v6)
-        #       or with "-gcs DKTatlas40.gcs" (prior to v6)
-        # ====================================================================
-        # surface_classifier = DKTatlas40
-        # if surface_labels == 'atlas' and use_FS_inputs:
-        #     # --------------------------------------------------------------
-        #     # Label brain with DKT atlas using FreeSurfer's mris_ca_label:
-        #     # --------------------------------------------------------------
-        #     Classifier = Node(name='mris_ca_label',
-        #                       interface=Fn(function=label_with_classifier,
-        #                                    input_names=['subject',
-        #                                                 'hemi',
-        #                                                 'left_classifier',
-        #                                                 'right_classifier',
-        #                                                 'annot_file',
-        #                                                 'subjects_directory'],
-        #                                    output_names=['annot_file']))
-        #     SurfLabelFlow.add_nodes([Classifier])
-        #     Classifier.inputs.subject = subject
-        #     mbFlow.connect(InputHemis, 'hemi',
-        #                    SurfLabelFlow, 'mris_ca_label.hemi')
-        #     left_classifier_file = 'lh.' + surface_classifier + '.gcs'
-        #     right_classifier_file = 'rh.' + surface_classifier + '.gcs'
-        #     left_classifier = fetch_check_data(left_classifier_file, url1,
-        #                                     hashes, cache, '.gcs', True)
-        #     right_classifier = fetch_check_data(right_classifier_file, url2,
-        #                                      hashes, cache, '.gcs', True)
-        #     Classifier.inputs.left_classifier = left_classifier
-        #     Classifier.inputs.right_classifier = right_classifier
-        #     Classifier.inputs.annot_file = ''
-        #     Classifier.inputs.subjects_directory = subjects_dir
-        #     # --------------------------------------------------------------
-        #     # Convert .annot file to VTK format:
-        #     # --------------------------------------------------------------
-        #     Classifier2vtk = Node(name='annot_to_vtk',
-        #                           interface=Fn(function=freesurfer_annot_to_vtk,
-        #                                        input_names=['annot_file',
-        #                                                     'vtk_file'],
-        #                                        output_names=['labels',
-        #                                                      'output_vtk']))
-        #     SurfLabelFlow.add_nodes([Classifier2vtk])
-        #     SurfLabelFlow.connect(Classifier, 'annot_file',
-        #                           Classifier2vtk, 'annot_file')
-        #     if do_input_vtk:
-        #         mbFlow.connect(Surf, 'surface_files',
-        #                        SurfLabelFlow, 'annot_to_vtk.vtk_file')
-        #     else:
-        #         mbFlow.connect(Surf2vtk, 'output_vtk',
-        #                        SurfLabelFlow, 'annot_to_vtk.vtk_file')
-        #     #if save_all:
-        #     #    mbFlow.connect(SurfLabelFlow, 'annot_to_vtk.output_vtk',
-        #     #                   Sink, 'labels.@DKT_surface')
-        #     plug = 'annot_to_vtk.output_vtk'
-        #     plug1 = Classifier2vtk
-        #     plug2 = 'output_vtk'
 
         # ====================================================================
         # Initialize labels with FreeSurfer
@@ -1101,74 +998,6 @@ if not args.no_surfaces:
                                'Fundus_per_fold.fundus_per_fold_file',
                                Sink, 'features.@fundus_per_fold')
 
-            if do_smooth_fundi:
-                # ------------------------------------------------------------
-                # Compute likelihoods for smoothing fundi:
-                # ------------------------------------------------------------
-                LikelihoodNode = Node(name='Likelihood',
-                    interface=Fn(function=compute_likelihood,
-                                 input_names=['trained_file',
-                                              'depth_file',
-                                              'curvature_file',
-                                              'folds',
-                                              'save_file'],
-                                 output_names=['likelihoods',
-                                               'likelihoods_file']))
-                SurfFeatureFlow.add_nodes([LikelihoodNode])
-                border_params_file = \
-                    'depth_curv_border_nonborder_parameters.pkl'
-                border_params_url = \
-                    'https://osf.io/8mkaz/?action=download&version=1'
-                border_params_path = fetch_check_data(border_params_file,
-                                        border_params_url,
-                                        hashes, cache, '.pkl', verbose=True)
-                LikelihoodNode.inputs.trained_file = border_params_path
-                mbFlow.connect([(WholeSurfShapeFlow, SurfFeatureFlow,
-                    [('Rescale_travel_depth.rescaled_scalars_file',
-                      'Likelihood.depth_file'),
-                     ('Curvature.mean_curvature_file',
-                      'Likelihood.curvature_file')])])
-                SurfFeatureFlow.connect(FoldsNode, 'folds',
-                                        LikelihoodNode, 'folds')
-                LikelihoodNode.inputs.save_file = True
-                # ------------------------------------------------------------
-                # Smooth fundi:
-                # ------------------------------------------------------------
-                SmoothFundi = Node(name='Smooth_fundi',
-                                   interface=Fn(function=smooth_skeletons,
-                                        input_names=['skeletons',
-                                                     'bounds',
-                                                     'vtk_file',
-                                                     'likelihoods',
-                                                     'wN_max',
-                                                     'erode_again',
-                                                     'save_file',
-                                                     'output_file',
-                                                     'background_value',
-                                                     'verbose'],
-                                        output_names=['smoothed_skeletons',
-                                                      'n_skeletons',
-                                                      'skeletons_file']))
-                SurfFeatureFlow.connect(FundusPerFold, 'fundus_per_fold',
-                                        SmoothFundi, 'skeletons')
-                SurfFeatureFlow.connect(FoldsNode, 'folds',
-                                        SmoothFundi, 'bounds')
-                mbFlow.connect(WholeSurfShapeFlow,
-                               'Curvature.mean_curvature_file',
-                               SurfFeatureFlow, 'Smooth_fundi.vtk_file')
-                SurfFeatureFlow.connect(LikelihoodNode, 'likelihoods',
-                                        SmoothFundi, 'likelihoods')
-                SmoothFundi.inputs.wN_max = 1.0
-                SmoothFundi.inputs.erode_again = False
-                SmoothFundi.inputs.save_file = True
-                SmoothFundi.inputs.output_file = ''
-                SmoothFundi.inputs.background_value = background_value
-                SmoothFundi.inputs.verbose = True
-                if save_all:
-                    mbFlow.connect(SurfFeatureFlow, 
-                                   'Smooth_fundi.skeletons_file',
-                                   Sink, 'features.@smooth_fundi')
-
             # ----------------------------------------------------------------
             # Segment a fundus per sulcus:
             # ----------------------------------------------------------------
@@ -1184,12 +1013,12 @@ if not args.no_surfaces:
                                     output_names=['segment_per_region',
                                                   'n_segments',
                                                   'segment_per_region_file']))
-            if do_smooth_fundi:
-                SurfFeatureFlow.connect(SmoothFundi, 'smoothed_skeletons',
-                                        FundusPerSulcus, 'data')
-            else:
-                SurfFeatureFlow.connect(FundusPerFold, 'fundus_per_fold',
-                                        FundusPerSulcus, 'data')
+            # if do_smooth_fundi:
+            #     SurfFeatureFlow.connect(SmoothFundi, 'smoothed_skeletons',
+            #                             FundusPerSulcus, 'data')
+            # else:
+            SurfFeatureFlow.connect(FundusPerFold, 'fundus_per_fold',
+                                    FundusPerSulcus, 'data')
             SurfFeatureFlow.connect(SulciNode, 'sulci', 
                                     FundusPerSulcus, 'regions')
             mbFlow.connect(WholeSurfShapeFlow,
@@ -2150,8 +1979,7 @@ if do_label and not args.no_volumes:
         if my_atlas:
             xfm.inputs.input_image = my_atlas
         else:
-            mbFlow.connect(FetchAtlas, 'data_path',
-                           VolLabelFlow, 'Apply_ants_transforms.input_image')
+            xfm.inputs.input_image = atlas_volume
 
         mbFlow.connect(ListSubject2mniTransforms, 'string_list', VolLabelFlow,
                        'Apply_ants_transforms.transforms')

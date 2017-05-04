@@ -18,6 +18,7 @@
 DATA=/home/jovyan/work/Data
 T1=$DATA/example_mri_data/T1.nii.gz
 T2=$DATA/example_mri_data/T2.nii.gz
+EMPTY=$DATA/empty.txt
 SUBJECT=arno
 TEMPLATE=$DATA/OASIS-30_Atropos_template
 FREESURFER_SUBJECTS=$DATA/freesurfer_subjects
@@ -25,16 +26,16 @@ FREESURFER_SUBJECT=$FREESURFER_SUBJECTS/$SUBJECT
 ANTS_SUBJECT=$DATA/ants_subjects/$SUBJECT
 #FREESURFER_SUBJECT=$DATA/mindboggle_input_example/freesurfer/subjects/arno
 #ANTS_SUBJECT=$DATA/mindboggle_input_example/ants/subjects/arno
-MINDBOGGLECACHE=$DATA/mindboggle_cache
-MINDBOGGLING=$DATA/mindboggling
 MINDBOGGLED=$DATA/mindboggled
+MINDBOGGLING=$MINDBOGGLED/mindboggling
 
 #-----------------------------------------------------------------------------
 # Retain only those portions of the docker container that are required
 #-----------------------------------------------------------------------------
 mkdir $ANTS_SUBJECT
 reprozip trace -d mindboggle \
-    recon-all -all -i $T1 -i $T2 -s $SUBJECT -sd $FREESURFER_SUBJECTS && \
+    recon-all -all -i $T1 -i $T2 -s $SUBJECT -sd $FREESURFER_SUBJECTS \
+        -cw256 -expert $EMPTY && \
     antsCorticalThickness.sh -d 3 -a $T1 -o $ANTS_SUBJECT/ants \
         -e $TEMPLATE/T_template0.nii.gz \
         -t $TEMPLATE/T_template0_BrainCerebellum.nii.gz \
@@ -45,7 +46,6 @@ reprozip trace -d mindboggle \
          --ants $ANTS_SUBJECT/antsBrainSegmentation.nii.gz \
          --out $MINDBOGGLED \
          --working $MINDBOGGLING \
-         --cache $MINDBOGGLECACHE \
          --fundi \
          --moments 10 \
          --spectra 10 \
