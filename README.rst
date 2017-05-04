@@ -74,11 +74,11 @@ using an
     docker pull bids/mindboggle
 
 3. Set the path on your host machine for the Docker container to access
-Mindboggle input and output directories ("/" in this example),
+Mindboggle input and output directories ("/Users/arno" in this example),
 and enter the container's bash shell ("\\" splits command to next line)::
 
-    PATH_ON_HOST=/;
-    docker run --rm -ti -v $PATH_ON_HOST:/root/data \
+    PATH_ON_HOST=/Users/arno;
+    docker run --rm -ti -v $PATH_ON_HOST:/home/jovyan/work \
         --entrypoint /bin/bash bids/mindboggle;
 
 ------------------------------------------------------------------------------
@@ -147,7 +147,7 @@ to point to the example data and to Mindboggle working and output directories.
 Be sure to modify the HOST path ("Users/arno" is specific to the user arno on a Mac)
 and copy each line into a terminal window::
 
-    HOST=/root/data/Users/arno;
+    HOST=/home/jovyan/work/Data;
     FREESURFER_SUBJECT=$HOST/mindboggle_input_example/freesurfer/subjects/arno;
     ANTS_SUBJECT=$HOST/mindboggle_input_example/ants/subjects/arno;
     MINDBOGGLED=$HOST/mindboggled;
