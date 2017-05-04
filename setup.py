@@ -65,8 +65,9 @@ def main(**extra_args):
                     'mindboggle.shapes',
                     'mindboggle.shapes.zernike',
                     'mindboggle.thirdparty'],
-          package_data={'mindboggle': [pjoin('data', '*.nii.gz'),
-                                       pjoin('data', '*.txt')]},
+          include_package_data=True,
+          #package_data={'mindboggle': [pjoin('data', '*.nii.gz'),
+          #                             pjoin('data', '*.txt')]},
           scripts=[pjoin('mindboggle', 'mindboggle')],
           **extra_args
          )

@@ -147,7 +147,7 @@ to point to the example data and to Mindboggle working and output directories.
 Be sure to modify the HOST path ("Users/arno" is specific to the user arno on a Mac)
 and copy each line into a terminal window::
 
-    HOST=/home/jovyan/work/Data;
+    HOST=/home/jovyan/work;
     FREESURFER_SUBJECT=$HOST/mindboggle_input_example/freesurfer/subjects/arno;
     ANTS_SUBJECT=$HOST/mindboggle_input_example/ants/subjects/arno;
     MINDBOGGLED=$HOST/mindboggled;

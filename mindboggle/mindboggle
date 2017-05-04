@@ -319,8 +319,8 @@ if not os.path.isdir(working):
 # Labeling protocol information and volume atlases:
 # ----------------------------------------------------------------------------
 dkt = DKTprotocol()
-atlas_volume = 'data/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152_v2.nii.gz'
-atropos_to_MNI152_affine = 'data/OASIS-30_Atropos_template_to_MNI152_affine.txt'
+atlas_volume = 'OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152_v2.nii.gz'
+atropos_to_MNI152_affine = 'OASIS-30_Atropos_template_to_MNI152_affine.txt'
 # ----------------------------------------------------------------------------
 # Surface atlas labels:
 # - 'manual': manual edits
