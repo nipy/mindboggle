@@ -47,7 +47,7 @@ from nipype.pipeline.engine import Workflow, Node
 # ----------------------------------------------------------------------------
 # Mindboggle libraries
 # ----------------------------------------------------------------------------
-from data.data import fetch_file_path
+from mindboggle.data.data import fetch_file_path
 from mindboggle.features.folds import find_depth_threshold, extract_folds
 from mindboggle.features.fundi import extract_fundi
 from mindboggle.features.sulci import extract_sulci
