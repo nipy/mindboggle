@@ -26,7 +26,6 @@ def fetch_file_path(file_name):
     """
     import os
 
-    full_path = os.path.join(os.path.dirname(__file__), file_name)
-    file_path = open(full_path)
+    file_path = os.path.join(os.path.dirname(__file__), file_name)
 
     return file_path
