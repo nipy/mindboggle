@@ -102,7 +102,7 @@ RUN apt-get update -qq && \
 #    PATH=$FREESURFER_HOME/bin:$FSFAST_HOME/bin:$FREESURFER_HOME/tktools:$MINC_BIN_DIR:$PATH
 
 #-----------------------------------------------------------------------------
-# Install ANTS
+# Install ANTS (tags/v2.1.0rc3)
 #-----------------------------------------------------------------------------
 # USER root
 # RUN apt-get update -qq && apt-get install -yq --no-install-recommends \
@@ -113,7 +113,7 @@ RUN apt-get update -qq && \
 # WORKDIR /tmp
 # RUN git clone https://github.com/stnava/ANTs.git && \
 #    cd ANTs && \
-#    git checkout 767f756bc0e423cd503a24c806b6578aaeb5b82f && \
+#    git checkout tags/v2.1.0rc3 && \
 #    mkdir build && cd build && cmake .. && make && \
 #    mkdir -p /opt/ants && \
 #    cp bin/* /opt/ants && cp ../Scripts/* /opt/ants && \
@@ -174,7 +174,7 @@ RUN apt-get update -qq && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 #-----------------------------------------------------------------------------
-# Install nipype
+# Install nipype (git checkout 368e1844b164b599496db817f095c53c72332b9f)
 #-----------------------------------------------------------------------------
 USER $NB_USER
 RUN git clone https://github.com/nipy/nipype && \
@@ -212,6 +212,7 @@ RUN curl -sSL https://osf.io/rh9km/?action=download\&version=2 -o templates.zip 
 
 #-----------------------------------------------------------------------------
 # Install roygbiv for mindboggle output visualization
+# (git checkout 368e1844b164b599496db817f095c53c72332b9f)
 #-----------------------------------------------------------------------------
 USER $NB_USER
 WORKDIR /opt/src
