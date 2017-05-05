@@ -47,6 +47,7 @@ from nipype.pipeline.engine import Workflow, Node
 # ----------------------------------------------------------------------------
 # Mindboggle libraries
 # ----------------------------------------------------------------------------
+from data.data import fetch_file_path
 from mindboggle.features.folds import find_depth_threshold, extract_folds
 from mindboggle.features.fundi import extract_fundi
 from mindboggle.features.sulci import extract_sulci
@@ -418,7 +419,7 @@ Sink.inputs.regexp_substitutions = [
 if my_transform:
     affine_template2mni = my_transform
 else:
-    affine_template2mni = atropos_to_MNI152_affine
+    affine_template2mni = fetch_file_path(atropos_to_MNI152_affine)
 
 # ----------------------------------------------------------------------------
 # ANTs data:
@@ -1979,7 +1980,7 @@ if do_label and not args.no_volumes:
         if my_atlas:
             xfm.inputs.input_image = my_atlas
         else:
-            xfm.inputs.input_image = atlas_volume
+            xfm.inputs.input_image = fetch_file_path(atlas_volume)
 
         mbFlow.connect(ListSubject2mniTransforms, 'string_list', VolLabelFlow,
                        'Apply_ants_transforms.transforms')
