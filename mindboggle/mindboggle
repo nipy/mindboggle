@@ -115,9 +115,9 @@ out_args.add_argument("--out",
                       default=os.path.join(os.environ['HOME'],
                                            'mindboggled'), metavar='STR')
 out_args.add_argument("--working",
-                      help="working folder (if not $HOME/mindboggling)",
+                      help="working folder (if not $HOME/mindboggled/mindboggling)",
                       default=os.path.join(os.environ['HOME'],
-                                           'mindboggling'),
+                                           'mindboggled', 'mindboggling'),
                       metavar='STR')
 out_args.add_argument("--no_volumes", action='store_true',
                       help="no volume labels, features, or shape tables")
@@ -309,7 +309,8 @@ background_value = -1
 if args.working:
     working = os.path.join(args.working, subject)
 else:
-    working = os.path.join(os.environ['HOME'], 'mindboggling', subject)
+    working = os.path.join(os.environ['HOME'], 'mindboggled', 'mindboggling',
+                           subject)
 if not os.path.isdir(args.out):
     print("Create missing output directory: {0}".format(args.out))
     os.makedirs(args.out)
