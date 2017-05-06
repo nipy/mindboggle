@@ -189,7 +189,7 @@ USER $NB_USER
 WORKDIR /opt/src
 RUN git clone https://github.com/nipy/mindboggle && \
     cd /opt/src/mindboggle && \
-    git checkout tags/v1.1.0_MITworkshop && \
+#    git checkout tags/v1.1.0_MITworkshop && \
     python setup.py install && \
     mkdir /opt/mindboggle && \
     mkdir /opt/mindboggle/vtk_cpp_tools && \
