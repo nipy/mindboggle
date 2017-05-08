@@ -112,7 +112,7 @@ noncortical volumes. Run ``recon-all`` on a T1-weighted IMAGE file
 (and optionally a T2-weighted image), and set the output SUBJECT name
 as well as the output directory::
 
-    HOST=/home/jovyan/work;  # path to host from Docker container
+    HOST=/home/jovyan/work;
     IMAGE=$HOST/example_mri_data/T1.nii.gz;  # set path to image file
     SUBJECT=subject1;  # set output subject name
     SUBJECTS_DIR=$HOST/freesurfer_subjects;  # set path to output folder
@@ -132,7 +132,7 @@ same IMAGE file, set an output PREFIX, and a TEMPLATE path to the
 `OASIS-30_Atropos_template <https://osf.io/rh9km/?action=download&version=2>`_
 folder ("\\" splits the command for readability)::
 
-    HOST=/home/jovyan/work;  # path to host from Docker container
+    HOST=/home/jovyan/work;
     IMAGE=$HOST/example_mri_data/T1.nii.gz;  # set path to input image file
     ANTS_DIR=$HOST/ants_subjects;  # set prefix to ANTs output
     PREFIX=$ANTS_DIR/subject1/ants;  # set prefix to ANTs output
@@ -160,7 +160,7 @@ before proceeding.
 For brevity in the Examples below, we set the following path variables
 by pasting the following lines in a terminal window::
 
-    HOST=/home/jovyan/work;  # path to host from Docker container
+    HOST=/home/jovyan/work;
     MINDBOGGLED=$HOST/mindboggled;  # set the Mindboggle output folder
 
 To use preprocessed FreeSurfer and ANTs data in mindboggle_input_example/::
