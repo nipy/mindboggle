@@ -100,6 +100,27 @@ RUN apt-get update -qq && \
 #ENV PERL5LIB=$MINC_LIB_DIR/perl5/5.8.5 \
 #    MNI_PERL5LIB=$MINC_LIB_DIR/perl5/5.8.5 \
 #    PATH=$FREESURFER_HOME/bin:$FSFAST_HOME/bin:$FREESURFER_HOME/tktools:$MINC_BIN_DIR:$PATH
+#-----------------------------------------------------------------------------
+# To circumvent FreeSurfer compilation, it was compiled according to the
+# uncommented section above and the results made available at the link below.
+#-----------------------------------------------------------------------------
+USER $NB_USER
+WORKDIR /opt/src
+RUN curl -sSL https://www.dropbox.com/sh/mvgpn6cml04me6u/AADWHds-ZeRqBvmuNX7_RoUla/recon-all-freesurfer6%2BMCR.min.tgz?dl=0 | tar zx -C /
+ENV OS=Linux \
+    FS_OVERRIDE=0 \
+    FIX_VERTEX_AREA= \
+    FSF_OUTPUT_FORMAT=nii.gz \
+    FREESURFER_HOME=/opt/freesurfer
+ENV SUBJECTS_DIR=$FREESURFER_HOME/subjects \
+    MNI_DIR=$FREESURFER_HOME/mni \
+    LOCAL_DIR=$FREESURFER_HOME/local \
+    MINC_BIN_DIR=$FREESURFER_HOME/mni/bin \
+    MINC_LIB_DIR=$FREESURFER_HOME/mni/lib \
+    MNI_DATAPATH=$FREESURFER_HOME/mni/data
+ENV PERL5LIB=$MINC_LIB_DIR/perl5/5.8.5 \
+    MNI_PERL5LIB=$MINC_LIB_DIR/perl5/5.8.5 \
+    PATH=$FREESURFER_HOME/tktools:$MINC_BIN_DIR:$PATH
 
 #-----------------------------------------------------------------------------
 # Install ANTS (git tag v2.1.0rc3)
