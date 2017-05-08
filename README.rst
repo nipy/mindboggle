@@ -163,7 +163,7 @@ by pasting the following lines in a terminal window::
     HOST=/home/jovyan/work;  # path to host from Docker container
     MINDBOGGLED=$HOST/mindboggled;  # set the Mindboggle output folder
 
-To use preprocessed FreeSurfer and ANTs data in mindboggle_input_example::
+To use preprocessed FreeSurfer and ANTs data in mindboggle_input_example/::
 
     FREESURFER_SUBJECT=$HOST/mindboggle_input_example/freesurfer/subjects/arno;
     ANTS_SUBJECT=$HOST/mindboggle_input_example/ants/subjects/arno;
@@ -181,24 +181,22 @@ type the following in a terminal window::
     mindboggle -h
 
 **Example 1:**
-The following bare-bones command runs Mindboggle
-on data processed by FreeSurfer but not ANTs::
+This command runs Mindboggle on data processed by FreeSurfer but not ANTs::
 
     mindboggle $FREESURFER_SUBJECT --out $MINDBOGGLED
 
 **Example 2:**
-Same as #1, but takes advantage of ANTs output ("\\" splits for readability)::
+Take advantage of ANTs output as well ("\\" splits for readability)::
 
     mindboggle $FREESURFER_SUBJECT --out $MINDBOGGLED \
         --ants $ANTS_SUBJECT/antsBrainSegmentation.nii.gz
 
 **Example 3:**
-To generate only volume (and not surface) labels and shape measures
-from FreeSurfer and ANTs data, using 8 processors::
+Generate only volume (no surface) labels and shapes::
 
     mindboggle $FREESURFER_SUBJECT --out $MINDBOGGLED \
         --ants $ANTS_SUBJECT/antsBrainSegmentation.nii.gz \
-        --no_surfaces --cpus 8
+        --no_surfaces
 
 ------------------------------------------------------------------------------
 Mindboggle processing steps
