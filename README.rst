@@ -64,21 +64,21 @@ Docker container for greater convenience and reproducibility of results.
 All the examples below assume you are using this Docker container,
 with the path /home/jovyan/work/ pointing to your host machine.
 (Alternatively, Mindboggle can be installed from scratch on a Linux machine
-using an
-`installation script <https://raw.githubusercontent.com/nipy/mindboggle/master/install_mindboggle.sh>`_).
+using
+`this script <https://raw.githubusercontent.com/nipy/mindboggle/master/install_mindboggle.sh>`_).
 
 1. Install and run Docker on your (macOS, Linux, or Windows) host machine:
 
     https://docs.docker.com/engine/installation/
 
-2. Pull the Mindboggle Docker app (copy into a terminal window)::
+2. Pull the Mindboggle Docker app (paste the following in a terminal window)::
 
     docker pull bids/mindboggle;
 
-3. Set the path on your host machine for the Docker container to access input and output directories ("/Users/arno" in this example), and enter the container's bash shell::
+3. Set the path on your host machine for the Docker container to access input and output folders ("/Users/arno" in this example), and enter the container's bash shell::
 
-    PATH_ON_HOST=/Users/arno;  # path on host machine to access input/output data
-    HOST=/home/jovyan/work;  # path to host machine from Docker container
+    PATH_ON_HOST=/Users/arno;  # set path on host to access folders
+    HOST=/home/jovyan/work;  # path to host from Docker container
 
     docker run --rm -ti -v $PATH_ON_HOST:$HOST --entrypoint /bin/bash bids/mindboggle;
 
@@ -109,8 +109,8 @@ before proceeding.
 
 **FreeSurfer** generates labeled cortical surfaces, and labeled cortical and
 noncortical volumes. Run ``recon-all`` on a T1-weighted IMAGE file
-(you can also add a T2-weighted image to the command),
-set the output SUBJECT name and the output directory::
+(and optionally a T2-weighted image), and set the output SUBJECT name
+as well as the output directory::
 
     HOST=/home/jovyan/work;  # path to host from Docker container
     IMAGE=$HOST/example_mri_data/T1.nii.gz;  # set path to image file
@@ -130,7 +130,7 @@ registration-based labeling. To generate the ANTs transforms and segmentation
 files used by Mindboggle, run the ``antsCorticalThickness.sh`` script on the
 same IMAGE file, set an output PREFIX, and a TEMPLATE path to the
 `OASIS-30_Atropos_template <https://osf.io/rh9km/?action=download&version=2>`_
-folder ("\\" splits command for readability)::
+folder ("\\" splits the command for readability)::
 
     HOST=/home/jovyan/work;  # path to host from Docker container
     IMAGE=$HOST/example_mri_data/T1.nii.gz;  # set path to input image file
@@ -157,19 +157,21 @@ before proceeding.
 
 **Set paths:**
 
-For brevity in the commands below, we set the following path variables
-to point to the mindboggle_input_example data and to the Mindboggle output
-directory. Copy lines into a terminal window::
+For brevity in the Examples below, we set the following path variables
+by pasting the following lines in a terminal window::
 
     HOST=/home/jovyan/work;  # path to host from Docker container
-    FREESURFER_SUBJECT=$HOST/mindboggle_input_example/freesurfer/subjects/arno;  # set path to FreeSurfer subject data
-    ANTS_SUBJECT=$HOST/mindboggle_input_example/ants/subjects/arno;  # set path to ANTs subject data
     MINDBOGGLED=$HOST/mindboggled;  # set the Mindboggle output folder
 
-For data processed by FreeSurfer and ANTs within the Docker container, replace the following paths (from `Before running Mindboggle <http://mindboggle.readthedocs.io/en/latest/#before-running-mindboggle>`_)::
+To use preprocessed FreeSurfer and ANTs data in mindboggle_input_example::
 
-    FREESURFER_SUBJECT=$SUBJECTS_DIR/$SUBJECT;  # path to FreeSurfer subject folder
-    ANTS_SUBJECT=$ANTS_DIR/$SUBJECT;  # path to ANTs subject folder
+    FREESURFER_SUBJECT=$HOST/mindboggle_input_example/freesurfer/subjects/arno;
+    ANTS_SUBJECT=$HOST/mindboggle_input_example/ants/subjects/arno;
+
+Or to use data preprocessed within the Docker container (see `Before running Mindboggle <http://mindboggle.readthedocs.io/en/latest/#before-running-mindboggle>`_)::
+
+    FREESURFER_SUBJECT=$SUBJECTS_DIR/$SUBJECT;
+    ANTS_SUBJECT=$ANTS_DIR/$SUBJECT;
 
 **Help and options:**
 
@@ -180,12 +182,12 @@ type the following in a terminal window::
 
 **Example 1:**
 The following bare-bones command runs Mindboggle
-on data processed by FreeSurfer but not ANTs ("\\" splits command for readability)::
+on data processed by FreeSurfer but not ANTs::
 
     mindboggle $FREESURFER_SUBJECT --out $MINDBOGGLED
 
 **Example 2:**
-Same as #1, but takes advantage of ANTs output::
+Same as #1, but takes advantage of ANTs output ("\\" splits for readability)::
 
     mindboggle $FREESURFER_SUBJECT --out $MINDBOGGLED \
         --ants $ANTS_SUBJECT/antsBrainSegmentation.nii.gz
