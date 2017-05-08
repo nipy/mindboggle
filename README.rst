@@ -175,8 +175,7 @@ Or to use data preprocessed within the Docker container (see `Before running Min
 
 **Help and options:**
 
-For help with the Mindboggle command and to learn about all of its options,
-type the following in a terminal window::
+To learn about Mindboggle's command options, type this in a terminal window::
 
     mindboggle -h
 
