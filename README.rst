@@ -71,14 +71,14 @@ using
 
     https://docs.docker.com/engine/installation/
 
-2. Pull the Mindboggle Docker app (paste the following in a terminal window)::
+2. Download the Mindboggle Docker container (paste command in a terminal window)::
 
     docker pull bids/mindboggle;
 
-3. Set the path on your host machine for the Docker container to access input and output folders ("/Users/arno" in this example), and enter the container's bash shell::
+3. Set the path on your host machine for the Docker container to access files ("/Users/arno" in this example), and enter the container's bash shell::
 
     PATH_ON_HOST=/Users/arno;  # set path on host to access folders
-    HOST=/home/jovyan/work;  # path to host from Docker container
+    HOST=/home/jovyan/work;  # path to host from within Docker container
 
     docker run --rm -ti -v $PATH_ON_HOST:$HOST --entrypoint /bin/bash bids/mindboggle;
 
@@ -110,7 +110,7 @@ before proceeding.
 **FreeSurfer** generates labeled cortical surfaces, and labeled cortical and
 noncortical volumes. Run ``recon-all`` on a T1-weighted IMAGE file
 (and optionally a T2-weighted image), and set the output SUBJECT name
-as well as the output directory::
+as well as the output SUBJECTS_DIR directory::
 
     HOST=/home/jovyan/work;
     IMAGE=$HOST/example_mri_data/T1.nii.gz;  # set path to image file
@@ -129,14 +129,15 @@ older versions require "-gcs DKTatlas40.gcs" to generate these surface labels).*
 registration-based labeling. To generate the ANTs transforms and segmentation
 files used by Mindboggle, run the ``antsCorticalThickness.sh`` script on the
 same IMAGE file, set an output PREFIX, and a TEMPLATE path to the
-`OASIS-30_Atropos_template <https://osf.io/rh9km/?action=download&version=2>`_
-folder ("\\" splits the command for readability)::
+`OASIS-30_Atropos_template <https://osf.io/rh9km/>`_
+folder installed in the Docker container
+("\\" splits the command for readability)::
 
     HOST=/home/jovyan/work;
-    IMAGE=$HOST/example_mri_data/T1.nii.gz;  # set path to input image file
-    ANTS_DIR=$HOST/ants_subjects;  # set prefix to ANTs output
+    IMAGE=$HOST/example_mri_data/T1.nii.gz;  # same path to input image file
+    ANTS_DIR=$HOST/ants_subjects;  # set path to ANTs output folder
     PREFIX=$ANTS_DIR/subject1/ants;  # set prefix to ANTs output
-    TEMPLATE=/opt/data/OASIS-30_Atropos_template;  # path to template folder
+    TEMPLATE=/opt/data/OASIS-30_Atropos_template;  # installed template folder
 
     antsCorticalThickness.sh -d 3 -a $IMAGE -o $PREFIX \
       -e $TEMPLATE/T_template0.nii.gz \
@@ -157,8 +158,7 @@ before proceeding.
 
 **Set paths:**
 
-For brevity in the Examples below, we set the following path variables
-by pasting the following lines in a terminal window::
+For brevity in the Examples below, we set paths in a terminal window::
 
     HOST=/home/jovyan/work;
     MINDBOGGLED=$HOST/mindboggled;  # set the Mindboggle output folder
@@ -168,19 +168,19 @@ To use preprocessed FreeSurfer and ANTs data in mindboggle_input_example/::
     FREESURFER_SUBJECT=$HOST/mindboggle_input_example/freesurfer/subjects/arno;
     ANTS_SUBJECT=$HOST/mindboggle_input_example/ants/subjects/arno;
 
-Or to use data preprocessed within the Docker container (see `Before running Mindboggle <http://mindboggle.readthedocs.io/en/latest/#before-running-mindboggle>`_)::
+Or if you have preprocessed data in the Docker container (see `Before running Mindboggle <http://mindboggle.readthedocs.io/en/latest/#before-running-mindboggle>`_)::
 
     FREESURFER_SUBJECT=$SUBJECTS_DIR/$SUBJECT;
     ANTS_SUBJECT=$ANTS_DIR/$SUBJECT;
 
-**Help and options:**
+**Examples:**
 
 To learn about Mindboggle's command options, type this in a terminal window::
 
     mindboggle -h
 
 **Example 1:**
-This command runs Mindboggle on data processed by FreeSurfer but not ANTs::
+This command runs Mindboggle on data run through FreeSurfer but not ANTs::
 
     mindboggle $FREESURFER_SUBJECT --out $MINDBOGGLED
 
