@@ -24,7 +24,7 @@
 # docker build -t mindboggle -f Dockerfile.mindboggle.complete .
 #
 # To run the docker container:
-# docker run --rm -ti -v /homedir:/home/jovyan/work -p 8888:8888 -p 5000:5000 mindboggle bash
+# docker run --rm -ti -v /Users/arno:/home/jovyan/work -p 8888:8888 -p 5000:5000 mindboggle bash
 #
 # (c) 2017 by Arno Klein <arno@mindboggle.info> (CC-BY license)
 #-----------------------------------------------------------------------------
@@ -101,27 +101,23 @@ RUN apt-get update -qq && \
 #    MNI_PERL5LIB=$MINC_LIB_DIR/perl5/5.8.5 \
 #    PATH=$FREESURFER_HOME/bin:$FSFAST_HOME/bin:$FREESURFER_HOME/tktools:$MINC_BIN_DIR:$PATH
 #-----------------------------------------------------------------------------
-# To circumvent FreeSurfer compilation, it was compiled according to the
-# uncommented section above and the results made available at the link below.
-#-----------------------------------------------------------------------------
 USER $NB_USER
 WORKDIR /opt
 RUN curl -sSL https://dl.dropbox.com/sh/mvgpn6cml04me6u/AADWHds-ZeRqBvmuNX7_RoUla/recon-all-freesurfer6%2BMCR.min.tgz?dl=0 | tar zx -C /opt  && \
  ( echo "cHJpbnRmICJrcnp5c3p0b2YuZ29yZ29sZXdza2lAZ21haWwuY29tXG41MTcyXG4gKkN2dW12RVYzelRmZ1xuRlM1Si8yYzFhZ2c0RVxuIiA+IC9vcHQvZnJlZXN1cmZlci9saWNlbnNlLnR4dAo=" | base64 -d | sh )
-ENV OS=Linux \
-    FS_OVERRIDE=0 \
-    FIX_VERTEX_AREA= \
+ENV FS_OVERRIDE=0 \
+    OS=Linux \
     FSF_OUTPUT_FORMAT=nii.gz \
+    FIX_VERTEX_AREA=\
     FREESURFER_HOME=/opt/freesurfer
-ENV SUBJECTS_DIR=/subjects \
-    MNI_DIR=$FREESURFER_HOME/mni \
-    LOCAL_DIR=$FREESURFER_HOME/local \
-    MINC_BIN_DIR=$FREESURFER_HOME/mni/bin \
-    MINC_LIB_DIR=$FREESURFER_HOME/mni/lib \
-    MNI_DATAPATH=$FREESURFER_HOME/mni/data
-ENV PERL5LIB=$MINC_LIB_DIR/perl5/5.8.5 \
-    MNI_PERL5LIB=$MINC_LIB_DIR/perl5/5.8.5 \
-    PATH=$FREESURFER_HOME/bin:$FREESURFER_HOME/tktools:$MINC_BIN_DIR:$PATH
+ENV MNI_DIR=$FREESURFER_HOME/mni \
+    SUBJECTS_DIR=/subjects
+ENV PERL5LIB=$MNI_DIR/share/perl5 \
+    MNI_PERL5LIB=$MNI_DIR/share/perl5 \
+    MINC_BIN_DIR=$MNI_DIR/bin \
+    MINC_LIB_DIR=$MNI_DIR/lib \
+    MNI_DATAPATH=$MNI_DIR/data
+ENV PATH=$FREESURFER_HOME/bin:$FREESURFER_HOME/tktools:$MINC_BIN_DIR:$PATH
 
 #-----------------------------------------------------------------------------
 # Install ANTS (git tag v2.1.0rc3)
