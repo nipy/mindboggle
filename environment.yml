@@ -13,7 +13,7 @@
 #-----------------------------------------------------------------------------
 name: mindboggle-env
 #-----------------------------------------------------------------------------
-# anaconda cloud channel for installing VTK 7.0.0:
+# anaconda cloud channel for installing VTK 7.1.0:
 #-----------------------------------------------------------------------------
 channels:
     - clinicalgraphics
@@ -22,32 +22,15 @@ channels:
 #-----------------------------------------------------------------------------
 dependencies:
     - python=3.5.1
-    - vtk=7.0.0
-    #-------------------------------------------------------------------------
-    # nipype + (colormath, pydotplus):
-    #-------------------------------------------------------------------------
+    - vtk=7.1.0
+    - matplotlib
+    - numpy
     - scipy
-    - networkx
-    - lxml
-    - simplejson
-    - future
-    - nose
+    - pandas
+    - cmake
     - pip
     - pip:
         - nibabel
-        - prov
-        - traits
-        - xvfbwrapper
-        - https://github.com/nipy/nipype/archive/master.zip
-        - colormath
-        - pydotplus
-    #-------------------------------------------------------------------------
-    # mindboggle's remaining dependencies:
-    #-------------------------------------------------------------------------
-    - cmake
-    - matplotlib
-    - numpy
-    - pandas
     #-------------------------------------------------------------------------
     # additional testing tools:
     #-------------------------------------------------------------------------

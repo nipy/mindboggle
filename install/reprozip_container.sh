@@ -60,4 +60,4 @@ reprozip trace -d mindboggle \
          #--my_atlas --my_atlases --my_graywhite --my_transform \
          #--plugin --plugin_args \
 
-#reprozip pack -d mindboggle-trace mindboggle_20170403.rpz
+#reprozip pack -d mindboggle-trace mindboggle.rpz
