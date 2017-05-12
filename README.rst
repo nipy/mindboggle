@@ -75,6 +75,8 @@ using
 
     docker pull nipy/mindboggle
 
+   Note: This contains FreeSurfer, ANTs, and Mindboggle, so it is currently over 6GB.
+
 3. Set the path on your host machine for the Docker container to access files ("/Users/arno" in this example), and enter the container's bash shell::
 
     PATH_ON_HOST=/Users/arno  # set path on host to access folders
