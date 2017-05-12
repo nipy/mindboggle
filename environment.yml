@@ -1,12 +1,12 @@
-## Environment for installing Mindboggle
-##
-## This environment is configured for circleci.com continuous integration
-## (testing).
-##
-## Authors:
-##    - Arno Klein, 2016  (arno@mindboggle.info)  http://binarybottle.com
-##
-## Copyright 2016,  Mindboggle team (mindboggle.info), Apache v2.0 License
+# Environment for installing Mindboggle
+#
+# This environment is configured for circleci.com continuous integration
+# (testing).
+#
+# Authors:
+#    - Arno Klein, 2016-2017  (arno@mindboggle.info)  http://binarybottle.com
+#
+# Copyright 2016-2017,  Mindboggle team (mindboggle.info), Apache v2.0 License
 
 #-----------------------------------------------------------------------------
 # mindboggle-env environment:

@@ -73,14 +73,14 @@ using
 
 2. Download the Mindboggle Docker container (paste command in a terminal window)::
 
-    docker pull bids/mindboggle;
+    docker pull nipy/mindboggle
 
 3. Set the path on your host machine for the Docker container to access files ("/Users/arno" in this example), and enter the container's bash shell::
 
-    PATH_ON_HOST=/Users/arno;  # set path on host to access folders
-    HOST=/home/jovyan/work;  # path to host from within Docker container
+    PATH_ON_HOST=/Users/arno  # set path on host to access folders
+    HOST=/home/jovyan/work  # path to host from within Docker container
 
-    docker run --rm -ti -v $PATH_ON_HOST:$HOST --entrypoint /bin/bash bids/mindboggle;
+    docker run --rm -ti -v $PATH_ON_HOST:$HOST --entrypoint /bin/bash nipy/mindboggle
 
 ------------------------------------------------------------------------------
 Before running Mindboggle
@@ -112,12 +112,12 @@ noncortical volumes. Run ``recon-all`` on a T1-weighted IMAGE file
 (and optionally a T2-weighted image), and set the output SUBJECT name
 as well as the output SUBJECTS_DIR directory::
 
-    HOST=/home/jovyan/work;
-    IMAGE=$HOST/example_mri_data/T1.nii.gz;  # set path to image file
-    SUBJECT=subject1;  # set output subject name
-    SUBJECTS_DIR=$HOST/freesurfer_subjects;  # set path to output folder
+    HOST=/home/jovyan/work
+    IMAGE=$HOST/example_mri_data/T1.nii.gz  # set path to image file
+    SUBJECT=subject1  # set output subject name
+    SUBJECTS_DIR=$HOST/freesurfer_subjects  # set path to output folder
 
-    recon-all -all -i $IMAGE -s $SUBJECT -sd $SUBJECTS_DIR;
+    recon-all -all -i $IMAGE -s $SUBJECT -sd $SUBJECTS_DIR
 
 *Version 6 is recommended because by default it uses Mindboggle’s DKT-100
 surface-based atlas (with the DKT31 labeling protocol) to generate labels
@@ -133,18 +133,18 @@ same IMAGE file, set an output PREFIX, and a TEMPLATE path to the
 folder installed in the Docker container
 ("\\" splits the command for readability)::
 
-    HOST=/home/jovyan/work;
-    IMAGE=$HOST/example_mri_data/T1.nii.gz;  # same path to input image file
-    ANTS_DIR=$HOST/ants_subjects;  # set path to ANTs output folder
-    PREFIX=$ANTS_DIR/subject1/ants;  # set prefix to ANTs output
-    TEMPLATE=/opt/data/OASIS-30_Atropos_template;  # installed template folder
+    HOST=/home/jovyan/work
+    IMAGE=$HOST/example_mri_data/T1.nii.gz  # same path to input image file
+    ANTS_DIR=$HOST/ants_subjects  # set path to ANTs output folder
+    PREFIX=$ANTS_DIR/subject1/ants  # set prefix to ANTs output
+    TEMPLATE=/opt/data/OASIS-30_Atropos_template  # installed template folder
 
     antsCorticalThickness.sh -d 3 -a $IMAGE -o $PREFIX \
       -e $TEMPLATE/T_template0.nii.gz \
       -t $TEMPLATE/T_template0_BrainCerebellum.nii.gz \
       -m $TEMPLATE/T_template0_BrainCerebellumProbabilityMask.nii.gz \
       -f $TEMPLATE/T_template0_BrainCerebellumExtractionMask.nii.gz \
-      -p $TEMPLATE/Priors2/priors%d.nii.gz;
+      -p $TEMPLATE/Priors2/priors%d.nii.gz
 
 ------------------------------------------------------------------------------
 Running Mindboggle
@@ -160,18 +160,18 @@ before proceeding.
 
 For brevity in the Examples below, we set paths in a terminal window::
 
-    HOST=/home/jovyan/work;
-    MINDBOGGLED=$HOST/mindboggled;  # set the Mindboggle output folder
+    HOST=/home/jovyan/work
+    MINDBOGGLED=$HOST/mindboggled  # set the Mindboggle output folder
 
 To use preprocessed FreeSurfer and ANTs data in mindboggle_input_example/::
 
-    FREESURFER_SUBJECT=$HOST/mindboggle_input_example/freesurfer/subjects/arno;
-    ANTS_SUBJECT=$HOST/mindboggle_input_example/ants/subjects/arno;
+    FREESURFER_SUBJECT=$HOST/mindboggle_input_example/freesurfer/subjects/arno
+    ANTS_SUBJECT=$HOST/mindboggle_input_example/ants/subjects/arno
 
-Or if you have preprocessed data in the Docker container (see `Before running Mindboggle <http://mindboggle.readthedocs.io/en/latest/#before-running-mindboggle>`_)::
+Or if you preprocessed data in the Docker container (see `Before running Mindboggle <http://mindboggle.readthedocs.io/en/latest/#before-running-mindboggle>`_)::
 
-    FREESURFER_SUBJECT=$SUBJECTS_DIR/$SUBJECT;
-    ANTS_SUBJECT=$ANTS_DIR/$SUBJECT;
+    FREESURFER_SUBJECT=$SUBJECTS_DIR/$SUBJECT
+    ANTS_SUBJECT=$ANTS_DIR/$SUBJECT
 
 **Examples:**
 
