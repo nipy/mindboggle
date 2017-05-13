@@ -1,4 +1,5 @@
 # Reduce the size of the mindboggle docker container.
+# NOTE: The reprozip command is still under construction!
 #-----------------------------------------------------------------------------
 # First build the docker image:
 # docker build -t mindboggle -f Dockerfile.mindboggle.complete .
