@@ -2,14 +2,13 @@
 """
 This nipype (python) script runs a complete brain image morphology pipeline::
 
-    1. FreeSurfer's recon-all
-    2. ANTs's antsCorticalThickness.sh
-    3. Mindboggle (http://mindboggle.info)
-
-Do not use this script if you wish to use different arguments
-than are available below. Instead call the commands individually (see README).
+    1. FreeSurfer's recon-all (12hrs on macOS 10.12, 2.6GHz, 16GB RAM)
+    2. ANTs's antsCorticalThickness.sh (5.8hrs)
+    3. Mindboggle (http://mindboggle.info) (1.8hrs)
 
 mindboggle123 is intended to be run within the Mindboggle Docker container.
+Don't use this script if you wish to use different arguments than those below.
+Instead call the commands individually (see README).
 For clarity, we set the following environment variables::
 
     HOST=/home/jovyan/work  # path to host from within Docker container
@@ -32,12 +31,10 @@ import os
 import argparse
 
 from nipype import config, logging
-from nipype.interfaces.io import DataGrabber, DataSink
-from nipype.interfaces.utility import Function as Fn
-from nipype.interfaces.utility import IdentityInterface
 from nipype.pipeline.engine import Workflow, Node
 from nipype.interfaces.freesurfer import ReconAll
 from nipype.interfaces.ants.segmentation import antsCorticalThickness
+from mindboggle.guts.utilities import join_two_strings
 
 # ----------------------------------------------------------------------------
 # Command-line arguments
@@ -111,11 +108,12 @@ mbFlow.base_dir = WORK
 #     recon-all -all -i <structural.nii> -subjid <foo> -sd <.>
 # ----------------------------------------------------------------------------
 reconall = Node(ReconAll(), name='recon-all')
-mbFlow.add_nodes([reconall])
 reconall.inputs.subject_id = ID
 reconall.inputs.directive = 'all'
 reconall.inputs.subjects_dir = freesurfer_output
 reconall.inputs.T1_files = IMAGE
+subjects_dir = reconall.outputs.subjects_dir
+subject_id = reconall.outputs.subject_id
 reconall.cmdline
 
 # ----------------------------------------------------------------------------
@@ -143,7 +141,6 @@ PREFIX = os.path.join('ants_output', 'ants')
 
 corticalthickness = Node(antsCorticalThickness(),
                          name='antsCorticalThickness')
-mbFlow.add_nodes([corticalthickness])
 corticalthickness.inputs.dimension = 3
 corticalthickness.inputs.anatomical_image = IMAGE
 corticalthickness.inputs.brain_template = TEMPLATE
@@ -153,7 +150,9 @@ corticalthickness.inputs.extraction_registration_mask = EXT
 corticalthickness.inputs.segmentation_priors = [PRIOR1, PRIOR2, PRIOR3,
                                                 PRIOR4, PRIOR5, PRIOR6]
 corticalthickness.inputs.out_prefix = PREFIX
+BrainSegmentation = corticalthickness.outputs.BrainSegmentation
 corticalthickness.cmdline
+
 
 # ----------------------------------------------------------------------------
 # Create function to call mindboggle
@@ -190,16 +189,20 @@ def mindboggle(DATA, out, ants, args, verbose=True):
 # Run mindboggle on the recon-all and antsCorticalThickness.sh results:
 #     mindboggle $FREESURFER_SUBJECT --out $MINDBOGGLED
 #     --ants $ANTS_SUBJECT/antsBrainSegmentation.nii.gz --roygbiv --graph hier
-# ----------------------------------------------------------------------------mindboggle $FREESURFER_SUBJECT --out $MINDBOGGLED \
+# ----------------------------------------------------------------------------
+JoinStrings1 = Node(join_two_strings(), name='join_reconall_strings')
+mbFlow.connect(reconall, 'subjects_dir', JoinStrings1, 'string1')
+mbFlow.connect(reconall, 'subject_id', JoinStrings1, 'string2')
+JoinStrings1.inputs.joiner = '/'
+
+JoinStrings2 = Node(join_two_strings(), name='join_ants_strings')
+mbFlow.connect(corticalthickness, 'BrainSegmentation', JoinStrings2, 'string2')
+JoinStrings2.inputs.string1 = ants_output
+JoinStrings2.inputs.joiner = '/'
+
 mindboggle_node = Node(mindboggle(), name='mindboggle')
-mbFlow.add_nodes([mindboggle_node])
-
-mbFlow.connect(reconall, 'output_image', mindboggle, 'DATA')
-mbFlow.connect(antsCorticalThickness, 'output_image',
-               mindboggle, 'ants')
-mindboggle.inputs.DATA = os.path.join(freesurfer_output, ID)
-mindboggle.inputs.ants = PREFIX + 'BrainSegmentation.nii.gz'
-
+mbFlow.connect(JoinStrings1, 'new_string', mindboggle, 'DATA')
+mbFlow.connect(JoinStrings2, 'new_string', mindboggle, 'ants')
 mindboggle.inputs.out = mindboggle_output
 mindboggle.inputs.args = '--roygbiv --graph hier'
 
