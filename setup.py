@@ -68,7 +68,8 @@ def main(**extra_args):
                     'mindboggle.thirdparty'],
           package_data={'mindboggle': [pjoin('data', '*.nii.gz'),
                                        pjoin('data', '*.txt')]},
-          scripts=[pjoin('mindboggle', 'mindboggle')],
+          scripts=[pjoin('mindboggle', 'mindboggle'),
+                   pjoin('mindboggle', 'mindboggle123')],
           **extra_args
          )
 
