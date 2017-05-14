@@ -27,6 +27,7 @@ dependencies:
     - numpy
     - scipy
     - pandas
+    - colormath
     - cmake
     - nose
     - pip
