@@ -151,17 +151,18 @@ installed in the Docker container ("\\" splits the command for readability)::
 4. **Mindboggle** can be run on data preprocessed by ``recon-all`` and
 ``antsCorticalThickness.sh`` as above by setting::
 
-    MINDBOGGLED=/home/jovyan/work/mindboggled  # set the Mindboggle output folder
     FREESURFER_SUBJECT=$FREESURFER_OUT_DIR/$ID
     ANTS_SUBJECT=$ANTS_OUT_DIR/$ID
+    OUT=/home/jovyan/work/mindboggled  # output folder
 
 Or it can be run on the
 `mindboggle_input_example.zip <https://osf.io/3xfb8/?action=download&version=1>`_ example
 preprocessed data by setting::
 
-    MINDBOGGLED=/home/jovyan/work/mindboggled  # set the Mindboggle output folder
-    FREESURFER_SUBJECT=/home/jovyan/work/mindboggle_input_example/freesurfer/subjects/arno
-    ANTS_SUBJECT=/home/jovyan/work/mindboggle_input_example/ants/subjects/arno
+    EX=/home/jovyan/work/mindboggle_input_example
+    FREESURFER_SUBJECT=$EX/freesurfer/subjects/arno
+    ANTS_SUBJECT=$EX/ants/subjects/arno
+    OUT=/home/jovyan/work/mindboggled  # output folder
 
 **Example Mindboggle commands:**
 
@@ -172,18 +173,18 @@ To learn about Mindboggle's command options, type this in a terminal window::
 **Example 1:**
 This command runs Mindboggle on data run through FreeSurfer but not ANTs::
 
-    mindboggle $FREESURFER_SUBJECT --out $MINDBOGGLED
+    mindboggle $FREESURFER_SUBJECT --out $OUT
 
 **Example 2:**
 Take advantage of ANTs output as well ("\\" splits for readability)::
 
-    mindboggle $FREESURFER_SUBJECT --out $MINDBOGGLED \
+    mindboggle $FREESURFER_SUBJECT --out $OUT \
         --ants $ANTS_SUBJECT/antsBrainSegmentation.nii.gz
 
 **Example 3:**
 Generate only volume (no surface) labels and shapes::
 
-    mindboggle $FREESURFER_SUBJECT --out $MINDBOGGLED \
+    mindboggle $FREESURFER_SUBJECT --out $OUT \
         --ants $ANTS_SUBJECT/antsBrainSegmentation.nii.gz \
         --no_surfaces
 
