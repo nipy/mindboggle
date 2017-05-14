@@ -27,7 +27,6 @@ dependencies:
     - numpy
     - scipy
     - pandas
-    - colormath
     - nipype
     - cmake
     - nose
@@ -37,6 +36,7 @@ dependencies:
     #-------------------------------------------------------------------------
     # additional testing tools:
     #-------------------------------------------------------------------------
+    - colormath
     - ipython
     - pytest
     - coverage
