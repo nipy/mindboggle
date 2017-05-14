@@ -138,7 +138,7 @@ PRIOR3 = os.path.join(TDIR, 'Priors2', 'priors3.nii.gz')
 PRIOR4 = os.path.join(TDIR, 'Priors2', 'priors4.nii.gz')
 PRIOR5 = os.path.join(TDIR, 'Priors2', 'priors5.nii.gz')
 PRIOR6 = os.path.join(TDIR, 'Priors2', 'priors6.nii.gz')
-PREFIX = os.path.join('ants_output', 'ants')
+PREFIX = os.path.join('ants_output', ID, 'ants')
 
 corticalthickness = Node(antsCorticalThickness(),
                          name='antsCorticalThickness')
@@ -155,69 +155,71 @@ corticalthickness.inputs.out_prefix = PREFIX
 # ----------------------------------------------------------------------------
 # Create function to call mindboggle
 # ----------------------------------------------------------------------------
-def mindboggle(DATA, out, ants, args, verbose=True):
+def mindboggle(subjectid, fsdir, antsdir, antsseg, out, args, verbose=True):
     """
     Run the mindboggle morphology pipeline (see http://mindboggle.info).
 
     Parameters
     ----------
-    DATA : string
-        path to FreeSurfer output subject directory
+    subjectid : string
+        brain image ID
+    fsdir : string
+        path to FreeSurfer output subject directories
+    antsdir : string
+        path to antsCorticalThickness.sh output directories
+    antsseg : string
+        name of antsCorticalThickness.sh output segmentation file
     out : string
-        path to output directory
-    ants : string
-        path to antsCorticalThickness.sh output segmentation file
+        path to mindboggle output directory
     args : string
         extra arguments
+    verbose : boolean
+        print to stdout?
 
     """
+    import os
+
     from nipype.interfaces.base import CommandLine
 
+    DATA = os.path.join(fsdir, subjectid)
+    ants = os.path.join(antsdir, subjectid, antsseg)
+
     all_args = ' '.join([DATA, '--out', out, '--ants', ants, '--args', args])
+    command = "{0} {1}".format('mindboggle', all_args)
 
     if verbose:
-        print("{0} {1}".format('mindboggle', all_args))
+        print(command)
 
     cli = CommandLine(command='mindboggle')
     cli.inputs.args = all_args
     cli.cmdline
     cli.run()
 
+    return command
+
 # ----------------------------------------------------------------------------
 # Run mindboggle on the recon-all and antsCorticalThickness.sh results:
 #     mindboggle $FREESURFER_SUBJECT --out $MINDBOGGLED
 #     --ants $ANTS_SUBJECT/antsBrainSegmentation.nii.gz --roygbiv --graph hier
 # ----------------------------------------------------------------------------
-JoinStrings1 = Node(name='join_strings1',
-                    interface=Fn(function=join_two_strings,
-                                 input_names=['string1',
-                                              'string2',
-                                              'joiner'],
-                                 output_names=['new_string']))
-mbFlow.connect(reconall, 'subjects_dir', JoinStrings1, 'string1')
-mbFlow.connect(reconall, 'subject_id', JoinStrings1, 'string2')
-JoinStrings1.inputs.joiner = '/'
-
-JoinStrings2 = Node(name='join_strings2',
-                    interface=Fn(function=join_two_strings,
-                                 input_names=['string1',
-                                              'string2',
-                                              'joiner'],
-                                 output_names=['new_string']))
-JoinStrings2.inputs.string1 = ants_output
-mbFlow.connect(corticalthickness, 'BrainSegmentation', JoinStrings2, 'string2')
-JoinStrings2.inputs.joiner = '/'
-
 Mindboggle = Node(name='mindboggle',
                   interface=Fn(function=mindboggle,
-                               input_names=['string1',
-                                            'string2',
-                                            'joiner'],
-                               output_names=['new_string']))
-mbFlow.connect(JoinStrings1, 'new_string', Mindboggle, 'DATA')
-mbFlow.connect(JoinStrings2, 'new_string', Mindboggle, 'ants')
+                               input_names=['subjectid',
+                                            'fsdir',
+                                            'antsdir',
+                                            'antsseg',
+                                            'out',
+                                            'args',
+                                            'verbose'],
+                               output_names=['command']))
+mbFlow.connect(reconall, 'subject_id', Mindboggle, 'subjectid')
+mbFlow.connect(reconall, 'subjects_dir', Mindboggle, 'fsdir')
+Mindboggle.inputs.antsdir = ants_output
+mbFlow.connect(corticalthickness, 'BrainSegmentation',
+               Mindboggle, 'antsseg')
 Mindboggle.inputs.out = mindboggle_output
 Mindboggle.inputs.args = '--roygbiv --graph hier'
+Mindboggle.inputs.verbose = True
 
 # ----------------------------------------------------------------------------
 # Run workflow

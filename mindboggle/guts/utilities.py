@@ -113,38 +113,6 @@ def list_strings(string1='', string2='', string3='', string4=''):
     return string_list
 
 
-def join_two_strings(string1, string2, joiner=''):
-    """
-    Join strings.
-
-    Parameters
-    ----------
-    string1 : string
-    string2 : string
-    joiner : string
-        how to join strings
-
-    Returns
-    -------
-    new_string : string
-        strings joined by joiner string
-
-    Examples
-    --------
-    >>> from mindboggle.guts.utilities import join_two_strings
-    >>> string1 = 'a b c'
-    >>> string2 = 'd e f'
-    >>> new_string = join_two_strings(string1, string2, joiner=', ')
-    >>> new_string
-    'a b c, d e f'
-
-    """
-
-    new_string = joiner.join([string1, string2])
-
-    return new_string
-
-
 # ============================================================================
 # Doctests
 # ============================================================================
