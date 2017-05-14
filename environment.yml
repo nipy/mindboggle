@@ -28,6 +28,7 @@ dependencies:
     - scipy
     - pandas
     - colormath
+    - nipype
     - cmake
     - nose
     - pip
