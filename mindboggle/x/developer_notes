@@ -1,18 +1,6 @@
 # Internal notes to aid Mindboggle development:
 
 # ----------------------------------------------------------------------------
-# Running Mindboggle:
-# ----------------------------------------------------------------------------
-mindboggle /home/vagrant/freesurfer_subjects/Twins-2-1 --ants ~/ants_subjects/Twins-2-1/antsBrainSegmentation.nii.gz —fundi
-mindboggle ~/freesurfer_subjects/Twins-2-1 --ants ~/ants_subjects/Twins-2-1/antsBrainSegmentation.nii.gz
-
-# ----------------------------------------------------------------------------
-# Conda-forge installation:
-# ----------------------------------------------------------------------------
-1. release on the github repo
-2. use the release number in the conda forge yaml file
-
-# ----------------------------------------------------------------------------
 # Printing floats/arrays in docstring tests:
 # ----------------------------------------------------------------------------
 # float:
