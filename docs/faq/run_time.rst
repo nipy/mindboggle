@@ -13,5 +13,5 @@ When only the surface shapes of gyrus labels were computed,
 without Laplace-Beltrami spectra or Zernike moments, 
 Mindboggle took less than 7 minutes using the following command::
 
-    mindboggle $FREESURFER_SUBJECT --working $MINDBOGGLING \
-    --out $MINDBOGGLED --no_volumes --no_sulci --no_moments --no_spectra
+    mindboggle $FREESURFER_SUBJECT --out $MINDBOGGLED \
+     --no_volumes --no_sulci --no_moments --no_spectra

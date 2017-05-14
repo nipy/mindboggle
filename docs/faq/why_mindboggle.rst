@@ -87,5 +87,5 @@ In 2016, Arno prepared Mindboggle for broader public use:
     - wrote docstring tests for almost every function
     - set up continuous testing on circleci.com (tests are run every time a commit is made to the GitHub repository)
 
-
 Please see our updated Mindboggle `team page <http://mindboggle.info/people.html>`_.
+
