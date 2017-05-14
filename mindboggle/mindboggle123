@@ -32,6 +32,7 @@ import argparse
 
 from nipype import config, logging
 from nipype.pipeline.engine import Workflow, Node
+from nipype.interfaces.utility import Function as Fn
 from nipype.interfaces.freesurfer import ReconAll
 from nipype.interfaces.ants.segmentation import antsCorticalThickness
 from mindboggle.guts.utilities import join_two_strings
@@ -85,8 +86,11 @@ WORK = args.working
 # Output directories
 # ----------------------------------------------------------------------------
 if not os.path.isdir(OUT):
-    print("Create missing output directories in {0}".format(OUT))
+    print("Create missing output directory {0}".format(OUT))
     os.makedirs(OUT)
+if not os.path.isdir(WORK):
+    print("Create missing working directory {0}".format(WORK))
+    os.makedirs(WORK)
 freesurfer_output = os.path.join(OUT, 'freesurfer_subjects')
 if not os.path.isdir(freesurfer_output):
     os.makedirs(freesurfer_output)
@@ -187,21 +191,36 @@ def mindboggle(DATA, out, ants, args, verbose=True):
 #     mindboggle $FREESURFER_SUBJECT --out $MINDBOGGLED
 #     --ants $ANTS_SUBJECT/antsBrainSegmentation.nii.gz --roygbiv --graph hier
 # ----------------------------------------------------------------------------
-JoinStrings1 = Node(join_two_strings(), name='join_reconall_strings')
+JoinStrings1 = Node(name='join_strings1',
+                    interface=Fn(function=join_two_strings,
+                                 input_names=['string1',
+                                              'string2',
+                                              'joiner'],
+                                 output_names=['new_string']))
 mbFlow.connect(reconall, 'subjects_dir', JoinStrings1, 'string1')
 mbFlow.connect(reconall, 'subject_id', JoinStrings1, 'string2')
 JoinStrings1.inputs.joiner = '/'
 
-JoinStrings2 = Node(join_two_strings(), name='join_ants_strings')
-mbFlow.connect(corticalthickness, 'BrainSegmentation', JoinStrings2, 'string2')
+JoinStrings2 = Node(name='join_strings2',
+                    interface=Fn(function=join_two_strings,
+                                 input_names=['string1',
+                                              'string2',
+                                              'joiner'],
+                                 output_names=['new_string']))
 JoinStrings2.inputs.string1 = ants_output
+mbFlow.connect(corticalthickness, 'BrainSegmentation', JoinStrings2, 'string2')
 JoinStrings2.inputs.joiner = '/'
 
-mindboggle_node = Node(mindboggle(), name='mindboggle')
-mbFlow.connect(JoinStrings1, 'new_string', mindboggle, 'DATA')
-mbFlow.connect(JoinStrings2, 'new_string', mindboggle, 'ants')
-mindboggle.inputs.out = mindboggle_output
-mindboggle.inputs.args = '--roygbiv --graph hier'
+Mindboggle = Node(name='mindboggle',
+                  interface=Fn(function=mindboggle,
+                               input_names=['string1',
+                                            'string2',
+                                            'joiner'],
+                               output_names=['new_string']))
+mbFlow.connect(JoinStrings1, 'new_string', Mindboggle, 'DATA')
+mbFlow.connect(JoinStrings2, 'new_string', Mindboggle, 'ants')
+Mindboggle.inputs.out = mindboggle_output
+Mindboggle.inputs.args = '--roygbiv --graph hier'
 
 # ----------------------------------------------------------------------------
 # Run workflow
