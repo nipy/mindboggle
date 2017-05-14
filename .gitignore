@@ -1,9 +1,7 @@
 /docs/_build
 doctrees
-mindboggle.*.box
 mindboggle.egg-info
 vtk_cpp_tools/bin
-.vagrant/
 
 build
 CMakeCache.txt
