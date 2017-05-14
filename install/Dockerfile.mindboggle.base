@@ -22,8 +22,22 @@
 # Build the docker image:
 # docker build -t mindboggle-base -f Dockerfile.mindboggle.base .
 #
-# Run the docker container (with access to /Users/arno on the host machine):
-# docker run --rm -ti -v /Users/arno:/home/jovyan/work -p 8888:8888 -p 5000:5000 mindboggle-base bash
+# Push to Docker hub:
+# (https://docs.docker.com/docker-cloud/builds/push-images/)
+# export DOCKER_ID_USER="nipy"
+# docker login
+# docker tag mindboggle-base nipy/mindboggle-base
+# docker push nipy/mindboggle-base
+#
+# Pull from Docker hub:
+# docker pull nipy/mindboggle-base
+#
+# In the following, the Docker container can be the original (mindboggle-base)
+# or the pulled version (nipy/mindboggle-base), and is given access to
+# /Users/arno on the host machine.
+#
+# Enter the bash shell of the Docker container:
+# docker run --rm -ti -v /Users/arno:/home/jovyan/work nipy/mindboggle-base bash
 #
 # (c) 2017 by Arno Klein <arno@mindboggle.info> (CC-BY license)
 #-----------------------------------------------------------------------------

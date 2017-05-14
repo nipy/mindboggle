@@ -116,8 +116,6 @@ reconall.inputs.subject_id = ID
 reconall.inputs.directive = 'all'
 reconall.inputs.subjects_dir = freesurfer_output
 reconall.inputs.T1_files = IMAGE
-subjects_dir = reconall.outputs.subjects_dir
-subject_id = reconall.outputs.subject_id
 
 # ----------------------------------------------------------------------------
 # Use antsCorticalThickness.sh to generate segmentations of structural data:
@@ -153,7 +151,6 @@ corticalthickness.inputs.extraction_registration_mask = EXT
 corticalthickness.inputs.segmentation_priors = [PRIOR1, PRIOR2, PRIOR3,
                                                 PRIOR4, PRIOR5, PRIOR6]
 corticalthickness.inputs.out_prefix = PREFIX
-BrainSegmentation = corticalthickness.outputs.BrainSegmentation
 
 # ----------------------------------------------------------------------------
 # Create function to call mindboggle

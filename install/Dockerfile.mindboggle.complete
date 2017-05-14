@@ -12,11 +12,25 @@
 # Build the docker image:
 # docker build -t mindboggle -f Dockerfile.mindboggle.complete .
 #
-# Run the docker container (with access to /Users/arno on the host machine):
-# docker run --rm -ti -v /Users/arno:/home/jovyan/work -p 8888:8888 -p 5000:5000 mindboggle bash
+# Push to Docker hub:
+# (https://docs.docker.com/docker-cloud/builds/push-images/)
+# export DOCKER_ID_USER="nipy"
+# docker login
+# docker tag mindboggle nipy/mindboggle
+# docker push nipy/mindboggle
 #
-# Run the docker container as an executable:
-# docker run --rm -ti -v /Users/arno:/home/jovyan/work mindboggle $IMAGE $ID $OUT
+# Pull from Docker hub:
+# docker pull nipy/mindboggle
+#
+# In the following, the Docker container can be the original (mindboggle)
+# or the pulled version (nipy/mindboggle), and is given access to /Users/arno
+# on the host machine.
+#
+# Enter the bash shell of the Docker container, and add port mappings:
+# docker run --rm -ti -v /Users/arno:/home/jovyan/work -p 8888:8888 -p 5000:5000 nipy/mindboggle bash
+#
+# Run the Docker container as an executable:
+# docker run --rm -ti -v /Users/arno:/home/jovyan/work nipy/mindboggle $IMAGE $ID $OUT
 #
 # (c) 2017 by Arno Klein <arno@mindboggle.info> (CC-BY license)
 #-----------------------------------------------------------------------------
@@ -24,6 +38,7 @@
 FROM nipy/mindboggle-base
 MAINTAINER Arno Klein <arno@mindboggle.info>
 ENTRYPOINT ["mindboggle123", "IMAGE", "--id", "--out"]
+CMD [""]
 #-----------------------------------------------------------------------------
 # Original command:
 # IMAGE=/home/jovyan/work/example_mri_data/T1.nii.gz
