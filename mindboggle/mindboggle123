@@ -9,14 +9,14 @@ This nipype (python) script runs a complete brain image morphology pipeline::
 mindboggle123 is intended to be run within the Mindboggle Docker container.
 Don't use this script if you wish to use different arguments than those below.
 Instead call the commands individually (see README).
-For clarity, we set the following environment variables::
 
-    HOST=/home/jovyan/work  # path to host from within Docker container
-    OUTPUT=$HOST/mindboggle123_output  # path to output directory
-    IMAGE=$HOST/example_mri_data/T1.nii.gz  # path to image file
-    SUBJECT=subject1  # output subject name
+Example (we set environment variables for clarity)::
 
-    mindboggle123 $SUBJECT --out $OUTPUT
+    IMAGE=/home/jovyan/work/example_mri_data/T1.nii.gz
+    OUT=/home/jovyan/work/mindboggle123_output
+    ID=arno
+
+    mindboggle123 $IMAGE --id $ID --out $OUT
 
 
 Authors:
@@ -114,7 +114,6 @@ reconall.inputs.subjects_dir = freesurfer_output
 reconall.inputs.T1_files = IMAGE
 subjects_dir = reconall.outputs.subjects_dir
 subject_id = reconall.outputs.subject_id
-reconall.cmdline
 
 # ----------------------------------------------------------------------------
 # Use antsCorticalThickness.sh to generate segmentations of structural data:
@@ -151,8 +150,6 @@ corticalthickness.inputs.segmentation_priors = [PRIOR1, PRIOR2, PRIOR3,
                                                 PRIOR4, PRIOR5, PRIOR6]
 corticalthickness.inputs.out_prefix = PREFIX
 BrainSegmentation = corticalthickness.outputs.BrainSegmentation
-corticalthickness.cmdline
-
 
 # ----------------------------------------------------------------------------
 # Create function to call mindboggle

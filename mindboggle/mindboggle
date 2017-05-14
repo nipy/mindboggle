@@ -114,10 +114,12 @@ out_args.add_argument("--out",
                       default=os.path.join(os.environ['HOME'],
                                            'mindboggled'), metavar='STR')
 out_args.add_argument("--working",
-                      help="working folder (if not $HOME/mindboggled/mindboggling)",
+                      help="working folder (if not in output folder)",
                       default=os.path.join(os.environ['HOME'],
                                            'mindboggled', 'mindboggling'),
                       metavar='STR')
+out_args.add_argument("--roygbiv", action='store_true',
+                      help='prepare data for visualization with ROYGBIV')
 out_args.add_argument("--no_volumes", action='store_true',
                       help="no volume labels, features, or shape tables")
 out_args.add_argument("--no_surfaces", action='store_true',
@@ -173,8 +175,6 @@ adv_args.add_argument("--my_transform",
 adv_args.add_argument("--graph",
                       help='plot workflow: "hier", "exec" (need graphviz)',
                       choices=['hier', 'flat', 'exec'], metavar='STR')
-adv_args.add_argument("--roygbiv", action='store_true',
-                      help='prepare data for visualization with ROYGBIV')
 adv_args.add_argument("--plugin", dest="plugin",
                       default='Linear',
                       help="nipype plugin (see nipype documentation)")
