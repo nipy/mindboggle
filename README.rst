@@ -86,7 +86,7 @@ download and unzip
 4. Optionally set environment variables for clarity in the commands below
 (modify accordingly)::
 
-    HOST=/Users/arno  # path on host to access input and store output
+    HOST=/Users/binarybottle  # path on host to access input and store output
     IMAGE=/example_mri_data/T1.nii.gz  # input image
     ID=arno  # ID for brain image
 
@@ -131,12 +131,11 @@ directory::
     recon-all -all -i $IMAGE -s $ID -sd $FREESURFER_OUT_DIR
 
 3. `ANTs <http://stnava.github.io/ANTs/>`_ provides brain volume extraction,
-segmentation, and registration-based labeling. To generate the ANTs transforms
-and segmentation files used by Mindboggle, run ``antsCorticalThickness.sh``
-on the same IMAGE file and ID name, and set the ANTS_OUT_DIR output directory.
-The TEMPLATE path is where the
-`OASIS-30_Atropos_template <https://osf.io/rh9km/>`_ folder is already
-installed in the Docker container ("\\" splits the command for readability)::
+segmentation, and registration-based labeling. ``antsCorticalThickness.sh``
+generates transforms and segmentation files used by Mindboggle, and is run
+on the same IMAGE file and ID as above, with ANTS_OUT_DIR output directory.
+TEMPLATE points to the `OASIS-30_Atropos_template <https://osf.io/rh9km/>`_ folder
+already installed in the Docker container ("\\" splits the command for readability)::
 
     ANTS_OUT_DIR=/home/jovyan/work/ants_subjects
     TEMPLATE=/opt/data/OASIS-30_Atropos_template
@@ -156,7 +155,7 @@ installed in the Docker container ("\\" splits the command for readability)::
     OUT=/home/jovyan/work/mindboggled  # output folder
 
 Or it can be run on the
-`mindboggle_input_example.zip <https://osf.io/3xfb8/?action=download&version=1>`_ example
+`mindboggle_input_example <https://osf.io/3xfb8/?action=download&version=1>`_ example
 preprocessed data by setting::
 
     EX=/home/jovyan/work/mindboggle_input_example

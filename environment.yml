@@ -28,6 +28,7 @@ dependencies:
     - scipy
     - pandas
     - cmake
+    - nose
     - pip
     - pip:
         - nibabel
