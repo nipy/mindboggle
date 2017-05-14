@@ -51,10 +51,6 @@ If you have any questions about Mindboggle, please post to `NeuroStars <https://
 with the tag "mindboggle"; if you have found a bug, big or small,
 please `submit an issue <https://github.com/nipy/mindboggle/issues>`_ on GitHub.
 
-For command-line options after installing Mindboggle, type this in a terminal window::
-
-    mindboggle -h
-
 ------------------------------------------------------------------------------
 Install Mindboggle
 ------------------------------------------------------------------------------
@@ -74,14 +70,10 @@ using
 
    *Note: This contains FreeSurfer, ANTs, and Mindboggle, so it is currently over 6GB.*
 
-3. Optionally download sample data. To try out the ``mindboggle`` examples
-below, download and unzip the directory of example input data
-`mindboggle_input_example.zip <https://osf.io/3xfb8/?action=download&version=1>`_
- (455 MB).
-For example MRI data to preprocess with FreeSurfer and ANTs software,
-download and unzip
-`example_mri_data.zip <https://osf.io/k3m94/?action=download&version=1>`_
-(29 MB).
+3. Optionally download sample data. To try out the ``mindboggle`` examples below, download and unzip the directory
+of example input data `mindboggle_input_example.zip <https://osf.io/3xfb8/?action=download&version=1>`_ (455 MB).
+For example MRI data to preprocess with FreeSurfer and ANTs software, download and unzip
+`example_mri_data.zip <https://osf.io/k3m94/?action=download&version=1>`_ (29 MB).
 
 4. Optionally set environment variables for clarity in the commands below (modify accordingly)::
 
@@ -119,21 +111,17 @@ on the cortical surfaces and in the cortical and non-cortical volumes
     docker run --rm -ti -v $HOST:/home/jovyan/work --entrypoint /bin/bash nipy/mindboggle
 
 2. `FreeSurfer <http://surfer.nmr.mgh.harvard.edu>`_ generates labeled cortical surfaces, and labeled cortical and
-noncortical volumes. Run ``recon-all`` on a T1-weighted IMAGE file
-(and optionally a T2-weighted image), and set the output ID name
-as well as the FREESURFER_OUT_DIR output directory::
+noncortical volumes. Run ``recon-all`` on a T1-weighted IMAGE file (and optionally a T2-weighted image), and
+set the output ID name as well as the FREESURFER_OUT_DIR output directory::
 
     FREESURFER_OUT_DIR=/home/jovyan/work/freesurfer_subjects
 
     recon-all -all -i $IMAGE -s $ID -sd $FREESURFER_OUT_DIR
 
-3. `ANTs <http://stnava.github.io/ANTs/>`_ provides brain volume extraction, segmentation, and
-registration-based labeling. To generate the ANTs transforms and segmentation
-files used by Mindboggle, run the ``antsCorticalThickness.sh`` script on the
-same IMAGE file and ID name, and set the ANTS_OUT_DIR output directory.
-The TEMPLATE path is where the
-`OASIS-30_Atropos_template <https://osf.io/rh9km/>`_
-folder is already installed in the Docker container
+3. `ANTs <http://stnava.github.io/ANTs/>`_ provides brain volume extraction, segmentation, and registration-based labeling.
+To generate the ANTs transforms and segmentation files used by Mindboggle, run the ``antsCorticalThickness.sh`` script
+on the same IMAGE file and ID name, and set the ANTS_OUT_DIR output directory. The TEMPLATE path is where the
+`OASIS-30_Atropos_template <https://osf.io/rh9km/>`_ folder is already installed in the Docker container
 ("\\" splits the command for readability)::
 
     ANTS_OUT_DIR=/home/jovyan/work/ants_subjects

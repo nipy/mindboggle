@@ -35,7 +35,6 @@ from nipype.pipeline.engine import Workflow, Node
 from nipype.interfaces.utility import Function as Fn
 from nipype.interfaces.freesurfer import ReconAll
 from nipype.interfaces.ants.segmentation import antsCorticalThickness
-from mindboggle.guts.utilities import join_two_strings
 
 # ----------------------------------------------------------------------------
 # Command-line arguments
