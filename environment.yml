@@ -40,7 +40,7 @@ dependencies:
         - pydotplus
 
     - networkx
-    - lmxl
+    - lxml
     - simplejson
     - future
     - nose
