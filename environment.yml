@@ -27,16 +27,26 @@ dependencies:
     - numpy
     - scipy
     - pandas
-    - nipype
     - cmake
-    - nose
     - pip
     - pip:
         - nibabel
+
+        - https://github.com/nipy/nipype/archive/master.zip
+        - prov
+        - traits
+        - xvfbwrapper
+        - colormath
+        - pydotplus
+
+    - networkx
+    - lmxl
+    - simplejson
+    - future
+    - nose
     #-------------------------------------------------------------------------
     # additional testing tools:
     #-------------------------------------------------------------------------
-    - colormath
     - ipython
     - pytest
     - coverage
