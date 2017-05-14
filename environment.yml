@@ -32,7 +32,7 @@ dependencies:
     - pip:
         - nibabel
 
-        - https://github.com/nipy/nipype/archive/master.zip
+        - nipype #https://github.com/nipy/nipype/archive/master.zip
         - prov
         - traits
         - xvfbwrapper
