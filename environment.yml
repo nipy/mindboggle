@@ -21,7 +21,7 @@ channels:
 # mindboggle dependencies:
 #-----------------------------------------------------------------------------
 dependencies:
-    - python=3.5.1
+    - python=3.6
     - vtk=7.1.0
     - matplotlib
     - numpy

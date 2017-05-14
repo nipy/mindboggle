@@ -12,9 +12,9 @@ called within a `Nipype <http://nipy.org/nipype>`_ pipeline framework.
 We have tested the software most extensively with Python 3.5.1 on Ubuntu Linux 14.04.
 
 ..
-    1. Cite
-    2. Help?
-    3. Install
+    1. Reference
+    2. Getting help
+    3. Installation
     4. Run one command
     5. Run separate commands
     6. Appendix: processing
@@ -51,7 +51,7 @@ Getting help
 ------------------------------------------------------------------------------
 If you have any questions about Mindboggle, please post to
 `NeuroStars <https://neurostars.org/tags/mindboggle/>`_ with the tag
-"mindboggle"; if you have found a bug, big or small, please
+"mindboggle". If you have found a bug, big or small, please
 `submit an issue <https://github.com/nipy/mindboggle/issues>`_ on GitHub.
 
 ------------------------------------------------------------------------------
@@ -73,7 +73,8 @@ terminal window)::
 
     docker pull nipy/mindboggle
 
-   *Note: This contains FreeSurfer, ANTs, and Mindboggle, so it is currently over 6GB.*
+*Note: This contains FreeSurfer, ANTs, and Mindboggle, so it is currently
+over 6GB.*
 
 3. Optionally download sample data. To try out the ``mindboggle`` examples
 below, download and unzip the directory of example input data
@@ -99,8 +100,8 @@ Skip to the next section if you wish to run ``recon-all``,
 
     docker run --rm -ti -v $HOST:/home/jovyan/work nipy/mindboggle $IMAGE --id $ID
 
-*Outputs are stored in mindboggle123_output/ in the host's home directory
-by default, but you can set a different output path with '--out $OUT'.*
+Outputs are stored in mindboggle123_output/ in the host's home directory
+by default, but you can set a different output path with ``--out $OUT``.
 
 ------------------------------------------------------------------------------
 Run separate commands
