@@ -84,10 +84,11 @@ download and unzip
 `example_mri_data.zip <https://osf.io/k3m94/?action=download&version=1>`_ (29 MB).
 
 4. Optionally set environment variables for clarity in the commands below
-(modify accordingly)::
+(modify accordingly, except for DOCK)::
 
     HOST=/Users/binarybottle  # path on host to access input and store output
-    IMAGE=/example_mri_data/T1.nii.gz  # input image
+    DOCK=/home/jovyan/work  # path to HOST from Docker container
+    IMAGE=$DOCK/example_mri_data/T1.nii.gz  # input image (from container)
     ID=arno  # ID for brain image
 
 ------------------------------------------------------------------------------
@@ -98,7 +99,7 @@ a T1-weighted MR brain image through FreeSurfer, ANTs, and Mindboggle.
 Skip to the next section if you wish to run ``recon-all``,
 ``antsCorticalThickness.sh``, and ``mindboggle`` differently::
 
-    docker run --rm -ti -v $HOST:/home/jovyan/work nipy/mindboggle $IMAGE --id $ID
+    docker run --rm -ti -v $HOST:$DOCK nipy/mindboggle $IMAGE --id $ID
 
 Outputs are stored in mindboggle123_output/ in the host's home directory
 by default, but you can set a different output path with ``--out $OUT``.
@@ -118,7 +119,7 @@ on the cortical surfaces and in the cortical and non-cortical volumes
 1. Enter the Docker container's bash shell to run ``recon-all``,
 ``antsCorticalThickness.sh``, and ``mindboggle`` commands::
 
-    docker run --rm -ti -v $HOST:/home/jovyan/work --entrypoint /bin/bash nipy/mindboggle
+    docker run --rm -ti -v $HOST:$DOCK --entrypoint /bin/bash nipy/mindboggle
 
 2. `FreeSurfer <http://surfer.nmr.mgh.harvard.edu>`_ generates labeled
 cortical surfaces, and labeled cortical and noncortical volumes.
@@ -126,7 +127,7 @@ Run ``recon-all`` on a T1-weighted IMAGE file (and optionally a T2-weighted
 image), and set the output ID name as well as the FREESURFER_OUT_DIR output
 directory::
 
-    FREESURFER_OUT_DIR=/home/jovyan/work/freesurfer_subjects
+    FREESURFER_OUT_DIR=$DOCK/freesurfer_subjects
 
     recon-all -all -i $IMAGE -s $ID -sd $FREESURFER_OUT_DIR
 
@@ -137,7 +138,7 @@ on the same IMAGE file and ID as above, with ANTS_OUT_DIR output directory.
 TEMPLATE points to the `OASIS-30_Atropos_template <https://osf.io/rh9km/>`_ folder
 already installed in the Docker container ("\\" splits the command for readability)::
 
-    ANTS_OUT_DIR=/home/jovyan/work/ants_subjects
+    ANTS_OUT_DIR=$DOCK/ants_subjects
     TEMPLATE=/opt/data/OASIS-30_Atropos_template
 
     antsCorticalThickness.sh -d 3 -a $IMAGE -o $ANTS_OUT_DIR/$ID/ants \
@@ -152,16 +153,16 @@ already installed in the Docker container ("\\" splits the command for readabili
 
     FREESURFER_SUBJECT=$FREESURFER_OUT_DIR/$ID
     ANTS_SUBJECT=$ANTS_OUT_DIR/$ID
-    OUT=/home/jovyan/work/mindboggled  # output folder
+    OUT=$DOCK/mindboggled  # output folder
 
 Or it can be run on the
 `mindboggle_input_example <https://osf.io/3xfb8/?action=download&version=1>`_ example
 preprocessed data by setting::
 
-    EX=/home/jovyan/work/mindboggle_input_example
+    EX=$DOCK/mindboggle_input_example
     FREESURFER_SUBJECT=$EX/freesurfer/subjects/arno
     ANTS_SUBJECT=$EX/ants/subjects/arno
-    OUT=/home/jovyan/work/mindboggled  # output folder
+    OUT=$DOCK/mindboggled  # output folder
 
 **Example Mindboggle commands:**
 
