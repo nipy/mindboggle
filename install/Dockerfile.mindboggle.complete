@@ -30,10 +30,11 @@
 # docker run --rm -ti -v /Users/arno:/home/jovyan/work -p 8888:8888 -p 5000:5000 nipy/mindboggle bash
 #
 # Run the Docker container as an executable (variables set for clarity):
-# HOST=/Users/arno
-# IMAGE=/example_mri_data/T1.nii.gz
-# ID=arno
-# OUT=/home/jovyan/work/mindboggle123_output  # '--output $OUT' is OPTIONAL
+# HOST=/Users/binarybottle  # path on host to access input and output
+# DOCK=/home/jovyan/work  # path to HOST from Docker container
+# IMAGE=$DOCK/example_mri_data/T1.nii.gz  # input image (from container)
+# ID=arno  # ID for brain image
+# OUT=$DOCK/mindboggle123_output  # '--output $OUT' is OPTIONAL
 # docker run --rm -ti -v $HOST:/home/jovyan/work nipy/mindboggle $IMAGE --id $ID --out $OUT
 #
 # (c) 2017 by Arno Klein <arno@mindboggle.info> (CC-BY license)

@@ -86,7 +86,7 @@ download and unzip
 4. Optionally set environment variables for clarity in the commands below
 (modify accordingly, except for DOCK)::
 
-    HOST=/Users/binarybottle  # path on host to access input and store output
+    HOST=/Users/binarybottle  # path on host to access input and output
     DOCK=/home/jovyan/work  # path to HOST from Docker container
     IMAGE=$DOCK/example_mri_data/T1.nii.gz  # input image (from container)
     ID=arno  # ID for brain image
@@ -124,24 +124,24 @@ on the cortical surfaces and in the cortical and non-cortical volumes
 2. `FreeSurfer <http://surfer.nmr.mgh.harvard.edu>`_ generates labeled
 cortical surfaces, and labeled cortical and noncortical volumes.
 Run ``recon-all`` on a T1-weighted IMAGE file (and optionally a T2-weighted
-image), and set the output ID name as well as the FREESURFER_OUT_DIR output
+image), and set the output ID name as well as the $FREESURFER_OUT output
 directory::
 
-    FREESURFER_OUT_DIR=$DOCK/freesurfer_subjects
+    FREESURFER_OUT=$DOCK/freesurfer_subjects
 
-    recon-all -all -i $IMAGE -s $ID -sd $FREESURFER_OUT_DIR
+    recon-all -all -i $IMAGE -s $ID -sd $FREESURFER_OUT
 
 3. `ANTs <http://stnava.github.io/ANTs/>`_ provides brain volume extraction,
 segmentation, and registration-based labeling. ``antsCorticalThickness.sh``
 generates transforms and segmentation files used by Mindboggle, and is run
-on the same IMAGE file and ID as above, with ANTS_OUT_DIR output directory.
+on the same IMAGE file and ID as above, with $ANTS_OUT output directory.
 TEMPLATE points to the `OASIS-30_Atropos_template <https://osf.io/rh9km/>`_ folder
 already installed in the Docker container ("\\" splits the command for readability)::
 
-    ANTS_OUT_DIR=$DOCK/ants_subjects
+    ANTS_OUT=$DOCK/ants_subjects
     TEMPLATE=/opt/data/OASIS-30_Atropos_template
 
-    antsCorticalThickness.sh -d 3 -a $IMAGE -o $ANTS_OUT_DIR/$ID/ants \
+    antsCorticalThickness.sh -d 3 -a $IMAGE -o $ANTS_OUT/$ID/ants \
       -e $TEMPLATE/T_template0.nii.gz \
       -t $TEMPLATE/T_template0_BrainCerebellum.nii.gz \
       -m $TEMPLATE/T_template0_BrainCerebellumProbabilityMask.nii.gz \
@@ -151,17 +151,17 @@ already installed in the Docker container ("\\" splits the command for readabili
 4. **Mindboggle** can be run on data preprocessed by ``recon-all`` and
 ``antsCorticalThickness.sh`` as above by setting::
 
-    FREESURFER_SUBJECT=$FREESURFER_OUT_DIR/$ID
-    ANTS_SUBJECT=$ANTS_OUT_DIR/$ID
+    FREESURFER_SUBJECT=$FREESURFER_OUT/$ID
+    ANTS_SUBJECT=$ANTS_OUT/$ID
     OUT=$DOCK/mindboggled  # output folder
 
 Or it can be run on the
-`mindboggle_input_example <https://osf.io/3xfb8/?action=download&version=1>`_ example
+`mindboggle_input_example <https://osf.io/3xfb8/?action=download&version=1>`_
 preprocessed data by setting::
 
-    EX=$DOCK/mindboggle_input_example
-    FREESURFER_SUBJECT=$EX/freesurfer/subjects/arno
-    ANTS_SUBJECT=$EX/ants/subjects/arno
+    EXAMPLE=$DOCK/mindboggle_input_example
+    FREESURFER_SUBJECT=$EXAMPLE/freesurfer/subjects/arno
+    ANTS_SUBJECT=$EXAMPLE/ants/subjects/arno
     OUT=$DOCK/mindboggled  # output folder
 
 **Example Mindboggle commands:**
