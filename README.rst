@@ -88,7 +88,7 @@ download and unzip
 
     HOST=/Users/binarybottle  # path on host to access input and output
     DOCK=/home/jovyan/work  # path to HOST from Docker container
-    IMAGE=$DOCK/example_mri_data/T1.nii.gz  # input image (from container)
+    IMAGE=$DOCK/example_mri_data/T1.nii.gz  # input image on HOST
     ID=arno  # ID for brain image
 
 ------------------------------------------------------------------------------
