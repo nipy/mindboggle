@@ -31,8 +31,7 @@ dependencies:
     - pip
     - pip:
         - nibabel
-
-        - nipype #https://github.com/nipy/nipype/archive/master.zip
+        - nipype
         - prov
         - traits
         - xvfbwrapper
