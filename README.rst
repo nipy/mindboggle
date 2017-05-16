@@ -86,7 +86,7 @@ download and unzip
 4. Optionally set environment variables for clarity in the commands below
 (modify accordingly, except for DOCK)::
 
-    HOST=/Users/binarybottle  # path on host to access input and output
+    HOST=/Users/binarybottle  # path on host to access input/output
     DOCK=/home/jovyan/work  # path to HOST from Docker container
     IMAGE=$DOCK/example_mri_data/T1.nii.gz  # input image on HOST
     ID=arno  # ID for brain image
@@ -101,8 +101,8 @@ Skip to the next section if you wish to run ``recon-all``,
 
     docker run --rm -ti -v $HOST:$DOCK nipy/mindboggle $IMAGE --id $ID
 
-Outputs are stored in mindboggle123_output/ in the host's home directory
-by default, but you can set a different output path with ``--out $OUT``.
+Outputs are stored in $DOCK/mindboggle123_output/ by default,
+but you can set a different output path with ``--out $OUT``.
 
 ------------------------------------------------------------------------------
 Run separate commands
