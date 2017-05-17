@@ -88,7 +88,7 @@ RUN conda install --quiet --yes nomkl \
                                 scipy \
                                 cmake \
                                 pythreejs \
-                                xvfbwrapper && \  # for vtk
+                                xvfbwrapper && \
     conda install --quiet --yes -c clinicalgraphics vtk=7.1.0 && \
     conda clean -tipsy && \
     jupyter nbextension enable --py --sys-prefix widgetsnbextension && \
