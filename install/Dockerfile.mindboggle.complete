@@ -53,7 +53,7 @@ CMD ["IMAGE", "--id", "--out"]
 #-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
-# 1. Install mindboggle (git tag v1.1.0_MITworkshop)
+# 1. Install mindboggle (git tag v1.1.0_MITworkshop):
 #-----------------------------------------------------------------------------
 USER $NB_USER
 WORKDIR /opt
@@ -70,7 +70,8 @@ ENV vtk_cpp_tools=/opt/vtk_cpp_tools
 
 #-----------------------------------------------------------------------------
 # 2. Install roygbiv for mindboggle output visualization
-#    (git checkout 368e1844b164b599496db817f095c53c72332b9f)
+#    (git checkout 368e1844b164b599496db817f095c53c72332b9f;
+#     nbpapaya 60119b6e1de651f250af26a3541d9cb18e971526):
 #-----------------------------------------------------------------------------
 USER $NB_USER
 WORKDIR /opt
@@ -87,7 +88,7 @@ RUN conda install -y flask && \
     rm -rf /opt/roygbiv /opt/nbpapaya
 
 #-----------------------------------------------------------------------------
-# Clear apt cache and other empty folders
+# Clear apt cache and other empty folders:
 #-----------------------------------------------------------------------------
 USER root
 RUN apt-get clean && apt-get autoremove -y && \

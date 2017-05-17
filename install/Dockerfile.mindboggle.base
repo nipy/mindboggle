@@ -46,8 +46,8 @@ FROM jupyter/base-notebook
 MAINTAINER Arno Klein <arno@mindboggle.info>
 
 #-----------------------------------------------------------------------------
-# 1. Update OS dependencies and set up neurodebian
-#    (graphviz conda version doesn't work)
+# 1. Update OS dependencies
+#    (graphviz conda version doesn't work):
 #-----------------------------------------------------------------------------
 USER root
 RUN apt-get update -qq && \
@@ -62,8 +62,8 @@ RUN apt-get update -qq && \
                                                 zip \
                                                 vim \
                                                 emacs-nox \
-                                                xvfb \
-                                                graphviz \
+                                                xvfb \  # for vtk
+                                                graphviz \  # for graphs
                                                 less \
                                                 git && \
     apt-get clean && \
@@ -74,20 +74,21 @@ RUN apt-get update -qq && \
 
 #-----------------------------------------------------------------------------
 # 2. Install nibabel and conda packages for mindboggle
-#    (pandas, matplotlib, scipy, cmake, and vtk) and for
-#    mindboggle visualization in a jupyter notebook (pythreejs),
+#    (nipype, pandas, matplotlib, scipy, cmake, and vtk),
+#    and for mindboggle visualization in a jupyter notebook (pythreejs):
 #-----------------------------------------------------------------------------
 USER $NB_USER
 RUN conda install --quiet --yes nomkl \
+                                pip \
+                                reprozip \  # (to create smaller builds)
+                                reprounzip \
                                 nipype \
                                 pandas \
                                 matplotlib \
-                                pip \
-                                reprozip \
-                                reprounzip \
                                 scipy \
                                 cmake \
-                                pythreejs && \
+                                pythreejs \
+                                xvfbwrapper && \  # for vtk
     conda install --quiet --yes -c clinicalgraphics vtk=7.1.0 && \
     conda clean -tipsy && \
     jupyter nbextension enable --py --sys-prefix widgetsnbextension && \
@@ -97,8 +98,8 @@ RUN pip install --quiet https://github.com/nipy/nibabel/archive/ca977abeb77f95ed
     rm -rf ~/.cache/pip
 
 #-----------------------------------------------------------------------------
-# 3. Install FreeSurfer v6.0 (minimized with reprozip):
-#    https://github.com/freesurfer/freesurfer/issues/70
+# 3. Install FreeSurfer v6.0, minimized with reprozip
+#    (https://github.com/freesurfer/freesurfer/issues/70):
 #-----------------------------------------------------------------------------
 USER $NB_USER
 WORKDIR /opt
@@ -120,7 +121,7 @@ ENV PATH=$FREESURFER_HOME/bin:$FREESURFER_HOME/tktools:$MINC_BIN_DIR:$PATH
 
 #-----------------------------------------------------------------------------
 # 4. Install ANTS v2.2.0
-#    (git checkout 0740f9111e5a9cd4768323dc5dfaa7c29481f9ef)
+#    (git checkout 0740f9111e5a9cd4768323dc5dfaa7c29481f9ef):
 #-----------------------------------------------------------------------------
 USER root
 RUN apt-get update -qq && apt-get install -yq --no-install-recommends \
@@ -140,7 +141,7 @@ ENV ANTSPATH=/opt/ants/ \
     PATH=/opt/ants:$PATH
 
 #-----------------------------------------------------------------------------
-# 5. Install dependencies for mindboggle's C++ library
+# 5. Install dependencies for mindboggle's C++ library:
 #-----------------------------------------------------------------------------
 USER root
 RUN apt-get update -qq && \
@@ -150,7 +151,7 @@ RUN apt-get update -qq && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 #-----------------------------------------------------------------------------
-# 6. Install mindboggle's OASIS-30_Atropos_template data for use by ANTs
+# 6. Install mindboggle's OASIS-30_Atropos_template data for use by ANTs:
 #-----------------------------------------------------------------------------
 USER $NB_USER
 WORKDIR /opt/data
@@ -159,7 +160,7 @@ RUN curl -sSL https://osf.io/rh9km/?action=download\&version=2 -o templates.zip 
     rm -rf /opt/data/templates.zip
 
 #-----------------------------------------------------------------------------
-# Clear apt cache and other empty folders
+# Clear apt cache and other empty folders:
 #-----------------------------------------------------------------------------
 USER root
 RUN apt-get clean && apt-get autoremove -y && \
