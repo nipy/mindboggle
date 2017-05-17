@@ -62,8 +62,8 @@ RUN apt-get update -qq && \
                                                 zip \
                                                 vim \
                                                 emacs-nox \
-                                                xvfb \  # for vtk
-                                                graphviz \  # for graphs
+                                                xvfb \
+                                                graphviz \
                                                 less \
                                                 git && \
     apt-get clean && \
@@ -80,7 +80,7 @@ RUN apt-get update -qq && \
 USER $NB_USER
 RUN conda install --quiet --yes nomkl \
                                 pip \
-                                reprozip \  # (to create smaller builds)
+                                reprozip \
                                 reprounzip \
                                 nipype \
                                 pandas \
