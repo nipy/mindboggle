@@ -306,7 +306,7 @@ background_value = -1
 if args.working:
     working = os.path.join(args.working, subject)
 else:
-    working = os.path.join(args.out, 'mindboggling', subject)
+    working = os.path.join(args.out, 'working', subject)
 if not os.path.isdir(args.out):
     print("Create missing output directory: {0}".format(args.out))
     os.makedirs(args.out)
@@ -1321,6 +1321,8 @@ if not args.no_surfaces:
                 mbFlow.connect(WholeSurfShapeFlow,
                                'Freesurfer_sulc_to_vtk.output_vtk',
                                VertexTable, 'freesurfer_sulc_file')
+            # To avoid error when running Docker container as an executable:
+            VertexTable.interface._redirect_x = True
             mbFlow.connect(VertexTable, 'output_table',
                            Sink, 'tables.@vertices')
 
