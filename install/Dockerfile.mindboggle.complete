@@ -53,7 +53,7 @@ CMD ["IMAGE", "--id", "--out"]
 #-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
-# 1. Install mindboggle (git tag v1.1.0_MITworkshop):
+# 1. Install mindboggle (git tag v1.2.0_mindboggle123):
 #-----------------------------------------------------------------------------
 USER $NB_USER
 WORKDIR /opt
@@ -64,8 +64,8 @@ RUN git clone https://github.com/nipy/mindboggle && \
     mkdir /opt/vtk_cpp_tools && \
     cd /opt/vtk_cpp_tools && \
     cmake /opt/mindboggle/vtk_cpp_tools -DCMAKE_EXE_LINKER_FLAGS="-L /opt/conda/lib" && \
-    make && \
-    rm -rf /opt/mindboggle
+    make
+    #rm -rf /opt/mindboggle
 ENV vtk_cpp_tools=/opt/vtk_cpp_tools
 
 #-----------------------------------------------------------------------------
