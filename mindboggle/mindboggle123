@@ -66,6 +66,10 @@ adv_args.add_argument("--working",
                       default=os.path.join('/home/jovyan/work/mindboggle123_output',
                                            'working'),
                       metavar='STR')
+adv_args.add_argument("--skip_freesurfer", action='store_true',
+                      help="skip FreeSurfer for debugging (nipype skips when run)")
+adv_args.add_argument("--skip_ants", action='store_true',
+                      help="skip ANTs for debugging (nipype skips when run)")
 adv_args.add_argument("--plugin", dest="plugin",
                       default='Linear',
                       help="nipype plugin (see nipype documentation)")
@@ -222,11 +226,17 @@ Mindboggle = Node(name='mindboggle',
                                             'args',
                                             'verbose'],
                                output_names=['command']))
-mbFlow.connect(reconall, 'subject_id', Mindboggle, 'subjectid')
-mbFlow.connect(reconall, 'subjects_dir', Mindboggle, 'fsdir')
+Mindboggle.inputs.subjectid = ID
+if args.skip_freesurfer:
+    Mindboggle.inputs.fsdir = freesurfer_output
+else:
+    mbFlow.connect(reconall, 'subjects_dir', Mindboggle, 'fsdir')
 Mindboggle.inputs.antsdir = ants_output
-mbFlow.connect(corticalthickness, 'BrainSegmentation',
-               Mindboggle, 'antsseg')
+if args.skip_ants:
+    Mindboggle.inputs.antsseg = PREFIX + 'BrainSegmentation.nii.gz'
+else:
+    mbFlow.connect(corticalthickness, 'BrainSegmentation',
+                   Mindboggle, 'antsseg')
 Mindboggle.inputs.out = mindboggle_output
 Mindboggle.inputs.args = '--roygbiv --graph hier'
 Mindboggle.inputs.verbose = True
