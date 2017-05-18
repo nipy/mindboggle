@@ -71,6 +71,12 @@ adv_args.add_argument("--plugin", dest="plugin",
                       help="nipype plugin (see nipype documentation)")
 adv_args.add_argument("--plugin_args", dest="plugin_args",
                       help="plugin arguments (see nipype documentation)")
+adv_args.add_argument("--fs_openmp", dest="openmp",
+                      default=1, type=int,
+                      help="Number of freesurfer openmp threads")
+adv_args.add_argument("--ants_num_threads", dest="num_threads",
+                      default=1, type=int,
+                      help="Number of threads to use with ANTs")
 args = parser.parse_args()
 
 # ----------------------------------------------------------------------------
@@ -115,6 +121,8 @@ reconall.inputs.subject_id = ID
 reconall.inputs.directive = 'all'
 reconall.inputs.subjects_dir = freesurfer_output
 reconall.inputs.T1_files = IMAGE
+if args.openmp:
+    reconall.inputs.openmp = args.openmp
 
 # ----------------------------------------------------------------------------
 # Use antsCorticalThickness.sh to generate segmentations of structural data:
@@ -150,6 +158,9 @@ corticalthickness.inputs.extraction_registration_mask = EXT
 corticalthickness.inputs.segmentation_priors = [PRIOR1, PRIOR2, PRIOR3,
                                                 PRIOR4, PRIOR5, PRIOR6]
 corticalthickness.inputs.out_prefix = PREFIX
+
+if args.num_threads:
+    corticalthickness.inputs.num_threads = args.num_threads
 
 # ----------------------------------------------------------------------------
 # Create function to call mindboggle
