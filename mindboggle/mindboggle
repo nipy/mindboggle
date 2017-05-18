@@ -1247,6 +1247,9 @@ if not args.no_surfaces:
                 ShapeTables.inputs.sulci_zernike = []
                 ShapeTables.inputs.sulci_zernike_IDs = []
 
+        # To avoid error when running Docker container as an executable:
+        ShapeTables.interface._redirect_x = True
+
         ShapeTables.inputs.exclude_labels = [background_value]
         mbFlow.connect(ShapeTables, 'label_table', Sink, 'tables.@labels')
         if do_sulci:

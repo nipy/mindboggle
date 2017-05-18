@@ -90,6 +90,8 @@ IMAGE = args.IMAGE
 ID = args.id
 OUT = args.out
 WORK = args.working
+if args.skip_freesurfer and args.skip_ants:
+    print("Use only one of the skip arguments: --skip_freesurfer, --skip_ants.")
 
 # ----------------------------------------------------------------------------
 # Output directories
