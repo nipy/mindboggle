@@ -240,7 +240,7 @@ else:
     mbFlow.connect(corticalthickness, 'BrainSegmentation',
                    Mindboggle, 'antsseg')
 Mindboggle.inputs.out = mindboggle_output
-Mindboggle.inputs.args = '--roygbiv --graph hier'
+Mindboggle.inputs.args = '--roygbiv'  #' --graph hier'
 Mindboggle.inputs.verbose = True
 
 # ----------------------------------------------------------------------------
