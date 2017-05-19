@@ -73,8 +73,11 @@ terminal window)::
 
     docker pull nipy/mindboggle
 
-*Note: This contains FreeSurfer, ANTs, and Mindboggle, so it is currently
+*Note 1: This contains FreeSurfer, ANTs, and Mindboggle, so it is currently
 over 6GB.*
+
+*Note 2: You may need to increase memory allocated by Docker to at least 5GB.
+For example: `By default, Docker for Mac is set to use 2 GB runtime memory <https://docs.docker.com/docker-for-mac/>`_.*
 
 3. Optionally download sample data. To try out the ``mindboggle`` examples
 below, download and unzip the directory of example input data
