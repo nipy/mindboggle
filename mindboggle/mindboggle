@@ -1247,8 +1247,8 @@ if not args.no_surfaces:
                 ShapeTables.inputs.sulci_zernike = []
                 ShapeTables.inputs.sulci_zernike_IDs = []
 
-        # To avoid error when running Docker container as an executable:
-        ShapeTables.interface._redirect_x = True
+        ## To avoid error when running Docker container as an executable:
+        #ShapeTables.interface._redirect_x = True
 
         ShapeTables.inputs.exclude_labels = [background_value]
         mbFlow.connect(ShapeTables, 'label_table', Sink, 'tables.@labels')
@@ -1324,8 +1324,10 @@ if not args.no_surfaces:
                 mbFlow.connect(WholeSurfShapeFlow,
                                'Freesurfer_sulc_to_vtk.output_vtk',
                                VertexTable, 'freesurfer_sulc_file')
-            # To avoid error when running Docker container as an executable:
-            VertexTable.interface._redirect_x = True
+
+            ## To avoid error when running Docker container as an executable:
+            #VertexTable.interface._redirect_x = True
+
             mbFlow.connect(VertexTable, 'output_table',
                            Sink, 'tables.@vertices')
 
