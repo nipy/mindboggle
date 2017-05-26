@@ -78,9 +78,15 @@ adv_args.add_argument("--plugin_args", dest="plugin_args",
 adv_args.add_argument("--fs_openmp", dest="openmp",
                       default=1, type=int,
                       help="Number of freesurfer openmp threads")
+adv_args.add_argument("--fs_T2image", dest="T2image",
+                      type=str,
+                      help="Optional T2 image to use with FreeSurfer")
 adv_args.add_argument("--ants_num_threads", dest="num_threads",
                       default=1, type=int,
                       help="Number of threads to use with ANTs")
+adv_args.add_argument("--mb_num_threads", dest="mb_num_threads",
+                      default=1, type=int,
+                      help="Number of threads to use with mindboggle")
 args = parser.parse_args()
 
 # ----------------------------------------------------------------------------
@@ -127,8 +133,11 @@ reconall.inputs.subject_id = ID
 reconall.inputs.directive = 'all'
 reconall.inputs.subjects_dir = freesurfer_output
 reconall.inputs.T1_files = IMAGE
-if args.openmp:
+if args.openmp and args.openmp > 1:
     reconall.inputs.openmp = args.openmp
+if args.T2image:
+    reconall.inputs.T2_file = args.T2image
+    reconall.inputs.use_T2 = True
 
 # ----------------------------------------------------------------------------
 # Use antsCorticalThickness.sh to generate segmentations of structural data:
@@ -165,13 +174,13 @@ corticalthickness.inputs.segmentation_priors = [PRIOR1, PRIOR2, PRIOR3,
                                                 PRIOR4, PRIOR5, PRIOR6]
 corticalthickness.inputs.out_prefix = PREFIX
 
-if args.num_threads:
+if args.num_threads and args.num_threads > 1:
     corticalthickness.inputs.num_threads = args.num_threads
 
 # ----------------------------------------------------------------------------
 # Create function to call mindboggle
 # ----------------------------------------------------------------------------
-def mindboggle(subjectid, fsdir, antsdir, antsseg, out, args, verbose=True):
+def mindboggle(subjectid, fsdir, antsdir, antsseg, out, args, num_threads=1, verbose=True):
     """
     Run the mindboggle morphology pipeline (see http://mindboggle.info).
 
@@ -201,11 +210,15 @@ def mindboggle(subjectid, fsdir, antsdir, antsseg, out, args, verbose=True):
     ants = os.path.join(antsdir, subjectid, antsseg)
 
     all_args = ' '.join([DATA, '--out', out, '--ants', ants, args])
+    if num_threads > 1:
+        all_args += ' --plugin MultiProc --plugin_args "dict(n_procs={0})"'.format(num_threads)
     command = "{0} {1}".format('mindboggle', all_args)
 
     if verbose:
         print(command)
 
+    from nipype import config                                                                  
+    del config._sections['execution']['display_variable']    
     cli = CommandLine(command='mindboggle')
     cli.inputs.args = all_args
     cli.cmdline
@@ -242,6 +255,8 @@ else:
 Mindboggle.inputs.out = mindboggle_output
 Mindboggle.inputs.args = '--roygbiv'  #' --graph hier'
 Mindboggle.inputs.verbose = True
+if args.mb_num_threads:
+    Mindboggle.inputs.num_threads = args.mb_num_threads
 
 # ----------------------------------------------------------------------------
 # Run workflow
