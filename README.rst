@@ -53,6 +53,7 @@ If you have any questions about Mindboggle, please post to
 `NeuroStars <https://neurostars.org/tags/mindboggle/>`_ with the tag
 "mindboggle". If you have found a bug, big or small, please
 `submit an issue <https://github.com/nipy/mindboggle/issues>`_ on GitHub.
+A jupyter notebook tutorial exists within the mindboggle/docs folder.
 
 ------------------------------------------------------------------------------
 Installation
