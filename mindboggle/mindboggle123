@@ -275,7 +275,7 @@ Mindboggle.inputs.verbose = True
 # ----------------------------------------------------------------------------
 if __name__ == '__main__':
 
-    if not args.version:
+    if args.version:
         print('mindboggle123 runs {0}'.format(mindboggle_version))
     else:
 
