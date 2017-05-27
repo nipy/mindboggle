@@ -84,6 +84,7 @@ RUN conda install -y flask && \
     git clone https://github.com/akeshavan/nbpapaya && \
     cd /opt/nbpapaya && \
     git checkout 60119b6e1de651f250af26a3541d9cb18e971526 && \
+    git submodule update --init --recursive && \
     python setup.py install && \
     rm -rf /opt/roygbiv /opt/nbpapaya
 
