@@ -251,7 +251,12 @@ Mindboggle = Node(name='mindboggle',
                                             'antsseg',
                                             'out',
                                             'args',
+<<<<<<< HEAD
                                             'version'],
+=======
+                                            'num_threads',
+                                            'verbose'],
+>>>>>>> 0c88aa359ec744a927c0c884c38ef7ac69319001
                                output_names=['command']))
 Mindboggle.inputs.subjectid = ID
 
