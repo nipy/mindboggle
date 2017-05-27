@@ -56,6 +56,8 @@ adv_args = parser.add_argument_group('advanced settings')
 parser.add_argument("IMAGE", help=("T1-weighted MR human brain image"))
 
 # "additional arguments":
+add_args.add_argument("-v", "--version", action='store_true',
+                      help="show mindboggle version number")
 add_args.add_argument("--id", help='ID for the brain image', metavar='STR')
 add_args.add_argument("--out", help='output folder for all commands',
                       default='/home/jovyan/work/mindboggle123_output',
@@ -180,7 +182,8 @@ if args.num_threads and args.num_threads > 1:
 # ----------------------------------------------------------------------------
 # Create function to call mindboggle
 # ----------------------------------------------------------------------------
-def mindboggle(subjectid, fsdir, antsdir, antsseg, out, args, num_threads=1, verbose=True):
+def mindboggle(subjectid, fsdir, antsdir, antsseg, out, args, num_threads=1,
+               verbose=False):
     """
     Run the mindboggle morphology pipeline (see http://mindboggle.info).
 
@@ -199,7 +202,7 @@ def mindboggle(subjectid, fsdir, antsdir, antsseg, out, args, num_threads=1, ver
     args : string
         extra arguments
     verbose : boolean
-        print to stdout?
+        print mindboggle version?
 
     """
     import os
@@ -209,13 +212,16 @@ def mindboggle(subjectid, fsdir, antsdir, antsseg, out, args, num_threads=1, ver
     DATA = os.path.join(fsdir, subjectid)
     ants = os.path.join(antsdir, subjectid, antsseg)
 
-    all_args = ' '.join([DATA, '--out', out, '--ants', ants, args])
-    if num_threads > 1:
-        all_args += ' --plugin MultiProc --plugin_args "dict(n_procs={0})"'.format(num_threads)
-    command = "{0} {1}".format('mindboggle', all_args)
-
     if verbose:
-        print(command)
+        all_args = ' '.join([DATA, '--verbose'])
+    else:
+        all_args = ' '.join([DATA, '--out', out, '--ants', ants, args])
+
+    if num_threads > 1:
+        all_args += ' --plugin MultiProc --plugin_args "dict(n_procs={0})"'.\
+            format(num_threads)
+    command = "{0} {1}".format('mindboggle', all_args)
+    print(command)
 
     from nipype import config                                                                  
     del config._sections['execution']['display_variable']    
@@ -254,7 +260,7 @@ else:
                    Mindboggle, 'antsseg')
 Mindboggle.inputs.out = mindboggle_output
 Mindboggle.inputs.args = '--roygbiv'  #' --graph hier'
-Mindboggle.inputs.verbose = True
+Mindboggle.inputs.verbose = args.verbose
 if args.mb_num_threads:
     Mindboggle.inputs.num_threads = args.mb_num_threads
 
