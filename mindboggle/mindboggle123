@@ -220,7 +220,7 @@ def mindboggle(subjectid, fsdir, antsdir, antsseg, out, args, num_threads=1):
     ants = os.path.join(antsdir, subjectid, antsseg)
 
     all_args = ' '.join([DATA, '--out', out, '--ants', ants,
-                         '--workdir', os.getcwd(), args])
+                         '--working', os.getcwd(), args])
 
     if num_threads > 1:
         all_args += ' --plugin MultiProc --plugin_args "dict(n_procs={0})"'.\
