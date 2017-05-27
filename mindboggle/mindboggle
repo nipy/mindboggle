@@ -73,6 +73,9 @@ from mindboggle.shapes.volume_shapes import thickinthehead, \
 from mindboggle.shapes.zernike.zernike import zernike_moments_per_label
 from mindboggle.thirdparty.ants import PropagateLabelsThroughMask
 
+from mindboggle.version import __version__ as mbversion
+mindboggle_version = 'mindboggle version {0}'.format(mbversion)
+
 # ============================================================================
 #
 #   Command-line arguments
@@ -98,7 +101,7 @@ parser.add_argument("DATA", help=("path to directory of a person's brain "
                                   "software"))
 # "optional arguments":
 parser.add_argument("-v", "--version", help="show mindboggle version number",
-                    action='version', version='%(prog)s 1.2.0')
+                    action='version', version=mindboggle_version)
 parser.add_argument("-c", "--cpus",
                     help='number of processors to use (1)',
                     type=int, default=1, metavar='INT')

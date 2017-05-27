@@ -5,18 +5,8 @@ the Mindboggle top-level docstring, and for building the docs.
 In setup.py we execute this file, so it cannot import mindboggle.
 """
 
-# Mindboggle version information.  An empty _version_extra corresponds to a
-# full release.  '.dev' as a _version_extra string means a development version
-_version_major = 1
-_version_minor = 2
-_version_micro = 0
-_version_extra = ''
-
 # Format expected by setup.py and doc/source/conf.py: string of form "X.Y.Z"
-__version__ = "{0}.{1}.{2}{3}".format(_version_major,
-                                      _version_minor,
-                                      _version_micro,
-                                      _version_extra)
+from mindboggle.version import __version__ as __version__
 
 CLASSIFIERS = ["Development Status :: Beta",
                "Environment :: Console",
@@ -58,10 +48,6 @@ CLASSIFIERS         = CLASSIFIERS
 AUTHOR              = "Arno Klein"
 AUTHOR_EMAIL        = "arno@mindboggle.info"
 PLATFORMS           = "Linux"
-MAJOR               = _version_major
-MINOR               = _version_minor
-MICRO               = _version_micro
-ISRELEASE           = _version_extra
 VERSION             = __version__
 PROVIDES            = ["mindboggle"]
 #REQUIRES            = ["numpy (>={0})".format(NUMPY_MIN_VERSION)]

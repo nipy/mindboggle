@@ -36,6 +36,9 @@ from nipype.interfaces.utility import Function as Fn
 from nipype.interfaces.freesurfer import ReconAll
 from nipype.interfaces.ants.segmentation import antsCorticalThickness
 
+from mindboggle.version import __version__ as mbversion
+mindboggle_version = 'mindboggle version {0}'.format(mbversion)
+
 # ----------------------------------------------------------------------------
 # Command-line arguments
 # ----------------------------------------------------------------------------
@@ -56,8 +59,8 @@ adv_args = parser.add_argument_group('advanced settings')
 parser.add_argument("IMAGE", help=("T1-weighted MR human brain image"))
 
 # "additional arguments":
-add_args.add_argument("-v", "--version", action='store_true',
-                      help="show mindboggle version number")
+parser.add_argument("-v", "--version", help="show mindboggle version number",
+                    action='version', version=mindboggle_version)
 add_args.add_argument("--id", help='ID for the brain image', metavar='STR')
 add_args.add_argument("--out", help='output folder for all commands',
                       default='/home/jovyan/work/mindboggle123_output',
@@ -102,88 +105,89 @@ if args.skip_freesurfer and args.skip_ants:
     print("Use only one of the skip arguments: --skip_freesurfer, --skip_ants.")
 
 # ----------------------------------------------------------------------------
-# Output directories
-# ----------------------------------------------------------------------------
-if not os.path.isdir(OUT):
-    print("Create missing output directory {0}".format(OUT))
-    os.makedirs(OUT)
-if not os.path.isdir(WORK):
-    print("Create missing working directory {0}".format(WORK))
-    os.makedirs(WORK)
-freesurfer_output = os.path.join(OUT, 'freesurfer_subjects')
-if not os.path.isdir(freesurfer_output):
-    os.makedirs(freesurfer_output)
-ants_output = os.path.join(OUT, 'ants_subjects')
-if not os.path.isdir(ants_output):
-    os.makedirs(ants_output)
-mindboggle_output = os.path.join(OUT, 'mindboggled')
-if not os.path.isdir(mindboggle_output):
-    os.makedirs(mindboggle_output)
-
-# ----------------------------------------------------------------------------
 # Initialize workflow inputs and outputs
 # ----------------------------------------------------------------------------
 mbFlow = Workflow(name='Mindboggle123')
 mbFlow.base_dir = WORK
 
-# ----------------------------------------------------------------------------
-# Use recon-all to generate surfaces and parcellations of structural data:
-#     recon-all -all -i <structural.nii> -subjid <foo> -sd <.>
-# ----------------------------------------------------------------------------
-reconall = Node(ReconAll(), name='recon-all')
-reconall.inputs.subject_id = ID
-reconall.inputs.directive = 'all'
-reconall.inputs.subjects_dir = freesurfer_output
-reconall.inputs.T1_files = IMAGE
-if args.openmp and args.openmp > 1:
-    reconall.inputs.openmp = args.openmp
-if args.T2image:
-    reconall.inputs.T2_file = args.T2image
-    reconall.inputs.use_T2 = True
+if not args.version:
 
-# ----------------------------------------------------------------------------
-# Use antsCorticalThickness.sh to generate segmentations of structural data:
-#     antsCorticalThickness.sh -d 3 -a $IMAGE \
-#     -e $TEMPLATE/T_template0.nii.gz \
-#     -t $TEMPLATE/T_template0_BrainCerebellum.nii.gz \
-#     -m $TEMPLATE/T_template0_BrainCerebellumProbabilityMask.nii.gz \
-#     -f $TEMPLATE/T_template0_BrainCerebellumExtractionMask.nii.gz \
-#     -p $TEMPLATE/Priors2/priors%d.nii.gz \
-#     -o $PREFIX
-# ----------------------------------------------------------------------------
-TDIR = '/opt/data/OASIS-30_Atropos_template'
-TEMPLATE = os.path.join(TDIR, 'T_template0.nii.gz')
-REG = os.path.join(TDIR, 'T_template0_BrainCerebellum.nii.gz')
-PROB = os.path.join(TDIR, 'T_template0_BrainCerebellumProbabilityMask.nii.gz')
-EXT = os.path.join(TDIR, 'T_template0_BrainCerebellumExtractionMask.nii.gz')
-PRIOR1 = os.path.join(TDIR, 'Priors2', 'priors1.nii.gz')
-PRIOR2 = os.path.join(TDIR, 'Priors2', 'priors2.nii.gz')
-PRIOR3 = os.path.join(TDIR, 'Priors2', 'priors3.nii.gz')
-PRIOR4 = os.path.join(TDIR, 'Priors2', 'priors4.nii.gz')
-PRIOR5 = os.path.join(TDIR, 'Priors2', 'priors5.nii.gz')
-PRIOR6 = os.path.join(TDIR, 'Priors2', 'priors6.nii.gz')
-PREFIX = os.path.join(ants_output, ID, 'ants')
+    # ------------------------------------------------------------------------
+    # Output directories
+    # ------------------------------------------------------------------------
+    if not os.path.isdir(OUT):
+        print("Create missing output directory {0}".format(OUT))
+        os.makedirs(OUT)
+    if not os.path.isdir(WORK):
+        print("Create missing working directory {0}".format(WORK))
+        os.makedirs(WORK)
+    freesurfer_output = os.path.join(OUT, 'freesurfer_subjects')
+    if not os.path.isdir(freesurfer_output):
+        os.makedirs(freesurfer_output)
+    ants_output = os.path.join(OUT, 'ants_subjects')
+    if not os.path.isdir(ants_output):
+        os.makedirs(ants_output)
+    mindboggle_output = os.path.join(OUT, 'mindboggled')
+    if not os.path.isdir(mindboggle_output):
+        os.makedirs(mindboggle_output)
 
-corticalthickness = Node(antsCorticalThickness(),
-                         name='antsCorticalThickness')
-corticalthickness.inputs.dimension = 3
-corticalthickness.inputs.anatomical_image = IMAGE
-corticalthickness.inputs.brain_template = TEMPLATE
-corticalthickness.inputs.t1_registration_template = REG
-corticalthickness.inputs.brain_probability_mask = PROB
-corticalthickness.inputs.extraction_registration_mask = EXT
-corticalthickness.inputs.segmentation_priors = [PRIOR1, PRIOR2, PRIOR3,
-                                                PRIOR4, PRIOR5, PRIOR6]
-corticalthickness.inputs.out_prefix = PREFIX
+    # ------------------------------------------------------------------------
+    # Use recon-all to generate surfaces and parcellations of structural data:
+    #     recon-all -all -i <structural.nii> -subjid <foo> -sd <.>
+    # ------------------------------------------------------------------------
+    reconall = Node(ReconAll(), name='recon-all')
+    reconall.inputs.subject_id = ID
+    reconall.inputs.directive = 'all'
+    reconall.inputs.subjects_dir = freesurfer_output
+    reconall.inputs.T1_files = IMAGE
+    if args.openmp and args.openmp > 1:
+        reconall.inputs.openmp = args.openmp
+    if args.T2image:
+        reconall.inputs.T2_file = args.T2image
+        reconall.inputs.use_T2 = True
 
-if args.num_threads and args.num_threads > 1:
-    corticalthickness.inputs.num_threads = args.num_threads
+    # ------------------------------------------------------------------------
+    # Use antsCorticalThickness.sh to generate segmentations of structural data:
+    #     antsCorticalThickness.sh -d 3 -a $IMAGE \
+    #     -e $TEMPLATE/T_template0.nii.gz \
+    #     -t $TEMPLATE/T_template0_BrainCerebellum.nii.gz \
+    #     -m $TEMPLATE/T_template0_BrainCerebellumProbabilityMask.nii.gz \
+    #     -f $TEMPLATE/T_template0_BrainCerebellumExtractionMask.nii.gz \
+    #     -p $TEMPLATE/Priors2/priors%d.nii.gz \
+    #     -o $PREFIX
+    # ------------------------------------------------------------------------
+    TDIR = '/opt/data/OASIS-30_Atropos_template'
+    TEMPLATE = os.path.join(TDIR, 'T_template0.nii.gz')
+    REG = os.path.join(TDIR, 'T_template0_BrainCerebellum.nii.gz')
+    PROB = os.path.join(TDIR, 'T_template0_BrainCerebellumProbabilityMask.nii.gz')
+    EXT = os.path.join(TDIR, 'T_template0_BrainCerebellumExtractionMask.nii.gz')
+    PRIOR1 = os.path.join(TDIR, 'Priors2', 'priors1.nii.gz')
+    PRIOR2 = os.path.join(TDIR, 'Priors2', 'priors2.nii.gz')
+    PRIOR3 = os.path.join(TDIR, 'Priors2', 'priors3.nii.gz')
+    PRIOR4 = os.path.join(TDIR, 'Priors2', 'priors4.nii.gz')
+    PRIOR5 = os.path.join(TDIR, 'Priors2', 'priors5.nii.gz')
+    PRIOR6 = os.path.join(TDIR, 'Priors2', 'priors6.nii.gz')
+    PREFIX = os.path.join(ants_output, ID, 'ants')
+
+    corticalthickness = Node(antsCorticalThickness(),
+                             name='antsCorticalThickness')
+    corticalthickness.inputs.dimension = 3
+    corticalthickness.inputs.anatomical_image = IMAGE
+    corticalthickness.inputs.brain_template = TEMPLATE
+    corticalthickness.inputs.t1_registration_template = REG
+    corticalthickness.inputs.brain_probability_mask = PROB
+    corticalthickness.inputs.extraction_registration_mask = EXT
+    corticalthickness.inputs.segmentation_priors = [PRIOR1, PRIOR2, PRIOR3,
+                                                    PRIOR4, PRIOR5, PRIOR6]
+    corticalthickness.inputs.out_prefix = PREFIX
+
+    if args.num_threads and args.num_threads > 1:
+        corticalthickness.inputs.num_threads = args.num_threads
 
 # ----------------------------------------------------------------------------
 # Create function to call mindboggle
 # ----------------------------------------------------------------------------
-def mindboggle(subjectid, fsdir, antsdir, antsseg, out, args, num_threads=1,
-               verbose=False):
+def mindboggle(subjectid, fsdir, antsdir, antsseg, out, args, num_threads=1):
     """
     Run the mindboggle morphology pipeline (see http://mindboggle.info).
 
@@ -201,8 +205,13 @@ def mindboggle(subjectid, fsdir, antsdir, antsseg, out, args, num_threads=1,
         path to mindboggle output directory
     args : string
         extra arguments
-    verbose : boolean
-        print mindboggle version?
+    num_threads
+        number of threads
+
+    Returns
+    -------
+    command : string
+        command
 
     """
     import os
@@ -212,10 +221,7 @@ def mindboggle(subjectid, fsdir, antsdir, antsseg, out, args, num_threads=1,
     DATA = os.path.join(fsdir, subjectid)
     ants = os.path.join(antsdir, subjectid, antsseg)
 
-    if verbose:
-        all_args = ' '.join([DATA, '--verbose'])
-    else:
-        all_args = ' '.join([DATA, '--out', out, '--ants', ants, args])
+    all_args = ' '.join([DATA, '--out', out, '--ants', ants, args])
 
     if num_threads > 1:
         all_args += ' --plugin MultiProc --plugin_args "dict(n_procs={0})"'.\
@@ -245,22 +251,31 @@ Mindboggle = Node(name='mindboggle',
                                             'antsseg',
                                             'out',
                                             'args',
-                                            'verbose'],
+                                            'version'],
                                output_names=['command']))
 Mindboggle.inputs.subjectid = ID
-if args.skip_freesurfer:
-    Mindboggle.inputs.fsdir = freesurfer_output
+
+if not args.version:
+    if args.skip_freesurfer:
+        Mindboggle.inputs.fsdir = freesurfer_output
+    else:
+        mbFlow.connect(reconall, 'subjects_dir', Mindboggle, 'fsdir')
+    Mindboggle.inputs.antsdir = ants_output
+    if args.skip_ants:
+        Mindboggle.inputs.antsseg = PREFIX + 'BrainSegmentation.nii.gz'
+    else:
+        mbFlow.connect(corticalthickness, 'BrainSegmentation',
+                       Mindboggle, 'antsseg')
+    Mindboggle.inputs.out = mindboggle_output
+    Mindboggle.inputs.args = '--roygbiv'  # ' --graph hier'
 else:
-    mbFlow.connect(reconall, 'subjects_dir', Mindboggle, 'fsdir')
-Mindboggle.inputs.antsdir = ants_output
-if args.skip_ants:
-    Mindboggle.inputs.antsseg = PREFIX + 'BrainSegmentation.nii.gz'
-else:
-    mbFlow.connect(corticalthickness, 'BrainSegmentation',
-                   Mindboggle, 'antsseg')
-Mindboggle.inputs.out = mindboggle_output
-Mindboggle.inputs.args = '--roygbiv'  #' --graph hier'
-Mindboggle.inputs.verbose = args.verbose
+    Mindboggle.inputs.fsdir = ''
+    Mindboggle.inputs.antsdir = ''
+    Mindboggle.inputs.antsseg = ''
+    Mindboggle.inputs.out = ''
+    Mindboggle.inputs.args = ''
+
+Mindboggle.inputs.version = args.version
 if args.mb_num_threads:
     Mindboggle.inputs.num_threads = args.mb_num_threads
 
@@ -299,6 +314,9 @@ if __name__ == '__main__':
     else:
         mbFlow.run()
 
-    print('mindboggle123 done running recon-all, antsCorticalThicness.sh, '
-          'and mindboggle on {0} after {1:0.2f} seconds.'.
-          format(ID, time() - time0))
+    if not args.version:
+        print('mindboggle123 done running recon-all, antsCorticalThicness.sh, '
+              'and mindboggle on {0} after {1:0.2f} seconds.'.
+              format(ID, time() - time0))
+    else:
+        print('mindboggle123 runs {0}'.format(mindboggle_version))
