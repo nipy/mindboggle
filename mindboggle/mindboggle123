@@ -250,8 +250,7 @@ Mindboggle = Node(name='mindboggle',
                                             'antsseg',
                                             'out',
                                             'args',
-                                            'num_threads',
-                                            'verbose'],
+                                            'num_threads'],
                                output_names=['command']))
 Mindboggle.inputs.subjectid = ID
 if args.skip_freesurfer:
@@ -268,7 +267,6 @@ Mindboggle.inputs.out = mindboggle_output
 Mindboggle.inputs.args = '--roygbiv'  # ' --graph hier'
 if args.mb_num_threads:
     Mindboggle.inputs.num_threads = args.mb_num_threads
-Mindboggle.inputs.verbose = True
 
 # ----------------------------------------------------------------------------
 # Run workflow
