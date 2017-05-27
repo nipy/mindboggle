@@ -59,8 +59,9 @@ adv_args = parser.add_argument_group('advanced settings')
 parser.add_argument("IMAGE", help=("T1-weighted MR human brain image"))
 
 # "additional arguments":
-add_args.add_argument("-v", "--version", help="show mindboggle version number",
-                      action = 'store_true')
+parser.add_argument("--version", help="show mindboggle version number",
+                    action='version',
+                    version='%(prog)s {}'.format(mbversion))
 add_args.add_argument("--id", help='ID for the brain image', metavar='STR')
 add_args.add_argument("--out", help='output folder for all commands',
                       default='/home/jovyan/work/mindboggle123_output',
