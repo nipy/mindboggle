@@ -53,7 +53,16 @@ If you have any questions about Mindboggle, please post to
 `NeuroStars <https://neurostars.org/tags/mindboggle/>`_ with the tag
 "mindboggle". If you have found a bug, big or small, please
 `submit an issue <https://github.com/nipy/mindboggle/issues>`_ on GitHub.
-A jupyter notebook tutorial exists within the mindboggle/docs folder.
+
+To run the mindboggle jupyter notebook tutorial, first install the mindboggle
+docker container (see below) and enter the bash shell of the container
+from your $HOST (e.g., /Users/arno)::
+
+    docker run --rm -ti -v $HOST:/home/jovyan/work -p 8888:8888 --entrypoint /bin/bash nipy/mindboggle
+
+Then run the notebook from within the container::
+
+    jupyter notebook /opt/mindboggle/docs/mindboggle_tutorial.ipynb
 
 ------------------------------------------------------------------------------
 Installation
