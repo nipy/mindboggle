@@ -275,40 +275,36 @@ if args.mb_num_threads:
 # ----------------------------------------------------------------------------
 if __name__ == '__main__':
 
-    if args.version:
-        print('mindboggle123 runs {0}'.format(mindboggle_version))
-    else:
+    from time import time
+    time0 = time()
 
-        from time import time
-        time0 = time()
+    # --------------------------------------------------------------------
+    # Workflow configuration: provenance tracking, content hashing, etc.:
+    # --------------------------------------------------------------------
+    # config.enable_provenance()
+    mbFlow.config['execution']['hash_method'] = 'content'
+    # mbFlow.config['execution']['use_relative_paths'] = True
 
-        # --------------------------------------------------------------------
-        # Workflow configuration: provenance tracking, content hashing, etc.:
-        # --------------------------------------------------------------------
-        # config.enable_provenance()
-        mbFlow.config['execution']['hash_method'] = 'content'
-        # mbFlow.config['execution']['use_relative_paths'] = True
+    # --------------------------------------------------------------------
+    # Debug: http://nipy.org/nipype/users/config_file.html#debug-configuration
+    # --------------------------------------------------------------------
+    debug = False
+    if debug:
+        config.set('logging', 'workflow_level', 'DEBUG')
+        logging.update_logging(config)
+        mbFlow.config['execution']['stop_on_first_rerun'] = True
 
-        # --------------------------------------------------------------------
-        # Debug: http://nipy.org/nipype/users/config_file.html#debug-configuration
-        # --------------------------------------------------------------------
-        debug = False
-        if debug:
-            config.set('logging', 'workflow_level', 'DEBUG')
-            logging.update_logging(config)
-            mbFlow.config['execution']['stop_on_first_rerun'] = True
-
-        # --------------------------------------------------------------------
-        # Run with or without a plugin:
-        # --------------------------------------------------------------------
-        if args.plugin:
-            if args.plugin_args:
-                mbFlow.run(plugin=args.plugin, plugin_args=eval(args.plugin_args))
-            else:
-                mbFlow.run(plugin=args.plugin)
+    # --------------------------------------------------------------------
+    # Run with or without a plugin:
+    # --------------------------------------------------------------------
+    if args.plugin:
+        if args.plugin_args:
+            mbFlow.run(plugin=args.plugin, plugin_args=eval(args.plugin_args))
         else:
-            mbFlow.run()
+            mbFlow.run(plugin=args.plugin)
+    else:
+        mbFlow.run()
 
-        print('mindboggle123 done running recon-all, antsCorticalThicness.sh, '
-              'and mindboggle {0} on {1} after {2:0.2f} seconds.'.
-              format(mindboggle_version, ID, time() - time0))
+    print('mindboggle123 done running recon-all, antsCorticalThicness.sh, '
+          'and mindboggle {0} on {1} after {2:0.2f} seconds.'.
+          format(mindboggle_version, ID, time() - time0))
