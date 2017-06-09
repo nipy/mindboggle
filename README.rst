@@ -71,8 +71,8 @@ We recommend installing Mindboggle and its dependencies as a cross-platform
 Docker container for greater convenience and reproducibility of results.
 All the examples below assume you are using this Docker container,
 with the path /home/jovyan/work/ pointing to your host machine.
-(Alternatively, Mindboggle can be installed from scratch on a Linux machine
-using
+(Alternatively, one can `create a Singularity image <faq>`_,
+or Mindboggle can be installed from scratch on a Linux machine using
 `this script <https://raw.githubusercontent.com/nipy/mindboggle/master/install_mindboggle.sh>`_).
 
 1. `Install and run Docker <https://docs.docker.com/engine/installation/>`_
@@ -87,7 +87,7 @@ terminal window)::
 over 6GB.*
 
 *Note 2: You may need to increase memory allocated by Docker to at least 5GB.
-For example: `By default, Docker for Mac is set to use 2 GB runtime memory <https://docs.docker.com/docker-for-mac/>`_.*
+For example:* `By default, Docker for Mac is set to use 2 GB runtime memory <https://docs.docker.com/docker-for-mac/>`_.
 
 3. Optionally download sample data. To try out the ``mindboggle`` examples
 below, download and unzip the directory of example input data

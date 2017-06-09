@@ -11,3 +11,4 @@
    faq/citing_mindboggle
    faq/run_time
    labels
+   faq/singularity
