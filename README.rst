@@ -17,8 +17,9 @@ We have tested the software most extensively with Python 3.5.1 on Ubuntu Linux 1
     3. Installation
     4. Run one command
     5. Run separate commands
-    6. Appendix: processing
-    7. Appendix: output
+    6. Visualize output
+    7. Appendix: processing
+    8. Appendix: output
 
 :Release: |version|
 :Date: |today|
@@ -200,6 +201,22 @@ Generate only volume (no surface) labels and shapes::
     mindboggle $FREESURFER_SUBJECT --out $OUT \
         --ants $ANTS_SUBJECT/antsBrainSegmentation.nii.gz \
         --no_surfaces
+
+------------------------------------------------------------------------------
+Visualize output
+------------------------------------------------------------------------------
+To visualize Mindboggle output with roygbiv, start the Docker image with::
+
+    docker run --rm -ti -v $HOST:$DOCK -p 5000:5000 --entrypoint /bin/bash nipy/mindboggle
+
+and then inside the image, run roygbiv on an output directory::
+
+    roygbiv $OUT/$ID
+
+and open a browser to `localhost:5000`.
+
+Right now, roygbiv only shows summarized data, but Anisha Keshavan is working
+on by-vertex visualizations (for the latter, try `Paraview <https://www.paraview.org/2>`_).
 
 ------------------------------------------------------------------------------
 Appendix: processing
