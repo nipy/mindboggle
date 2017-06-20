@@ -87,6 +87,9 @@ adv_args.add_argument("--fs_openmp", dest="openmp",
 adv_args.add_argument("--fs_T2image", dest="T2image",
                       type=str,
                       help="Optional T2 image to use with FreeSurfer")
+adv_args.add_argument("--fs_3T", dest="T3",
+					  type=str,
+					  help="Enable recon-all's 3T option (nu intensity correction params & special schwartz atlas) ")
 adv_args.add_argument("--ants_num_threads", dest="num_threads",
                       default=1, type=int,
                       help="Number of threads to use with ANTs")
@@ -144,6 +147,8 @@ if args.openmp and args.openmp > 1:
 if args.T2image:
     reconall.inputs.T2_file = args.T2image
     reconall.inputs.use_T2 = True
+if args.T3:
+	reconall.inputs.flags = '-nuintensitycor-3T'
 
 # ----------------------------------------------------------------------------
 # Use antsCorticalThickness.sh to generate segmentations of structural data:
