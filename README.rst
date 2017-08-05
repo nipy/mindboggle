@@ -203,7 +203,7 @@ Take advantage of ANTs output as well ("\\" splits for readability)::
 **Example 4:**
 Generate only volume (no surface) labels and shapes::
 
-    mindboggle $FREESURFER_SUBJECT --out $OUT --roygbiv \
+    mindboggle $FREESURFER_SUBJECT --out $OUT \
         --ants $ANTS_SUBJECT/antsBrainSegmentation.nii.gz \
         --no_surfaces
 
