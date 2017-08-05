@@ -185,20 +185,25 @@ To learn about Mindboggle's command options, type this in a terminal window::
     mindboggle -h
 
 **Example 1:**
-This command runs Mindboggle on data run through FreeSurfer but not ANTs::
+Run Mindboggle on data processed by FreeSurfer but not ANTs::
 
     mindboggle $FREESURFER_SUBJECT --out $OUT
 
 **Example 2:**
-Take advantage of ANTs output as well ("\\" splits for readability)::
+Same as Example 1 with output to visualize surface data with roygbiv::
 
-    mindboggle $FREESURFER_SUBJECT --out $OUT \
-        --ants $ANTS_SUBJECT/antsBrainSegmentation.nii.gz
+    mindboggle $FREESURFER_SUBJECT --out $OUT --roygbiv
 
 **Example 3:**
+Take advantage of ANTs output as well ("\\" splits for readability)::
+
+    mindboggle $FREESURFER_SUBJECT --out $OUT --roygbiv \
+        --ants $ANTS_SUBJECT/antsBrainSegmentation.nii.gz
+
+**Example 4:**
 Generate only volume (no surface) labels and shapes::
 
-    mindboggle $FREESURFER_SUBJECT --out $OUT \
+    mindboggle $FREESURFER_SUBJECT --out $OUT --roygbiv \
         --ants $ANTS_SUBJECT/antsBrainSegmentation.nii.gz \
         --no_surfaces
 
