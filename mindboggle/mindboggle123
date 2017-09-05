@@ -72,6 +72,8 @@ adv_args.add_argument("--working",
                       default=os.path.join('/home/jovyan/work/mindboggle123_output',
                                            'working'),
                       metavar='STR')
+adv_args.add_argument("--template", help="folder with OASIS-30 template",
+                      default='/opt/data/OASIS-30_Atropos_template', metavar='STR')
 adv_args.add_argument("--skip_freesurfer", action='store_true',
                       help="skip FreeSurfer for debugging (nipype skips when run)")
 adv_args.add_argument("--skip_ants", action='store_true',
@@ -105,6 +107,7 @@ IMAGE = args.IMAGE
 ID = args.id
 OUT = args.out
 WORK = args.working
+TDIR = args.template
 if args.skip_freesurfer and args.skip_ants:
     print("Use only one of the skip arguments: --skip_freesurfer, --skip_ants.")
 
@@ -162,7 +165,6 @@ if args.fs_flags:
 #     -p $TEMPLATE/Priors2/priors%d.nii.gz \
 #     -o $PREFIX
 # ----------------------------------------------------------------------------
-TDIR = '/opt/data/OASIS-30_Atropos_template'
 TEMPLATE = os.path.join(TDIR, 'T_template0.nii.gz')
 REG = os.path.join(TDIR, 'T_template0_BrainCerebellum.nii.gz')
 PROB = os.path.join(TDIR, 'T_template0_BrainCerebellumProbabilityMask.nii.gz')
@@ -291,6 +293,7 @@ if __name__ == '__main__':
     # config.enable_provenance()
     mbFlow.config['execution']['hash_method'] = 'content'
     # mbFlow.config['execution']['use_relative_paths'] = True
+    mbFlow.config['execution']['crashfile_format'] = 'txt'
 
     # --------------------------------------------------------------------
     # Debug: http://nipy.org/nipype/users/config_file.html#debug-configuration
