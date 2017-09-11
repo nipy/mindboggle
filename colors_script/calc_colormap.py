@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-import sys
-sys.path.append('../mindboggle/mio')
-import colors
+from mindboggle.mio import colors
 import numpy as np
 import os
 import argparse

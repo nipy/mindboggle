@@ -8,10 +8,8 @@ Authors:
 Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
-import sys
-sys.path.append('../../mindboggle')
-import os
 
+import os
 
 def distinguishable_colors(ncolors, backgrounds=[[0,0,0],[1,1,1]],
                            save_csv=True, plot_colormap=True, verbose=True,
