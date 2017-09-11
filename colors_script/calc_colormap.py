@@ -2,66 +2,68 @@
 # -*- coding: utf-8 -*-
 
 
-from mindboggle.mio import colors
-import numpy as np
 import os
 import argparse
-import shutil
+import numpy as np
+
+from mindboggle.mio.colors import distinguishable_colors, label_adjacency_matrix
 
 
-def parse_inputs():
+if __name__ == "__main__":
 
-    des = 'calculate colormap for labeled image, store the colors in the file'\
-        + ' colors.npy'
-    parser = argparse.ArgumentParser(description=des)
-    parser.add_argument('label_filename', help='the path of the label image file')
-    help = 'path of folder to store intermediate files and final results'
-    parser.add_argument('output_dir', help=help)
+    description = ('calculate colormap for labeled image;'
+                   'calculated result is stored in output_dirname/colors.npy')
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('label_filename', help='path to the label image')
+    parser.add_argument('output_dirname', help='path to the folder storing '
+                                               'temporary files and result')
+    parser.add_argument('-v', '--verbose', action='store_true', default=False)
     args = parser.parse_args()
-    return args
 
-
-def main(args):
-
-    if not os.path.isdir(args.output_dir):
-        os.makedirs(args.output_dir)
+    if not os.path.isdir(args.output_dirname):
+        os.makedirs(args.output_dirname)
         
-    matrix_filename = os.path.join(args.output_dir, 'matrix.npy')
-    colormap_filename = os.path.join(args.output_dir, 'colormap.npy')
-    IDs_filename = os.path.join(args.output_dir, 'IDs.npy')
-    colors_filename = os.path.join(args.output_dir, 'colors.npy')
+    matrix_filename = os.path.join(args.output_dirname, 'matrix.npy')
+    colormap_filename = os.path.join(args.output_dirname, 'colormap.npy')
+    labels_filename = os.path.join(args.output_dirname, 'labels.npy')
+    colors_filename = os.path.join(args.output_dirname, 'colors.npy')
 
-    print('finding adjacency maps')
-    if not os.path.isfile(matrix_filename) and not os.path.isfile(IDs_filename):
-        IDs, matrix, output = colors.label_adjacency_matrix(args.label_filename,
-                                                            out_dir=args.output_dir)
+    if args.verbose:
+        print('finding adjacency maps...')
+
+    if not os.path.isfile(matrix_filename) or \
+            not os.path.isfile(labels_filename):
+        labels, matrix = label_adjacency_matrix(args.label_filename,
+                                                out_dir=args.output_dirname)[:2]
         matrix = matrix.as_matrix()[:, 1:]
         np.save(matrix_filename, matrix)
-        np.save(IDs_filename, IDs)
+        np.save(labels_filename, labels)
     else:
-        IDs = np.load(IDs_filename)
+        labels = np.load(labels_filename)
         matrix = np.load(matrix_filename)
 
-    print('finding colormap')
+    if args.verbose:
+        print('finding colormap...')
+
     if not os.path.isfile(colormap_filename):
-        ncolors = len(IDs)
-        colormap = colors.distinguishable_colors(ncolors=ncolors,
-                                                 plot_colormap=False,
-                                                 save_csv=False,
-                                                 out_dir=args.output_dir)
+        num_colors = len(labels)
+        colormap = distinguishable_colors(ncolors=num_colors,
+                                          plot_colormap=False,
+                                          save_csv=False,
+                                          out_dir=args.output_dirname)
         np.save(colormap_filename, colormap)
     else:
         colormap = np.load(colormap_filename)
 
-    print('finding label colors')
-    label_colors = colors.group_colors(colormap, args.label_filename, IDs=IDs,
-                                       adjacency_matrix=matrix, 
-                                       out_dir=args.output_dir,
-                                       plot_colors=True,
-                                       plot_graphs=False)
-    np.save(colors_filename, label_colors)
+    if args.verbose:
+        print('finding label colors')
 
-
-if __name__ == "__main__":
-    args = parse_inputs()
-    main(args)
+    if not os.path.isfile(colors_filename):
+        label_colors = colors.group_colors(colormap, 
+                                           args.label_filename, 
+                                           IDs=labels,
+                                           adjacency_matrix=matrix, 
+                                           out_dir=args.output_dirname,
+                                           plot_colors=False,
+                                           plot_graphs=False)
+        np.save(colors_filename, label_colors)
