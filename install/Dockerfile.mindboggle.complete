@@ -1,0 +1,100 @@
+# Dockerfile.mindboggle.complete
+#-----------------------------------------------------------------------------
+# This Dockerfile installs mindboggle (http://mindboggle.info)
+# and visualization software roygbiv. This builds on the docker image
+# nipy/mindboggle-base, which contains all of Mindboggle's dependencies
+# and preprocessing software packages, including FreeSurfer and ANTs.
+#
+# Steps:
+# 1.  Install mindboggle.
+# 2.  Install roygbiv for mindboggle output visualization.
+#
+# Build the docker image:
+# docker build -t mindboggle -f Dockerfile.mindboggle.complete .
+#
+# Push to Docker hub:
+# (https://docs.docker.com/docker-cloud/builds/push-images/)
+# export DOCKER_ID_USER="nipy"
+# docker login
+# docker tag mindboggle nipy/mindboggle
+# docker push nipy/mindboggle
+#
+# Pull from Docker hub:
+# docker pull nipy/mindboggle
+#
+# In the following, the Docker container can be the original (mindboggle)
+# or the pulled version (nipy/mindboggle), and is given access to /Users/arno
+# on the host machine.
+#
+# Enter the bash shell of the Docker container, and add port mappings:
+# docker run --rm -ti -v /Users/arno:/home/jovyan/work -p 8888:8888 -p 5000:5000 nipy/mindboggle bash
+#
+# Run the Docker container as an executable (variables set for clarity):
+# HOST=/Users/binarybottle  # path on host to access input and output
+# DOCK=/home/jovyan/work  # path to HOST from Docker container
+# IMAGE=$DOCK/example_mri_data/T1.nii.gz  # input image (from container)
+# ID=arno  # ID for brain image
+# OUT=$DOCK/mindboggle123_output  # '--output $OUT' is OPTIONAL
+# docker run --rm -ti -v $HOST:/home/jovyan/work nipy/mindboggle $IMAGE --id $ID --out $OUT
+#
+# (c) 2017 by Arno Klein <arno@mindboggle.info> (CC-BY license)
+#-----------------------------------------------------------------------------
+
+FROM nipy/mindboggle-base
+MAINTAINER Arno Klein <arno@mindboggle.info>
+ENTRYPOINT ["mindboggle123"]
+CMD ["IMAGE", "--id", "--out"]
+#-----------------------------------------------------------------------------
+# Original command:
+# IMAGE=/home/jovyan/work/example_mri_data/T1.nii.gz
+# ID=arno
+# OUT=/home/jovyan/work/mindboggle123_output
+# mindboggle123 $IMAGE --id $ID --out $OUT
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# 1. Install mindboggle (git tag v1.2.0_mindboggle123):
+#-----------------------------------------------------------------------------
+USER $NB_USER
+WORKDIR /opt
+RUN git clone https://github.com/nipy/mindboggle && \
+    cd /opt/mindboggle && \
+#    git checkout tags/v1.2.0_mindboggle123 && \
+    python setup.py install && \
+    mkdir /opt/vtk_cpp_tools && \
+    cd /opt/vtk_cpp_tools && \
+    cmake /opt/mindboggle/vtk_cpp_tools -DCMAKE_EXE_LINKER_FLAGS="-L /opt/conda/lib" && \
+    make
+    #rm -rf /opt/mindboggle
+ENV vtk_cpp_tools=/opt/vtk_cpp_tools
+
+#-----------------------------------------------------------------------------
+# 2. Install roygbiv for mindboggle output visualization
+#    (git checkout 368e1844b164b599496db817f095c53c72332b9f;
+#     nbpapaya 60119b6e1de651f250af26a3541d9cb18e971526):
+#-----------------------------------------------------------------------------
+USER $NB_USER
+WORKDIR /opt
+RUN conda install -y flask && \
+    git clone https://github.com/akeshavan/roygbiv && \
+    cd /opt/roygbiv && \
+    git checkout fbbf31c29952d0ea22ed05d98e0a5a7e7d0827f9 && \
+    python setup.py install && \
+    cd /opt && \
+    git clone https://github.com/akeshavan/nbpapaya && \
+    cd /opt/nbpapaya && \
+    git checkout 60119b6e1de651f250af26a3541d9cb18e971526 && \
+    git submodule update --init --recursive && \
+    python setup.py install && \
+    rm -rf /opt/roygbiv /opt/nbpapaya
+
+#-----------------------------------------------------------------------------
+# Clear apt cache and other empty folders:
+#-----------------------------------------------------------------------------
+USER root
+RUN apt-get clean && apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /boot /media /mnt /srv && \
+    chmod a+w /tmp
+
+WORKDIR /home/$NB_USER/work
+USER $NB_USER

@@ -75,14 +75,14 @@ def convert2nii(input_file, reference_file, output_file='', interp='continuous')
     # Load reference image:
     # ------------------------------------------------------------------------
     vol2 = nb.load(reference_file)
-    xfm2 = vol2.get_affine()
+    xfm2 = vol2.affine
     dim2 = vol2.shape
     # ------------------------------------------------------------------------
     # Resample the source image according to the reference image:
     # ------------------------------------------------------------------------
     vol1 = nb.load(input_file)
     dat1 = vol1.get_data()
-    xfm1 = vol1.get_affine()
+    xfm1 = vol1.affine
     if np.all(xfm2 == xfm1):
         transform_affine = np.eye(4)
     else:

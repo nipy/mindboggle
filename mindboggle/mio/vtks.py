@@ -111,7 +111,7 @@ def read_lines(filename):
     print("Loading the scalar {0}".format(Reader.GetScalarsNameInFile(0)))
     ScalarsArray = PointData.GetArray(Reader.GetScalarsNameInFile(0))
     scalars = [ScalarsArray.GetValue(i)
-               for i in range(0, ScalarsArray.GetSize())]
+               for i in range(0, ScalarsArray.GetDataSize())]
 
     return lines, scalars
 
@@ -288,7 +288,7 @@ def read_scalars(filename, return_first=True, return_array=False):
 
             scalar_array = PointData.GetArray(scalar_name)
             scalar = [scalar_array.GetValue(i)
-                      for i in range(scalar_array.GetSize())]
+                      for i in range(scalar_array.GetDataSize())]
             scalars.append(scalar)
             scalar_names.append(scalar_name)
 
@@ -425,7 +425,7 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
             scalar_array = PointData.GetArray(scalar_name)
             if scalar_array:
                 scalar = [scalar_array.GetValue(i)
-                          for i in range(scalar_array.GetSize())]
+                          for i in range(scalar_array.GetDataSize())]
                 scalars.append(scalar)
                 scalar_names.append(scalar_name)
 
@@ -895,9 +895,15 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     verbose : bool
         print statements?
 
+    Returns
+    -------
+    output_files : list of strings
+        paths to output VTK files
+
     Examples
     --------
     >>> # Example 1:  explode sulci with thickness values
+    >>> import os
     >>> from mindboggle.mio.vtks import explode_scalars
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
@@ -910,9 +916,11 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     >>> remove_background_faces = True
     >>> reindex = True
     >>> verbose = False
-    >>> explode_scalars(input_indices_vtk, input_values_vtk, output_stem,
-    ...     exclude_values, background_value, output_scalar_name,
+    >>> output_files = explode_scalars(input_indices_vtk, input_values_vtk,
+    ...     output_stem, exclude_values, background_value, output_scalar_name,
     ...     remove_background_faces, reindex, verbose)
+    >>> os.path.basename(output_files[0])
+    'explode_scalars_sulcus_depth1.vtk'
 
     View Example 1 results (skip test):
 
@@ -925,9 +933,11 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     >>> input_values_vtk = ''
     >>> output_stem = 'explode_scalars_label'
     >>> output_scalar_name = 'labels'
-    >>> explode_scalars(input_indices_vtk, input_values_vtk, output_stem,
-    ...     exclude_values, background_value, output_scalar_name,
+    >>> output_files = explode_scalars(input_indices_vtk, input_values_vtk, 
+    ...     output_stem, exclude_values, background_value, output_scalar_name,
     ...     remove_background_faces, reindex, verbose)
+    >>> os.path.basename(output_files[0])
+    'explode_scalars_label999.vtk'
 
     View Example 2 results (skip test):
 
@@ -968,6 +978,7 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
         unique_scalars = [x for x in unique_scalars
                           if x not in exclude_values]
 
+    output_files =[]
     for scalar in unique_scalars:
 
         # Remove background (keep only faces with the scalar):
@@ -1007,21 +1018,23 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
                       select_values.tolist(), output_scalar_name,
                       scalar_type=scalar_type)
 
+            output_files.append(output_vtk)
 
-def explode_scalars_mindboggle(subject, subject_path='', output_path='',
+    return output_files
+
+
+def explode_scalars_mindboggle(subject_path, output_path='',
                                pieces='labels', background_value=-1,
                                verbose=False):
     """
-    Given a subject name corresponding to Mindboggle shape surface outputs,
-    take each shape surface VTK file, and create a separate VTK file for each
-    label index in a label surface file.
+    Given the path to a subject's Mindboggle output data,
+    break up each shape surface VTK file into separate VTK files,
+    one for each label/sulcus index.
 
     Parameters
     ----------
-    subject : string
-        name of subject run through Mindboggle
     subject_path : string
-        path to subject's parent directory
+        path to subject directory
     output_path : string
         output path/directory
     pieces : string
@@ -1036,13 +1049,12 @@ def explode_scalars_mindboggle(subject, subject_path='', output_path='',
     >>> # Explode surface shape files by label values:
     >>> import os
     >>> from mindboggle.mio.vtks import explode_scalars_mindboggle
-    >>> subject = 'Twins-2-1'
-    >>> subject_path = '/Users/arno/mindboggled'
+    >>> subject_path = '/Users/arno/mindboggled/Twins-2-1'
     >>> output_path = os.getcwd()
     >>> pieces = 'labels'
     >>> background_value = -1
     >>> verbose = False
-    >>> explode_scalars_mindboggle(subject, subject_path, output_path, pieces,
+    >>> explode_scalars_mindboggle(subject_path, output_path, pieces,
     ...                            background_value, verbose) # doctest: +SKIP
 
     View example result (skip test):
@@ -1081,8 +1093,8 @@ def explode_scalars_mindboggle(subject, subject_path='', output_path='',
                     raise IOError("Choose from: {'labels', 'sulci'}")
                                   #'fundus_per_sulcus', 'folds'}")
 
-                labels_vtk = os.path.join(subject_path, subject, File)
-                shapes_path = os.path.join(subject_path, subject, 'shapes',
+                labels_vtk = os.path.join(subject_path, File)
+                shapes_path = os.path.join(subject_path, 'shapes',
                                            side + '_cortical_surface')
                 shape_names = ['travel_depth',
                                'geodesic_depth',
@@ -1099,7 +1111,7 @@ def explode_scalars_mindboggle(subject, subject_path='', output_path='',
                         print("Explode {0} by {1} values from {2}").\
                             format(shape_vtk, pieces, labels_vtk)
 
-                    explode_scalars(labels_vtk, shape_vtk,
+                    output_files = explode_scalars(labels_vtk, shape_vtk,
                                     os.path.join(output_dir,
                                                  shape_name + '_'),
                                     [background_value], background_value,
@@ -1650,15 +1662,6 @@ def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk='',
     """
     Load a FreeSurfer .annot file and save as a VTK format file.
 
-    Note regarding current pip install nibabel (fixed in github master repo)::
-
-        The 'True' flag in nibabel.freesurfer.read_annot(annot_file, True)
-        gives the original FreeSurfer label values, not the FreeSurferColorLUT
-        labels, and when set to 'False' assigns all otherwise unlabeled
-        left cortical vertices to 3, which is also assigned to the caudal
-        middle frontal gyrus.  To correct this ambiguity, this program assigns
-        -1 to all vertices with label 0 in the original ('True') labels.
-
     Parameters
     ----------
     annot_file : string
@@ -1709,11 +1712,20 @@ def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk='',
 
     labels, ctab, names = nb.freesurfer.read_annot(annot_file)
 
-    # CAN REMOVE THE FOLLOWING FEW LINES WHEN
-    # https://github.com/nipy/nibabel/issues/205#issuecomment-25294009
-    # RESOLUTION IN THE PIP INSTALL VERSION OF NIBABEL:
-    labels_orig, ctab, names = nb.freesurfer.read_annot(annot_file, True)
-    labels[np.where(labels_orig == 0)[0]] = background_value
+    # Note regarding 2013 version of pip install nibabel:
+    # (https://github.com/nipy/nibabel/issues/205#issuecomment-25294009)
+    #
+    # The 'True' flag in nibabel.freesurfer.read_annot(annot_file, True)
+    # gives the original FreeSurfer label values, not the FreeSurferColorLUT
+    # labels, and when set to 'False' assigns all otherwise unlabeled
+    # left cortical vertices to 3, which is also assigned to the caudal
+    # middle frontal gyrus.  To correct this ambiguity, this program assigns
+    # -1 to all vertices with label 0 in the original ('True') labels.
+    #
+    # Resolution:
+    #labels_orig, ctab, names = nb.freesurfer.read_annot(annot_file, True)
+    #labels[np.where(labels_orig == 0)[0]] = background_value
+    #
     # Test removal of unlabeled cortex from label 3:
     #labels[np.where(labels==3)[0]]=1000
 

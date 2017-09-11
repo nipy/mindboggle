@@ -94,7 +94,6 @@ def list_strings(string1='', string2='', string3='', string4=''):
     >>> string2 = 'd e f'
     >>> string3 = ''
     >>> string4 = 'j k l'
-    >>> output_file = ''
     >>> string_list = list_strings(string1, string2, string3, string4)
     >>> string_list
     ['a b c', 'd e f', 'j k l']

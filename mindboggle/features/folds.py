@@ -97,7 +97,7 @@ def find_depth_threshold(depth_file, min_vertices=10000, verbose=False):
     # Compute histogram of depth measures:
     # ------------------------------------------------------------------------
     if npoints > min_vertices:
-        nbins = np.round(npoints / 100.0)
+        nbins = np.int(np.round(npoints / 100.0))
     else:
         raise IOError("  Expecting at least {0} vertices to create "
                       "depth histogram".format(min_vertices))

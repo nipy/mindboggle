@@ -1,7 +1,7 @@
 import os
 
 #from .info import (LONG_DESCRIPTION as __doc__,
-#                   __version__)
+#                  __version__)
 #__doc__ += """
 #"""
 

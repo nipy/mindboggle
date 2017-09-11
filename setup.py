@@ -58,6 +58,7 @@ def main(**extra_args):
           #requires=REQUIRES,
           provides=PROVIDES,
           packages=['mindboggle',
+                    'mindboggle.data',
                     'mindboggle.evaluate',
                     'mindboggle.features',
                     'mindboggle.guts',
@@ -65,8 +66,10 @@ def main(**extra_args):
                     'mindboggle.shapes',
                     'mindboggle.shapes.zernike',
                     'mindboggle.thirdparty'],
-          #package_data = {'mindboggle': [pjoin('labels', '*.txt')]},
-          scripts=[pjoin('mindboggle', 'mindboggle')],
+          package_data={'mindboggle': [pjoin('data', '*.nii.gz'),
+                                       pjoin('data', '*.txt')]},
+          scripts=[pjoin('mindboggle', 'mindboggle'),
+                   pjoin('mindboggle', 'mindboggle123')],
           **extra_args
          )
 

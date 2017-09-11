@@ -1,0 +1,171 @@
+# Dockerfile.mindboggle.base
+#-----------------------------------------------------------------------------
+# This Dockerfile installs most of Mindboggle's dependencies,
+# including preprocessing software packages FreeSurfer and ANTs,
+# and visualization software roygbiv.
+#
+# -- Adapted from dockerfiles created by Satrajit Ghosh <satra@mit.edu>
+#    for a nipype workshop held at MIT in March 2017
+#    (in turn adapted from https://github.com/miykael/nipype_env)
+#
+# Steps:
+# 1.  Update OS dependencies and set up neurodebian.
+# 2.  Install conda packages and nibabel.
+# 3.  Install FreeSurfer.
+# 4.  Install ANTS.
+# 5.  Install dependencies for mindboggle's C++ library.
+# 6.  Install mindboggle's OASIS-30_Atropos_template data for use by ANTs.
+# Missing steps (see Dockerfile.mindboggle.complete):
+# 7.  Install mindboggle.
+# 8.  Install roygbiv for mindboggle output visualization.
+#
+# Build the docker image:
+# docker build -t mindboggle-base -f Dockerfile.mindboggle.base .
+#
+# Push to Docker hub:
+# (https://docs.docker.com/docker-cloud/builds/push-images/)
+# export DOCKER_ID_USER="nipy"
+# docker login
+# docker tag mindboggle-base nipy/mindboggle-base
+# docker push nipy/mindboggle-base
+#
+# Pull from Docker hub:
+# docker pull nipy/mindboggle-base
+#
+# In the following, the Docker container can be the original (mindboggle-base)
+# or the pulled version (nipy/mindboggle-base), and is given access to
+# /Users/arno on the host machine.
+#
+# Enter the bash shell of the Docker container:
+# docker run --rm -ti -v /Users/arno:/home/jovyan/work nipy/mindboggle-base bash
+#
+# (c) 2017 by Arno Klein <arno@mindboggle.info> (CC-BY license)
+#-----------------------------------------------------------------------------
+
+FROM jupyter/base-notebook
+MAINTAINER Arno Klein <arno@mindboggle.info>
+
+#-----------------------------------------------------------------------------
+# 1. Update OS dependencies
+#    (graphviz conda version doesn't work):
+#-----------------------------------------------------------------------------
+USER root
+RUN apt-get update -qq && \
+    apt-get install -yq --no-install-recommends tcsh \
+                                                bc \
+                                                bzip2 \
+                                                ca-certificates \
+                                                curl \
+                                                tree \
+                                                unzip \
+                                                wget \
+                                                zip \
+                                                vim \
+                                                emacs-nox \
+                                                xvfb \
+                                                graphviz \
+                                                less \
+                                                git && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
+    mkdir /opt/data && \
+    chown $NB_USER /opt && \
+    chown $NB_USER /opt/data
+
+#-----------------------------------------------------------------------------
+# 2. Install nibabel and conda packages for mindboggle
+#    (nipype, pandas, matplotlib, scipy, cmake, and vtk),
+#    and for mindboggle visualization in a jupyter notebook (pythreejs):
+#-----------------------------------------------------------------------------
+USER $NB_USER
+RUN conda install --quiet --yes nomkl \
+                                pip \
+                                reprozip \
+                                reprounzip \
+                                nipype \
+                                pandas \
+                                matplotlib \
+                                scipy \
+                                cmake \
+                                pythreejs \
+                                xvfbwrapper && \
+    conda install --quiet --yes -c clinicalgraphics vtk=7.1.0 && \
+    conda clean -tipsy && \
+    jupyter nbextension enable --py --sys-prefix widgetsnbextension && \
+    jupyter nbextension enable --py --sys-prefix pythreejs
+
+RUN pip install --quiet https://github.com/nipy/nibabel/archive/ca977abeb77f95ed3a40b7b89c310b286b9885b7.zip && \
+    rm -rf ~/.cache/pip
+
+#-----------------------------------------------------------------------------
+# 3. Install FreeSurfer v6.0, minimized with reprozip
+#    (https://github.com/freesurfer/freesurfer/issues/70):
+#-----------------------------------------------------------------------------
+USER $NB_USER
+WORKDIR /opt
+RUN curl -sSL https://dl.dropbox.com/sh/mvgpn6cml04me6u/AADWHds-ZeRqBvmuNX7_RoUla/recon-all-freesurfer6%2BMCR.min.tgz?dl=0 | tar zx -C /opt  && \
+ ( echo "cHJpbnRmICJrcnp5c3p0b2YuZ29yZ29sZXdza2lAZ21haWwuY29tXG41MTcyXG4gKkN2dW12RVYzelRmZ1xuRlM1Si8yYzFhZ2c0RVxuIiA+IC9vcHQvZnJlZXN1cmZlci9saWNlbnNlLnR4dAo=" | base64 -d | sh )
+ENV FS_OVERRIDE=0 \
+    OS=Linux \
+    FSF_OUTPUT_FORMAT=nii.gz \
+    FIX_VERTEX_AREA=\
+    FREESURFER_HOME=/opt/freesurfer
+ENV MNI_DIR=$FREESURFER_HOME/mni \
+    SUBJECTS_DIR=/subjects
+ENV PERL5LIB=$MNI_DIR/share/perl5 \
+    MNI_PERL5LIB=$MNI_DIR/share/perl5 \
+    MINC_BIN_DIR=$MNI_DIR/bin \
+    MINC_LIB_DIR=$MNI_DIR/lib \
+    MNI_DATAPATH=$MNI_DIR/data
+ENV PATH=$FREESURFER_HOME/bin:$FREESURFER_HOME/tktools:$MINC_BIN_DIR:$PATH
+
+#-----------------------------------------------------------------------------
+# 4. Install ANTS v2.2.0
+#    (git checkout 0740f9111e5a9cd4768323dc5dfaa7c29481f9ef):
+#-----------------------------------------------------------------------------
+USER root
+RUN apt-get update -qq && apt-get install -yq --no-install-recommends \
+       build-essential && \
+   apt-get clean && \
+   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+USER $NB_USER
+WORKDIR /opt
+RUN git clone https://github.com/stnava/ANTs.git && \
+   cd ANTs && \
+   git checkout 0740f9111e5a9cd4768323dc5dfaa7c29481f9ef && \
+   mkdir build && cd build && cmake .. && make && \
+   mkdir -p /opt/ants && \
+   cp bin/* /opt/ants && cp ../Scripts/* /opt/ants && \
+   cd /opt && rm -rf ANTs
+ENV ANTSPATH=/opt/ants/ \
+    PATH=/opt/ants:$PATH
+
+#-----------------------------------------------------------------------------
+# 5. Install dependencies for mindboggle's C++ library:
+#-----------------------------------------------------------------------------
+USER root
+RUN apt-get update -qq && \
+    apt-get install -yq --no-install-recommends \
+            build-essential libsm-dev libx11-dev libxt-dev libxext-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+#-----------------------------------------------------------------------------
+# 6. Install mindboggle's OASIS-30_Atropos_template data for use by ANTs:
+#-----------------------------------------------------------------------------
+USER $NB_USER
+WORKDIR /opt/data
+RUN curl -sSL https://osf.io/rh9km/?action=download\&version=2 -o templates.zip && \
+    unzip templates.zip && \
+    rm -rf /opt/data/templates.zip
+
+#-----------------------------------------------------------------------------
+# Clear apt cache and other empty folders:
+#-----------------------------------------------------------------------------
+USER root
+RUN apt-get clean && apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /boot /media /mnt /srv && \
+    chmod a+w /tmp
+
+WORKDIR /home/$NB_USER/work
+USER $NB_USER

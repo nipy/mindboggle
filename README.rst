@@ -12,13 +12,14 @@ called within a `Nipype <http://nipy.org/nipype>`_ pipeline framework.
 We have tested the software most extensively with Python 3.5.1 on Ubuntu Linux 14.04.
 
 ..
-    1. Referencing Mindboggle
-    2. Support, bugs, and help
-    3. Installing Mindboggle
-    4. Running Mindboggle
-    5. Preprocessing
-    6. Processing steps
-    7. Output
+    1. Reference
+    2. Getting help
+    3. Installation
+    4. Run one command
+    5. Run separate commands
+    6. Visualize output
+    7. Appendix: processing
+    8. Appendix: output
 
 :Release: |version|
 :Date: |today|
@@ -38,153 +39,201 @@ Links:
 * :ref:`genindex`
 
 ------------------------------------------------------------------------------
-Referencing Mindboggle
+Reference
 ------------------------------------------------------------------------------
-A Klein, SS Ghosh, FS Bao, J Giard, Y Hame, E Stavsky, N Lee, B Rossa, M Reuter, EC Neto, A Keshavan. 2017. 
-**Mindboggling morphometry of human brains**. 
-*PLoS Computational Biology* 13(3): e1005350. `doi:10.1371/journal.pcbi.1005350 <http://dx.doi.org/10.1371/journal.pcbi.1005350>`_
+A Klein, SS Ghosh, FS Bao, J Giard, Y Hame, E Stavsky, N Lee, B Rossa,
+M Reuter, EC Neto, A Keshavan. 2017.
+**Mindboggling morphometry of human brains**.
+*PLoS Computational Biology* 13(3): e1005350.
+`doi:10.1371/journal.pcbi.1005350 <http://dx.doi.org/10.1371/journal.pcbi.1005350>`_
 
 ------------------------------------------------------------------------------
-Support, bugs, and help
+Getting help
 ------------------------------------------------------------------------------
-If you have any questions about Mindboggle, please post to `NeuroStars <https://neurostars.org/tags/mindboggle/>`_ 
-with the tag "mindboggle"; if you have found a bug, big or small,
-please `submit an issue <https://github.com/nipy/mindboggle/issues>`_ on GitHub.
+If you have any questions about Mindboggle, please post to
+`NeuroStars <https://neurostars.org/tags/mindboggle/>`_ with the tag
+"mindboggle". If you have found a bug, big or small, please
+`submit an issue <https://github.com/nipy/mindboggle/issues>`_ on GitHub.
 
-To learn about command-line options after installing Mindboggle,
-type the following in a terminal window::
+To run the mindboggle jupyter notebook tutorial, first install the mindboggle
+docker container (see below) and enter the bash shell of the container
+from your $HOST (e.g., /Users/arno)::
 
-    mindboggle -h
+    docker run --rm -ti -v $HOST:/home/jovyan/work -p 8888:8888 --entrypoint /bin/bash nipy/mindboggle
+
+Then run the notebook from within the container::
+
+    jupyter notebook /opt/mindboggle/docs/mindboggle_tutorial.ipynb
 
 ------------------------------------------------------------------------------
-Installing Mindboggle
+Installation
 ------------------------------------------------------------------------------
 We recommend installing Mindboggle and its dependencies as a cross-platform
 Docker container for greater convenience and reproducibility of results.
-(Alternatively, Mindboggle can be installed from scratch on a Linux machine
-using an
-`installation script <https://raw.githubusercontent.com/nipy/mindboggle/master/install_mindboggle.sh>`_).
+All the examples below assume you are using this Docker container,
+with the path /home/jovyan/work/ pointing to your host machine.
+(Alternatively, one can `create a Singularity image <http://mindboggle.readthedocs.io/en/latest/faq/singularity.html>`_,
+or Mindboggle can be installed from scratch on a Linux machine using
+`this script <https://raw.githubusercontent.com/nipy/mindboggle/master/install_mindboggle.sh>`_).
 
-1. Install and run Docker on your (macOS, Linux, or Windows) host machine:
+1. `Install and run Docker <https://docs.docker.com/engine/installation/>`_
+on your (macOS, Linux, or Windows) host machine.
 
-    https://docs.docker.com/engine/installation/
+2. Download the Mindboggle Docker container (copy/paste the following in a
+terminal window)::
 
-2. Pull the Mindboggle Docker app (copy into a terminal window)::
+    docker pull nipy/mindboggle
 
-    docker pull bids/mindboggle
+*Note 1: This contains FreeSurfer, ANTs, and Mindboggle, so it is currently
+over 6GB.*
 
-3. Set the path on your host machine for the Docker container to access
-Mindboggle input and output directories ("/" in this example),
-and enter the container's bash shell ("\\" splits command to next line)::
+*Note 2: You may need to increase memory allocated by Docker to at least 5GB.
+For example: By default, Docker for `Mac is set to use 2 GB runtime memory <https://docs.docker.com/docker-for-mac/>`_.*
 
-    PATH_ON_HOST=/;
-    docker run --rm -ti -v $PATH_ON_HOST:/root/data \
-        --entrypoint /bin/bash bids/mindboggle;
+3. Optionally download sample data. To try out the ``mindboggle`` examples
+below, download and unzip the directory of example input data
+`mindboggle_input_example.zip <https://osf.io/3xfb8/?action=download&version=1>`_ (455 MB).
+For example MRI data to preprocess with FreeSurfer and ANTs software,
+download and unzip
+`example_mri_data.zip <https://osf.io/k3m94/?action=download&version=1>`_ (29 MB).
 
-------------------------------------------------------------------------------
-Before running Mindboggle
-------------------------------------------------------------------------------
-Mindboggle takes as its input preprocessed brain MR image data.
-To get up and running with the `Running Mindboggle`_ examples below,
-download and unzip the
-`mindboggle_input_example.zip <https://osf.io/3xfb8/?action=download&version=1>`_
-directory (455 MB), which contains some example preprocessed data,
-and skip this section until you wish to process your own data.
-More example input and output data can be found
-on Mindboggle's `examples <https://osf.io/8cf5z>`_ site.
+4. Optionally set environment variables for clarity in the commands below
+(modify accordingly, except for DOCK)::
 
-Mindboggle currently takes output from
-`FreeSurfer <http://surfer.nmr.mgh.harvard.edu>`_ (v6 or higher recommended)
-and optionally from `ANTs <http://stnava.github.io/ANTs/>`_
-(v2.1.0rc3 or higher recommended; v2.1.0 is included in the Docker app).
-
-**FreeSurfer** generates labeled cortical surfaces, and labeled cortical and
-noncortical volumes. Run ``recon-all`` on a T1-weighted $IMAGE file
-(e.g., subject1.nii.gz) and set the output $SUBJECT name (e.g., subject1).
-*Version 6 is recommended because by default it uses Mindboggle’s DKT-100
-surface-based atlas (with the DKT31 labeling protocol) to generate labels
-on the cortical surfaces and corresponding labels in the cortical and
-non-cortical volumes (v5.3 generates these surface labels by default;
-older versions require "-gcs DKTatlas40.gcs" to generate these surface labels)*::
-
-    recon-all -all -i $IMAGE -s $SUBJECT
-
-**ANTs** provides brain volume extraction, segmentation, and
-registration-based labeling. To generate the ANTs transforms and segmentation
-files used by Mindboggle, run the ``antsCorticalThickness.sh`` script on the
-same $IMAGE file, set an output $PREFIX, and provide paths to the
-`OASIS-30 Atropos template <https://osf.io/rh9km/?action=download&version=1>`_
-files ("\\" splits command to next line)::
-
-    antsCorticalThickness.sh -d 3 -a $IMAGE -o $PREFIX \
-      -e OASIS-30_Atropos_template/T_template0.nii.gz \
-      -t OASIS-30_Atropos_template/T_template0_BrainCerebellum.nii.gz \
-      -m OASIS-30_Atropos_template/T_template0_BrainCerebellumProbabilityMask.nii.gz \
-      -f OASIS-30_Atropos_template/T_template0_BrainCerebellumExtractionMask.nii.gz \
-      -p OASIS-30_Atropos_template/Priors2/priors%d.nii.gz
+    HOST=/Users/binarybottle  # path on host to access input/output
+    DOCK=/home/jovyan/work  # path to HOST from Docker container
+    IMAGE=$DOCK/example_mri_data/T1.nii.gz  # input image on HOST
+    ID=arno  # ID for brain image
 
 ------------------------------------------------------------------------------
-Running Mindboggle
+Run one command
 ------------------------------------------------------------------------------
-See `Before running Mindboggle`_ above for instructions on how to prepare data
-for processing by Mindboggle, or to obtain example data to get started.
-Also, if using the Mindboggle Docker container, make sure to enter the Docker container (Step 3 of 
-`Installing Mindboggle <http://mindboggle.readthedocs.io/en/latest/#installing-mindboggle>`_) 
-before proceeding.
+The Mindboggle Docker container can be run as a single command to process
+a T1-weighted MR brain image through FreeSurfer, ANTs, and Mindboggle.
+Skip to the next section if you wish to run ``recon-all``,
+``antsCorticalThickness.sh``, and ``mindboggle`` differently::
 
-**Set paths:**
+    docker run --rm -ti -v $HOST:$DOCK nipy/mindboggle $IMAGE --id $ID
 
-For brevity in the commands below, we set the following path variables
-to point to the example data and to Mindboggle working and output directories.
-Be sure to modify the HOST path ("Users/arno" is specific to the user arno on a Mac)
-and copy each line into a terminal window::
+Outputs are stored in $DOCK/mindboggle123_output/ by default,
+but you can set a different output path with ``--out $OUT``.
 
-    HOST=/root/data/Users/arno;
-    FREESURFER_SUBJECT=$HOST/mindboggle_input_example/freesurfer/subjects/arno;
-    ANTS_SUBJECT=$HOST/mindboggle_input_example/ants/subjects/arno;
-    MINDBOGGLING=$HOST/mindboggling;
-    MINDBOGGLED=$HOST/mindboggled;
+------------------------------------------------------------------------------
+Run separate commands
+------------------------------------------------------------------------------
+If finer control is needed over the software in the Docker container,
+the following instructions outline how to run each command separately.
+Mindboggle currently takes output from FreeSurfer and optionally from ANTs.
+*FreeSurfer version 6 or higher is recommended because by default it uses
+Mindboggle’s DKT-100 surface-based atlas to generate corresponding labels
+on the cortical surfaces and in the cortical and non-cortical volumes
+(v5.3 generates these surface labels by default; older versions require
+"-gcs DKTatlas40.gcs" to generate these surface labels).*
 
-**Help and options:**
+1. Enter the Docker container's bash shell to run ``recon-all``,
+``antsCorticalThickness.sh``, and ``mindboggle`` commands::
 
-For help with the Mindboggle command and to learn about all of its options,
-type the following in a terminal window::
+    docker run --rm -ti -v $HOST:$DOCK --entrypoint /bin/bash nipy/mindboggle
+
+2. `FreeSurfer <http://surfer.nmr.mgh.harvard.edu>`_ generates labeled
+cortical surfaces, and labeled cortical and noncortical volumes.
+Run ``recon-all`` on a T1-weighted IMAGE file (and optionally a T2-weighted
+image), and set the output ID name as well as the $FREESURFER_OUT output
+directory::
+
+    FREESURFER_OUT=$DOCK/freesurfer_subjects
+
+    recon-all -all -i $IMAGE -s $ID -sd $FREESURFER_OUT
+
+3. `ANTs <http://stnava.github.io/ANTs/>`_ provides brain volume extraction,
+segmentation, and registration-based labeling. ``antsCorticalThickness.sh``
+generates transforms and segmentation files used by Mindboggle, and is run
+on the same IMAGE file and ID as above, with $ANTS_OUT output directory.
+TEMPLATE points to the `OASIS-30_Atropos_template <https://osf.io/rh9km/>`_ folder
+already installed in the Docker container ("\\" splits the command for readability)::
+
+    ANTS_OUT=$DOCK/ants_subjects
+    TEMPLATE=/opt/data/OASIS-30_Atropos_template
+
+    antsCorticalThickness.sh -d 3 -a $IMAGE -o $ANTS_OUT/$ID/ants \
+      -e $TEMPLATE/T_template0.nii.gz \
+      -t $TEMPLATE/T_template0_BrainCerebellum.nii.gz \
+      -m $TEMPLATE/T_template0_BrainCerebellumProbabilityMask.nii.gz \
+      -f $TEMPLATE/T_template0_BrainCerebellumExtractionMask.nii.gz \
+      -p $TEMPLATE/Priors2/priors%d.nii.gz
+
+4. **Mindboggle** can be run on data preprocessed by ``recon-all`` and
+``antsCorticalThickness.sh`` as above by setting::
+
+    FREESURFER_SUBJECT=$FREESURFER_OUT/$ID
+    ANTS_SUBJECT=$ANTS_OUT/$ID
+    OUT=$DOCK/mindboggled  # output folder
+
+Or it can be run on the
+`mindboggle_input_example <https://osf.io/3xfb8/?action=download&version=1>`_
+preprocessed data by setting::
+
+    EXAMPLE=$DOCK/mindboggle_input_example
+    FREESURFER_SUBJECT=$EXAMPLE/freesurfer/subjects/arno
+    ANTS_SUBJECT=$EXAMPLE/ants/subjects/arno
+    OUT=$DOCK/mindboggled  # output folder
+
+**Example Mindboggle commands:**
+
+To learn about Mindboggle's command options, type this in a terminal window::
 
     mindboggle -h
 
 **Example 1:**
-The following bare-bones command runs Mindboggle
-on data processed by FreeSurfer but not ANTs ("\\" splits command to next line)::
+Run Mindboggle on data processed by FreeSurfer but not ANTs::
 
-    mindboggle $FREESURFER_SUBJECT \
-        --working $MINDBOGGLING --out $MINDBOGGLED
+    mindboggle $FREESURFER_SUBJECT --out $OUT
 
 **Example 2:**
-Same as #1, but takes advantage of ANTs output::
+Same as Example 1 with output to visualize surface data with roygbiv::
 
-    mindboggle $FREESURFER_SUBJECT \
-        --working $MINDBOGGLING --out $MINDBOGGLED \
-        --ants $ANTS_SUBJECT/antsBrainSegmentation.nii.gz
+    mindboggle $FREESURFER_SUBJECT --out $OUT --roygbiv
 
 **Example 3:**
-To generate only volume (and not surface) labels and shape measures
-from FreeSurfer and ANTs data, using 8 processors::
+Take advantage of ANTs output as well ("\\" splits for readability)::
 
-    mindboggle $FREESURFER_SUBJECT --no_surfaces --cpus 8 \
-        --working $MINDBOGGLING --out $MINDBOGGLED \
+    mindboggle $FREESURFER_SUBJECT --out $OUT --roygbiv \
         --ants $ANTS_SUBJECT/antsBrainSegmentation.nii.gz
 
+**Example 4:**
+Generate only volume (no surface) labels and shapes::
+
+    mindboggle $FREESURFER_SUBJECT --out $OUT \
+        --ants $ANTS_SUBJECT/antsBrainSegmentation.nii.gz \
+        --no_surfaces
+
 ------------------------------------------------------------------------------
-Mindboggle processing steps
+Visualize output
+------------------------------------------------------------------------------
+To visualize Mindboggle output with roygbiv, start the Docker image with::
+
+    docker run --rm -ti -v $HOST:$DOCK -p 5000:5000 --entrypoint /bin/bash nipy/mindboggle
+
+and then inside the image, run roygbiv on an output directory::
+
+    roygbiv $OUT/$ID
+
+and open a browser to `localhost:5000`.
+
+Right now, roygbiv only shows summarized data, but Anisha Keshavan is working
+on by-vertex visualizations (for the latter, try `Paraview <https://www.paraview.org/2>`_).
+
+------------------------------------------------------------------------------
+Appendix: processing
 ------------------------------------------------------------------------------
 The following steps are performed by Mindboggle (with links to code on GitHub):
 
-1. Create hybrid gray/white segmentation from FreeSurfer and ANTs output (`combine_2labels_in_2volumes <https://github.com/nipy/mindboggle/blob/master/mindboggle/guts/segment.py>`_).
+1. Create hybrid gray/white segmentation from FreeSurfer and ANTs output (`combine_2labels_in_2volumes <https://github.com/nipy/mindboggle/blob/master/mindboggle/guts/segment.py#L1660>`_).
 2. Fill hybrid segmentation with FreeSurfer- or ANTs-registered labels.
 3. Compute volume shape measures for each labeled region:
 
-    - volume (`volume_per_brain_region <https://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/volume_shapes.py>`_)
-    - thickness of cortical labels (`thickinthehead <https://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/volume_shapes.py>`_)
+    - volume (`volume_per_brain_region <https://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/volume_shapes.py#L14>`_)
+    - thickness of cortical labels (`thickinthehead <https://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/volume_shapes.py#L132>`_)
 
 4. Compute surface shape measures for every cortical mesh vertex:
 
@@ -204,24 +253,24 @@ The following steps are performed by Mindboggle (with links to code on GitHub):
 6. For each cortical surface label/sulcus, compute:
 
     - `area <https://github.com/nipy/mindboggle/blob/master/vtk_cpp_tools/area/PointAreaMain.cpp>`_
-    - mean coordinates: `means_per_label <https://github.com/nipy/mindboggle/blob/master/mindboggle/guts/compute.py>`_
+    - mean coordinates: `means_per_label <https://github.com/nipy/mindboggle/blob/master/mindboggle/guts/compute.py#L512>`_
     - mean coordinates in MNI152 space
     - `Laplace-Beltrami spectrum <https://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/laplace_beltrami.py>`_
     - `Zernike moments <https://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/zernike/zernike.py>`_
 
-7. Compute statistics (``stats_per_label`` in `compute.py <https://github.com/nipy/mindboggle/blob/master/mindboggle/guts/compute.py>`_) for each shape measure in #4 for each label/feature:
+7. Compute statistics (``stats_per_label`` in `compute.py <https://github.com/nipy/mindboggle/blob/master/mindboggle/guts/compute.py#L716>`_) for each shape measure in #4 for each label/feature:
 
     - median
     - median absolute deviation
     - mean
     - standard deviation
-    - skew
+    - skewhttps://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/volume_shapes.py#L132
     - kurtosis
     - lower quartile
     - upper quartile
 
 ------------------------------------------------------------------------------
-Mindboggle output
+Appendix: output
 ------------------------------------------------------------------------------
 Example output data can be found
 on Mindboggle's `examples <https://osf.io/8cf5z>`_ site on osf.io.

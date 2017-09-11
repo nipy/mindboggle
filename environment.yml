@@ -1,12 +1,12 @@
-## Environment for installing Mindboggle
-##
-## This environment is configured for circleci.com continuous integration
-## (testing).
-##
-## Authors:
-##    - Arno Klein, 2016  (arno@mindboggle.info)  http://binarybottle.com
-##
-## Copyright 2016,  Mindboggle team (mindboggle.info), Apache v2.0 License
+# Environment for installing Mindboggle
+#
+# This environment is configured for circleci.com continuous integration
+# (testing).
+#
+# Authors:
+#    - Arno Klein, 2016-2017  (arno@mindboggle.info)  http://binarybottle.com
+#
+# Copyright 2016-2017,  Mindboggle team (mindboggle.info), Apache v2.0 License
 
 #-----------------------------------------------------------------------------
 # mindboggle-env environment:
@@ -23,31 +23,26 @@ channels:
 dependencies:
     - python=3.5.1
     - vtk=7.0.0
-    #-------------------------------------------------------------------------
-    # nipype + (colormath, pydotplus):
-    #-------------------------------------------------------------------------
+    - matplotlib
+    - numpy
     - scipy
+    - pandas
+    - cmake
+    - pip
+    - pip:
+        - nibabel
+        - nipype
+        - prov
+        - traits
+        - xvfbwrapper
+        - colormath
+        - pydotplus
+
     - networkx
     - lxml
     - simplejson
     - future
     - nose
-    - pip
-    - pip:
-        - nibabel
-        - prov
-        - traits
-        - xvfbwrapper
-        - https://github.com/nipy/nipype/archive/master.zip
-        - colormath
-        - pydotplus
-    #-------------------------------------------------------------------------
-    # mindboggle's remaining dependencies:
-    #-------------------------------------------------------------------------
-    - cmake
-    - matplotlib
-    - numpy
-    - pandas
     #-------------------------------------------------------------------------
     # additional testing tools:
     #-------------------------------------------------------------------------
