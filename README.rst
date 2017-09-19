@@ -264,7 +264,7 @@ The following steps are performed by Mindboggle (with links to code on GitHub):
     - median absolute deviation
     - mean
     - standard deviation
-    - skewhttps://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/volume_shapes.py#L132
+    - skew
     - kurtosis
     - lower quartile
     - upper quartile
