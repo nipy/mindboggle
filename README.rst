@@ -74,7 +74,7 @@ All the examples below assume you are using this Docker container,
 with the path /home/jovyan/work/ pointing to your host machine.
 (Alternatively, one can `create a Singularity image <http://mindboggle.readthedocs.io/en/latest/faq/singularity.html>`_,
 or Mindboggle can be installed from scratch on a Linux machine using
-`this script <https://raw.githubusercontent.com/nipy/mindboggle/master/install_mindboggle.sh>`_).
+`this script <https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle.sh>`_).
 
 1. `Install and run Docker <https://docs.docker.com/engine/installation/>`_
 on your (macOS, Linux, or Windows) host machine.
