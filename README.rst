@@ -50,13 +50,13 @@ M Reuter, EC Neto, A Keshavan. 2017.
 ------------------------------------------------------------------------------
 Getting help
 ------------------------------------------------------------------------------
-If you have any questions about Mindboggle, please post to
+General questions about Mindboggle?  Please post to
 `NeuroStars <https://neurostars.org/tags/mindboggle/>`_ with the tag
-"mindboggle". If you have found a bug, big or small, please
+"mindboggle". Found a bug, big or small?  Please
 `submit an issue <https://github.com/nipy/mindboggle/issues>`_ on GitHub.
 
-To run the mindboggle jupyter notebook tutorial, first install the mindboggle
-docker container (see below) and enter the bash shell of the container
+To run the Mindboggle jupyter notebook tutorial, first install the Mindboggle
+Docker container (see below) and enter the bash shell of the container
 from your $HOST (e.g., /Users/arno)::
 
     docker run --rm -ti -v $HOST:/home/jovyan/work -p 8888:8888 --entrypoint /bin/bash nipy/mindboggle
@@ -90,15 +90,15 @@ over 6GB.*
 *Note 2: You may need to increase memory allocated by Docker to at least 5GB.
 For example: By default, Docker for `Mac is set to use 2 GB runtime memory <https://docs.docker.com/docker-for-mac/>`_.*
 
-3. Optionally download sample data. To try out the ``mindboggle`` examples
+3. Recommended: download sample data. To try out the ``mindboggle`` examples
 below, download and unzip the directory of example input data
 `mindboggle_input_example.zip <https://osf.io/3xfb8/?action=download&version=1>`_ (455 MB).
 For example MRI data to preprocess with FreeSurfer and ANTs software,
 download and unzip
 `example_mri_data.zip <https://osf.io/k3m94/?action=download&version=1>`_ (29 MB).
 
-4. Optionally set environment variables for clarity in the commands below
-(modify accordingly, except for DOCK)::
+4. Recommended: set environment variables for clarity in the commands below
+(modify accordingly, except for DOCK -- careful, this step is tricky!)::
 
     HOST=/Users/binarybottle  # path on host to access input/output
     DOCK=/home/jovyan/work  # path to HOST from Docker container
