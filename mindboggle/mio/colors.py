@@ -9,9 +9,11 @@ Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
+import os
 
 def distinguishable_colors(ncolors, backgrounds=[[0,0,0],[1,1,1]],
-                           save_csv=True, plot_colormap=True, verbose=True):
+                           save_csv=True, plot_colormap=True, verbose=True,
+                           out_dir='.'):
     """
     Create a colormap of perceptually distinguishable colors.
 
@@ -74,6 +76,7 @@ def distinguishable_colors(ncolors, backgrounds=[[0,0,0],[1,1,1]],
     from colormath.color_diff import delta_e_cie2000
 
     filename = "colormap_of_{0}_distinguishable_colors".format(ncolors)
+    filename = os.path.join(out_dir, filename)
 
     # ------------------------------------------------------------------------
     # Generate a sizable number of RGB triples. This represents our space of
@@ -158,7 +161,7 @@ def distinguishable_colors(ncolors, backgrounds=[[0,0,0],[1,1,1]],
             if verbose:
                 print(rgb)
             plt.barh(0, 50, 1, 0, color=rgb)
-            plt.savefig(filename + ".png")
+        plt.savefig(filename + ".png")
         if verbose:
             print("Colormap image saved to {0}".format(filename + ".png"))
 
@@ -176,7 +179,7 @@ def distinguishable_colors(ncolors, backgrounds=[[0,0,0],[1,1,1]],
 
 def label_adjacency_matrix(label_file, ignore_values=[-1, 999], add_value=0,
                            save_table=True, output_format='csv',
-                           verbose=True):
+                           verbose=True, out_dir='.'):
     """
     Extract surface or volume label boundaries, find unique label pairs,
     and write adjacency matrix (useful for constructing a colormap).
@@ -279,6 +282,8 @@ def label_adjacency_matrix(label_file, ignore_values=[-1, 999], add_value=0,
 
     else:
         raise IOError("Use appropriate input file type.")
+
+    output_table = os.path.join(out_dir, output_table)
 
     # Find unique pairs (or first two of each list):
     pairs = []

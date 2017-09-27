@@ -69,12 +69,12 @@ def main(**extra_args):
           package_data={'mindboggle': [pjoin('data', '*.nii.gz'),
                                        pjoin('data', '*.txt')]},
           scripts=[pjoin('mindboggle', 'mindboggle'),
-                   pjoin('mindboggle', 'mindboggle123')],
+                   pjoin('mindboggle', 'mindboggle123'),
+                   pjoin('colors_script', 'calc_colormap.py'),
+                   pjoin('colors_script', 'convert_to_mipav_lut.py')],
           **extra_args
          )
 
 if __name__ == "__main__":
     main()
     #main(**extra_setuptools_args)
-
-
