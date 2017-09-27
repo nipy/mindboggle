@@ -188,6 +188,7 @@ corticalthickness.inputs.extraction_registration_mask = EXT
 corticalthickness.inputs.segmentation_priors = [PRIOR1, PRIOR2, PRIOR3,
                                                 PRIOR4, PRIOR5, PRIOR6]
 corticalthickness.inputs.out_prefix = PREFIX
+corticalthickness.inputs.use_floatingpoint_precision = True
 
 if args.num_threads and args.num_threads > 1:
     corticalthickness.inputs.num_threads = args.num_threads
