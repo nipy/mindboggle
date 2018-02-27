@@ -3,14 +3,17 @@
 ## All dependencies are accounted for in the environment.yml file.
 ##
 ## Authors:
-##    - Arno Klein, 2016  (arno@mindboggle.info)  http://binarybottle.com
+##    - Arno Klein, 2016,2018  (arno@mindboggle.info)  http://binarybottle.com
 ##
-## Copyright 2016,  Mindboggle team (mindboggle.info), Apache v2.0 License
+## Copyright 2016-2018,  Mindboggle team (mindboggle.info), Apache v2.0 License
+
+version: 2
 
 #-----------------------------------------------------------------------------
 # Customize the test machine:
 #-----------------------------------------------------------------------------
-machine:
+jobs:
+  build:
     # Add some environment variables
     environment:
         HOME: /home/ubuntu
