@@ -8,45 +8,38 @@
 ## Copyright 2016-2018,  Mindboggle team (mindboggle.info), Apache v2.0 License
 
 version: 2
-
-#-----------------------------------------------------------------------------
-# Build and test jobs
-#-----------------------------------------------------------------------------
 jobs:
   build:
+    docker:
+      - image: circleci/python:3.6.2
+        environment:
+          HOME: /home/ubuntu
+          CONDA_ROOT: ${HOME}/miniconda
+          ENV_NAME: mindboggle-env
+          ENV_PREFIX: ${CONDA_ROOT}/envs/${ENV_NAME}
+          python: ${ENV_PREFIX}/bin/python
+          vtk_cpp_tools: ${HOME}/mindboggle/vtk_cpp_tools/bin
+          PATH: ${ENV_PREFIX}/bin:${CONDA_ROOT}/bin:${vtk_cpp_tools}:${PATH}
+          SITEPKGS: ${ENV_PREFIX}/lib/python3.5/site-packages
+          PYTHONPATH: ${SITEPKGS}/vtk:${PYTHONPATH}
+          MB: ${SITEPKGS}/mindboggle
     steps:
+      - checkout
+      #-----------------------------------------------------------------------
+      # Dependencies
+      #-----------------------------------------------------------------------
+      - run: 
+        name: install requirements/dev.txt
+        command: pip install -r requirements/dev.txt
       - run:
-          environment:
-            HOME: /home/ubuntu
-            CONDA_ROOT: ${HOME}/miniconda
-            ENV_NAME: mindboggle-env
-            ENV_PREFIX: ${CONDA_ROOT}/envs/${ENV_NAME}
-            python: ${ENV_PREFIX}/bin/python
-            vtk_cpp_tools: ${HOME}/mindboggle/vtk_cpp_tools/bin
-            PATH: ${ENV_PREFIX}/bin:${CONDA_ROOT}/bin:${vtk_cpp_tools}:${PATH}
-            SITEPKGS: ${ENV_PREFIX}/lib/python3.5/site-packages
-            PYTHONPATH: ${SITEPKGS}/vtk:${PYTHONPATH}
-            MB: ${SITEPKGS}/mindboggle
-  test:
-    steps:
-      - $python -m "nose" --with-doctest ${MB}/thirdparty/
-      - $python -m "nose" --with-doctest ${MB}/mio/
-      - $python -m "nose" --with-doctest ${MB}/guts/
-      - $python -m "nose" --with-doctest ${MB}/shapes/
-      - $python -m "nose" --with-doctest ${MB}/features/
-     #- $python -m "nose" --with-doctest --with-coverage ${MB}/evaluate/
-     #- coveralls
-
-dependencies:
-    #cache_directories:
-    #    - $CONDA_ROOT
-    pre:
-        - sudo apt-get update; sudo apt-get install libllvm-3.3
-    override:
-        #-------------------------------------------------------------------------
+        name: update
+        command: sudo apt-get update; sudo apt-get install libllvm-3.3
+        #---------------------------------------------------------------------
         # Download/install conda (if not already cached)
-        #-------------------------------------------------------------------------
-        - >
+        #---------------------------------------------------------------------
+      - run:
+        name: install conda
+        command: | 
             if [[ ! -d $CONDA_ROOT ]]; then
                 echo "Installing Miniconda3...";
                 wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh &&
@@ -54,26 +47,49 @@ dependencies:
             else
                 echo "Using cached Miniconda install";
             fi
-        - conda config --set show_channel_urls yes --set always_yes yes
-        - conda update conda conda-env
-        #-------------------------------------------------------------------------
+      - run:
+        name: configure conda
+        command: conda config --set show_channel_urls yes --set always_yes yes
+      - run:
+        name: update conda
+        command: conda update conda conda-env
+        #---------------------------------------------------------------------
         # Create a Python environment (see environment.yml file):
-        #-------------------------------------------------------------------------
-        - conda env create
-        - source activate mindboggle-env
-        - conda info --envs
-        #-------------------------------------------------------------------------
+        #---------------------------------------------------------------------
+      - run:
+        name: create a python environment
+        command: conda env create
+      - run:
+        name: activate environment
+        command: source activate mindboggle-env
+      - run:
+        name: conda info
+        command: conda info --envs
+        #---------------------------------------------------------------------
         # Install Mindboggle and its C++ code:
-        #-------------------------------------------------------------------------
-        - $python setup.py install
-        - mkdir $vtk_cpp_tools && cd $vtk_cpp_tools && cmake ../ && make
+        #---------------------------------------------------------------------
+      - run:
+        name: install mindboggle
+        command: $python setup.py install
+      - run:
+        name: install mindboggle c++ code
+        command: mkdir $vtk_cpp_tools && cd $vtk_cpp_tools && cmake ../ && make
+      #-----------------------------------------------------------------------
+      # Run tests
+      #-----------------------------------------------------------------------
+      - run:
+        name: thirdparty
+        command: $python -m "nose" --with-doctest ${MB}/thirdparty/
+      - run:
+        name: mio
+        command: $python -m "nose" --with-doctest ${MB}/mio/
+      - run:
+        name: guts
+        command: $python -m "nose" --with-doctest ${MB}/guts/
+      - run:
+        name: shapes
+        command: $python -m "nose" --with-doctest ${MB}/shapes/
+      - run:
+        name: features
+        command: $python -m "nose" --with-doctest ${MB}/features/
 
-#-----------------------------------------------------------------------------
-# Workflows: build and test
-#-----------------------------------------------------------------------------
-workflows:
-  version: 2
-  build_and_test:
-    jobs:
-      - build
-      - test
