@@ -25,6 +25,9 @@ jobs:
           MB: ${SITEPKGS}/mindboggle
     steps:
       - checkout
+      #-----------------------------------------------------------------------
+      # Dependencies
+      #-----------------------------------------------------------------------
       - run: 
         name: install requirements/dev.txt
         command: pip install -r requirements/dev.txt

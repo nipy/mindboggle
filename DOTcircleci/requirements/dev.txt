@@ -1,0 +1,52 @@
+# Environment for installing Mindboggle
+#
+# This environment is configured for circleci.com continuous integration
+# (testing).
+#
+# Authors:
+#    - Arno Klein, 2016-2017  (arno@mindboggle.info)  http://binarybottle.com
+#
+# Copyright 2016-2017,  Mindboggle team (mindboggle.info), Apache v2.0 License
+
+#-----------------------------------------------------------------------------
+# mindboggle-env environment:
+#-----------------------------------------------------------------------------
+name: mindboggle-env
+#-----------------------------------------------------------------------------
+# anaconda cloud channel for installing VTK 7.0.0:
+#-----------------------------------------------------------------------------
+channels:
+    - clinicalgraphics
+#-----------------------------------------------------------------------------
+# mindboggle dependencies:
+#-----------------------------------------------------------------------------
+dependencies:
+    - python=3.5.1
+    - vtk=7.0.0
+    - matplotlib
+    - numpy
+    - scipy
+    - pandas
+    - cmake
+    - pip
+    - pip:
+        - nibabel
+        - nipype
+        - prov
+        - traits
+        - xvfbwrapper
+        - colormath
+        - pydotplus
+
+    - networkx
+    - lxml
+    - simplejson
+    - future
+    - nose
+    #-------------------------------------------------------------------------
+    # additional testing tools:
+    #-------------------------------------------------------------------------
+    - ipython
+    - pytest
+    - coverage
+

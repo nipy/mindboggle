@@ -1,0 +1,75 @@
+## Configuration file for circleci.com continuous integration (testing)
+##
+## All dependencies are accounted for in the environment.yml file.
+##
+## Authors:
+##    - Arno Klein, 2016  (arno@mindboggle.info)  http://binarybottle.com
+##
+## Copyright 2016,  Mindboggle team (mindboggle.info), Apache v2.0 License
+
+#-----------------------------------------------------------------------------
+# Customize the test machine:
+#-----------------------------------------------------------------------------
+machine:
+    # Add some environment variables
+    environment:
+        HOME: /home/ubuntu
+        CONDA_ROOT: ${HOME}/miniconda
+        ENV_NAME: mindboggle-env
+        ENV_PREFIX: ${CONDA_ROOT}/envs/${ENV_NAME}
+        python: ${ENV_PREFIX}/bin/python
+        vtk_cpp_tools: ${HOME}/mindboggle/vtk_cpp_tools/bin
+        PATH: ${ENV_PREFIX}/bin:${CONDA_ROOT}/bin:${vtk_cpp_tools}:${PATH}
+        SITEPKGS: ${ENV_PREFIX}/lib/python3.5/site-packages
+        PYTHONPATH: ${SITEPKGS}/vtk:${PYTHONPATH}
+        MB: ${SITEPKGS}/mindboggle
+
+#-----------------------------------------------------------------------------
+# Customize dependencies:
+#-----------------------------------------------------------------------------
+dependencies:
+    #cache_directories:
+    #    - $CONDA_ROOT
+
+    pre:
+        - sudo apt-get update; sudo apt-get install libllvm-3.3
+    
+    override:
+
+        #-------------------------------------------------------------------------
+        # Download/install conda (if not already cached)
+        #-------------------------------------------------------------------------
+        - >
+            if [[ ! -d $CONDA_ROOT ]]; then
+                echo "Installing Miniconda3...";
+                wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh &&
+                bash Miniconda3-latest-Linux-x86_64.sh -b -p $CONDA_ROOT;
+            else
+                echo "Using cached Miniconda install";
+            fi
+        - conda config --set show_channel_urls yes --set always_yes yes
+        - conda update conda conda-env
+        #-------------------------------------------------------------------------
+        # Create a Python environment (see environment.yml file):
+        #-------------------------------------------------------------------------
+        - conda env create
+        - source activate mindboggle-env
+        - conda info --envs
+        #-------------------------------------------------------------------------
+        # Install Mindboggle and its C++ code:
+        #-------------------------------------------------------------------------
+        - $python setup.py install
+        - mkdir $vtk_cpp_tools && cd $vtk_cpp_tools && cmake ../ && make
+
+#-----------------------------------------------------------------------------
+# Customize test commands:
+#-----------------------------------------------------------------------------
+test:
+    override:
+        - $python -m "nose" --with-doctest ${MB}/thirdparty/
+        - $python -m "nose" --with-doctest ${MB}/mio/
+        - $python -m "nose" --with-doctest ${MB}/guts/
+        - $python -m "nose" --with-doctest ${MB}/shapes/
+        - $python -m "nose" --with-doctest ${MB}/features/
+       #- $python -m "nose" --with-doctest --with-coverage ${MB}/evaluate/
+       #- coveralls
