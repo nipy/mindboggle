@@ -110,7 +110,7 @@ def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
     >>> G.size()
     9
     >>> G.degree()
-    {0.0: 4, 1.0: 4, 2.0: 3, 3.0: 4, 4.0: 3}
+    DegreeView({0.0: 4, 1.0: 4, 2.0: 3, 3.0: 4, 4.0: 3})
 
     """
     import numpy as np
