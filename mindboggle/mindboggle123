@@ -164,6 +164,7 @@ if args.fs_flags:
 #     -f $TEMPLATE/T_template0_BrainCerebellumExtractionMask.nii.gz \
 #     -p $TEMPLATE/Priors2/priors%d.nii.gz \
 #     -o $PREFIX
+#     -u 0
 # ----------------------------------------------------------------------------
 TEMPLATE = os.path.join(TDIR, 'T_template0.nii.gz')
 REG = os.path.join(TDIR, 'T_template0_BrainCerebellum.nii.gz')
@@ -188,6 +189,7 @@ corticalthickness.inputs.extraction_registration_mask = EXT
 corticalthickness.inputs.segmentation_priors = [PRIOR1, PRIOR2, PRIOR3,
                                                 PRIOR4, PRIOR5, PRIOR6]
 corticalthickness.inputs.out_prefix = PREFIX
+corticalthickness.inputs.use_random_seeding = 0
 corticalthickness.inputs.use_floatingpoint_precision = True
 
 if args.num_threads and args.num_threads > 1:

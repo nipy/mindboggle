@@ -160,7 +160,8 @@ already installed in the Docker container ("\\" splits the command for readabili
       -t $TEMPLATE/T_template0_BrainCerebellum.nii.gz \
       -m $TEMPLATE/T_template0_BrainCerebellumProbabilityMask.nii.gz \
       -f $TEMPLATE/T_template0_BrainCerebellumExtractionMask.nii.gz \
-      -p $TEMPLATE/Priors2/priors%d.nii.gz
+      -p $TEMPLATE/Priors2/priors%d.nii.gz \
+      -u 0
 
 4. **Mindboggle** can be run on data preprocessed by ``recon-all`` and
 ``antsCorticalThickness.sh`` as above by setting::
