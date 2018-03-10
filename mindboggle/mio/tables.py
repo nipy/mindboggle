@@ -1104,6 +1104,73 @@ def explode_mindboggle_tables(subject_path='', output_path='.',
                               format(output_dir))
 
 
+def short_name(filepath):
+    """
+    Generate a short name for a given branch of the mindboggle output
+
+    Parameters
+    ----------
+    filepath: str
+        a path to a mindboggle output file
+    """
+    return ''.join([v[0] for v in
+                    filepath.split('/tables/')[-1].replace('/','_').split('_')])
+
+
+def fname2df(fname):
+    """
+    Read a single csv into a single dataframe row
+
+    Parameters
+    ----------
+    fname: str
+        a path to a mindboggle output file
+    """
+    import numpy as np
+    import pandas as pd
+
+    df = pd.read_csv(fname, na_values=[0.0]).dropna(axis=0)
+    sn = short_name(fname)
+    outerproduct = [[sn+'-'+x+'-'+y.lstrip() for x in df.name] for y in
+                    df.keys()[2:]]
+    outerproduct = np.array(outerproduct).flatten().tolist()
+    df_row = pd.DataFrame(data=df.iloc[:, 2:].values.flatten()[None, :],
+                          columns=outerproduct, index=[0])
+    return df_row
+
+
+def collate_participant_tables(subject_ids, base_dir):
+    """
+    Generate a pandas dataframe across all subjects
+
+    Parameters
+    ----------
+    subject_ids: list
+        a list of subject identifiers in
+    base_dir: str
+        path to a mindboggle output base directory (mindboggled)
+
+
+    >>> from mindboggle.mio import collate_participant_tables
+    >>> dft = collate_participant_tables(['sub-1', 'sub-2'],
+    ...                                  '/path/to/mindboggled/') # doctest: +SKIP
+    """
+    from glob import glob
+    import os
+    import pandas as pd
+
+    out = None
+    for id in subject_ids:
+        fl = glob(os.path.join(base_dir, id, 'tables', '*.csv')) + \
+             glob(os.path.join(base_dir, id, 'tables', '*', '*.csv'))
+        # skip vertices outputs
+        dft = pd.concat([fname2df(val) for val in sorted(fl)
+                         if 'vertices' not in val], axis=1)
+        dft.index = [id]
+        out = dft if out is None else pd.concat((out, dft), axis=0)
+    return out
+
+
 # ============================================================================
 # Doctests
 # ============================================================================
