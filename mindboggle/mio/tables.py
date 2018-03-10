@@ -1151,7 +1151,7 @@ def collate_participant_tables(subject_ids, base_dir):
         path to a mindboggle output base directory (mindboggled)
 
 
-    >>> from mindboggle.mio import collate_participant_tables
+    >>> from mindboggle.mio.tables import collate_participant_tables
     >>> dft = collate_participant_tables(['sub-1', 'sub-2'],
     ...                                  '/path/to/mindboggled/') # doctest: +SKIP
     """
