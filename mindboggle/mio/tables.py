@@ -1150,10 +1150,22 @@ def collate_participant_tables(subject_ids, base_dir):
     base_dir: str
         path to a mindboggle output base directory (mindboggled)
 
+    Returns
+    -------
+    collated_table : pandas DataFrame
+        rows of subject_ids, and columns of shape measures
 
+    Examples
+    --------
     >>> from mindboggle.mio.tables import collate_participant_tables
-    >>> dft = collate_participant_tables(['sub-1', 'sub-2'],
-    ...                                  '/path/to/mindboggled/') # doctest: +SKIP
+    >>> subject_ids = ['arno', 'arno'] # normally two different subjects
+    >>> base_dir = os.environ['MINDBOGGLE_DATA'] # doctest: +SKIP
+    >>> dft = collate_participant_tables(subject_ids, base_dir) # doctest: +SKIP
+    >>> dft['lcsfs-sylvian fissure-area'] # doctest: +SKIP
+    arno    4.641015
+    arno    4.641015
+    Name: lcsfs-sylvian fissure-area, dtype: float64
+
     """
     from glob import glob
     import os
