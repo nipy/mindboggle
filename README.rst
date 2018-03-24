@@ -135,7 +135,13 @@ on the cortical surfaces and in the cortical and non-cortical volumes
 
     docker run --rm -ti -v $HOST:$DOCK --entrypoint /bin/bash nipy/mindboggle
 
-2. `FreeSurfer <http://surfer.nmr.mgh.harvard.edu>`_ generates labeled
+2. Recommended: reset environment variables as above within the Docker container::
+
+    DOCK=/home/jovyan/work  # path to HOST from Docker container
+    IMAGE=$DOCK/example_mri_data/T1.nii.gz  # input image on HOST
+    ID=arno  # ID for brain image
+
+3. `FreeSurfer <http://surfer.nmr.mgh.harvard.edu>`_ generates labeled
 cortical surfaces, and labeled cortical and noncortical volumes.
 Run ``recon-all`` on a T1-weighted IMAGE file (and optionally a T2-weighted
 image), and set the output ID name as well as the $FREESURFER_OUT output
@@ -145,7 +151,7 @@ directory::
 
     recon-all -all -i $IMAGE -s $ID -sd $FREESURFER_OUT
 
-3. `ANTs <http://stnava.github.io/ANTs/>`_ provides brain volume extraction,
+4. `ANTs <http://stnava.github.io/ANTs/>`_ provides brain volume extraction,
 segmentation, and registration-based labeling. ``antsCorticalThickness.sh``
 generates transforms and segmentation files used by Mindboggle, and is run
 on the same IMAGE file and ID as above, with $ANTS_OUT output directory.
@@ -163,7 +169,7 @@ already installed in the Docker container ("\\" splits the command for readabili
       -p $TEMPLATE/Priors2/priors%d.nii.gz \
       -u 0
 
-4. **Mindboggle** can be run on data preprocessed by ``recon-all`` and
+5. **Mindboggle** can be run on data preprocessed by ``recon-all`` and
 ``antsCorticalThickness.sh`` as above by setting::
 
     FREESURFER_SUBJECT=$FREESURFER_OUT/$ID
