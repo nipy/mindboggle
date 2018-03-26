@@ -87,8 +87,7 @@ def volume_per_brain_region(input_file, include_labels=[], exclude_labels=[],
 
     # Load labeled image volumes:
     img = nb.load(input_file)
-    hdr = img.get_header()
-    volume_per_voxel = np.product(hdr.get_zooms())
+    volume_per_voxel = np.product(img.header.get_zooms())
     labels = img.get_data().ravel()
 
     unique_labels, counts = count_per_label(labels, include_labels,
@@ -370,28 +369,34 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     # ------------------------------------------------------------------------
     if resize:
         rescale = 2.0
+        maxdim = 257
     else:
         rescale = 1.0
-    compute_real_volume = True
-    if compute_real_volume:
-        img = nb.load(cortex)
-        hdr = img.get_header()
-        vv_orig = np.prod(hdr.get_zooms())
-        vv = np.prod([x/rescale for x in hdr.get_zooms()])
-        cortex_data = img.get_data().ravel()
-    else:
-        vv = 1/rescale
-        cortex_data = nb.load(cortex).get_data().ravel()
+        maxdim = 514
+    img = nb.load(cortex)
+    dims = img.header.get_data_shape()
+
+    if any([x > maxdim for x in dims]) and resize:
+        raise IOError("Image dimensions greater than " + str(maxdim) +
+                      " voxels, which may be too large for thickinthehead "
+                      "to resample.")
+
+    voxdims0 = img.header.get_zooms()
+    voxdims = [x / rescale for x in voxdims0]
+    voxvol0 = np.prod(voxdims0)
+    voxvol = np.prod(voxdims)
+    cortex_data = img.get_data().ravel()
 
     # ------------------------------------------------------------------------
     # Resample cortex and noncortex files from 1x1x1 to 0.5x0.5x0.5
     # to better represent the contours of the boundaries of the cortex:
     # ------------------------------------------------------------------------
     if resize:
-        dims = ' '.join([str(1/rescale), str(1/rescale), str(1/rescale)])
-        cmd = [ants_resample, '3', cortex, cortex, dims, '0 0 1']
+        #voxdims_str = ' '.join([str(1/rescale), str(1/rescale), str(1/rescale)])
+        voxdims_str = ' '.join([str(x) for x in voxdims])
+        cmd = [ants_resample, '3', cortex, cortex, voxdims_str, '0 0 1']
         execute(cmd, 'os')
-        cmd = [ants_resample, '3', noncortex, noncortex, dims, '0 0 1']
+        cmd = [ants_resample, '3', noncortex, noncortex, voxdims_str, '0 0 1']
         execute(cmd, 'os')
 
     # ------------------------------------------------------------------------
@@ -447,12 +452,13 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
         #   - Estimate the thickness of the labeled cortical region as the
         #     volume of the labeled region divided by the surface area.
         # --------------------------------------------------------------------
-        label_cortex_volume = vv_orig * len(np.where(cortex_data==label)[0])
-        label_inner_edge_volume = vv * len(np.where(inner_edge_data==label)[0])
+        label_cortex_volume = voxvol0 * len(np.where(cortex_data==label)[0])
+        label_inner_edge_volume = voxvol * \
+                                  len(np.where(inner_edge_data==label)[0])
         if label_inner_edge_volume:
             if use_outer_edge:
                 label_outer_edge_volume = \
-                    vv * len(np.where(outer_edge_data==label)[0])
+                    voxvol * len(np.where(outer_edge_data==label)[0])
                 label_area = (label_inner_edge_volume +
                               label_outer_edge_volume) / 2.0
             else:
