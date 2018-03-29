@@ -2253,7 +2253,6 @@ if do_label and not args.no_volumes:
                                           'noncortex_value',
                                           'labels',
                                           'names',
-                                          'resize',
                                           'propagate',
                                           'output_dir',
                                           'save_table',
@@ -2293,7 +2292,6 @@ if do_label and not args.no_volumes:
             FSthicknesses.inputs.noncortex_value = 3
             FSthicknesses.inputs.labels = dkt.cerebrum_cortex_numbers
             FSthicknesses.inputs.names = dkt.cerebrum_cortex_names
-            FSthicknesses.inputs.resize = True
             FSthicknesses.inputs.propagate = False
             FSthicknesses.inputs.output_dir = ''
             FSthicknesses.inputs.save_table = True
