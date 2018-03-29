@@ -240,7 +240,7 @@ The following steps are performed by Mindboggle (with links to code on GitHub):
 3. Compute volume shape measures for each labeled region:
 
     - volume (`volume_per_brain_region <https://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/volume_shapes.py#L14>`_)
-    - thickness of cortical labels (`thickinthehead <https://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/volume_shapes.py#L132>`_)
+    - thickness of cortical labels (`thickinthehead <https://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/volume_shapes.py#L131>`_, off by default)
 
 4. Compute surface shape measures for every cortical mesh vertex:
 
@@ -346,9 +346,9 @@ The following include outputs from most, but not all, optional arguments.
 
         **volumes_per_ants_label.csv**:  *volume per ANTs label*
 
-        **thickinthehead_per_freesurfer_cortex_label.csv**:  *FS cortex label thickness*
+        **thickinthehead_per_freesurfer_cortex_label.csv**:  *FS cortex label thickness*  **-- UNDER EVALUATION --**
 
-        **thickinthehead_per_ants_cortex_label.csv**:  *ANTs cortex label thickness*
+        **thickinthehead_per_ants_cortex_label.csv**:  *ANTs cortex label thickness*  **-- UNDER EVALUATION --**
 
         [left,right]_cortical_surface /
 

@@ -138,9 +138,9 @@ out_args.add_argument("--no_moments", action='store_true',
                       help="no Zernike moments per surface label or sulcus")
 out_args.add_argument("--no_spectra", action='store_true',
                       help="no Laplace-Beltrami per surface label or sulcus")
-out_args.add_argument("--no_thickness", action='store_true',
-                      help="no volume-based cortical label thicknesses")
 
+adv_args.add_argument("--thickinthehead", action='store_true',
+                      help="volume-based cortical label thicknesses")
 adv_args.add_argument("--fundi", action='store_true',
                       help="extract, measure fundi (under evaluation, SLOW)")
 adv_args.add_argument("--moments",
@@ -259,10 +259,10 @@ if args.no_points:
     do_points = False
 else:
     do_points = True
-if args.no_thickness:
-    do_thickinthehead = False
-else:
+if args.thickinthehead:
     do_thickinthehead = True
+else:
+    do_thickinthehead = False
 
 # Set Laplace-Beltrami spectra:
 if args.no_spectra:
