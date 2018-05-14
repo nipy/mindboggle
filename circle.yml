@@ -20,7 +20,7 @@ machine:
         python: ${ENV_PREFIX}/bin/python
         vtk_cpp_tools: ${HOME}/mindboggle/vtk_cpp_tools/bin
         PATH: ${ENV_PREFIX}/bin:${CONDA_ROOT}/bin:${vtk_cpp_tools}:${PATH}
-        SITEPKGS: ${ENV_PREFIX}/lib/python3.5/site-packages
+        SITEPKGS: ${ENV_PREFIX}/lib/python3.6/site-packages
         PYTHONPATH: ${SITEPKGS}/vtk:${PYTHONPATH}
         MB: ${SITEPKGS}/mindboggle
 
@@ -28,12 +28,6 @@ machine:
 # Customize dependencies:
 #-----------------------------------------------------------------------------
 dependencies:
-    #cache_directories:
-    #    - $CONDA_ROOT
-
-    pre:
-        - sudo apt-get update; sudo apt-get install libllvm-3.3
-    
     override:
 
         #-------------------------------------------------------------------------
@@ -59,6 +53,7 @@ dependencies:
         # Install Mindboggle and its C++ code:
         #-------------------------------------------------------------------------
         - $python setup.py install
+        - ln /
         - mkdir $vtk_cpp_tools && cd $vtk_cpp_tools && cmake ../ && make
 
 #-----------------------------------------------------------------------------

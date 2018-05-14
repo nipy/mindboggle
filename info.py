@@ -16,7 +16,8 @@ CLASSIFIERS = ["Development Status :: Beta",
                "Programming Language :: Python 3",
                "Topic :: Scientific/Engineering"]
 
-description  = "Automated human brain image feature extraction, labeling, and shape analysis"
+description  = ("Automated human brain image feature extraction, labeling, "
+                "and shape analysis")
 
 # Note: this long_description is actually a copy/paste from the top-level
 # README.rst, so that it shows up nicely on PyPI.  So please remember to edit
@@ -50,5 +51,5 @@ AUTHOR_EMAIL        = "arno@mindboggle.info"
 PLATFORMS           = "Linux"
 VERSION             = __version__
 PROVIDES            = ["mindboggle"]
-#REQUIRES            = ["numpy (>={0})".format(NUMPY_MIN_VERSION)]
+REQUIRES            = ["nipype", "matplotlib", "colormath", "pandas"]
 
