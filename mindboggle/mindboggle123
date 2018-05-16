@@ -242,7 +242,6 @@ def mindboggle(subjectid, fsdir, antsdir, antsseg, out, args, num_threads=1):
     print(command)
 
     from nipype import config
-    del config._sections['execution']['display_variable']
     cli = CommandLine(command='mindboggle')
     cli.inputs.args = all_args
     cli.cmdline
