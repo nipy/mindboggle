@@ -178,7 +178,7 @@ PRIOR5 = os.path.join(TDIR, 'Priors2', 'priors5.nii.gz')
 PRIOR6 = os.path.join(TDIR, 'Priors2', 'priors6.nii.gz')
 PREFIX = os.path.join(ants_output, ID, 'ants')
 
-corticalthickness = Node(antsCorticalThickness(),
+corticalthickness = Node(CorticalThickness(),
                          name='antsCorticalThickness')
 corticalthickness.inputs.dimension = 3
 corticalthickness.inputs.anatomical_image = IMAGE
