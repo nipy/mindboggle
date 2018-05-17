@@ -775,8 +775,7 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
     >>> spectrum_lists, label_list = spectrum_per_label(vtk_file,
     ...     spectrum_size, exclude_labels, None, area_file, largest_segment,
     ...     verbose)
-    >>> c = [np.float("{0:.{1}f}".format(x, 5)) for x in spectrum_lists[0][1::]]
-    >>> c[1::]
+    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in spectrum_lists[0][1::]]
     [0.00054, 0.00244, 0.00291, 0.00456, 0.00575]
     >>> label_list[0:10]
     [1029, 1005, 1011, 1021, 1008, 1025, 999, 1013, 1007, 1022]
