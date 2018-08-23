@@ -29,12 +29,18 @@ Copyright 2017,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 import os
 import argparse
+from glob import glob
 
 from nipype import config, logging
-from nipype.pipeline.engine import Workflow, Node
+from nipype.pipeline.engine import Workflow, Node, MapNode
 from nipype.interfaces.utility import Function as Fn
+from nipype.interfaces.utility import Merge
 from nipype.interfaces.freesurfer import ReconAll
 from nipype.interfaces.ants.segmentation import CorticalThickness
+from nipype.interfaces.ants import (ApplyTransforms, AntsJointFusion,
+                                    LabelGeometry)
+from nipype.utils.misc import human_order_sorted
+
 
 from mindboggle.version import __version__ as mbversion
 mindboggle_version = 'mindboggle version {0}'.format(mbversion)
@@ -274,6 +280,66 @@ Mindboggle.inputs.antsdir = ants_output
 if args.skip_ants:
     Mindboggle.inputs.antsseg = PREFIX + 'BrainSegmentation.nii.gz'
 else:
+    comps = TDIR.split(os.sep)
+    IDIR = os.sep.join(comps[:(-2 if not comps[-1] else -1)] +
+                       ['OASIS-TRT_brains_to_OASIS_Atropos_template'])
+    LDIR = os.sep.join(comps[:(-2 if not comps[-1] else -1)] +
+                       ['OASIS-TRT_labels_to_OASIS_Atropos_template'])
+    T1s = human_order_sorted(glob(os.path.join(IDIR, '*.nii.gz')))
+    labels = human_order_sorted(glob(os.path.join(LDIR, '*.nii.gz')))
+
+    # ----------------------------------------------------------------------
+    # Create workflow to label ANTs output with JointFusion and derive stats
+    # ----------------------------------------------------------------------
+    merge_transforms = Node(Merge(2), name="merge_transforms")
+
+    # label_wf = Workflow('labelflow')
+    transformer = MapNode(ApplyTransforms(), iterfield=['input_image'],
+                          name="transformer")
+    transformer.inputs.reference_image = IMAGE
+    transformer.inputs.input_image = T1s
+    transformer.inputs.dimension = 3
+    transformer.inputs.invert_transform_flags = [False, False]
+    transformer.inputs.interpolation = 'BSpline'
+
+    transformer_nn = MapNode(ApplyTransforms(), iterfield=['input_image'],
+                             name="transformer_nn")
+    transformer_nn.inputs.reference_image = IMAGE
+    transformer_nn.inputs.dimension = 3
+    transformer_nn.inputs.invert_transform_flags = [False, False]
+    transformer_nn.inputs.input_image = labels
+    transformer_nn.inputs.interpolation = 'NearestNeighbor'
+
+    labeler = Node(AntsJointFusion(), name='labeler')
+    labeler.inputs.dimension = 3
+    labeler.inputs.target_image = [IMAGE]
+    labeler.inputs.out_label_fusion = 'label.nii.gz'
+    if args.num_threads and args.num_threads > 1:
+        labeler.inputs.num_threads = args.num_threads
+
+    tocsv = Node(LabelGeometry(), name='get_measures')
+    tocsv.inputs.output_file = os.path.join(ants_output, ID,
+                                            'antslabelstats.csv')
+
+    mbFlow.connect(corticalthickness, 'TemplateToSubject1GenericAffine',
+                   merge_transforms, 'in1')
+    mbFlow.connect(corticalthickness, 'TemplateToSubject0Warp',
+                   merge_transforms, 'in2')
+    mbFlow.connect(merge_transforms, 'out', transformer, 'transforms')
+    mbFlow.connect(merge_transforms, 'out', transformer_nn, 'transforms')
+    mbFlow.connect(corticalthickness, 'BrainExtractionMask', labeler,
+                   'mask_image')
+    mbFlow.connect(corticalthickness, 'CorticalThickness',
+                   tocsv, 'intensity_image')
+
+    mbFlow.connect(transformer, 'output_image', labeler, 'atlas_image')
+    mbFlow.connect(transformer_nn, 'output_image', labeler,
+                   'atlas_segmentation_image')
+    mbFlow.connect(labeler, 'out_label_fusion', tocsv, 'label_image')
+
+    # ----------------------------------------------------------------------------
+    # Connect ants to Mindboggle
+    # ----------------------------------------------------------------------------
     mbFlow.connect(corticalthickness, 'BrainSegmentation',
                    Mindboggle, 'antsseg')
 Mindboggle.inputs.out = mindboggle_output
