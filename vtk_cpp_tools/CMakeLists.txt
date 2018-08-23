@@ -5,7 +5,7 @@ project(mindboggle_surfaces)
 ## "cmake .. -DVTK_DIR:STRING=/Users/arno/anaconda/lib/cmake/vtk-7.0"
 #set(VTK_DIR "/Users/arno/anaconda/lib/cmake/vtk-7.0")
 #find_package(VTK REQUIRED NO_MODULE)
-find_package(VTK 7.0 COMPONENTS vtkInteractionStyle vtkRenderingFreeType vtkRenderingOpenGL2 vtkRenderingVolumeOpenGL2 vtkIOLegacy vtkIOMINC vtkIOGeometry vtkImagingStencil vtkImagingMorphological vtkFiltersModeling NO_MODULE)
+find_package(VTK 8.1 COMPONENTS vtkInteractionStyle vtkRenderingFreeType vtkRenderingOpenGL2 vtkRenderingVolumeOpenGL2 vtkIOLegacy vtkIOMINC vtkIOGeometry vtkImagingStencil vtkImagingMorphological vtkFiltersModeling NO_MODULE)
 include(${VTK_USE_FILE})
 
 #if(COMMAND CMAKE_POLICY)
