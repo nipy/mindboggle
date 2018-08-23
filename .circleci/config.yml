@@ -1,0 +1,43 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: continuumio/miniconda3:4.5.4
+    environment:
+      ENV_NAME: mindboggle-env
+      vtk_cpp_tools: /src/mindboggle/vtk_cpp_tools/bin
+    working_directory: /src/mindboggle
+    steps:
+      - checkout
+      - run:
+          name: Install mindboggle
+          command: |
+            set -eu
+            apt-get update -qq && apt-get install -yq \
+                build-essential \
+                libgl1-mesa-dev \
+                libglu1-mesa-dev \
+                libsm-dev \
+                libx11-dev \
+                libxt-dev \
+                libxext-dev
+            ln -sv /usr/lib/x86_64-linux-gnu /usr/lib64
+            conda config --set show_channel_urls yes --set always_yes yes
+            conda config --add channels conda-forge
+            conda update conda conda-env
+            conda env create --quiet
+            source activate $ENV_NAME
+            conda info --envs
+            python setup.py install
+            mkdir $vtk_cpp_tools && cd $vtk_cpp_tools && cmake ../ && make
+      - run:
+          name: Test mindboggle
+          command: |
+            source activate $ENV_NAME
+            export MB=/opt/conda/envs/${ENV_NAME}/lib/python3.6/site-packages/mindboggle
+            export PATH=$PATH:$vtk_cpp_tools
+            python -m "nose" --with-doctest ${MB}/thirdparty/
+            python -m "nose" --with-doctest ${MB}/mio/
+            python -m "nose" --with-doctest ${MB}/guts/
+            python -m "nose" --with-doctest ${MB}/shapes/
+            python -m "nose" --with-doctest ${MB}/features/
