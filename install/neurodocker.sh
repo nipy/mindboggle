@@ -32,9 +32,7 @@ docker run --rm kaczmarj/neurodocker:0.4.1 generate docker \
         conda activate mb && \
         git clone https://github.com/nipy/mindboggle.git && \
         cd /opt/mindboggle && \
-        git checkout edf95a3 && \
         python setup.py install && \
-        sed -i "s/7.0/8.1/g" vtk_cpp_tools/CMakeLists.txt && \
         mkdir /opt/vtk_cpp_tools && \
         cd /opt/vtk_cpp_tools && \
         cmake /opt/mindboggle/vtk_cpp_tools && \
