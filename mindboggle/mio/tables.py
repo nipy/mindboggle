@@ -824,12 +824,8 @@ def select_column_from_tables(tables, index=0, write_table=True,
     >>> output = select_column_from_tables(tables, index, write_table,
     ...                                    output_table)
     >>> columns = output[1][0]
-    >>> columns[0]
-    2.8010000000000002
-    >>> columns[1]
-    3.9430000000000001
-    >>> columns[2]
-    4.0280000000000005
+    >>> np.allclose(columns, [2.801, 3.943, 4.028])
+    True
 
     """
     import os

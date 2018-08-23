@@ -61,12 +61,12 @@ def distinguishable_colors(ncolors, backgrounds=[[0,0,0],[1,1,1]],
     >>> verbose = False
     >>> colors = distinguishable_colors(ncolors, backgrounds,
     ...     save_csv, plot_colormap, verbose)
-    >>> colors[0]
-    array([ 0.62068966,  0.06896552,  1.        ])
-    >>> colors[1]
-    array([ 0.       ,  0.5862069,  0.       ])
-    >>> colors[2]
-    array([ 0.75862069,  0.20689655,  0.        ])
+    >>> np.allclose(colors[0], [ 0.62068966,  0.06896552,  1.        ])
+    True
+    >>> np.allclose(colors[1], [ 0.       ,  0.5862069,  0.       ])
+    True
+    >>> np.allclose(colors[2], [ 0.75862069,  0.20689655,  0.        ])
+    True
 
     """
     import numpy as np
@@ -227,15 +227,17 @@ def label_adjacency_matrix(label_file, ignore_values=[-1, 999], add_value=0,
     >>> label_file = fetch_data(urls['left_manual_labels'], '', '.vtk')
     >>> labels, matrix, output_table = label_adjacency_matrix(label_file,
     ...     ignore_values, add_value, save_table, output_format, verbose)
-    >>> matrix.lookup([20,21,22,23,24,25,26,27,28,29],
+    >>> out = matrix.lookup([20,21,22,23,24,25,26,27,28,29],
     ...               [35,35,35,35,35,35,35,35,35,35])
-    array([ 0.,  1.,  0.,  0.,  0.,  0.,  0.,  1.,  1.,  1.])
+    >>> np.allclose(out, [ 0.,  1.,  0.,  0.,  0.,  0.,  0.,  1.,  1.,  1.])
+    True
 
     >>> label_file = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
     >>> labels, matrix, output_table = label_adjacency_matrix(label_file,
     ...     ignore_values, add_value, save_table, output_format, verbose)
-    >>> matrix.lookup([4,5,7,8,10,11,12,13,14,15], [4,4,4,4,4,4,4,4,4,4])
-    array([ 1.,  1.,  0.,  0.,  0.,  1.,  0.,  0.,  1.,  0.])
+    >>> out matrix.lookup([4,5,7,8,10,11,12,13,14,15], [4,4,4,4,4,4,4,4,4,4])
+    >>> np.allclose(out, [ 1.,  1.,  0.,  0.,  0.,  1.,  0.,  0.,  1.,  0.])
+    True
 
     """
     import numpy as np
