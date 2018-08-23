@@ -18,28 +18,12 @@ if os.path.exists('MANIFEST'): os.remove('MANIFEST')
 if len(set(('develop', 'bdist_egg', 'bdist_rpm', 'bdist', 'bdist_dumb',
             'bdist_wininst', 'install_egg_info', 'egg_info', 'easy_install',
             )).intersection(sys.argv)) > 0:
-    # setup_egg imports setuptools setup, thus monkeypatching distguts.
-    # import setup_egg
     pass
 from distutils.core import setup
 
 # Get version and release info, which is all stored in info.py
 ver_file = pjoin(os.getcwd(), 'info.py')
 exec(open(ver_file).read())
-
-# Do dependency checking
-#package_check('numpy', NUMPY_MIN_VERSION)
-
-# extra_setuptools_args = {}
-# if 'setuptools' in sys.modules:
-#     extra_setuptools_args = dict(
-#         tests_require=['nose'],
-#         test_suite='nose.collector',
-#         zip_safe=False,
-#         extras_require = dict(
-#             doc='Sphinx>=0.3',
-#             test='nose>=0.10.1')
-#     )
 
 def main(**extra_args):
     setup(name=NAME,
@@ -55,7 +39,7 @@ def main(**extra_args):
           author_email=AUTHOR_EMAIL,
           platforms=PLATFORMS,
           version=VERSION,
-          #requires=REQUIRES,
+          requires=REQUIRES,
           provides=PROVIDES,
           packages=['mindboggle',
                     'mindboggle.data',
@@ -77,4 +61,3 @@ def main(**extra_args):
 
 if __name__ == "__main__":
     main()
-    #main(**extra_setuptools_args)
