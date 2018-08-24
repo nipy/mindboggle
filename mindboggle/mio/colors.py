@@ -237,7 +237,7 @@ def label_adjacency_matrix(label_file, ignore_values=[-1, 999], add_value=0,
     >>> label_file = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
     >>> labels, matrix, output_table = label_adjacency_matrix(label_file,
     ...     ignore_values, add_value, save_table, output_format, verbose)
-    >>> out matrix.lookup([4,5,7,8,10,11,12,13,14,15], [4,4,4,4,4,4,4,4,4,4])
+    >>> out = matrix.lookup([4,5,7,8,10,11,12,13,14,15], [4,4,4,4,4,4,4,4,4,4])
     >>> np.allclose(out, [ 1.,  1.,  0.,  0.,  0.,  1.,  0.,  0.,  1.,  0.])
     True
 
