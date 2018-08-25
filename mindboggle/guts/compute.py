@@ -211,10 +211,10 @@ def pairwise_vector_distances(vectors, save_file=False, normalize=False):
     ...     save_file, normalize)
     >>> print(np.array_str(np.array(vector_distances),
     ...       precision=5, suppress_small=True))
-    [[ 0.       0.8165   0.89753  0.74536]
-     [ 0.       0.       0.16667  1.52753]
-     [ 0.       0.       0.       1.60728]
-     [ 0.       0.       0.       0.     ]]
+    [[0.      0.8165  0.89753 0.74536]
+     [0.      0.      0.16667 1.52753]
+     [0.      0.      0.      1.60728]
+     [0.      0.      0.      0.     ]]
 
     """
     import os
