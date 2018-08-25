@@ -62,7 +62,7 @@ def area(command, surface_file, verbose=False):
 
     cli = CommandLine(command=command)
     cli.inputs.args = args
-    cli.cmdline
+    cli.terminal_output = 'file'
     cli.run()
 
     if not os.path.exists(area_file):
@@ -120,7 +120,7 @@ def travel_depth(command, surface_file, verbose=False):
 
     cli = CommandLine(command=command)
     cli.inputs.args = args
-    cli.cmdline
+    cli.terminal_output = 'file'
     cli.run()
 
     if not os.path.exists(depth_file):
@@ -176,7 +176,7 @@ def geodesic_depth(command, surface_file, verbose=False):
 
     cli = CommandLine(command=command)
     cli.inputs.args = args
-    cli.cmdline
+    cli.terminal_output = 'file'
     cli.run()
 
     if not os.path.exists(depth_file):
@@ -309,7 +309,7 @@ def curvature(command, method, arguments, surface_file, verbose=False):
 
     cli = CommandLine(command=command)
     cli.inputs.args = ' '.join(args)
-    cli.cmdline
+    cli.terminal_output = 'file'
     cli.run()
 
     return mean_curvature_file, gauss_curvature_file, \
