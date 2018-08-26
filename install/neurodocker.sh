@@ -15,7 +15,7 @@
 # Install roygbiv for output visualization.
 #
 # Build the docker image:
-# docker build -t mindboggle -f Dockerfile.mindboggle.complete .
+# docker build -t mindboggle -f Dockerfile .
 #
 # Push to Docker hub:
 # (https://docs.docker.com/docker-cloud/builds/push-images/)
