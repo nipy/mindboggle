@@ -54,6 +54,7 @@ def distinguishable_colors(ncolors, backgrounds=[[0,0,0],[1,1,1]],
     Examples
     --------
     >>> from mindboggle.mio.colors import distinguishable_colors
+    >>> import numpy as np
     >>> ncolors = 31
     >>> backgrounds = [[0,0,0],[1,1,1]]
     >>> save_csv = False
@@ -61,12 +62,12 @@ def distinguishable_colors(ncolors, backgrounds=[[0,0,0],[1,1,1]],
     >>> verbose = False
     >>> colors = distinguishable_colors(ncolors, backgrounds,
     ...     save_csv, plot_colormap, verbose)
-    >>> colors[0]
-    array([ 0.62068966,  0.06896552,  1.        ])
-    >>> colors[1]
-    array([ 0.       ,  0.5862069,  0.       ])
-    >>> colors[2]
-    array([ 0.75862069,  0.20689655,  0.        ])
+    >>> np.allclose(colors[0], [ 0.62068966,  0.06896552,  1.        ])
+    True
+    >>> np.allclose(colors[1], [ 0.       ,  0.5862069,  0.       ])
+    True
+    >>> np.allclose(colors[2], [ 0.75862069,  0.20689655,  0.        ])
+    True
 
     """
     import numpy as np
@@ -218,6 +219,7 @@ def label_adjacency_matrix(label_file, ignore_values=[-1, 999], add_value=0,
     --------
     >>> from mindboggle.mio.colors import label_adjacency_matrix
     >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> import numpy as np
     >>> urls, fetch_data = prep_tests()
     >>> ignore_values = [-1, 0]
     >>> add_value = 0
@@ -227,15 +229,17 @@ def label_adjacency_matrix(label_file, ignore_values=[-1, 999], add_value=0,
     >>> label_file = fetch_data(urls['left_manual_labels'], '', '.vtk')
     >>> labels, matrix, output_table = label_adjacency_matrix(label_file,
     ...     ignore_values, add_value, save_table, output_format, verbose)
-    >>> matrix.lookup([20,21,22,23,24,25,26,27,28,29],
+    >>> out = matrix.lookup([20,21,22,23,24,25,26,27,28,29],
     ...               [35,35,35,35,35,35,35,35,35,35])
-    array([ 0.,  1.,  0.,  0.,  0.,  0.,  0.,  1.,  1.,  1.])
+    >>> np.allclose(out, [ 0.,  1.,  0.,  0.,  0.,  0.,  0.,  1.,  1.,  1.])
+    True
 
     >>> label_file = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
     >>> labels, matrix, output_table = label_adjacency_matrix(label_file,
     ...     ignore_values, add_value, save_table, output_format, verbose)
-    >>> matrix.lookup([4,5,7,8,10,11,12,13,14,15], [4,4,4,4,4,4,4,4,4,4])
-    array([ 1.,  1.,  0.,  0.,  0.,  1.,  0.,  0.,  1.,  0.])
+    >>> out = matrix.lookup([4,5,7,8,10,11,12,13,14,15], [4,4,4,4,4,4,4,4,4,4])
+    >>> np.allclose(out, [ 1.,  1.,  0.,  0.,  0.,  1.,  0.,  0.,  1.,  0.])
+    True
 
     """
     import numpy as np
@@ -400,6 +404,7 @@ def group_colors(colormap, colormap_name, description='', adjacency_matrix=[],
     --------
     >>> # Get colormap:
     >>> from mindboggle.mio.colors import distinguishable_colors
+    >>> import numpy as np
     >>> colormap = distinguishable_colors(ncolors=31,
     ...     backgrounds=[[0,0,0],[1,1,1]],
     ...     save_csv=False, plot_colormap=False, verbose=False)
@@ -430,14 +435,14 @@ def group_colors(colormap, colormap_name, description='', adjacency_matrix=[],
     >>> colors = group_colors(colormap, colormap_name, description,
     ...     adjacency_matrix, IDs, names, groups,
     ...     save_text_files, plot_colors, plot_graphs, out_dir, verbose)
-    >>> colors[0]
-    [0.7586206896551724, 0.20689655172413793, 0.0]
-    >>> colors[1]
-    [0.48275862068965514, 0.4482758620689655, 0.48275862068965514]
-    >>> colors[2]
-    [0.3448275862068966, 0.3103448275862069, 0.034482758620689655]
-    >>> colors[-1]
-    [0.7931034482758621, 0.9655172413793103, 0.7931034482758621]
+    >>> np.allclose(colors[0], [0.7586206896551724, 0.20689655172413793, 0.0])
+    True
+    >>> np.allclose(colors[1], [0.48275862068965514, 0.4482758620689655, 0.48275862068965514])
+    True
+    >>> np.allclose(colors[2], [0.3448275862068966, 0.3103448275862069, 0.034482758620689655])
+    True
+    >>> np.allclose(colors[-1], [0.7931034482758621, 0.9655172413793103, 0.7931034482758621])
+    True
 
     No groups / subgraphs:
 
@@ -445,14 +450,14 @@ def group_colors(colormap, colormap_name, description='', adjacency_matrix=[],
     >>> colors = group_colors(colormap, colormap_name, description,
     ...     adjacency_matrix, IDs, names, groups,
     ...     save_text_files, plot_colors, plot_graphs, out_dir, verbose)
-    >>> colors[0]
-    [0.5172413793103449, 0.8275862068965517, 1.0]
-    >>> colors[1]
-    [0.13793103448275862, 0.0, 0.24137931034482757]
-    >>> colors[2]
-    [0.3793103448275862, 0.27586206896551724, 0.48275862068965514]
-    >>> colors[-1]
-    [0.6206896551724138, 0.48275862068965514, 0.3448275862068966]
+    >>> np.allclose(colors[0], [0.5172413793103449, 0.8275862068965517, 1.0])
+    True
+    >>> np.allclose(colors[1], [0.13793103448275862, 0.0, 0.24137931034482757])
+    True
+    >>> np.allclose(colors[2], [0.3793103448275862, 0.27586206896551724, 0.48275862068965514])
+    True
+    >>> np.allclose(colors[-1], [0.6206896551724138, 0.48275862068965514, 0.3448275862068966])
+    True
 
     """
     import os
@@ -832,6 +837,7 @@ def write_json_colormap(colormap, label_numbers, label_names=[],
     --------
     >>> from mindboggle.mio.colors import write_xml_colormap
     >>> from mindboggle.mio.labels import DKTprotocol
+    >>> import numpy as np
     >>> dkt = DKTprotocol()
     >>> colormap = dkt.colormap_normalized
     >>> colormap = [[x[2], x[3], x[4]] for x in colormap]
@@ -840,8 +846,8 @@ def write_json_colormap(colormap, label_numbers, label_names=[],
     >>> colormap_file = ''
     >>> colormap_name = "DKT31colormap"
     >>> description = "Colormap for DKT31 human brain cortical labels"
-    >>> colormap[0]
-    [0.803921568627451, 0.24313725490196078, 0.3058823529411765]
+    >>> np.allclose(colormap[0], [0.803921568627451, 0.24313725490196078, 0.3058823529411765])
+    True
     >>> write_json_colormap(colormap, label_numbers, label_names,
     ...     colormap_file, colormap_name, description)
     """
@@ -893,14 +899,15 @@ def write_xml_colormap(colormap, label_numbers, colormap_file='',
     --------
     >>> from mindboggle.mio.colors import write_xml_colormap
     >>> from mindboggle.mio.labels import DKTprotocol
+    >>> import numpy as np
     >>> dkt = DKTprotocol()
     >>> colormap = dkt.colormap_normalized
     >>> colormap = [[x[2], x[3], x[4]] for x in colormap]
     >>> label_numbers = dkt.label_numbers
     >>> colormap_file = ''
     >>> colormap_name = 'DKT31colormap'
-    >>> colormap[0]
-    [0.803921568627451, 0.24313725490196078, 0.3058823529411765]
+    >>> np.allclose(colormap[0], [0.803921568627451, 0.24313725490196078, 0.3058823529411765])
+    True
     >>> write_xml_colormap(colormap, label_numbers, colormap_file,
     ...     colormap_name)
     """

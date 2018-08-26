@@ -815,6 +815,7 @@ def select_column_from_tables(tables, index=0, write_table=True,
     --------
     >>> from mindboggle.mio.tables import select_column_from_tables
     >>> from mindboggle.mio.fetch_data import prep_tests
+    >>> import numpy as np
     >>> urls, fetch_data = prep_tests()
     >>> tables = [fetch_data(urls['thickinthehead_freesurfer_labels_table'], '', '.csv'),
     ...           fetch_data(urls['thickinthehead_freesurfer_labels_table'], '', '.csv')]
@@ -824,12 +825,8 @@ def select_column_from_tables(tables, index=0, write_table=True,
     >>> output = select_column_from_tables(tables, index, write_table,
     ...                                    output_table)
     >>> columns = output[1][0]
-    >>> columns[0]
-    2.8010000000000002
-    >>> columns[1]
-    3.9430000000000001
-    >>> columns[2]
-    4.0280000000000005
+    >>> np.allclose(columns[:3], [2.801, 3.943, 4.028])
+    True
 
     """
     import os

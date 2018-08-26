@@ -44,8 +44,10 @@ def area(command, surface_file, verbose=False):
     >>> command = os.path.join(ccode_path, 'area', 'PointAreaMain')
     >>> area_file = area(command, surface_file, verbose)
     >>> scalars, name = read_scalars(area_file)
-    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in scalars[0:8]]
-    [0.4827, 0.39661, 0.57813, 0.70574, 0.84318, 0.57643, 0.66942, 0.7063]
+    >>> np.allclose(scalars[0:8],
+    ...             [0.48270401731, 0.39661528543, 0.57813454792, 0.70574099571,
+    ...              0.84318527207, 0.57642554119, 0.66942016035, 0.70629953593])
+    True
 
     """
     import os
@@ -60,7 +62,7 @@ def area(command, surface_file, verbose=False):
 
     cli = CommandLine(command=command)
     cli.inputs.args = args
-    cli.cmdline
+    cli.terminal_output = 'file'
     cli.run()
 
     if not os.path.exists(area_file):
@@ -102,8 +104,8 @@ def travel_depth(command, surface_file, verbose=False):
     >>> command = os.path.join(ccode_path, 'travel_depth', 'TravelDepthMain')
     >>> depth_file = travel_depth(command, surface_file, verbose)
     >>> scalars, name = read_scalars(depth_file)
-    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in scalars[0:8]]
-    [0.02026, 0.06009, 0.12859, 0.04564, 0.00774, 0.05284, 0.05354, 0.01316]
+    >>> np.allclose(scalars[0:8], [0.020259869839, 0.06009166489, 0.12858575442, 0.045639221313, 0.007742772964, 0.052839111255, 0.053538904296, 0.013158746337])
+    True
 
     """
     import os
@@ -118,7 +120,7 @@ def travel_depth(command, surface_file, verbose=False):
 
     cli = CommandLine(command=command)
     cli.inputs.args = args
-    cli.cmdline
+    cli.terminal_output = 'file'
     cli.run()
 
     if not os.path.exists(depth_file):
@@ -158,8 +160,8 @@ def geodesic_depth(command, surface_file, verbose=False):
     >>> command = os.path.join(ccode_path, 'geodesic_depth', 'GeodesicDepthMain')
     >>> depth_file = geodesic_depth(command, surface_file, verbose)
     >>> scalars, name = read_scalars(depth_file)
-    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in scalars[0:8]]
-    [0.02026, 0.06009, 0.12859, 0.04564, 0.00774, 0.05284, 0.05354, 0.01316]
+    >>> np.allclose(scalars[0:8], [0.020259869839, 0.06009166489, 0.12858575442, 0.045639221313, 0.007742772964, 0.052839111255, 0.053538904296, 0.013158746337])
+    True
 
     """
     import os
@@ -174,7 +176,7 @@ def geodesic_depth(command, surface_file, verbose=False):
 
     cli = CommandLine(command=command)
     cli.inputs.args = args
-    cli.cmdline
+    cli.terminal_output = 'file'
     cli.run()
 
     if not os.path.exists(depth_file):
@@ -270,8 +272,8 @@ def curvature(command, method, arguments, surface_file, verbose=False):
     >>> mean_curvature_file, f1,f2,f3,f4 = curvature(command, method,
     ...     arguments, surface_file, verbose)
     >>> scalars, name = read_scalars(mean_curvature_file)
-    >>> [np.float("{0:.{1}f}".format(x, 5)) for x in scalars[0:8]]
-    [-5.81361, -5.9313, -6.28055, -5.621, -5.69631, -5.80399, -5.87265, -5.7107]
+    >>> np.allclose(scalars[0:8], [-5.8136068088, -5.9312990469, -6.2805500474, -5.6210018286, -5.6963067208, -5.8039874097, -5.8726460688, -5.7106966401])
+    True
 
     """
     import os
@@ -307,7 +309,7 @@ def curvature(command, method, arguments, surface_file, verbose=False):
 
     cli = CommandLine(command=command)
     cli.inputs.args = ' '.join(args)
-    cli.cmdline
+    cli.terminal_output = 'file'
     cli.run()
 
     return mean_curvature_file, gauss_curvature_file, \
