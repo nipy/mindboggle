@@ -317,6 +317,29 @@ else:
     if args.num_threads and args.num_threads > 1:
         labeler.inputs.num_threads = args.num_threads
 
+    def mask_labels(intensity_image, label_image, output_dir=None):
+        import nibabel as nb
+        import os
+        thick_data = nb.load(intensity_image).get_data() > 0
+        limg = nb.load(label_image)
+        label_data = limg.get_data()
+        new_labels = thick_data * label_data * (label_data >= 1000) + \
+                     (label_data < 1000) * label_data
+        new_label_img = nb.Nifti1Image(new_labels,
+                                       header=limg.header,
+                                       affine=limg.affine)
+        new_label_file = os.path.join(os.getcwd(), 'newlabels.nii.gz')
+        new_label_img.to_filename(new_label_file)
+        if output_dir is None:
+            output_dir = os.path.dirname(intensity_image)
+        limg.to_filename(os.path.join(output_dir, 'OASISlabels.nii.gz'))
+        return new_label_file
+    masker = Node(Fn(function=mask_labels, input_names=['intensity_image',
+                                                        'label_image',
+                                                        'output_dir'],
+                     output_names=['new_label_file']),
+                  name='masker')
+
     tocsv = Node(LabelGeometry(), name='get_measures')
     tocsv.inputs.output_file = os.path.join(ants_output, ID,
                                             'antslabelstats.csv')
@@ -331,11 +354,14 @@ else:
                    'mask_image')
     mbFlow.connect(corticalthickness, 'CorticalThickness',
                    tocsv, 'intensity_image')
+    mbFlow.connect(corticalthickness, 'CorticalThickness',
+                   masker, 'intensity_image')
 
     mbFlow.connect(transformer, 'output_image', labeler, 'atlas_image')
     mbFlow.connect(transformer_nn, 'output_image', labeler,
                    'atlas_segmentation_image')
-    mbFlow.connect(labeler, 'out_label_fusion', tocsv, 'label_image')
+    mbFlow.connect(labeler, 'out_label_fusion', masker, 'label_image')
+    mbFlow.connect(masker, 'new_label_file', tocsv, 'label_image')
 
     # ----------------------------------------------------------------------------
     # Connect ants to Mindboggle
