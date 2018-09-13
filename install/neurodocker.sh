@@ -70,7 +70,8 @@ docker run --rm kaczmarj/neurodocker:0.4.1 generate docker \
     rm OASIS-TRT_brains_to_OASIS_Atropos_template.tar.gz && \
     curl -sSL https://osf.io/download/dcf94/ -o OASIS-TRT_labels_to_OASIS_Atropos_template.tar.gz && \
     tar zxf OASIS-TRT_labels_to_OASIS_Atropos_template.tar.gz && \
-    rm OASIS-TRT_labels_to_OASIS_Atropos_template.tar.gz' \
+    rm OASIS-TRT_labels_to_OASIS_Atropos_template.tar.gz && \
+    rm -rf __MACOSX' \
   --run-bash 'source /opt/miniconda-latest/etc/profile.d/conda.sh && \
         conda activate mb && \
         git clone https://github.com/nipy/mindboggle.git && \
