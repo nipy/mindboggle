@@ -59,7 +59,7 @@ To run the Mindboggle jupyter notebook tutorial, first install the Mindboggle
 Docker container (see below) and enter the bash shell of the container
 from your $HOST (e.g., /Users/arno)::
 
-    docker run --rm -ti -v $HOST:/home/jovyan/work -p 8888:8888 --entrypoint=/neurodocker/startup.sh nipy/mindboggle
+    docker run --rm -ti -v $HOST:/home/jovyan/work -p 8888:8888 nipy/mindboggle
 
 Then run the notebook from within the container::
 
@@ -133,7 +133,7 @@ on the cortical surfaces and in the cortical and non-cortical volumes
 1. Enter the Docker container's bash shell to run ``recon-all``,
 ``antsCorticalThickness.sh``, and ``mindboggle`` commands::
 
-    docker run --rm -ti -v $HOST:$DOCK --entrypoint=/neurodocker/startup.sh nipy/mindboggle
+    docker run --rm -ti -v $HOST:$DOCK nipy/mindboggle
 
 2. Recommended: reset environment variables as above within the Docker container::
 
@@ -219,7 +219,7 @@ Visualize output
 ------------------------------------------------------------------------------
 To visualize Mindboggle output with roygbiv, start the Docker image with::
 
-    docker run --rm -ti -v $HOST:$DOCK -p 5000:5000 --entrypoint /bin/bash nipy/mindboggle
+    docker run --rm -ti -v $HOST:$DOCK -p 5000:5000 nipy/mindboggle
 
 and then inside the image, run roygbiv on an output directory::
 
