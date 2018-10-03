@@ -59,7 +59,7 @@ To run the Mindboggle jupyter notebook tutorial, first install the Mindboggle
 Docker container (see below) and enter the bash shell of the container
 from your $HOST (e.g., /Users/arno)::
 
-    docker run --rm -ti -v $HOST:/home/jovyan/work -p 8888:8888 --entrypoint /bin/bash nipy/mindboggle
+    docker run --rm -ti -v $HOST:/home/jovyan/work -p 8888:8888 --entrypoint=/neurodocker/startup.sh nipy/mindboggle
 
 Then run the notebook from within the container::
 
@@ -84,11 +84,11 @@ terminal window)::
 
     docker pull nipy/mindboggle
 
-*Note 1: This contains FreeSurfer, ANTs, and Mindboggle, so it is currently
+*Note 1:* This contains FreeSurfer, ANTs, and Mindboggle, so it is currently
 over 6GB.*
 
-*Note 2: You may need to increase memory allocated by Docker to at least 5GB.
-For example: By default, Docker for `Mac is set to use 2 GB runtime memory <https://docs.docker.com/docker-for-mac/>`_.*
+*Note 2:* You may need to increase memory allocated by Docker to at least 5GB.
+For example: By default, Docker for `Mac is set to use 2 GB runtime memory <https://docs.docker.com/docker-for-mac/>`_.
 
 3. Recommended: download sample data. To try out the ``mindboggle`` examples
 below, download and unzip the directory of example input data
