@@ -133,7 +133,7 @@ on the cortical surfaces and in the cortical and non-cortical volumes
 1. Enter the Docker container's bash shell to run ``recon-all``,
 ``antsCorticalThickness.sh``, and ``mindboggle`` commands::
 
-    docker run --rm -ti -v $HOST:$DOCK --entrypoint /bin/bash nipy/mindboggle
+    docker run --rm -ti -v $HOST:$DOCK --entrypoint=/neurodocker/startup.sh nipy/mindboggle
 
 2. Recommended: reset environment variables as above within the Docker container::
 
