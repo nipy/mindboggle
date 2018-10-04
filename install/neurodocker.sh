@@ -55,7 +55,7 @@ docker run --rm kaczmarj/neurodocker:0.4.1 generate docker \
   --run 'ln -s /usr/lib/x86_64-linux-gnu /usr/lib64' \
   --miniconda \
     conda_install="python=3.6 pip jupyter cmake mesalib vtk pandas \
-      matplotlib colormath nipype" \
+      matplotlib colormath nipype tbb-devel" \
     pip_install="datalad[full] duecredit" \
     create_env="mb" \
     activate=true \
