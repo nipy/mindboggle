@@ -24,11 +24,12 @@ jobs:
             ln -sv /usr/lib/x86_64-linux-gnu /usr/lib64
             conda config --set show_channel_urls yes --set always_yes yes
             conda config --add channels conda-forge
-            conda update conda conda-env
-            conda env create --quiet
+            conda create -n $ENV_NAME python=3.6 pip
             source activate $ENV_NAME
+            conda install -y cmake mesalib vtk pandas matplotlib \
+                colormath nipype tbb-devel
             conda info --envs
-            python setup.py install
+            pip install -e .
             mkdir $vtk_cpp_tools && cd $vtk_cpp_tools && cmake ../ && make
       - run:
           name: Test mindboggle
