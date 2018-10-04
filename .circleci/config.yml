@@ -27,7 +27,7 @@ jobs:
             conda create -n $ENV_NAME python=3.6 pip
             source activate $ENV_NAME
             conda install -y cmake mesalib vtk pandas matplotlib \
-                colormath nipype tbb-devel
+                colormath nipype tbb-devel nose
             conda info --envs
             pip install -e .
             mkdir $vtk_cpp_tools && cd $vtk_cpp_tools && cmake ../ && make
