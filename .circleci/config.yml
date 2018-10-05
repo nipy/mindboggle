@@ -29,7 +29,7 @@ jobs:
             conda install -y cmake mesalib vtk pandas matplotlib \
                 colormath nipype tbb-devel nose
             conda info --envs
-            pip install -e .
+            python setup.py install
             mkdir $vtk_cpp_tools && cd $vtk_cpp_tools && cmake ../ && make
       - run:
           name: Test mindboggle
