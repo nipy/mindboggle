@@ -182,6 +182,8 @@ adv_args.add_argument("--plugin", dest="plugin",
                       help="nipype plugin (see nipype documentation)")
 adv_args.add_argument("--plugin_args", dest="plugin_args",
                       help="plugin arguments (see nipype documentation)")
+adv_args.add_argument("--prov", action='store_true',
+                      help="Capture provenance")
 args = parser.parse_args()
 
 # ----------------------------------------------------------------------------
@@ -2361,7 +2363,8 @@ if __name__ == '__main__':
     # ------------------------------------------------------------------------
     # Workflow configuration: provenance tracking, content hashing, etc.:
     # ------------------------------------------------------------------------
-    # config.enable_provenance()
+    if args.prov:
+        config.enable_provenance()
     mbFlow.config['execution']['hash_method'] = 'content'
     # mbFlow.config['execution']['use_relative_paths'] = True
 
