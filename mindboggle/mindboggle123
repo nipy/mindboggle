@@ -38,7 +38,7 @@ from nipype.interfaces.utility import Merge
 from nipype.interfaces.freesurfer import ReconAll
 from nipype.interfaces.ants.segmentation import CorticalThickness
 from nipype.interfaces.ants import (ApplyTransforms, AntsJointFusion,
-                                    LabelGeometry, RegistrationSynQuick)
+                                    LabelGeometry, RegistrationSynQuick, Registration)
 from nipype.utils.misc import human_order_sorted
 
 
@@ -255,7 +255,7 @@ def mindboggle(subjectid, fsdir, antsdir, antsseg, out, prov, args,
 
     all_args = ' '.join([DATA, '--out', out, '--ants', ants,
                          '--working', os.getcwd()] +
-                        ['--prov', prov] if prov else [] +
+                        ['--prov'] if prov else [] +
                         [args])
 
     if num_threads > 1:
@@ -346,10 +346,6 @@ else:
         transformer_nn.inputs.input_image = '/opt/data/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_OASIS-30_v2.nii.gz'
         transformer_nn.inputs.interpolation = 'NearestNeighbor'
 
-        mbFlow.connect(corticalthickness, 'TemplateToSubject1GenericAffine',
-                       merge_transforms, 'in1')
-        mbFlow.connect(corticalthickness, 'TemplateToSubject0Warp',
-                       merge_transforms, 'in2')
         mbFlow.connect(corticalthickness, 'TemplateToSubject1GenericAffine',
                        merge_transforms, 'in1')
         mbFlow.connect(corticalthickness, 'TemplateToSubject0Warp',
