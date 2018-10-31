@@ -365,11 +365,11 @@ else:
         reg.inputs.dimension = 3
         reg.inputs.convergence_threshold = [1e-06, 1e-06, 1e-06]
         reg.inputs.convergence_window_size = [20, 20, 10]
-        reg.inputs.metric = ["Matties", "Mattes", "CC"]
+        reg.inputs.metric = ["Mattes", "Mattes", "CC"]
         reg.inputs.metric_weight = [1, 1, 1]
         reg.inputs.radius_or_number_of_bins = [56, 56, 4]
         reg.inputs.transforms = ["Rigid", "Affine", "SyN"]
-        reg.inputs.transformation_parameters = [[0.05], [0.08], [0.1, 3.0, 0.0]]
+        reg.inputs.transform_parameters = [(0.05,), (0.08,), (0.1, 3.0, 0.0)]
         reg.inputs.number_of_iterations = [[100, 100], [100, 100], [100, 70, 50, 20]]
         reg.inputs.sampling_strategy = ["Regular", "Regular", "None"]
         reg.inputs.sampling_percentage = [0.25, 0.25, 1]
@@ -381,12 +381,13 @@ else:
         reg.inputs.use_estimate_learning_rate_once = [True, True, True]
         reg.inputs.use_histogram_matching = [True, True, True]
         reg.inputs.collapse_output_transforms = True
-        reg.inputs.write_composite_transform = False
+        reg.inputs.write_composite_transform = True
         reg.inputs.output_transform_prefix = "output_"
         reg.inputs.output_warped_image = True
         reg.inputs.output_warped_image = "output_warped_image.nii.gz"
         reg.inputs.interpolation = "LanczosWindowedSinc"
         reg.inputs.float = True
+        reg.inputs.initial_moving_transform_com = 0
 
         if args.num_threads and args.num_threads > 1:
             reg.inputs.num_threads = args.num_threads
