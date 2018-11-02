@@ -247,7 +247,6 @@ def mindboggle(subjectid, fsdir, antsdir, antsseg, out, prov, args,
 
     """
     import os
-
     from nipype.interfaces.base import CommandLine
 
     DATA = os.path.join(fsdir, subjectid)
@@ -255,8 +254,7 @@ def mindboggle(subjectid, fsdir, antsdir, antsseg, out, prov, args,
 
     all_args = ' '.join([DATA, '--out', out, '--ants', ants,
                          '--working', os.getcwd()] +
-                        ['--prov'] if prov else [] +
-                        [args])
+                        [args] + ['--prov'] if prov else [])
 
     if num_threads > 1:
         all_args += ' --plugin MultiProc --plugin_args "dict(n_procs={0})"'.\
