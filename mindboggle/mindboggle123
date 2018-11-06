@@ -300,9 +300,9 @@ if args.skip_ants:
 else:
     comps = TDIR.split(os.sep)
     IDIR = os.sep.join(comps[:(-2 if not comps[-1] else -1)] +
-                       ['OASIS-TRT_brains_to_OASIS_Atropos_template'])
+                       ['OASIS-TRT-20_brains'])
     LDIR = os.sep.join(comps[:(-2 if not comps[-1] else -1)] +
-                       ['OASIS-TRT_labels_to_OASIS_Atropos_template'])
+                       ['OASIS-TRT-20_DKT31_CMA_labels_v2'])
     T1s = human_order_sorted(glob(os.path.join(IDIR, '*.nii.gz')))
     labels = human_order_sorted(glob(os.path.join(LDIR, '*.nii.gz')))
     N = args.segN or len(T1s)

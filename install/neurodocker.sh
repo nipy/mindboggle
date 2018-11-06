@@ -44,7 +44,7 @@
 ###############################################################################
 
 # Generate a dockerfile for building a mindboggle container
-docker run --rm kaczmarj/neurodocker:0.4.1 generate docker \
+docker run --rm kaczmarj/neurodocker:0.4.2 generate docker \
   --base neurodebian:stretch \
   --pkg-manager apt \
   --install graphviz tree git-annex-standalone vim \
@@ -64,13 +64,19 @@ docker run --rm kaczmarj/neurodocker:0.4.1 generate docker \
     curl -sSL https://osf.io/download/rh9km/?revision=2 -o templates.zip && \
     unzip templates.zip && \
     rm -f /opt/data/templates.zip && \
+    curl -sSL https://files.osf.io/v1/resources/hvc52/providers/osfstorage/57c1a8f06c613b01f98d68a9/?zip= -o OASIS-TRT-20_brains.zip && \
+    mkdir OASIS-TRT-20_brains && \
+    cd OASIS-TRT-20_brains && \
+    unzip ../OASIS-TRT-20_brains.zip && \
+    cd .. && \
+    rm OASIS-TRT-20_brains.zip && \
+    curl -sSL https://files.osf.io/v1/resources/zevma/providers/osfstorage/5783dfcab83f6901f963735c/?zip= -o cmalabels.zip && \
+    mkdir OASIS-TRT-20_DKT31_CMA_labels_v2 && \
+    cd OASIS-TRT-20_DKT31_CMA_labels_v2 && \
+    unzip ../cmalabels.zip && \
+    cd .. && \
+    rm cmalabels.zip && \
     curl -sSL https://osf.io/download/d2cmy/ -o OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_OASIS-30_v2.nii.gz && \
-    curl -sSL https://osf.io/download/qz3kx/ -o OASIS-TRT_brains_to_OASIS_Atropos_template.tar.gz && \
-    tar zxf OASIS-TRT_brains_to_OASIS_Atropos_template.tar.gz && \
-    rm OASIS-TRT_brains_to_OASIS_Atropos_template.tar.gz && \
-    curl -sSL https://osf.io/download/dcf94/ -o OASIS-TRT_labels_to_OASIS_Atropos_template.tar.gz && \
-    tar zxf OASIS-TRT_labels_to_OASIS_Atropos_template.tar.gz && \
-    rm OASIS-TRT_labels_to_OASIS_Atropos_template.tar.gz && \
     rm -rf __MACOSX' \
   --run-bash 'source /opt/miniconda-latest/etc/profile.d/conda.sh && \
         conda activate mb && \
