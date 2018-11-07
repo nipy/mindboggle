@@ -345,7 +345,6 @@ else:
         # -----------------------------------------------------
         reg = MapNode(Registration(), iterfield=['moving_image'],
                       name="register")
-        reg.inputs.fixed_image = IMAGE
         reg.inputs.moving_image = T1s[:N]
         
         # mimic fmriprep's T1 - MNI registration
@@ -394,6 +393,8 @@ else:
         if args.num_threads and args.num_threads > 1:
             labeler.inputs.num_threads = args.num_threads
 
+        mbFlow.connect(corticalthickness, 'BrainSegmentationN4',
+                       reg, 'fixed_image')
         mbFlow.connect(reg, 'composite_transform', transformer_nn, 'transforms')
         mbFlow.connect(corticalthickness, 'BrainExtractionMask', labeler,
                        'mask_image')
@@ -415,7 +416,7 @@ else:
     mbFlow.connect(corticalthickness, 'BrainSegmentation',
                    Mindboggle, 'antsseg')
 Mindboggle.inputs.out = mindboggle_output
-Mindboggle.inputs.prov = args.prov
+# Mindboggle.inputs.prov = args.prov
 Mindboggle.inputs.args = '--roygbiv'  # ' --graph hier'
 if args.mb_num_threads:
     Mindboggle.inputs.num_threads = args.mb_num_threads
