@@ -382,7 +382,6 @@ else:
                                  name="transformer_nn")
         transformer_nn.inputs.reference_image = IMAGE
         transformer_nn.inputs.dimension = 3
-        transformer_nn.inputs.invert_transform_flags = [False, False]
         transformer_nn.inputs.input_image = labels[:N]
         transformer_nn.inputs.interpolation = 'NearestNeighbor'
 
@@ -416,7 +415,7 @@ else:
     mbFlow.connect(corticalthickness, 'BrainSegmentation',
                    Mindboggle, 'antsseg')
 Mindboggle.inputs.out = mindboggle_output
-# Mindboggle.inputs.prov = args.prov
+Mindboggle.inputs.prov = False # args.prov
 Mindboggle.inputs.args = '--roygbiv'  # ' --graph hier'
 if args.mb_num_threads:
     Mindboggle.inputs.num_threads = args.mb_num_threads
