@@ -416,7 +416,7 @@ else:
     mbFlow.connect(corticalthickness, 'BrainSegmentation',
                    Mindboggle, 'antsseg')
 Mindboggle.inputs.out = mindboggle_output
-# Mindboggle.inputs.prov = args.prov
+Mindboggle.inputs.prov = False  # args.prov disable
 Mindboggle.inputs.args = '--roygbiv'  # ' --graph hier'
 if args.mb_num_threads:
     Mindboggle.inputs.num_threads = args.mb_num_threads
