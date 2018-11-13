@@ -329,7 +329,7 @@ else:
         transformer_nn = Node(ApplyTransforms(), name="transformer_nn")
         transformer_nn.inputs.reference_image = IMAGE
         transformer_nn.inputs.dimension = 3
-        transformer_nn.inputs.invert_transform_flags = [False, False]
+        transformer_nn.inputs.invert_transform_flags = [False] * N
         transformer_nn.inputs.input_image = '/opt/data/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_OASIS-30_v2.nii.gz'
         transformer_nn.inputs.interpolation = 'NearestNeighbor'
 
@@ -346,7 +346,7 @@ else:
         reg = MapNode(Registration(), iterfield=['moving_image'],
                       name="register")
         reg.inputs.moving_image = T1s[:N]
-        
+
         # mimic fmriprep's T1 - MNI registration
         reg.inputs.dimension = 3
         reg.inputs.convergence_threshold = [1e-06, 1e-06, 1e-06]
