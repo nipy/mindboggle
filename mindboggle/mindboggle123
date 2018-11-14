@@ -254,7 +254,7 @@ def mindboggle(subjectid, fsdir, antsdir, antsseg, out, prov, args,
 
     all_args = ' '.join([DATA, '--out', out, '--ants', ants,
                          '--working', os.getcwd()] +
-                        [args] + ['--prov'] if prov else [])
+                        [args] + (['--prov'] if prov else []))
 
     if num_threads > 1:
         all_args += ' --plugin MultiProc --plugin_args "dict(n_procs={0})"'.\
@@ -415,11 +415,7 @@ else:
     mbFlow.connect(corticalthickness, 'BrainSegmentation',
                    Mindboggle, 'antsseg')
 Mindboggle.inputs.out = mindboggle_output
-<<<<<<< HEAD
-Mindboggle.inputs.prov = False  # args.prov disable
-=======
 Mindboggle.inputs.prov = False # args.prov
->>>>>>> 66144b0f47b9b3294361cdbf440d768c9252b5cb
 Mindboggle.inputs.args = '--roygbiv'  # ' --graph hier'
 if args.mb_num_threads:
     Mindboggle.inputs.num_threads = args.mb_num_threads
