@@ -329,7 +329,7 @@ else:
         transformer_nn = Node(ApplyTransforms(), name="transformer_nn")
         transformer_nn.inputs.reference_image = IMAGE
         transformer_nn.inputs.dimension = 3
-        transformer_nn.inputs.invert_transform_flags = [False] * N
+        transformer_nn.inputs.invert_transform_flags = [False, False]
         transformer_nn.inputs.input_image = '/opt/data/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_OASIS-30_v2.nii.gz'
         transformer_nn.inputs.interpolation = 'NearestNeighbor'
 
@@ -382,7 +382,6 @@ else:
                                  name="transformer_nn")
         transformer_nn.inputs.reference_image = IMAGE
         transformer_nn.inputs.dimension = 3
-        transformer_nn.inputs.invert_transform_flags = [False, False]
         transformer_nn.inputs.input_image = labels[:N]
         transformer_nn.inputs.interpolation = 'NearestNeighbor'
 
@@ -416,7 +415,11 @@ else:
     mbFlow.connect(corticalthickness, 'BrainSegmentation',
                    Mindboggle, 'antsseg')
 Mindboggle.inputs.out = mindboggle_output
+<<<<<<< HEAD
 Mindboggle.inputs.prov = False  # args.prov disable
+=======
+Mindboggle.inputs.prov = False # args.prov
+>>>>>>> 66144b0f47b9b3294361cdbf440d768c9252b5cb
 Mindboggle.inputs.args = '--roygbiv'  # ' --graph hier'
 if args.mb_num_threads:
     Mindboggle.inputs.num_threads = args.mb_num_threads
