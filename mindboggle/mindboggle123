@@ -254,7 +254,7 @@ def mindboggle(subjectid, fsdir, antsdir, antsseg, out, prov, args,
 
     all_args = ' '.join([DATA, '--out', out, '--ants', ants,
                          '--working', os.getcwd()] +
-                        [args] + ['--prov'] if prov else [])
+                        [args] + (['--prov'] if prov else []))
 
     if num_threads > 1:
         all_args += ' --plugin MultiProc --plugin_args "dict(n_procs={0})"'.\
@@ -347,7 +347,7 @@ else:
         reg = MapNode(Registration(), iterfield=['moving_image'],
                       name="register")
         reg.inputs.moving_image = T1s[:N]
-        
+
         # mimic fmriprep's T1 - MNI registration
         reg.inputs.dimension = 3
         reg.inputs.convergence_threshold = [1e-06, 1e-06, 1e-06]
