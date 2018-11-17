@@ -383,6 +383,7 @@ else:
                                  name="transformer_nn")
         transformer_nn.inputs.dimension = 3
         transformer_nn.inputs.input_image = labels[:N]
+        transformer_nn.inputs.invert_transform_flags = [False]
         transformer_nn.inputs.interpolation = 'NearestNeighbor'
 
         labeler = Node(AntsJointFusion(), name='labeler')
