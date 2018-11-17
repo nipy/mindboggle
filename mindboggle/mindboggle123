@@ -108,7 +108,7 @@ def SegOptions(option):
         raise argparse.ArgumentError('ants_seg value must be one of "quick" or "fusion".')
 adv_args.add_argument("--ants_seg", dest="seg",
                       default="quick", type=SegOptions,
-                      help="Use ANTs 'quick' or 'long' to label subcortical structures")
+                      help="Use ANTs 'quick' or 'fusion' to label subcortical structures")
 adv_args.add_argument("--ants_segN", dest="segN", type=int,
                       help="Number of images to use for joint fusion (2-20)")
 adv_args.add_argument("--mb_num_threads", dest="mb_num_threads",
