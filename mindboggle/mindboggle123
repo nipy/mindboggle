@@ -379,11 +379,11 @@ else:
         if args.num_threads and args.num_threads > 1:
             reg.inputs.num_threads = args.num_threads
 
-        transformer_nn = MapNode(ApplyTransforms(), iterfield=['input_image'],
+        transformer_nn = MapNode(ApplyTransforms(),
+                                 iterfield=['input_image', 'transforms'],
                                  name="transformer_nn")
         transformer_nn.inputs.dimension = 3
         transformer_nn.inputs.input_image = labels[:N]
-        transformer_nn.inputs.invert_transform_flags = [False]
         transformer_nn.inputs.interpolation = 'NearestNeighbor'
 
         labeler = Node(AntsJointFusion(), name='labeler')
