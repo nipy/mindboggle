@@ -327,12 +327,13 @@ else:
         # -----------------------------------------------------
         merge_transforms = Node(Merge(2), name="merge_transforms")
         transformer_nn = Node(ApplyTransforms(), name="transformer_nn")
-        transformer_nn.inputs.reference_image = IMAGE
         transformer_nn.inputs.dimension = 3
         transformer_nn.inputs.invert_transform_flags = [False, False]
         transformer_nn.inputs.input_image = '/opt/data/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_OASIS-30_v2.nii.gz'
         transformer_nn.inputs.interpolation = 'NearestNeighbor'
 
+        mbFlow.connect(corticalthickness, 'BrainSegmentationN4',
+                       transformer_nn, 'reference_image')
         mbFlow.connect(corticalthickness, 'TemplateToSubject1GenericAffine',
                        merge_transforms, 'in1')
         mbFlow.connect(corticalthickness, 'TemplateToSubject0Warp',
@@ -380,20 +381,22 @@ else:
 
         transformer_nn = MapNode(ApplyTransforms(), iterfield=['input_image'],
                                  name="transformer_nn")
-        transformer_nn.inputs.reference_image = IMAGE
         transformer_nn.inputs.dimension = 3
         transformer_nn.inputs.input_image = labels[:N]
         transformer_nn.inputs.interpolation = 'NearestNeighbor'
 
         labeler = Node(AntsJointFusion(), name='labeler')
         labeler.inputs.dimension = 3
-        labeler.inputs.target_image = [IMAGE]
         labeler.inputs.out_label_fusion = 'label.nii.gz'
         if args.num_threads and args.num_threads > 1:
             labeler.inputs.num_threads = args.num_threads
 
         mbFlow.connect(corticalthickness, 'BrainSegmentationN4',
                        reg, 'fixed_image')
+        mbFlow.connect(corticalthickness, 'BrainSegmentationN4',
+                       transformer_nn, 'reference_image')
+        mbFlow.connect(corticalthickness, 'BrainSegmentationN4',
+                       labeler, 'target_image')
         mbFlow.connect(reg, 'composite_transform', transformer_nn, 'transforms')
         mbFlow.connect(corticalthickness, 'BrainExtractionMask', labeler,
                        'mask_image')
