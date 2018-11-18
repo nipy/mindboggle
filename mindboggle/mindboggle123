@@ -38,7 +38,8 @@ from nipype.interfaces.utility import Merge
 from nipype.interfaces.freesurfer import ReconAll
 from nipype.interfaces.ants.segmentation import CorticalThickness
 from nipype.interfaces.ants import (ApplyTransforms, AntsJointFusion,
-                                    LabelGeometry, Registration)
+                                    LabelGeometry, Registration,
+                                    MultiplyImages)
 from nipype.utils.misc import human_order_sorted
 
 
@@ -392,11 +393,22 @@ else:
         if args.num_threads and args.num_threads > 1:
             labeler.inputs.num_threads = args.num_threads
 
+        def tolist(x):
+            return [x]
+
+        mask_brain = Node(MultiplyImages(dimension=3,
+                                         output_product_image='brain.nii.gz'
+                                         ),
+                          name='mask_brain')
         mbFlow.connect(corticalthickness, 'BrainSegmentationN4',
+                       mask_brain, 'first_input')
+        mbFlow.connect(corticalthickness, 'BrainExtractionMask', mask_brain,
+                       'second_input')
+        mbFlow.connect(mask_brain, 'output_product_image',
                        reg, 'fixed_image')
-        mbFlow.connect(corticalthickness, 'BrainSegmentationN4',
+        mbFlow.connect(mask_brain, 'output_product_image',
                        transformer_nn, 'reference_image')
-        mbFlow.connect(corticalthickness, 'BrainSegmentationN4',
+        mbFlow.connect(mask_brain, ('output_product_image', tolist),
                        labeler, 'target_image')
         mbFlow.connect(reg, 'composite_transform', transformer_nn, 'transforms')
         mbFlow.connect(corticalthickness, 'BrainExtractionMask', labeler,
