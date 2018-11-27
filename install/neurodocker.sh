@@ -43,8 +43,10 @@
 # docker run --rm -ti -v $HOST:/home/jovyan/work nipy/mindboggle $IMAGE --id $ID --out $OUT
 ###############################################################################
 
+image="kaczmarj/neurodocker:master@sha256:936401fe8f677e0d294f688f352cbb643c9693f8de371475de1d593650e42a66"
+
 # Generate a dockerfile for building a mindboggle container
-docker run --rm kaczmarj/neurodocker:0.4.2 generate docker \
+docker run --rm ${image} generate docker \
   --base neurodebian:stretch \
   --pkg-manager apt \
   --install graphviz tree git-annex-standalone vim \
@@ -54,8 +56,8 @@ docker run --rm kaczmarj/neurodocker:0.4.2 generate docker \
   --ants version=b43df4bfc8 method=source cmake_opts='-DBUILD_SHARED_LIBS=ON' make_opts='-j 4'\
   --run 'ln -s /usr/lib/x86_64-linux-gnu /usr/lib64' \
   --miniconda \
-    conda_install="python=3.6 pip jupyter cmake mesalib vtk pandas \
-      matplotlib colormath nipype tbb-devel nose" \
+    conda_install="python=3.6 pip jupyter cmake mesalib vtk pandas
+      matplotlib colormath nipype>=1.1.4 tbb-devel nose" \
     pip_install="datalad[full] duecredit" \
     create_env="mb" \
     activate=true \

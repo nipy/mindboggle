@@ -130,6 +130,10 @@ TDIR = args.template
 if args.skip_freesurfer and args.skip_ants:
     print("Use only one of the skip arguments: --skip_freesurfer, --skip_ants.")
 
+# Ensure provenance configuration is inherited by workflow
+if args.prov:
+    config.enable_provenance()
+
 # ----------------------------------------------------------------------------
 # Initialize workflow inputs and outputs
 # ----------------------------------------------------------------------------
@@ -445,10 +449,8 @@ if __name__ == '__main__':
     time0 = time()
 
     # --------------------------------------------------------------------
-    # Workflow configuration: provenance tracking, content hashing, etc.:
+    # Workflow configuration: content hashing, crashfiles, etc.:
     # --------------------------------------------------------------------
-    if args.prov:
-        config.enable_provenance()
     mbFlow.config['execution']['hash_method'] = 'content'
     # mbFlow.config['execution']['use_relative_paths'] = True
     mbFlow.config['execution']['crashfile_format'] = 'txt'

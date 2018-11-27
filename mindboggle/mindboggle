@@ -348,6 +348,10 @@ def first_string_containing_substring(substring, List):
     first_matching_string = [x for x in List if substring in x][0]
     return first_matching_string
 
+# Ensure provenance configuration is inherited by workflow
+if args.prov:
+    config.enable_provenance()
+
 # ============================================================================
 #
 #   Initialize workflow inputs and outputs
@@ -2361,11 +2365,10 @@ if __name__ == '__main__':
     time0 = time()
 
     # ------------------------------------------------------------------------
-    # Workflow configuration: provenance tracking, content hashing, etc.:
+    # Workflow configuration: content hashing, crashfiles, etc.:
     # ------------------------------------------------------------------------
-    if args.prov:
-        config.enable_provenance()
     mbFlow.config['execution']['hash_method'] = 'content'
+    mbFlow.config['execution']['crashfile_format'] = 'txt'
     # mbFlow.config['execution']['use_relative_paths'] = True
 
     # ------------------------------------------------------------------------
