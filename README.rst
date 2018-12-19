@@ -45,7 +45,7 @@ A Klein, SS Ghosh, FS Bao, J Giard, Y Hame, E Stavsky, N Lee, B Rossa,
 M Reuter, EC Neto, A Keshavan. 2017.
 **Mindboggling morphometry of human brains**.
 *PLoS Computational Biology* 13(3): e1005350.
-`doi:10.1371/journal.pcbi.1005350 <http://dx.doi.org/10.1371/journal.pcbi.1005350>`_
+`doi:10.1371/journal.pcbi.1005350 <https://doi.org/10.1371/journal.pcbi.1005350>`_
 
 ------------------------------------------------------------------------------
 Getting help
