@@ -1,0 +1,111 @@
+body {
+        #background-color: #F0E9E0;
+        font-family: Palatino, Verdana, Times New Roman, Helvetica, sans-serif;
+        font-size: 100%; #16px;  
+        color: #000000;
+}
+
+.logogram {
+        font-family: Palatino, Verdana, Times New Roman, Helvetica, sans-serif;
+        font-size: 24px;
+        color: #000000;
+        position: absolute;
+		top: 55px;
+		left: 120px;
+}
+.logogram_acronym {
+        font-family: Palatino, Verdana, Times New Roman, Helvetica, sans-serif;
+		font-size: 12px;
+		color: #000000;
+		position: absolute;
+		top: 98px;
+		left: 30px;
+}						
+.banner_links {
+        font-family: Palatino, Verdana, Times New Roman, Helvetica, sans-serif;
+		font-size: 18px;
+		color: #000000;
+		position: absolute;
+		top: 60px;
+		left: 360px;
+}						
+.smalltext {
+        font-family: Palatino, Verdana, Times New Roman, Helvetica, sans-serif;
+        font-size: 14px;
+}
+.xsmalltext {
+        font-family: Palatino, Verdana, Times New Roman, Helvetica, sans-serif;
+        font-size: 12px;
+}
+.hosted {
+        position: relative;
+        left:   50px;
+        top:    0px;
+}
+.nitrc {
+        position: relative;
+        left:   0px;
+        top:    4px;
+}
+
+a:link {
+	color: #0066CC;
+	text-decoration:none;
+}
+a:visited {
+color: #9900CC;
+	text-decoration:none;
+}
+a:hover {
+	color: #CC00FF;
+	text-decoration:none;
+}
+a:active {
+	color: #CC00CC;
+	text-decoration:none;
+}
+
+div.banner {
+        position: absolute;
+        left:   30px;
+        top:    20px;
+        width:  800px;
+}
+
+div.main {
+        position: absolute;
+        left:   60px;
+        top:    160px;
+        width:  800px;
+}
+
+div.main_wide {
+        position: absolute;
+        left:   60px;
+        top:    160px;
+        width:  1000px;
+}
+
+.shift_indent20 {
+        position: relative;
+        left:   20px;
+}
+div.indent20 {
+        position: relative;
+        left:   20px;
+}
+div.indent40 {
+        position: relative;
+        left:   40px;
+}
+
+div.footer {
+        position: relative;
+	left:   0px;
+	top:    40px;
+        width:         800px;
+	font-family: Palatino, Verdana, Times New Roman, Helvetica, sans-serif;
+	font-size:     80%;
+	color: #9C947C;
+}
+
