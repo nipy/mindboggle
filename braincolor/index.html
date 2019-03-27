@@ -11,7 +11,7 @@
   <meta name="dc.subject" content="braincolor">
   <meta name="dc.type" content="text.homepage.educational">
   <meta name="dc.format" content="text/html">
-<link rel="stylesheet" type="text/css" href="./shared/style.css"> 
+<link rel="stylesheet" type="text/css" href="./shared/style.css">
  
 <script type="text/javascript" src="./shared/popups.js"></script>
 
@@ -36,284 +36,111 @@
     </span>
 
      <span class="banner_links"> 
-     <a href="./protocols/index.html">labels</a>
+     <a href="./about.html">about</a>
      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
      <a href="./colormaps/index.html">colormaps</a>
      </span>
     
 </div>
 
-<title>brainCOLOR</title>
+<title>brainCOLOR: brain labeling protocols</title>
+<div class="main_wide">
 
-<div class="main">
-
-<font size="5">brainCOLOR</font>
-is interested in brain anatomical labels and labeling methods.
-
-<br />
-<br /> 
-<br /> 
+<font size="5">Brain labeling protocols</font>
 
 <table>
-<tr>
-<b>Projects</b>
-</tr>
-<hr>
-<tr>
-<td width="30"></td>
-<td valign="top">
+ <tr>
+  <td valign="top" width="900">
+   <br />
+As part of the <a href="http://mindboggle.info" onClick="return popup(this,'Mindboggle')">Mindboggle project</a>, Neuromorphometrics helped to develop a new cortical parcellation (anatomical labeling) protocol, the <a href ="http://mindboggle.info/data.html" onClick="return popup(this,'DKT protocol')">Desikan-Killiany-Tourville protocol</a>. This DKT protocol was used by trained personnel to manually label 101 T1-weighted MRI brain volumes as part of Mindboggle's initial NIH-funded R01 grant.
+   <br />
+   <br />
+Neuromorphometrics also developed a second whole-brain labeling protocol 
+<a href ="./docs/BrainCOLOR_cortical_parcellation_protocol.pdf" onClick="return popup(this,'protocol')">
+[.pdf]</a>* that has also been used to manually label T1-weighted MRI brain volumes 
+as part of another NIH-funded grant. 
+In order to ensure that these anatomical labels are meaningful and useful 
+to the neuroscientific community, we conducted a survey about the label definitions during its development.
+<br />
+<br />
+Jason Tourville and Ruth Carper derived the protocol
+from some of the most prominent parcellation methods established by other research groups. After a detailed review of these methods, including their anatomic validity and consistency across brains, they consolidated the best approaches into a single parcellation protocol, which currently has 62 cortical regions: 
+<br />
+<br />
+         <font size="2">
+         <table>
+          <tr>
+           <td width="10">
+           </td>
+           <td valign="top">
+            Frontal Lobe (18)
+            <br />
+            Temporal Lobe (7)
+           </td>
+           <td width="5">
+           </td>
+           <td valign="top">
+            Parietal Lobe (6)
+            <br />
+            Occipital Lobe (7)
+           </td>
+           <td width="5">
+           </td>
+           <td valign="top">
+            Limbic Cortex (5)
+            <br />
+            optional (19)
+           </td>
+          </tr>
+         </table>
+         </font>
 
-<a href="https://mindboggle.info/data.html" onClick="return popup(this,'DKT protocol')">Cortical</a> labeling (Desikan-Killiany-Tourville) protocol (Mindboggle project)
+<br />
+
+*<font size="2">Please do not copy or distribute any portion of the protocol without permission from Jason Tourville, and email any questions to Dr. Tourville:
+jtour [at] cns.bu.edu</font>
+
 <br />
 <br />
-<a href="./protocols/index.html">Whole-brain</a> labeling protocol (Neuromorphometrics)
-<br /> 
-<br /> 
-<a href="./colormaps/index.html">Colormaps</a> 
-optimized for labeling/viewing groups of adjacent regions
-<br /> 
-<br /> 
-<a href="https://roygbiv.mindboggle.info/volumeviewer/">Volume viewer</a>
-for viewing sample labels
-<br /> 
-<br /> 
-</td>
-</tr>
-</table>
+
+<a href="images/Figure2_SulciRegions_Tourville2009.png" onClick="return popup640(this,'figure 2: sulci_regions')"><img src="images/Figure2_SulciRegions_Tourville2009.png" width=400 border="0"></img></a>
+<br />
+<a href="images/Figure3_SulciRegions_Tourville2009.png" onClick="return popup640x480(this,'figure 3: sulci_regions2')"><img src="images/Figure3_SulciRegions_Tourville2009.png" width=400 border="0"></img></a>
+
 
 <br /><br />
 
-<table>
-<tr>
-<b>News</b> 
-</tr>
-<hr>
-<tr>
-<td width="20"></td>
+<td width="40"></td>
+
 <td valign="top">
 
-<i>June 2016:</i>&nbsp;&nbsp;
-The optimal colormap code has taken a <a href="https://github.com/nipy/mindboggle/blob/master/mindboggle/mio/colors.py">new life</a> 
-within the Mindboggle software project.
-
-<br />
-<br />
-
-<i>May 2016:</i>&nbsp;&nbsp;
-The Mindboggle-101 DKT labeled data are on <a href="https://dataverse.harvard.edu/dataverse/mindboggle101">Harvard Dataverse</a>!
-
-<br />
-<br />
-
-<i>June 2015:</i>&nbsp;&nbsp;
-The DKT labeling protocol is codified in Mindboggle <a href="https://github.com/nipy/mindboggle/blob/master/mindboggle/mio/labels.py">code</a>.
-
-<br />
-<br />
-
-<i>Dec. 2012:</i>&nbsp;&nbsp;
-The labeling protocol has been <a href="http://journal.frontiersin.org/article/10.3389/fnins.2012.00171/full">published</a>!
-
-<br />
-<br />
-
-<i>Aug. 2011:</i>&nbsp;&nbsp;
-First application of the finalized whole-brain protocol: 20 repeat-scan OASIS brain images.
-
-<br />
-<br />
-
-<i>Nov. 2010:</i>&nbsp;&nbsp;
-Society for Neuroscience <a href="./colormaps/index.html">poster</a>:
-<span class="xsmalltext">
-&quot;An interactive tool for constructing optimal brain colormaps&quot;
-</span>
-
-<br />
-<br />
-
-<i>Jun. 2010:</i>&nbsp;&nbsp;
-Human Brain Mapping <a href="https://mfr.osf.io/render?url=https://osf.io/38erb/?action=download%26mode=render" onClick="return popup(this,'HBM 2010 poster')">poster</a>:
-<span class="xsmalltext">
-&quot;Open labels: online feedback for a public resource of manually labeled brain images&quot;
-</span>
-<br />
-<br />
-
-<i>Feb. 2010:</i>&nbsp;&nbsp;
-Google group to discuss labels, labeling methods, color maps, etc.
-
-<br />
-<br />
-
-<i>Nov. 2009:</i>&nbsp;&nbsp;
-<a href="docs/brainCOLOR_meeting_20091102.pdf" onClick="return popup(this,'meeting1')">First meeting</a>, held at Neuromorphometrics, Inc.
-
-<br />
-<br />
-
-<i>Aug. 2009:</i>&nbsp;&nbsp;
-Surveys administered to solicit feedback about our labeling protocol.
-
+   <table>
+    <tr>
+     <table>
+      <tr>
+       <td valign="top">
+<a href="images/Table2_Regions_Tourville2009.png" onClick="return popup400(this,'table2: regions')"><img src="images/Table2_Regions_Tourville2009.png" width="240" border="0"></img></a>
+       </td>
+       <td valign="top">
+<a href="images/Table1_Sulci_Tourville2009.png" onClick="return popup400(this,'table1: sulci')"><img src="images/Table1_Sulci_Tourville2009.png" width=290 border="0"></img></a>
+       </td>
+      </tr>
+     </table>
+     <table>
+      <tr>
+       <td valign="top">
+<a href="images/Table3_Planes_Tourville2009.png" onClick="return popup640x480(this,'table3: planes')"><img src="images/Table3_Planes_Tourville2009.png" width="530" border="0"></img></a>
+       </td>
+      </tr>
+     </table>
+    </tr>
+   </table>  
+     
+  </td>
+ </tr>
 </table>
 
-<br /><br />
-
-<table>
-<tr>
-<b>People</b>
-</tr>
-<hr>
-<tr>
-
-<td width="30"></td>
-
-<td valign="top">
-
-<table>
-<tr>
-<td valign="top">
-Organizer &amp; website:
-</td>
-<td width="20">
-</td>
-<td>
-<a href="https://binarybottle.com" onClick="return popup(this,'arno')">
-Arno Klein</a>
 <br />
-<span class="xsmalltext">
-</span>
-<br />
-<br />
-</td>
-</tr>
-
-<tr>
-<td valign="top">
-Labeling leader:
-</td>
-<td width="20">
-</td>
-<td>
-Andrew Worth
-<br />
-<span class="xsmalltext">
-<a href="http://www.neuromorphometrics.com" onClick="return popup(this,'neuromorphometrics')">
-Neuromorphometrics</a>, Inc., MA
-</span>
-<br />
-<br />
-</td>
-</tr>
-
-<tr>
-<td valign="top">
-Labeling protocol:
-</td>
-<td width="20">
-</td>
-<td>
-Jason Tourville
-<br />
-<span class="xsmalltext">
-Dept. of Cognitive and Neural Systems, Boston University
-</span>
-<br />
-<br />
-Ruth Carper
-<br />
-<span class="xsmalltext">
-Center for Human Development, UCSD
-</span>
-<br />
-<br />
-Georges Salamon
-<br />
-<span class="xsmalltext">
-Dept. of Radiology, David Geffen School of Medicine, UCLA
-</span>
-<br />
-<br />
-</td>
-</tr>
-
-<tr>
-<td valign="top">
-More members:
-</td>
-<td width="20">
-</td>
-<td>
-Greg Millington
-<br />
-<span class="xsmalltext">
-Neuromorphometrics, Inc.
-</span>
-<br />
-<br />
-David Kennedy
-<br />
-<span class="xsmalltext">
-Univ. of Massachusetts Medical Center, Wooster, MA
-</span>
-<br />
-<br />
-Satrajit S. Ghosh
-<br />
-<span class="xsmalltext">
-Research Laboratory of Electronics, MIT
-</span>
-<br />
-<br />
-Bennett Landman
-<br />
-<span class="xsmalltext">
-Vanderbilt University, Nashville, TN
-</span>
-<br />
-<br />
-Steve Pieper
-<br />
-<span class="xsmalltext">
-Isomics, Inc., MA
-</span>
-<br />
-<br />
-David Shattuck
-<br />
-<span class="xsmalltext">
-UCLA, CA
-</span>
-<br />
-<br />
-</td>
-</tr>
-
-</table>
-
-</td>
-</tr>
-</table>
-
-<table>
-<tr>
-<b>Funding</b>
-</tr>
-<hr>
-<tr>
-<td width="20"></td>
-<td valign="top">
-<a href="http://www.neuromorphometrics.com" onClick="return popup(this,'neuromorphometrics')">
-Neuromorphometrics</a> is being funded by grant R43 MH084358 from the NIMH.
-<br />
-<br />
-<a href="https://binarybottle.com" onClick="return popup(this,'arno')">Arno Klein</a> is the P.I. of NIMH-funded R01 grant MH084029.
-</td>
-</tr>
-</table>
-
-</div>
-
 <br />
 <br />
 <br />
@@ -333,4 +160,4 @@ pageTracker._trackPageview();
 </body>
 </html>
 </div>
-</div>
+
