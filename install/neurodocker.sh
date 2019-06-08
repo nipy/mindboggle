@@ -53,6 +53,8 @@ docker run --rm ${image} generate docker \
     emacs-nox nano less ncdu tig sed build-essential \
     libsm-dev libx11-dev libxt-dev libxext-dev libglu1-mesa \
   --freesurfer version=6.0.0-min \
+  --run 'cd /opt/freesurfer-6.0.0-min && \
+    curl -sSL https://osf.io/download/n3ud2/?revision=1 -o license.txt' \
   --ants version=b43df4bfc8 method=source cmake_opts='-DBUILD_SHARED_LIBS=ON' make_opts='-j 4'\
   --run 'ln -s /usr/lib/x86_64-linux-gnu /usr/lib64' \
   --miniconda \
