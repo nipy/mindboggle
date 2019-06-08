@@ -13,6 +13,8 @@ We have tested the software most extensively with Python 3.5.1 on Ubuntu Linux 1
 
 :Release: |version|
 :Date: |today|
+:ref:`modindex`
+:ref:`genindex`
 
 ------------------------------------------------------------------------------
 Contents
@@ -31,18 +33,10 @@ Contents
 ------------------------------------------------------------------------------
 _`Links`
 ------------------------------------------------------------------------------
-.. toctree::
-    :maxdepth: 1
-
-    FAQ <faq.rst>
-    license
-
+- `FAQ <http://mindboggle.readthedocs.io/en/latest/faq.html>`_
 - `GitHub <http://github.com/nipy/mindboggle>`_ and `Circleci tests <https://circleci.com/gh/nipy/mindboggle>`_
 - `Contributors <http://mindboggle.info/people.html>`_
-
-* :ref:`modindex`
-* :ref:`genindex`
-
+- `License <http://mindboggle.readthedocs.io/en/latest/license.html>`_
 
 ------------------------------------------------------------------------------
 _`Reference`
@@ -71,9 +65,7 @@ We recommend installing Mindboggle and its dependencies as a cross-platform
 Docker container for greater convenience and reproducibility of results.
 All the examples below assume you are using this Docker container,
 with the path /home/jovyan/work/ pointing to your host machine.
-(Alternatively, one can `create a Singularity image <http://mindboggle.readthedocs.io/en/latest/faq/singularity.html>`_,
-or Mindboggle can be installed from scratch on a Linux machine using
-`this script <https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle.sh>`_).
+(Alternatively, one can `create a Singularity image <http://mindboggle.readthedocs.io/en/latest/faq/singularity.html>`_.
 
 1. `Install and run Docker <https://docs.docker.com/engine/installation/>`_
 on your (macOS, Linux, or Windows) host machine.
