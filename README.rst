@@ -63,7 +63,7 @@ from your $HOST (e.g., /Users/arno)::
 
 Then run the notebook from within the container::
 
-    jupyter notebook /opt/mindboggle/docs/mindboggle_tutorial.ipynb --ip=0.0.0.0 --allow-root
+    jupyter notebook /opt/mindboggle/docs/mindboggle_tutorial.ipynb
 
 ------------------------------------------------------------------------------
 Installation

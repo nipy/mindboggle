@@ -104,4 +104,5 @@ docker run --rm ${image} generate docker \
         git submodule update --init --recursive && \
         python setup.py install && \
         rm -rf /opt/roygbiv /opt/nbpapaya' \
+  --run 'mkdir -p ~/.jupyter && echo c.NotebookApp.ip = \"0.0.0.0\" > ~/.jupyter/jupyter_notebook_config.py' \
   > Dockerfile
