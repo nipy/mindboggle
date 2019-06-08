@@ -109,10 +109,10 @@ Docker container (above) and run the notebook in a web browser as follows::
 In the output on the command line you'll see something like::
 
     [I 20:47:38.209 NotebookApp] The Jupyter Notebook is running at:
-    [I 20:47:38.210 NotebookApp] http://(057a72e00d63 or 127.0.0.1):8888/?token=62853787e0d6e180856eb22a51609b25e7bc83357775d84b
+    [I 20:47:38.210 NotebookApp] http://(057a72e00d63 or 127.0.0.1):8888/?token=62853787e0d6e180856eb22a51609b25e
 
 You would then copy and paste the corresponding address into your web browser 
-(in this case, http://127.0.0.1:8888/?token=62853787e0d6e180856eb22a51609b25e7bc83357775d84b),
+(in this case, ``http://127.0.0.1:8888/?token=62853787e0d6e180856eb22a51609b25e``),
 and click on "mindboggle_tutorial.ipynb".
 
 ------------------------------------------------------------------------------
