@@ -50,7 +50,7 @@ M Reuter, EC Neto, A Keshavan. 2017.
 ------------------------------------------------------------------------------
 Getting help
 ------------------------------------------------------------------------------
-General questions about Mindboggle, or having some difficulties?  
+General questions about Mindboggle, or having some difficulties getting started?  
 Please search for relevant mindboggle posts in 
 `NeuroStars <https://neurostars.org/tags/mindboggle/>`_ 
 or post your own message with the tag "mindboggle". 
