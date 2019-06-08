@@ -14,20 +14,25 @@ We have tested the software most extensively with Python 3.5.1 on Ubuntu Linux 1
 :Release: |version|
 :Date: |today|
 
-Links:
+------------------------------------------------------------------------------
+Contents
+------------------------------------------------------------------------------
+- Links_
+- Reference_
+- Help_
+- Installation_
+- Tutorial_
+- `Run one command`_
+- `Run separate commands`_
+- `Visualize output`_
+- `Appendix: processing`_
+- `Appendix: output`_
 
+------------------------------------------------------------------------------
+_Links
+------------------------------------------------------------------------------
 .. toctree::
     :maxdepth: 1
-
-- Reference
-- Getting help
-- Installation
-- Tutorial
-- Run one command
-- Run separate commands
-- Visualize output
-- Appendix: processing
-- Appendix: output
 
     FAQ <faq.rst>
     license
@@ -40,7 +45,7 @@ Links:
 
 
 ------------------------------------------------------------------------------
-Reference
+_Reference
 ------------------------------------------------------------------------------
 A Klein, SS Ghosh, FS Bao, J Giard, Y Hame, E Stavsky, N Lee, B Rossa,
 M Reuter, EC Neto, A Keshavan. 2017.
@@ -49,7 +54,7 @@ M Reuter, EC Neto, A Keshavan. 2017.
 `doi:10.1371/journal.pcbi.1005350 <https://doi.org/10.1371/journal.pcbi.1005350>`_
 
 ------------------------------------------------------------------------------
-Getting help
+_Help
 ------------------------------------------------------------------------------
 General questions about Mindboggle, or having some difficulties getting started?  
 Please search for relevant mindboggle posts in 
@@ -60,7 +65,7 @@ Found a bug, big or small?  Please
 `submit an issue <https://github.com/nipy/mindboggle/issues>`_ on GitHub.
 
 ------------------------------------------------------------------------------
-Installation
+_Installation
 ------------------------------------------------------------------------------
 We recommend installing Mindboggle and its dependencies as a cross-platform
 Docker container for greater convenience and reproducibility of results.
@@ -101,7 +106,7 @@ download and unzip
     OUT=$DOCK/mindboggle123_output # '--out $OUT' is optional
 
 ------------------------------------------------------------------------------
-Tutorial
+_Tutorial
 ------------------------------------------------------------------------------
 To run the Mindboggle jupyter notebook tutorial, first install the Mindboggle
 Docker container (above) and run the notebook in a web browser as follows::
@@ -118,7 +123,7 @@ You would then copy and paste the corresponding address into your web browser
 and click on "mindboggle_tutorial.ipynb".
 
 ------------------------------------------------------------------------------
-Run one command
+_`Run one command`
 ------------------------------------------------------------------------------
 The Mindboggle Docker container can be run as a single command to process
 a T1-weighted MR brain image through FreeSurfer, ANTs, and Mindboggle.
@@ -131,7 +136,7 @@ Outputs are stored in $DOCK/mindboggle123_output/ by default,
 but you can set a different output path with ``--out $OUT``.
 
 ------------------------------------------------------------------------------
-Run separate commands
+_`Run separate commands`
 ------------------------------------------------------------------------------
 If finer control is needed over the software in the Docker container,
 the following instructions outline how to run each command separately.
@@ -226,7 +231,7 @@ Generate only volume (no surface) labels and shapes::
         --no_surfaces
 
 ------------------------------------------------------------------------------
-Visualize output
+_`Visualize output`
 ------------------------------------------------------------------------------
 To visualize Mindboggle output with roygbiv, start the Docker image with::
 
@@ -242,7 +247,7 @@ Right now, roygbiv only shows summarized data, but Anisha Keshavan is working
 on by-vertex visualizations (for the latter, try `Paraview <https://www.paraview.org/2>`_).
 
 ------------------------------------------------------------------------------
-Appendix: processing
+_`Appendix: processing`
 ------------------------------------------------------------------------------
 The following steps are performed by Mindboggle (with links to code on GitHub):
 
@@ -287,7 +292,7 @@ The following steps are performed by Mindboggle (with links to code on GitHub):
     - upper quartile
 
 ------------------------------------------------------------------------------
-Appendix: output
+_`Appendix: output`
 ------------------------------------------------------------------------------
 Example output data can be found
 on Mindboggle's `examples <https://osf.io/8cf5z>`_ site on osf.io.
