@@ -140,8 +140,7 @@ on the cortical surfaces and in the cortical and non-cortical volumes
 (v5.3 generates these surface labels by default; older versions require
 "-gcs DKTatlas40.gcs" to generate these surface labels).*
 
-1. Enter the Docker container's bash shell to run ``recon-all``,
-``antsCorticalThickness.sh``, and ``mindboggle`` commands::
+1. Enter the Docker container's bash shell to run ``recon-all``, ``antsCorticalThickness.sh``, and ``mindboggle`` commands::
 
     docker run --rm -ti -v $HOST:$DOCK nipy/mindboggle
 
@@ -250,7 +249,6 @@ The following steps are performed by Mindboggle (with links to code on GitHub):
 3. Compute volume shape measures for each labeled region:
 
     - volume (`volume_per_brain_region <https://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/volume_shapes.py#L14>`_)
-    - thickness of cortical labels (`thickinthehead <https://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/volume_shapes.py#L131>`_, off by default)
 
 4. Compute surface shape measures for every cortical mesh vertex:
 
@@ -355,10 +353,6 @@ The following include outputs from most, but not all, optional arguments.
         **volume_per_freesurfer_label.csv**:  *volume per FS label*
 
         **volumes_per_ants_label.csv**:  *volume per ANTs label*
-
-        **thickinthehead_per_freesurfer_cortex_label.csv**:  *FS cortex label thickness*  **-- UNDER EVALUATION --**
-
-        **thickinthehead_per_ants_cortex_label.csv**:  *ANTs cortex label thickness*  **-- UNDER EVALUATION --**
 
         [left,right]_cortical_surface /
 
