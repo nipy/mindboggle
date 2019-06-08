@@ -58,21 +58,6 @@ or post your own message with the tag "mindboggle".
 Found a bug, big or small?  Please
 `submit an issue <https://github.com/nipy/mindboggle/issues>`_ on GitHub.
 
-To run the Mindboggle jupyter notebook tutorial, first install the Mindboggle
-Docker container (see below) and enter the bash shell of the container
-from your local $HOST (example: HOST=/Users/binarybottle) and try::
-
-    docker run --rm -ti -v $HOST:/home/jovyan/work -p 8888:8888 nipy/mindboggle jupyter notebook /opt/mindboggle/docs/mindboggle_tutorial.ipynb --ip=0.0.0.0 --allow-root
-
-Then in the output on the command line you'll see something like::
-
-    [I 20:47:38.209 NotebookApp] The Jupyter Notebook is running at:
-    [I 20:47:38.210 NotebookApp] http://(057a72e00d63 or 127.0.0.1):8888/?token=62853787e0d6e180856eb22a51609b25e7bc83357775d84b
-
-You would then copy and paste the corresponding address into your web browser 
-(in this case, http://127.0.0.1:8888/?token=62853787e0d6e180856eb22a51609b25e7bc83357775d84b),
-and click on &quot;mindboggle_tutorial.ipynb&quot;
-
 ------------------------------------------------------------------------------
 Installation
 ------------------------------------------------------------------------------
@@ -112,6 +97,23 @@ download and unzip
     DOCK=/home/jovyan/work  # path to HOST from Docker container
     IMAGE=$DOCK/example_mri_data/T1.nii.gz  # input image on HOST
     ID=arno  # ID for brain image
+
+------------------------------------------------------------------------------
+Tutorial
+------------------------------------------------------------------------------
+To run the Mindboggle jupyter notebook tutorial, first install the Mindboggle
+Docker container (above) and run the notebook in a web browser as follows::
+
+    docker run --rm -ti -v $HOST:/home/jovyan/work -p 8888:8888 nipy/mindboggle jupyter notebook /opt/mindboggle/docs/mindboggle_tutorial.ipynb --ip=0.0.0.0 --allow-root
+
+In the output on the command line you'll see something like::
+
+    [I 20:47:38.209 NotebookApp] The Jupyter Notebook is running at:
+    [I 20:47:38.210 NotebookApp] http://(057a72e00d63 or 127.0.0.1):8888/?token=62853787e0d6e180856eb22a51609b25e7bc83357775d84b
+
+You would then copy and paste the corresponding address into your web browser 
+(in this case, http://127.0.0.1:8888/?token=62853787e0d6e180856eb22a51609b25e7bc83357775d84b),
+and click on "mindboggle_tutorial.ipynb".
 
 ------------------------------------------------------------------------------
 Run one command
