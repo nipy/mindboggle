@@ -13,8 +13,7 @@ We have tested the software most extensively with Python 3.5.1 on Ubuntu Linux 1
 
 :Release: |version|
 :Date: |today|
-:ref:`modindex`
-:ref:`genindex`
+:ref:`modindex` and :ref:`genindex`
 
 ------------------------------------------------------------------------------
 Contents
