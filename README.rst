@@ -50,20 +50,28 @@ M Reuter, EC Neto, A Keshavan. 2017.
 ------------------------------------------------------------------------------
 Getting help
 ------------------------------------------------------------------------------
-General questions about Mindboggle?  Please post to
-`NeuroStars <https://neurostars.org/tags/mindboggle/>`_ with the tag
-"mindboggle". Found a bug, big or small?  Please
+General questions about Mindboggle, or having some difficulties?  
+Please search for relevant mindboggle posts in 
+`NeuroStars <https://neurostars.org/tags/mindboggle/>`_ 
+or post your own message with the tag "mindboggle". 
+
+Found a bug, big or small?  Please
 `submit an issue <https://github.com/nipy/mindboggle/issues>`_ on GitHub.
 
 To run the Mindboggle jupyter notebook tutorial, first install the Mindboggle
 Docker container (see below) and enter the bash shell of the container
-from your $HOST (e.g., /Users/arno)::
+from your local $HOST (example: HOST=/Users/binarybottle) and try::
 
-    docker run --rm -ti -v $HOST:/home/jovyan/work -p 8888:8888 nipy/mindboggle
+    docker run --rm -ti -v $HOST:/home/jovyan/work -p 8888:8888 nipy/mindboggle jupyter notebook /opt/mindboggle/docs/mindboggle_tutorial.ipynb --ip=0.0.0.0 --allow-root
 
-Then run the notebook from within the container::
+Then in the output on the command line you'll see something like::
 
-    jupyter notebook /opt/mindboggle/docs/mindboggle_tutorial.ipynb
+    [I 20:47:38.209 NotebookApp] The Jupyter Notebook is running at:
+    [I 20:47:38.210 NotebookApp] http://(057a72e00d63 or 127.0.0.1):8888/?token=62853787e0d6e180856eb22a51609b25e7bc83357775d84b
+
+You would then copy and paste the corresponding address into your web browser 
+(in this case, http://127.0.0.1:8888/?token=62853787e0d6e180856eb22a51609b25e7bc83357775d84b),
+and click on &quot;mindboggle_tutorial.ipynb&quot;
 
 ------------------------------------------------------------------------------
 Installation
