@@ -33,18 +33,18 @@ We have tested the software most extensively with Python 3.5.1 on Ubuntu Linux 1
 ------------------------------------------------------------------------------
 # Contents
 ------------------------------------------------------------------------------
-- [Reference](#reference)
-- [Getting help](#help)
-- [Installation](#install)
-- [Tutorial](#tutorial)
-- [Run one command](#command)
-- [Run separate commands](#commands)
-- [Visualize output](#visualize)
-- [Appendix: processing](#processing)
-- [Appendix: output](#output)
+1. [Reference](#reference)
+2. [Getting help](#help)
+3. [Installation](#install)
+4. [Tutorial](#tutorial)
+5. [Run one command](#command)
+6. [Run separate commands](#commands)
+7. [Visualize output](#visualize)
+8. [Appendix: processing](#processing)
+9. [Appendix: output](#output)
 
 ------------------------------------------------------------------------------
-# Reference
+## 1. Reference
 ------------------------------------------------------------------------------
 A Klein, SS Ghosh, FS Bao, J Giard, Y Hame, E Stavsky, N Lee, B Rossa,
 M Reuter, EC Neto, A Keshavan. 2017.
@@ -53,7 +53,7 @@ M Reuter, EC Neto, A Keshavan. 2017.
 `doi:10.1371/journal.pcbi.1005350 <https://doi.org/10.1371/journal.pcbi.1005350>`_
 
 ------------------------------------------------------------------------------
-# Getting help
+## 2. Getting help
 ------------------------------------------------------------------------------
 General questions about Mindboggle, or having some difficulties getting started?  
 Please search for relevant mindboggle posts in 
