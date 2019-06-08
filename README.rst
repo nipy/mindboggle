@@ -97,6 +97,7 @@ download and unzip
     DOCK=/home/jovyan/work  # path to HOST from Docker container
     IMAGE=$DOCK/example_mri_data/T1.nii.gz  # input image on HOST
     ID=arno  # ID for brain image
+    OUT=$DOCK/mindboggle123_output # '--out $OUT' is optional
 
 ------------------------------------------------------------------------------
 Tutorial

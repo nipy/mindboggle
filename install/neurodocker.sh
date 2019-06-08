@@ -39,7 +39,7 @@
 # DOCK=/home/jovyan/work # path to HOST from Docker container
 # IMAGE=$DOCK/example_mri_data/T1.nii.gz # input image (from container)
 # ID=arno # ID for brain image
-# OUT=$DOCK/mindboggle123_output # '--output $OUT' is OPTIONAL
+# OUT=$DOCK/mindboggle123_output # '--out $OUT' is OPTIONAL
 # docker run --rm -ti -v $HOST:/home/jovyan/work nipy/mindboggle $IMAGE --id $ID --out $OUT
 ###############################################################################
 
