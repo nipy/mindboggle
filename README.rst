@@ -14,8 +14,9 @@ We have tested the software most extensively with Python 3.5.1 on Ubuntu Linux 1
 :Release: |version|
 :Date: |today|
 
+------------------------------------------------------------------------------
 # Links
-
+------------------------------------------------------------------------------
 .. toctree::
     :maxdepth: 1
 
@@ -29,8 +30,9 @@ We have tested the software most extensively with Python 3.5.1 on Ubuntu Linux 1
 * :ref:`genindex`
 
 
+------------------------------------------------------------------------------
 # Contents
-
+------------------------------------------------------------------------------
 - [Reference](#reference)
 - [Getting help](#help)
 - [Installation](#install)
