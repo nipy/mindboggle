@@ -17,11 +17,11 @@ We have tested the software most extensively with Python 3.5.1 on Ubuntu Linux 1
 ------------------------------------------------------------------------------
 Contents
 ------------------------------------------------------------------------------
-- Links_
-- Reference_
-- Help_
-- Installation_
-- Tutorial_
+- `Links`_
+- `Reference`_
+- `Help`_
+- `Installation`_
+- `Tutorial`_
 - `Run one command`_
 - `Run separate commands`_
 - `Visualize output`_
@@ -45,7 +45,7 @@ _Links
 
 
 ------------------------------------------------------------------------------
-_Reference
+_`Reference`
 ------------------------------------------------------------------------------
 A Klein, SS Ghosh, FS Bao, J Giard, Y Hame, E Stavsky, N Lee, B Rossa,
 M Reuter, EC Neto, A Keshavan. 2017.
@@ -54,7 +54,7 @@ M Reuter, EC Neto, A Keshavan. 2017.
 `doi:10.1371/journal.pcbi.1005350 <https://doi.org/10.1371/journal.pcbi.1005350>`_
 
 ------------------------------------------------------------------------------
-_Help
+_`Help`
 ------------------------------------------------------------------------------
 General questions about Mindboggle, or having some difficulties getting started?  
 Please search for relevant mindboggle posts in 
@@ -65,7 +65,7 @@ Found a bug, big or small?  Please
 `submit an issue <https://github.com/nipy/mindboggle/issues>`_ on GitHub.
 
 ------------------------------------------------------------------------------
-_Installation
+_`Installation`
 ------------------------------------------------------------------------------
 We recommend installing Mindboggle and its dependencies as a cross-platform
 Docker container for greater convenience and reproducibility of results.
@@ -106,7 +106,7 @@ download and unzip
     OUT=$DOCK/mindboggle123_output # '--out $OUT' is optional
 
 ------------------------------------------------------------------------------
-_Tutorial
+_`Tutorial`
 ------------------------------------------------------------------------------
 To run the Mindboggle jupyter notebook tutorial, first install the Mindboggle
 Docker container (above) and run the notebook in a web browser as follows::
