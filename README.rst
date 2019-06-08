@@ -11,20 +11,10 @@ of results. The software runs on Linux and is written in Python 3 and Python-wra
 called within a `Nipype <http://nipy.org/nipype>`_ pipeline framework. 
 We have tested the software most extensively with Python 3.5.1 on Ubuntu Linux 14.04.
 
-..
-    1. Reference
-    2. Getting help
-    3. Installation
-    4. Run one command
-    5. Run separate commands
-    6. Visualize output
-    7. Appendix: processing
-    8. Appendix: output
-
 :Release: |version|
 :Date: |today|
 
-Links:
+Links and Contents:
 
 .. toctree::
     :maxdepth: 1
@@ -37,6 +27,16 @@ Links:
 
 * :ref:`modindex`
 * :ref:`genindex`
+
+    1. Reference
+    2. Getting help
+    3. Installation
+    4. Tutorial
+    5. Run one command
+    6. Run separate commands
+    7. Visualize output
+    8. Appendix: processing
+    9. Appendix: output
 
 ------------------------------------------------------------------------------
 Reference
