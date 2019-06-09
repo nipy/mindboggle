@@ -102,7 +102,7 @@ _`Tutorial`
 To run the Mindboggle jupyter notebook tutorial, first install the Mindboggle
 Docker container (above) and run the notebook in a web browser as follows::
 
-    docker run --rm -ti -v $HOST:/home/jovyan/work -p 8888:8888 nipy/mindboggle jupyter notebook /opt/mindboggle/docs/mindboggle_tutorial.ipynb --ip=0.0.0.0 --allow-root
+    docker run --rm -ti -v $HOST:/home/jovyan/work -p 8888:8888 nipy/mindboggle jupyter notebook /opt/mindboggle/docs/mindboggle_tutorial.ipynb # --ip=0.0.0.0 --allow-root
 
 In the output on the command line you'll see something like::
 
