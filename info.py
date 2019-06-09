@@ -39,7 +39,7 @@ http://github.com/nipy/mindboggle
 # Main setup parameters
 NAME                = 'Mindboggle'
 MAINTAINER          = "Arno Klein"
-MAINTAINER_EMAIL    = "arno@mindboggle.info"
+MAINTAINER_EMAIL    = "arno@childmind.org"
 DESCRIPTION         = description
 LONG_DESCRIPTION    = long_description
 URL                 = "http://mindboggle.info/"
@@ -47,7 +47,7 @@ DOWNLOAD_URL        = "http://mindboggle.info/"
 LICENSE             = "Apache v2.0"
 CLASSIFIERS         = CLASSIFIERS
 AUTHOR              = "Arno Klein"
-AUTHOR_EMAIL        = "arno@mindboggle.info"
+AUTHOR_EMAIL        = "arno@childmind.org"
 PLATFORMS           = "Linux"
 VERSION             = __version__
 PROVIDES            = ["mindboggle"]

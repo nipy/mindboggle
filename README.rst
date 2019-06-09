@@ -94,7 +94,7 @@ download and unzip
     DOCK=/home/jovyan/work  # path to HOST from Docker container
     IMAGE=$DOCK/example_mri_data/T1.nii.gz  # input image on HOST
     ID=arno  # ID for brain image
-    OUT=$DOCK/mindboggle123_output # '--out $OUT' is optional
+    OUT=$DOCK/mindboggle123_output # '--out $OUT' below is optional
 
 ------------------------------------------------------------------------------
 _`Tutorial`
@@ -102,7 +102,7 @@ _`Tutorial`
 To run the Mindboggle jupyter notebook tutorial, first install the Mindboggle
 Docker container (above) and run the notebook in a web browser as follows::
 
-    docker run --rm -ti -v $HOST:/home/jovyan/work -p 8888:8888 nipy/mindboggle jupyter notebook /opt/mindboggle/docs/mindboggle_tutorial.ipynb # --ip=0.0.0.0 --allow-root
+    docker run --rm -ti -v $HOST:/home/jovyan/work -p 8888:8888 nipy/mindboggle jupyter notebook /opt/mindboggle/docs/mindboggle_tutorial.ipynb --ip=0.0.0.0 --allow-root
 
 In the output on the command line you'll see something like::
 
@@ -234,7 +234,7 @@ and then inside the image, run roygbiv on an output directory::
 
 and open a browser to `localhost:5000`.
 
-Right now, roygbiv only shows summarized data, but Anisha Keshavan is working
+Right now, roygbiv only shows summarized data, but one of our goals is to work
 on by-vertex visualizations (for the latter, try `Paraview <https://www.paraview.org/2>`_).
 
 ------------------------------------------------------------------------------

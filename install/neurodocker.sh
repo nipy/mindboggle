@@ -24,10 +24,10 @@
 # (https://docs.docker.com/docker-cloud/builds/push-images/)
 # export DOCKER_ID_USER="nipy"
 # docker login
-# docker tag mindboggle nipy/mindboggle
-# docker push nipy/mindboggle
+# docker tag mindboggle nipy/mindboggle  # See: https://docs.docker.com/engine/reference/commandline/tag/
+# docker push nipy/mindboggle:TAGNAME  # Replace TAGNAME
 #
-# 4. Pull from Docker hub:
+# 4. Pull from Docker hub (or use the original):
 # docker pull nipy/mindboggle
 #
 # In the following, the Docker container can be the original (mindboggle)
@@ -57,12 +57,10 @@ docker run --rm ${image} generate docker \
     emacs-nox nano less ncdu tig sed build-essential \
     libsm-dev libx11-dev libxt-dev libxext-dev libglu1-mesa \
   --freesurfer version=6.0.0-min \
-  --run 'cd /opt/freesurfer-6.0.0-min && \
-    curl -sSL https://osf.io/download/n3ud2/?revision=1 -o license.txt' \
   --ants version=b43df4bfc8 method=source cmake_opts='-DBUILD_SHARED_LIBS=ON' make_opts='-j 4'\
   --run 'ln -s /usr/lib/x86_64-linux-gnu /usr/lib64' \
   --miniconda \
-    conda_install="python=3.6 pip jupyter cmake mesalib vtk pandas
+    conda_install="python=3.6 pip jupyter cmake mesalib vtk=8 pandas
       matplotlib colormath nipype>=1.1.4 tbb-devel nose" \
     pip_install="datalad[full] duecredit" \
     create_env="mb" \
@@ -110,5 +108,6 @@ docker run --rm ${image} generate docker \
         git submodule update --init --recursive && \
         python setup.py install && \
         rm -rf /opt/roygbiv /opt/nbpapaya' \
-  --run 'mkdir -p ~/.jupyter && echo c.NotebookApp.ip = \"0.0.0.0\" > ~/.jupyter/jupyter_notebook_config.py' \
+  --run 'curl -sSL https://osf.io/download/n3ud2/?revision=1 -o /opt/freesurfer-6.0.0-min/license.txt' \
+  --run 'mkdir -p /.jupyter && echo c.NotebookApp.ip = \"0.0.0.0\" > /.jupyter/jupyter_notebook_config.py' \
   > Dockerfile
