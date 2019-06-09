@@ -1,46 +1,50 @@
 #!/bin/bash
 
 ###############################################################################
-# Generate a Dockerfile for building a Mindboggle container (http://mindboggle.info).
+# Generate a Dockerfile for building a Mindboggle container
+# (https://mindboggle.info).
 # The Dockerfile installs most of Mindboggle's dependencies,
 # including preprocessing software packages FreeSurfer and ANTs,
-# and visualization software roygbiv.
+# and visualization software roygbiv:
+#   - Set up neurodebian and miniconda and install conda packages
+#   - Install FreeSurfer and ANTS.
+#   - Install Mindboggle templates from the Open Science Framework
+#   - Install Mindboggle
+#   - Install roygbiv for output visualization
 #
-# Steps:
+# Steps to build, upload, and deploy the Mindboggle docker image:
 #
-# Set up neurodebian and miniconda, and install conda packages.
-# Install FreeSurfer and ANTS.
-# Install Mindboggle templates from the Open Science Framework.
-# Install Mindboggle.
-# Install roygbiv for output visualization.
+# 1. Create or update the Dockerfile:
+# bash neurodocker.sh
 #
-# Build the docker image:
+# 2. Build the docker image:
 # docker build -t mindboggle -f Dockerfile .
 #
-# Push to Docker hub:
+# 3. Push to Docker hub:
 # (https://docs.docker.com/docker-cloud/builds/push-images/)
 # export DOCKER_ID_USER="nipy"
 # docker login
 # docker tag mindboggle nipy/mindboggle
 # docker push nipy/mindboggle
 #
-# Pull from Docker hub:
+# 4. Pull from Docker hub:
 # docker pull nipy/mindboggle
 #
 # In the following, the Docker container can be the original (mindboggle)
 # or the pulled version (nipy/mindboggle), and is given access to /Users/arno
 # on the host machine.
 #
-# Enter the bash shell of the Docker container, and add port mappings:
+# 5. Enter the bash shell of the Docker container, and add port mappings:
 # docker run --rm -ti -v /Users/arno:/home/jovyan/work -p 8888:8888 -p 5000:5000 nipy/mindboggle bash
 #
-# Run the Docker container as an executable (variables set for clarity):
+# 6. Run the Docker container as an executable (variables set for clarity):
 # HOST=/Users/binarybottle # path on host to access input and output
 # DOCK=/home/jovyan/work # path to HOST from Docker container
 # IMAGE=$DOCK/example_mri_data/T1.nii.gz # input image (from container)
 # ID=arno # ID for brain image
 # OUT=$DOCK/mindboggle123_output # '--out $OUT' is OPTIONAL
 # docker run --rm -ti -v $HOST:/home/jovyan/work nipy/mindboggle $IMAGE --id $ID --out $OUT
+#
 ###############################################################################
 
 image="kaczmarj/neurodocker:master@sha256:936401fe8f677e0d294f688f352cbb643c9693f8de371475de1d593650e42a66"
