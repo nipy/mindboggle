@@ -140,7 +140,7 @@ on the cortical surfaces and in the cortical and non-cortical volumes
 
 1. Enter the Docker container's bash shell to run ``recon-all``, ``antsCorticalThickness.sh``, and ``mindboggle`` commands::
 
-    docker run --rm -ti -v $HOST:$DOCK nipy/mindboggle
+    docker run --rm -ti -v $HOST:$DOCK -p 5000:5000 nipy/mindboggle
 
 2. Recommended: reset environment variables as above within the Docker container::
 
@@ -224,11 +224,8 @@ Generate only volume (no surface) labels and shapes::
 ------------------------------------------------------------------------------
 _`Visualize output`
 ------------------------------------------------------------------------------
-To visualize Mindboggle output with roygbiv, start the Docker image with::
-
-    docker run --rm -ti -v $HOST:$DOCK -p 5000:5000 nipy/mindboggle
-
-and then inside the image, run roygbiv on an output directory::
+To visualize Mindboggle output with roygbiv, start the Docker image (#1 above),
+then run roygbiv on an output directory::
 
     roygbiv $OUT/$ID
 

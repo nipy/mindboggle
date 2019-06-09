@@ -1,7 +1,7 @@
 import numpy
 import numpy.linalg
 import scipy
-import scipy.misc
+import scipy.special
 import time
 #import profilehooks
 import copy_reg
@@ -58,7 +58,7 @@ class MultiprocPipeline(object) :
     def rng_prod(self,*args,**dargs) :
         args = tuple([ self.rng(*a) for a in args ])
         return itertools.product(*args,**dargs)
-    def factorial(self,*args,**dargs) : return scipy.misc.factorial(*args,**dargs)
+    def factorial(self,*args,**dargs) : return scipy.special.factorial(*args,**dargs)
     def tic(self) :
         self.tic_time = time.time()
     def toc(self) :
@@ -76,7 +76,7 @@ class MultiprocPipeline(object) :
         if axis >= ndim : args = tuple([ numpy.expand_dims(a,axis) for a in args ])
         return numpy.concatenate(args,axis=axis)
     def sqrt(self,*args,**dargs) : return scipy.sqrt(*args,**dargs)
-    def nchoosek(self,*args,**dargs) : return scipy.misc.comb(*args,**dargs)
+    def nchoosek(self,*args,**dargs) : return scipy.special.comb(*args,**dargs)
     def floor(self,*args,**dargs) : return numpy.floor(*args,**dargs).astype(int)
     def conj(self,*args,**dargs) : return numpy.conj(*args,**dargs)
     def sum(self,*args,**dargs) : return numpy.sum(*args,**dargs)
