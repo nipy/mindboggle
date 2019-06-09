@@ -11,70 +11,60 @@ of results. The software runs on Linux and is written in Python 3 and Python-wra
 called within a `Nipype <http://nipy.org/nipype>`_ pipeline framework. 
 We have tested the software most extensively with Python 3.5.1 on Ubuntu Linux 14.04.
 
-..
-    1. Reference
-    2. Getting help
-    3. Installation
-    4. Run one command
-    5. Run separate commands
-    6. Visualize output
-    7. Appendix: processing
-    8. Appendix: output
-
 :Release: |version|
 :Date: |today|
-
-Links:
-
-.. toctree::
-    :maxdepth: 1
-
-    FAQ <faq.rst>
-    license
-
-- `GitHub <http://github.com/nipy/mindboggle>`_ and `Circleci tests <https://circleci.com/gh/nipy/mindboggle>`_
-- `Contributors <http://mindboggle.info/people.html>`_
-
-* :ref:`modindex`
-* :ref:`genindex`
+:ref:`modindex` and :ref:`genindex`
 
 ------------------------------------------------------------------------------
-Reference
+Contents
+------------------------------------------------------------------------------
+- `Links`_
+- `Reference`_
+- `Help`_
+- `Installation`_
+- `Tutorial`_
+- `Run one command`_
+- `Run separate commands`_
+- `Visualize output`_
+- `Appendix: processing`_
+- `Appendix: output`_
+
+------------------------------------------------------------------------------
+_`Links`
+------------------------------------------------------------------------------
+- `FAQ <http://mindboggle.readthedocs.io/en/latest/faq.html>`_
+- `GitHub <http://github.com/nipy/mindboggle>`_ and `Circleci tests <https://circleci.com/gh/nipy/mindboggle>`_
+- `Contributors <http://mindboggle.info/people.html>`_
+- `License <http://mindboggle.readthedocs.io/en/latest/license.html>`_
+
+------------------------------------------------------------------------------
+_`Reference`
 ------------------------------------------------------------------------------
 A Klein, SS Ghosh, FS Bao, J Giard, Y Hame, E Stavsky, N Lee, B Rossa,
 M Reuter, EC Neto, A Keshavan. 2017.
 **Mindboggling morphometry of human brains**.
 *PLoS Computational Biology* 13(3): e1005350.
-`doi:10.1371/journal.pcbi.1005350 <http://dx.doi.org/10.1371/journal.pcbi.1005350>`_
+`doi:10.1371/journal.pcbi.1005350 <https://doi.org/10.1371/journal.pcbi.1005350>`_
 
 ------------------------------------------------------------------------------
-Getting help
+_`Help`
 ------------------------------------------------------------------------------
-General questions about Mindboggle?  Please post to
-`NeuroStars <https://neurostars.org/tags/mindboggle/>`_ with the tag
-"mindboggle". Found a bug, big or small?  Please
+General questions about Mindboggle, or having some difficulties getting started?  
+Please search for relevant mindboggle posts in 
+`NeuroStars <https://neurostars.org/tags/mindboggle/>`_ 
+or post your own message with the tag "mindboggle". 
+
+Found a bug, big or small?  Please
 `submit an issue <https://github.com/nipy/mindboggle/issues>`_ on GitHub.
 
-To run the Mindboggle jupyter notebook tutorial, first install the Mindboggle
-Docker container (see below) and enter the bash shell of the container
-from your $HOST (e.g., /Users/arno)::
-
-    docker run --rm -ti -v $HOST:/home/jovyan/work -p 8888:8888 --entrypoint /bin/bash nipy/mindboggle
-
-Then run the notebook from within the container::
-
-    jupyter notebook /opt/mindboggle/docs/mindboggle_tutorial.ipynb
-
 ------------------------------------------------------------------------------
-Installation
+_`Installation`
 ------------------------------------------------------------------------------
 We recommend installing Mindboggle and its dependencies as a cross-platform
 Docker container for greater convenience and reproducibility of results.
 All the examples below assume you are using this Docker container,
 with the path /home/jovyan/work/ pointing to your host machine.
-(Alternatively, one can `create a Singularity image <http://mindboggle.readthedocs.io/en/latest/faq/singularity.html>`_,
-or Mindboggle can be installed from scratch on a Linux machine using
-`this script <https://raw.githubusercontent.com/nipy/mindboggle/master/install/install_mindboggle.sh>`_).
+(Alternatively, one can `create a Singularity image <http://mindboggle.readthedocs.io/en/latest/faq/singularity.html>`_.)
 
 1. `Install and run Docker <https://docs.docker.com/engine/installation/>`_
 on your (macOS, Linux, or Windows) host machine.
@@ -84,11 +74,11 @@ terminal window)::
 
     docker pull nipy/mindboggle
 
-*Note 1: This contains FreeSurfer, ANTs, and Mindboggle, so it is currently
+*Note 1:* This contains FreeSurfer, ANTs, and Mindboggle, so it is currently
 over 6GB.*
 
-*Note 2: You may need to increase memory allocated by Docker to at least 5GB.
-For example: By default, Docker for `Mac is set to use 2 GB runtime memory <https://docs.docker.com/docker-for-mac/>`_.*
+*Note 2:* You may need to increase memory allocated by Docker to at least 5GB.
+For example: By default, Docker for `Mac is set to use 2 GB runtime memory <https://docs.docker.com/docker-for-mac/>`_.
 
 3. Recommended: download sample data. To try out the ``mindboggle`` examples
 below, download and unzip the directory of example input data
@@ -104,9 +94,27 @@ download and unzip
     DOCK=/home/jovyan/work  # path to HOST from Docker container
     IMAGE=$DOCK/example_mri_data/T1.nii.gz  # input image on HOST
     ID=arno  # ID for brain image
+    OUT=$DOCK/mindboggle123_output # '--out $OUT' is optional
 
 ------------------------------------------------------------------------------
-Run one command
+_`Tutorial`
+------------------------------------------------------------------------------
+To run the Mindboggle jupyter notebook tutorial, first install the Mindboggle
+Docker container (above) and run the notebook in a web browser as follows::
+
+    docker run --rm -ti -v $HOST:/home/jovyan/work -p 8888:8888 nipy/mindboggle jupyter notebook /opt/mindboggle/docs/mindboggle_tutorial.ipynb # --ip=0.0.0.0 --allow-root
+
+In the output on the command line you'll see something like::
+
+    [I 20:47:38.209 NotebookApp] The Jupyter Notebook is running at:
+    [I 20:47:38.210 NotebookApp] http://(057a72e00d63 or 127.0.0.1):8888/?token=62853787e0d6e180856eb22a51609b25e
+
+You would then copy and paste the corresponding address into your web browser 
+(in this case, ``http://127.0.0.1:8888/?token=62853787e0d6e180856eb22a51609b25e``),
+and click on "mindboggle_tutorial.ipynb".
+
+------------------------------------------------------------------------------
+_`Run one command`
 ------------------------------------------------------------------------------
 The Mindboggle Docker container can be run as a single command to process
 a T1-weighted MR brain image through FreeSurfer, ANTs, and Mindboggle.
@@ -119,7 +127,7 @@ Outputs are stored in $DOCK/mindboggle123_output/ by default,
 but you can set a different output path with ``--out $OUT``.
 
 ------------------------------------------------------------------------------
-Run separate commands
+_`Run separate commands`
 ------------------------------------------------------------------------------
 If finer control is needed over the software in the Docker container,
 the following instructions outline how to run each command separately.
@@ -130,10 +138,9 @@ on the cortical surfaces and in the cortical and non-cortical volumes
 (v5.3 generates these surface labels by default; older versions require
 "-gcs DKTatlas40.gcs" to generate these surface labels).*
 
-1. Enter the Docker container's bash shell to run ``recon-all``,
-``antsCorticalThickness.sh``, and ``mindboggle`` commands::
+1. Enter the Docker container's bash shell to run ``recon-all``, ``antsCorticalThickness.sh``, and ``mindboggle`` commands::
 
-    docker run --rm -ti -v $HOST:$DOCK --entrypoint /bin/bash nipy/mindboggle
+    docker run --rm -ti -v $HOST:$DOCK nipy/mindboggle
 
 2. Recommended: reset environment variables as above within the Docker container::
 
@@ -215,11 +222,11 @@ Generate only volume (no surface) labels and shapes::
         --no_surfaces
 
 ------------------------------------------------------------------------------
-Visualize output
+_`Visualize output`
 ------------------------------------------------------------------------------
 To visualize Mindboggle output with roygbiv, start the Docker image with::
 
-    docker run --rm -ti -v $HOST:$DOCK -p 5000:5000 --entrypoint /bin/bash nipy/mindboggle
+    docker run --rm -ti -v $HOST:$DOCK -p 5000:5000 nipy/mindboggle
 
 and then inside the image, run roygbiv on an output directory::
 
@@ -231,7 +238,7 @@ Right now, roygbiv only shows summarized data, but Anisha Keshavan is working
 on by-vertex visualizations (for the latter, try `Paraview <https://www.paraview.org/2>`_).
 
 ------------------------------------------------------------------------------
-Appendix: processing
+_`Appendix: processing`
 ------------------------------------------------------------------------------
 The following steps are performed by Mindboggle (with links to code on GitHub):
 
@@ -240,7 +247,6 @@ The following steps are performed by Mindboggle (with links to code on GitHub):
 3. Compute volume shape measures for each labeled region:
 
     - volume (`volume_per_brain_region <https://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/volume_shapes.py#L14>`_)
-    - thickness of cortical labels (`thickinthehead <https://github.com/nipy/mindboggle/blob/master/mindboggle/shapes/volume_shapes.py#L131>`_, off by default)
 
 4. Compute surface shape measures for every cortical mesh vertex:
 
@@ -277,7 +283,7 @@ The following steps are performed by Mindboggle (with links to code on GitHub):
     - upper quartile
 
 ------------------------------------------------------------------------------
-Appendix: output
+_`Appendix: output`
 ------------------------------------------------------------------------------
 Example output data can be found
 on Mindboggle's `examples <https://osf.io/8cf5z>`_ site on osf.io.
@@ -345,10 +351,6 @@ The following include outputs from most, but not all, optional arguments.
         **volume_per_freesurfer_label.csv**:  *volume per FS label*
 
         **volumes_per_ants_label.csv**:  *volume per ANTs label*
-
-        **thickinthehead_per_freesurfer_cortex_label.csv**:  *FS cortex label thickness*  **-- UNDER EVALUATION --**
-
-        **thickinthehead_per_ants_cortex_label.csv**:  *ANTs cortex label thickness*  **-- UNDER EVALUATION --**
 
         [left,right]_cortical_surface /
 

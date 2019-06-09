@@ -94,7 +94,7 @@ def propagate(points, faces, region, seeds, labels,
     >>> segments = propagate(points, faces, region, seeds, labels,
     ...                      max_iters, tol, sigma, background_value, verbose)
     >>> np.unique(segments)[0:10]
-    array([ -1.,   3.,  12.,  22.])
+    array([-1.,  3., 12., 22.])
     >>> len_segments = [len(np.where(segments == x)[0])
     ...                 for x in np.unique(segments) if x != background_value]
     >>> len_segments[0:10]
@@ -282,7 +282,7 @@ def segment_regions(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> len(np.unique(segments))
     122
     >>> np.unique(segments)[0:10]
-    array([ -1.,   1.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  11.])
+    array([-1.,  1.,  3.,  4.,  5.,  6.,  7.,  8.,  9., 11.])
     >>> len_segments = [len(np.where(segments == x)[0])
     ...                 for x in np.unique(segments) if x != background_value]
     >>> len_segments[0:10]

@@ -182,6 +182,8 @@ adv_args.add_argument("--plugin", dest="plugin",
                       help="nipype plugin (see nipype documentation)")
 adv_args.add_argument("--plugin_args", dest="plugin_args",
                       help="plugin arguments (see nipype documentation)")
+adv_args.add_argument("--prov", action='store_true',
+                      help="Capture provenance")
 args = parser.parse_args()
 
 # ----------------------------------------------------------------------------
@@ -345,6 +347,10 @@ surface_atlas_type = 'manual'
 def first_string_containing_substring(substring, List):
     first_matching_string = [x for x in List if substring in x][0]
     return first_matching_string
+
+# Ensure provenance configuration is inherited by workflow
+if args.prov:
+    config.enable_provenance()
 
 # ============================================================================
 #
@@ -2359,10 +2365,10 @@ if __name__ == '__main__':
     time0 = time()
 
     # ------------------------------------------------------------------------
-    # Workflow configuration: provenance tracking, content hashing, etc.:
+    # Workflow configuration: content hashing, crashfiles, etc.:
     # ------------------------------------------------------------------------
-    # config.enable_provenance()
     mbFlow.config['execution']['hash_method'] = 'content'
+    mbFlow.config['execution']['crashfile_format'] = 'txt'
     # mbFlow.config['execution']['use_relative_paths'] = True
 
     # ------------------------------------------------------------------------

@@ -40,8 +40,8 @@ def diagonal_degree_matrix(W, inverse=False, square_root=False):
     >>> from mindboggle.guts.graph import diagonal_degree_matrix
     >>> W = np.array([[10,2.3,3], [0,0,3], [0,1.5,0]])
     >>> tocsr = diagonal_degree_matrix(W, inverse=False, square_root=False)
-    >>> tocsr.data
-    array([ 15.3,   3. ,   1.5])
+    >>> np.allclose(tocsr.data, [ 15.3,   3. ,   1.5])
+    True
 
     """
     import numpy as np
@@ -109,8 +109,8 @@ def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
     ...                                   add_to_graph, G, sigma, verbose)
     >>> G.size()
     9
-    >>> G.degree()
-    DegreeView({0.0: 4, 1.0: 4, 2.0: 3, 3.0: 4, 4.0: 3})
+    >>> sorted(dict(G.degree()).items())
+    [(0.0, 4), (1.0, 4), (2.0, 3), (3.0, 4), (4.0, 3)]
 
     """
     import numpy as np

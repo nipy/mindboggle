@@ -29,12 +29,19 @@ Copyright 2017,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 import os
 import argparse
+from glob import glob
 
 from nipype import config, logging
-from nipype.pipeline.engine import Workflow, Node
+from nipype.pipeline.engine import Workflow, Node, MapNode
 from nipype.interfaces.utility import Function as Fn
+from nipype.interfaces.utility import Merge
 from nipype.interfaces.freesurfer import ReconAll
 from nipype.interfaces.ants.segmentation import CorticalThickness
+from nipype.interfaces.ants import (ApplyTransforms, AntsJointFusion,
+                                    LabelGeometry, Registration,
+                                    MultiplyImages)
+from nipype.utils.misc import human_order_sorted
+
 
 from mindboggle.version import __version__ as mbversion
 mindboggle_version = 'mindboggle version {0}'.format(mbversion)
@@ -95,9 +102,21 @@ adv_args.add_argument("--fs_flags", dest="fs_flags",
 adv_args.add_argument("--ants_num_threads", dest="num_threads",
                       default=1, type=int,
                       help="Number of threads to use with ANTs")
+def SegOptions(option):
+    if option in ['quick', 'fusion']:
+        return option
+    else:
+        raise argparse.ArgumentError('ants_seg value must be one of "quick" or "fusion".')
+adv_args.add_argument("--ants_seg", dest="seg",
+                      default="quick", type=SegOptions,
+                      help="Use ANTs 'quick' or 'fusion' to label subcortical structures")
+adv_args.add_argument("--ants_segN", dest="segN", type=int,
+                      help="Number of images to use for joint fusion (2-20)")
 adv_args.add_argument("--mb_num_threads", dest="mb_num_threads",
                       default=1, type=int,
                       help="Number of threads to use with mindboggle")
+adv_args.add_argument("--prov", action='store_true',
+                      help="Capture provenance")
 args = parser.parse_args()
 
 # ----------------------------------------------------------------------------
@@ -110,6 +129,10 @@ WORK = args.working
 TDIR = args.template
 if args.skip_freesurfer and args.skip_ants:
     print("Use only one of the skip arguments: --skip_freesurfer, --skip_ants.")
+
+# Ensure provenance configuration is inherited by workflow
+if args.prov:
+    config.enable_provenance()
 
 # ----------------------------------------------------------------------------
 # Initialize workflow inputs and outputs
@@ -198,7 +221,8 @@ if args.num_threads and args.num_threads > 1:
 # ----------------------------------------------------------------------------
 # Create function to call mindboggle
 # ----------------------------------------------------------------------------
-def mindboggle(subjectid, fsdir, antsdir, antsseg, out, args, num_threads=1):
+def mindboggle(subjectid, fsdir, antsdir, antsseg, out, prov, args,
+               num_threads=1):
     """
     Run the mindboggle morphology pipeline (see http://mindboggle.info).
 
@@ -214,6 +238,8 @@ def mindboggle(subjectid, fsdir, antsdir, antsseg, out, args, num_threads=1):
         name of antsCorticalThickness.sh output segmentation file
     out : string
         path to mindboggle output directory
+    prov : boolean
+        capture provenance
     args : string
         extra arguments
     num_threads
@@ -226,27 +252,24 @@ def mindboggle(subjectid, fsdir, antsdir, antsseg, out, args, num_threads=1):
 
     """
     import os
-
     from nipype.interfaces.base import CommandLine
 
     DATA = os.path.join(fsdir, subjectid)
     ants = os.path.join(antsdir, subjectid, antsseg)
 
     all_args = ' '.join([DATA, '--out', out, '--ants', ants,
-                         '--working', os.getcwd(), args])
+                         '--working', os.getcwd()] +
+                        [args] + (['--prov'] if prov else []))
 
     if num_threads > 1:
         all_args += ' --plugin MultiProc --plugin_args "dict(n_procs={0})"'.\
             format(num_threads)
-    command = "{0} {1}".format('mindboggle', all_args)
-    print(command)
 
-    from nipype import config
     cli = CommandLine(command='mindboggle')
     cli.inputs.args = all_args
-    cli.cmdline
+    command = cli.cmdline
+    print(command)
     cli.run()
-
     return command
 
 # ----------------------------------------------------------------------------
@@ -257,13 +280,6 @@ def mindboggle(subjectid, fsdir, antsdir, antsseg, out, args, num_threads=1):
 # ----------------------------------------------------------------------------
 Mindboggle = Node(name='mindboggle',
                   interface=Fn(function=mindboggle,
-                               input_names=['subjectid',
-                                            'fsdir',
-                                            'antsdir',
-                                            'antsseg',
-                                            'out',
-                                            'args',
-                                            'num_threads'],
                                output_names=['command']))
 Mindboggle.inputs.subjectid = ID
 if args.skip_freesurfer:
@@ -274,9 +290,152 @@ Mindboggle.inputs.antsdir = ants_output
 if args.skip_ants:
     Mindboggle.inputs.antsseg = PREFIX + 'BrainSegmentation.nii.gz'
 else:
+    comps = TDIR.split(os.sep)
+    IDIR = os.sep.join(comps[:(-2 if not comps[-1] else -1)] +
+                       ['OASIS-TRT-20_brains'])
+    LDIR = os.sep.join(comps[:(-2 if not comps[-1] else -1)] +
+                       ['OASIS-TRT-20_DKT31_CMA_labels_v2'])
+    T1s = human_order_sorted(glob(os.path.join(IDIR, '*.nii.gz')))
+    labels = human_order_sorted(glob(os.path.join(LDIR, '*.nii.gz')))
+    N = args.segN or len(T1s)
+
+    def mask_labels(intensity_image, label_image, output_dir=None):
+        import nibabel as nb
+        import os
+        thick_data = nb.load(intensity_image).get_data() > 0
+        limg = nb.load(label_image)
+        label_data = limg.get_data()
+        new_labels = thick_data * label_data * (label_data >= 1000) + \
+                     (label_data < 1000) * label_data
+        new_label_img = nb.Nifti1Image(new_labels,
+                                       header=limg.header,
+                                       affine=limg.affine)
+        new_label_file = os.path.join(os.getcwd(), 'newlabels.nii.gz')
+        new_label_img.to_filename(new_label_file)
+        if output_dir is None:
+            output_dir = os.path.dirname(intensity_image)
+        limg.to_filename(os.path.join(output_dir, 'OASISlabels.nii.gz'))
+        return new_label_file
+    masker = Node(Fn(function=mask_labels, input_names=['intensity_image',
+                                                        'label_image',
+                                                        'output_dir'],
+                     output_names=['new_label_file']),
+                  name='masker')
+
+    tocsv = Node(LabelGeometry(), name='get_measures')
+    tocsv.inputs.output_file = os.path.join(ants_output, ID,
+                                            'antslabelstats.csv')
+
+    if args.seg and args.seg == "quick":
+        # -----------------------------------------------------
+        # Label ANTs output with Labels in template space
+        # -----------------------------------------------------
+        merge_transforms = Node(Merge(2), name="merge_transforms")
+        transformer_nn = Node(ApplyTransforms(), name="transformer_nn")
+        transformer_nn.inputs.dimension = 3
+        transformer_nn.inputs.invert_transform_flags = [False, False]
+        transformer_nn.inputs.input_image = '/opt/data/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_OASIS-30_v2.nii.gz'
+        transformer_nn.inputs.interpolation = 'NearestNeighbor'
+
+        mbFlow.connect(corticalthickness, 'BrainSegmentationN4',
+                       transformer_nn, 'reference_image')
+        mbFlow.connect(corticalthickness, 'TemplateToSubject1GenericAffine',
+                       merge_transforms, 'in1')
+        mbFlow.connect(corticalthickness, 'TemplateToSubject0Warp',
+                       merge_transforms, 'in2')
+        mbFlow.connect(merge_transforms, 'out', transformer_nn, 'transforms')
+        mbFlow.connect(transformer_nn, 'output_image', masker, 'label_image')
+    elif args.seg:
+        # -----------------------------------------------------
+        # Create workflow to label ANTs output with JointFusion
+        # -----------------------------------------------------
+        reg = MapNode(Registration(), iterfield=['moving_image'],
+                      name="register")
+        reg.inputs.moving_image = T1s[:N]
+
+        # mimic fmriprep's T1 - MNI registration
+        reg.inputs.dimension = 3
+        reg.inputs.convergence_threshold = [1e-06, 1e-06, 1e-06]
+        reg.inputs.convergence_window_size = [20, 20, 10]
+        reg.inputs.metric = ["Mattes", "Mattes", "CC"]
+        reg.inputs.metric_weight = [1, 1, 1]
+        reg.inputs.radius_or_number_of_bins = [56, 56, 4]
+        reg.inputs.transforms = ["Rigid", "Affine", "SyN"]
+        reg.inputs.transform_parameters = [(0.05,), (0.08,), (0.1, 3.0, 0.0)]
+        reg.inputs.number_of_iterations = [[100, 100], [100, 100], [100, 70, 50, 20]]
+        reg.inputs.sampling_strategy = ["Regular", "Regular", "None"]
+        reg.inputs.sampling_percentage = [0.25, 0.25, 1]
+        reg.inputs.smoothing_sigmas = [[2, 1], [1, 0], [3, 2, 1, 0]]
+        reg.inputs.sigma_units = ["vox", "vox", "vox"]
+        reg.inputs.shrink_factors = [[2, 1], [2, 1], [8, 4, 2, 1]]
+        reg.inputs.winsorize_upper_quantile = 0.995
+        reg.inputs.winsorize_lower_quantile = 0.005
+        reg.inputs.use_estimate_learning_rate_once = [True, True, True]
+        reg.inputs.use_histogram_matching = [True, True, True]
+        reg.inputs.collapse_output_transforms = True
+        reg.inputs.write_composite_transform = True
+        reg.inputs.output_transform_prefix = "output_"
+        reg.inputs.output_warped_image = True
+        reg.inputs.output_warped_image = "output_warped_image.nii.gz"
+        reg.inputs.interpolation = "LanczosWindowedSinc"
+        reg.inputs.float = True
+        reg.inputs.initial_moving_transform_com = 0
+
+        if args.num_threads and args.num_threads > 1:
+            reg.inputs.num_threads = args.num_threads
+
+        transformer_nn = MapNode(ApplyTransforms(),
+                                 iterfield=['input_image', 'transforms'],
+                                 name="transformer_nn")
+        transformer_nn.inputs.dimension = 3
+        transformer_nn.inputs.input_image = labels[:N]
+        transformer_nn.inputs.interpolation = 'NearestNeighbor'
+
+        labeler = Node(AntsJointFusion(), name='labeler')
+        labeler.inputs.dimension = 3
+        labeler.inputs.out_label_fusion = 'label.nii.gz'
+        if args.num_threads and args.num_threads > 1:
+            labeler.inputs.num_threads = args.num_threads
+
+        def tolist(x):
+            return [x]
+
+        mask_brain = Node(MultiplyImages(dimension=3,
+                                         output_product_image='brain.nii.gz'
+                                         ),
+                          name='mask_brain')
+        mbFlow.connect(corticalthickness, 'BrainSegmentationN4',
+                       mask_brain, 'first_input')
+        mbFlow.connect(corticalthickness, 'BrainExtractionMask', mask_brain,
+                       'second_input')
+        mbFlow.connect(mask_brain, 'output_product_image',
+                       reg, 'fixed_image')
+        mbFlow.connect(mask_brain, 'output_product_image',
+                       transformer_nn, 'reference_image')
+        mbFlow.connect(mask_brain, ('output_product_image', tolist),
+                       labeler, 'target_image')
+        mbFlow.connect(reg, 'composite_transform', transformer_nn, 'transforms')
+        mbFlow.connect(corticalthickness, 'BrainExtractionMask', labeler,
+                       'mask_image')
+        mbFlow.connect(reg, 'warped_image', labeler, 'atlas_image')
+        mbFlow.connect(transformer_nn, 'output_image', labeler,
+                       'atlas_segmentation_image')
+        mbFlow.connect(labeler, 'out_label_fusion', masker, 'label_image')
+
+
+    mbFlow.connect(corticalthickness, 'CorticalThickness',
+                   tocsv, 'intensity_image')
+    mbFlow.connect(corticalthickness, 'CorticalThickness',
+                   masker, 'intensity_image')
+    mbFlow.connect(masker, 'new_label_file', tocsv, 'label_image')
+
+    # ----------------------------------------------------------------------------
+    # Connect ants to Mindboggle
+    # ----------------------------------------------------------------------------
     mbFlow.connect(corticalthickness, 'BrainSegmentation',
                    Mindboggle, 'antsseg')
 Mindboggle.inputs.out = mindboggle_output
+Mindboggle.inputs.prov = False # args.prov
 Mindboggle.inputs.args = '--roygbiv'  # ' --graph hier'
 if args.mb_num_threads:
     Mindboggle.inputs.num_threads = args.mb_num_threads
@@ -290,12 +449,12 @@ if __name__ == '__main__':
     time0 = time()
 
     # --------------------------------------------------------------------
-    # Workflow configuration: provenance tracking, content hashing, etc.:
+    # Workflow configuration: content hashing, crashfiles, etc.:
     # --------------------------------------------------------------------
-    # config.enable_provenance()
     mbFlow.config['execution']['hash_method'] = 'content'
     # mbFlow.config['execution']['use_relative_paths'] = True
     mbFlow.config['execution']['crashfile_format'] = 'txt'
+    mbFlow.config['execution']['crashdump_dir'] = WORK
 
     # --------------------------------------------------------------------
     # Debug: http://nipy.org/nipype/users/config_file.html#debug-configuration
