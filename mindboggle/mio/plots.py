@@ -293,7 +293,7 @@ def histogram_of_vtk_scalars(vtk_file, nbins=100):
     # Histogram:
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    ax.hist(values, nbins, normed=False, facecolor='gray', alpha=0.5)
+    ax.hist(values, nbins, normed_area=False, facecolor='gray', alpha=0.5)
     plt.show()
 
 
@@ -351,7 +351,7 @@ def histograms_of_lists(columns, column_name='', ignore_columns=[],
         if icolumn not in ignore_columns:
             ax = fig.add_subplot(nplotrows, nplotcols, icolumn + 1)
             column = [np.float(x) for x in column]
-            ax.hist(column, nbins, normed=False, facecolor='gray', alpha=0.5)
+            ax.hist(column, nbins, normed_area=False, facecolor='gray', alpha=0.5)
             plt.xlabel(column_name, fontsize='small')
             if len(titles) == ncolumns:
                 plt.title(titles[icolumn], fontsize='small')
