@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
-This is the main program to run Mindboggle (http://mindboggle.info).
+This is the main program to run Mindboggle (https://mindboggle.info).
 
-Mindboggle is an open source brain morphometry platform
+Mindboggle is an open source brain anatomy/morphometry platform
 that takes in preprocessed T1-weighted MRI data and outputs volume,
 surface, and tabular data containing label, feature,
 and shape information for further analysis.
@@ -11,25 +11,25 @@ Mindboggle can be run on the command line as "mindboggle" and can be
 installed as a cross-platform virtual machine for convenience and
 reproducibility of results. The software runs on Linux and is written
 in Python 3 and Python-wrapped C++ code called within a modular Nipype
-pipeline framework (http://www.nipy.org/nipype/) to promote a modular,
+pipeline framework (https://www.nipy.org/nipype/) to promote a modular,
 flexible design that captures provenance information (this file).
 
 We have tested the software most extensively for Python 3.5 on Ubuntu 14.04.
 
 For help in using Mindboggle ::
 
-    - Online `documentation <http://mindboggle.info>`_
+    - Online `documentation <https://mindboggle.info>`_
     - README file
     - Help on the command line::
 
         $ mindboggle --help
 
 Authors:
-    - Arno Klein, 2010-2016  (arno@mindboggle.info)  http://binarybottle.com
-    - Satrajit S. Ghosh, 2013  (satra@mit.edu)  http://www.mit.edu/~satra/
+    - Arno Klein, 2010-2019  (arno@childmind.org)  https://binarybottle.com
+    - Satrajit S. Ghosh, 2013  (satra@mit.edu)  https://www.mit.edu/~satra/
     - Each file lists Mindboggle team members who contributed to its content.
 
-Copyright 2016,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2010-2019,  Mindboggle team (https://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -84,7 +84,7 @@ mindboggle_version = 'mindboggle version {0}'.format(mbversion)
 parser = argparse.ArgumentParser(description="""
                     The Mindboggle software automates shape analysis of
                     anatomical labels and features extracted from human brain
-                    MR image data (http://mindboggle.info).  Example:
+                    MR image data (https://mindboggle.info).  Example:
                     mindboggle /home/jovyan/work/freesurfer_subjects/arno
                     --ants /home/jovyan/work/ants_subjects/arno/antsBrainSegmentation.nii.gz""",
                                  formatter_class = lambda prog:
