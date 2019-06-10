@@ -61,7 +61,7 @@ docker run --rm ${image} generate docker \
   --run 'ln -s /usr/lib/x86_64-linux-gnu /usr/lib64' \
   --miniconda \
     conda_install="python=3.6 pip jupyter cmake mesalib vtk=8.2 pandas
-      matplotlib colormath nipype>=1.1.4 tbb-devel nose" \
+      matplotlib colormath nipype>=1.1.4 nilearn tbb-devel nose" \
     pip_install="datalad[full] duecredit" \
     create_env="mb" \
     activate=true \
@@ -102,12 +102,7 @@ docker run --rm ${image} generate docker \
         git checkout fbbf31c29952d0ea22ed05d98e0a5a7e7d0827f9 && \
         python setup.py install && \
         cd /opt && \
-        git clone https://github.com/akeshavan/nbpapaya && \
-        cd /opt/nbpapaya && \
-        git checkout 60119b6e1de651f250af26a3541d9cb18e971526 && \
-        git submodule update --init --recursive && \
-        python setup.py install && \
-        rm -rf /opt/roygbiv /opt/nbpapaya' \
+        rm -rf /opt/roygbiv' \
   --run 'curl -sSL https://osf.io/download/n3ud2/?revision=1 -o /opt/freesurfer-6.0.0-min/license.txt' \
   --run 'mkdir -p /.jupyter && echo c.NotebookApp.ip = \"0.0.0.0\" > /.jupyter/jupyter_notebook_config.py' \
   > Dockerfile
