@@ -253,14 +253,20 @@ if args.no_sulci:
     do_fundi = False
 else:
     do_sulci = True
+    do_label = True
     if args.fundi:
         do_fundi = True
     else:
         do_fundi = False
-if args.no_points and not args.roygbiv:
+if args.no_points:
     do_points = False
 else:
     do_points = True
+if args.roygbiv:
+    do_points = True
+if do_points:
+    do_label = True
+
 if args.thickinthehead:
     do_thickinthehead = True
 else:
