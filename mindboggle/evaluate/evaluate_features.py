@@ -554,7 +554,7 @@ if __name__ == "__main__":
                 print('Maximum distance = ' + str(data.max().max()))
                 #maxd = data.max().max()
                 data_summary = data.describe()
-                data_summary.to_csv(summary_file)
+                data_summary.to_csv(summary_file, encoding='utf-8')
 
                 # Set up the data for plotting. We will need to have values for every
                 # pair of subject/label names. Map the value to a color.

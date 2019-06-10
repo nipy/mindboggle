@@ -104,25 +104,25 @@ if __name__ == "__main__":
                             index=label_names_bilateral,
                             columns=[x for x in range(101)])
         data.to_csv('mean_and_FS_curvature_distance_correlation_'
-                    'per_left_label_vertices_Mindboggle101.csv')
+                    'per_left_label_vertices_Mindboggle101.csv', encoding='utf-8')
 
         data = pd.DataFrame(dcors[:,:,1].transpose(),
                             index=label_names_bilateral,
                             columns=[x for x in range(101)])
         data.to_csv('mean_and_FS_curvature_distance_correlation_'
-                    'per_right_label_vertices_Mindboggle101.csv')
+                    'per_right_label_vertices_Mindboggle101.csv', encoding='utf-8')
 
         data = pd.DataFrame(dcors[:,:,2].transpose(),
                             index=label_names_bilateral,
                             columns=[x for x in range(101)])
         data.to_csv('geodesic_and_travel_depth_distance_correlation_'
-                    'per_left_label_vertices_Mindboggle101.csv')
+                    'per_left_label_vertices_Mindboggle101.csv', encoding='utf-8')
 
         data = pd.DataFrame(dcors[:,:,3].transpose(),
                             index=label_names_bilateral,
                             columns=[x for x in range(101)])
         data.to_csv('geodesic_and_travel_depth_distance_correlation_'
-                    'per_right_label_vertices_Mindboggle101.csv')
+                    'per_right_label_vertices_Mindboggle101.csv', encoding='utf-8')
 
         data = dcors.mean(axis=0)
         data = pd.DataFrame(data, index=label_names_bilateral,
@@ -131,7 +131,7 @@ if __name__ == "__main__":
                                      'geodesic / travel depth distance correlation (left)',
                                      'geodesic / travel depth distance correlation (right)'])
         data.to_csv('mean_and_FS_curvature_geodesic_and_travel_depth_distance_correlations_'
-                    'per_label_vertices_avg_over_Mindboggle101.csv')
+                    'per_label_vertices_avg_over_Mindboggle101.csv', encoding='utf-8')
 
 
     # ------------------------------------------------------------------------
@@ -193,7 +193,7 @@ if __name__ == "__main__":
         data = pd.DataFrame(dcors, index=label_names, #index=columns1.columns)
                             columns=['freesurfer / thickinthehead cortical thickness distance correlation'])
         data.to_csv('thickinthehead_FSthickness_distance_correlations_'
-                    'per_label_Mindboggle101.csv')
+                    'per_label_Mindboggle101.csv', encoding='utf-8')
 
 
     # ------------------------------------------------------------------------
@@ -366,20 +366,20 @@ if __name__ == "__main__":
             # Save csv files:
             # ----------------------------------------------------------------
             data = pd.DataFrame(subject_shapes, index=subjects, columns=labels)
-            data.to_csv(name + '_scans.csv')
+            data.to_csv(name + '_scans.csv', encoding='utf-8')
             data_summary = data.describe(include='all')
-            data_summary.to_csv(name + '_scans_summary.csv')
+            data_summary.to_csv(name + '_scans_summary.csv', encoding='utf-8')
 
             data = pd.DataFrame(subject2_shapes, index=subjects, columns=labels)
-            data.to_csv(name + '_rescans.csv')
+            data.to_csv(name + '_rescans.csv', encoding='utf-8')
             data_summary = data.describe(include='all')
-            data_summary.to_csv(name + '_rescans_summary.csv')
+            data_summary.to_csv(name + '_rescans_summary.csv', encoding='utf-8')
 
             subject_shape_diffs = subject2_shapes - subject_shapes
             data = pd.DataFrame(subject_shape_diffs, index=subjects, columns=labels)
-            data.to_csv(name + '_differences.csv')
+            data.to_csv(name + '_differences.csv', encoding='utf-8')
             data_summary = data.describe(include='all')
-            data_summary.to_csv(name + '_differences_summary.csv')
+            data_summary.to_csv(name + '_differences_summary.csv', encoding='utf-8')
 
             subject_shape_abs_diffs = np.abs(subject_shape_diffs)
             max_diffs = subject_shape_abs_diffs.max(axis=0)
@@ -388,9 +388,9 @@ if __name__ == "__main__":
                                 index=subjects, columns=labels)
             #iInf, jInf = np.where(data.values == np.inf)
             #data.iloc[iInf, jInf] = 'NaN'
-            data.to_csv(name + '_fractional_differences.csv')
+            data.to_csv(name + '_fractional_differences.csv', encoding='utf-8')
             data_summary = data.describe(include='all')
-            data_summary.to_csv(name + '_fractional_differences_summary.csv')
+            data_summary.to_csv(name + '_fractional_differences_summary.csv', encoding='utf-8')
 
             # max_array = np.zeros((nsubjects, len(labels), 2))
             # max_array[:, :, 0] = subject_shapes
@@ -416,9 +416,9 @@ if __name__ == "__main__":
             print("")
             #iInf, jInf = np.where(data.values == np.inf)
             #data.iloc[iInf, jInf] = 'NaN'
-            data.to_csv(name + '_fractional_abs_differences.csv')
+            data.to_csv(name + '_fractional_abs_differences.csv', encoding='utf-8')
             data_summary = data.describe(include='all')
-            data_summary.to_csv(name + '_fractional_abs_differences_summary.csv')
+            data_summary.to_csv(name + '_fractional_abs_differences_summary.csv', encoding='utf-8')
 
             data_means[:, ititle] = data_summary.loc['mean'].values
             data_summaries[ititle, :] = data_summary.mean(axis=1)
@@ -511,12 +511,12 @@ if __name__ == "__main__":
         data_means_df = pd.DataFrame(data_means,
                                      index=label_names,
                                      columns=names)
-        data_means_df.to_csv('means_of_rescan_fractional_abs_shape_differences.csv')
+        data_means_df.to_csv('means_of_rescan_fractional_abs_shape_differences.csv', encoding='utf-8')
 
         data_summaries_df = pd.DataFrame(data_summaries,
                                          index=names,
                                          columns=data_summary.index)
-        data_summaries_df.to_csv('summary_of_rescan_fractional_abs_shape_differences.csv')
+        data_summaries_df.to_csv('summary_of_rescan_fractional_abs_shape_differences.csv', encoding='utf-8')
 
 
     # ------------------------------------------------------------------------
@@ -643,28 +643,28 @@ if __name__ == "__main__":
             # Save csv files:
             # ----------------------------------------------------------------
             data = pd.DataFrame(subject_shapesL, index=subjects, columns=labels_left)
-            data.to_csv(name + '_left.csv')
+            data.to_csv(name + '_left.csv', encoding='utf-8')
             data_summary = data.describe(include='all')
-            data_summary.to_csv(name + '_left_summary.csv')
+            data_summary.to_csv(name + '_left_summary.csv', encoding='utf-8')
 
             data = pd.DataFrame(subject_shapesR, index=subjects, columns=labels_right)
-            data.to_csv(name + '_right.csv')
+            data.to_csv(name + '_right.csv', encoding='utf-8')
             data_summary = data.describe(include='all')
-            data_summary.to_csv(name + '_right_summary.csv')
+            data_summary.to_csv(name + '_right_summary.csv', encoding='utf-8')
 
             subject_shape_diffs = subject_shapesL - subject_shapesR
             data = pd.DataFrame(subject_shape_diffs, index=subjects, columns=label_names)
-            data.to_csv(name + '_differences.csv')
+            data.to_csv(name + '_differences.csv', encoding='utf-8')
             data_summary = data.describe(include='all')
-            data_summary.to_csv(name + '_differences_summary.csv')
+            data_summary.to_csv(name + '_differences_summary.csv', encoding='utf-8')
 
             subject_shape_abs_diffs = np.abs(subject_shape_diffs)
             subject_shape_frac_diffs = subject_shape_diffs / subject_shapesL
             data = pd.DataFrame(subject_shape_frac_diffs,
                                 index=subjects, columns=label_names)
-            data.to_csv(name + '_fractional_differences.csv')
+            data.to_csv(name + '_fractional_differences.csv', encoding='utf-8')
             data_summary = data.describe(include='all')
-            data_summary.to_csv(name + '_fractional_differences_summary.csv')
+            data_summary.to_csv(name + '_fractional_differences_summary.csv', encoding='utf-8')
 
             subject_shape_frac_abs_diffs = np.abs(subject_shape_abs_diffs / subject_shapesL)
             data = pd.DataFrame(subject_shape_frac_abs_diffs,
@@ -676,9 +676,9 @@ if __name__ == "__main__":
             print("Fractional absolute differences above "
                   "0.5: {0}; 0.25: {1}; 0.1: {2}".format(n50, n25, n10))
             print("")
-            data.to_csv(name + '_fractional_abs_differences.csv')
+            data.to_csv(name + '_fractional_abs_differences.csv', encoding='utf-8')
             data_summary = data.describe(include='all')
-            data_summary.to_csv(name + '_fractional_abs_differences_summary.csv')
+            data_summary.to_csv(name + '_fractional_abs_differences_summary.csv', encoding='utf-8')
 
             data_means[:, ititle] = data_summary.loc['mean'].values
             data_summaries[ititle, :] = data_summary.mean(axis=1)
@@ -761,12 +761,12 @@ if __name__ == "__main__":
         data_means_df = pd.DataFrame(data_means,
                                      index=label_names,
                                      columns=names)
-        data_means_df.to_csv('means_of_interhemispheric_fractional_abs_shape_differences.csv')
+        data_means_df.to_csv('means_of_interhemispheric_fractional_abs_shape_differences.csv', encoding='utf-8')
 
         data_summaries_df = pd.DataFrame(data_summaries,
                                          index=names,
                                          columns=data_summary.index)
-        data_summaries_df.to_csv('summary_of_interhemispheric_fractional_abs_shape_differences.csv')
+        data_summaries_df.to_csv('summary_of_interhemispheric_fractional_abs_shape_differences.csv', encoding='utf-8')
 
 
     # def compare_shapes_between_hemispheres():
@@ -890,5 +890,5 @@ if __name__ == "__main__":
     #                                  'freesurfer curvature', 'travel depth',
     #                                  'geodesic depth'])
     #     data.to_csv('distance_correlations_for_shapes_between_hemispheres_'
-    #                 'per_label_Mindboggle101.csv')
+    #                 'per_label_Mindboggle101.csv', encoding='utf-8')
 

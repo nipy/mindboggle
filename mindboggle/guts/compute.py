@@ -1080,7 +1080,7 @@ def compute_overlaps(targets, list1, list2, output_file='', save_output=True,
         df2 = pd.DataFrame({'Dice overlap': dice_overlaps})
         df3 = pd.DataFrame({'Jaccard overlap': jacc_overlaps})
         df = pd.concat([df1, df2, df3], axis=1)
-        df.to_csv(output_file, index=False)
+        df.to_csv(output_file, index=False, encoding='utf-8')
 
     return dice_overlaps, jacc_overlaps, output_file
 
