@@ -257,7 +257,7 @@ else:
         do_fundi = True
     else:
         do_fundi = False
-if args.no_points:
+if args.no_points and not args.roygbiv:
     do_points = False
 else:
     do_points = True
