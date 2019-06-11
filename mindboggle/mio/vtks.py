@@ -707,7 +707,7 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
 
     output_vtk = os.path.join(os.getcwd(), output_vtk)
 
-    Fp = open(output_vtk,'w')
+    Fp = open(output_vtk,'w', encoding="utf-8")
     write_header(Fp)
     write_points(Fp, points)
     if indices:
@@ -817,7 +817,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
         faces, points, original_indices = reindex_faces_points(faces, points)
 
     # Write VTK file
-    Fp = open(output_vtk,'w')
+    Fp = open(output_vtk,'w', encoding="utf-8")
     write_header(Fp)
     if points:
         write_points(Fp, points)

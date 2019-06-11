@@ -101,7 +101,7 @@ def volume_per_brain_region(input_file, include_labels=[], exclude_labels=[],
         else:
             output_table = os.path.join(os.getcwd(),
                                         'volume_for_each_label.csv')
-        fid = open(output_table, 'w')
+        fid = open(output_table, 'w', encoding='utf-8')
         if len(label_names) == len(unique_labels):
             fid.write("name, ID, volume\n")
         else:
@@ -278,7 +278,7 @@ def thickinthehead(segmented_file, labeled_file,
         else:
             output_table = os.path.join(os.getcwd(),
                                         'thickinthehead_for_each_label.csv')
-        fid = open(output_table, 'w')
+        fid = open(output_table, 'w', encoding='utf-8')
         if names:
             fid.write("name, ID, thickness (thickinthehead)\n")
         else:

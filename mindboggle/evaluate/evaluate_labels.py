@@ -371,8 +371,8 @@ if __name__ == "__main__":
 
             df_jaccards = pd.DataFrame(jaccards, index=subjects, columns=labels)
             df_dices = pd.DataFrame(dices, index=subjects, columns=labels)
-            df_jaccards.to_csv(jaccard_file)
-            df_dices.to_csv(dice_file)
+            df_jaccards.to_csv(jaccard_file, encoding='utf-8')
+            df_dices.to_csv(dice_file, encoding='utf-8')
 
         # --------------------------------------------------------------------
         # Plot heatmap for labels X subjects array:

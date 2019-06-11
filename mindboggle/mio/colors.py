@@ -313,7 +313,7 @@ def label_adjacency_matrix(label_file, ignore_values=[-1, 999], add_value=0,
 
     if save_table:
         if output_format == 'csv':
-            matrix.to_csv(output_table, index=False)
+            matrix.to_csv(output_table, index=False, encoding='utf-8')
             if verbose:
                 print("Adjacency matrix saved to {0}".format(output_table))
         else:
@@ -857,7 +857,7 @@ def write_json_colormap(colormap, label_numbers, label_names=[],
     if not colormap_name:
         colormap_name = 'Colormap'
 
-    f = open(colormap_file, 'w')
+    f = open(colormap_file, 'w', encoding='utf-8')
     f.write("{\n")
     f.write('    "name": "{0}",\n'.format(colormap_name))
     f.write('    "description": "{0}",\n'.format(description))
@@ -917,7 +917,7 @@ def write_xml_colormap(colormap, label_numbers, colormap_file='',
     if not colormap_name:
         colormap_name = 'Colormap'
 
-    f = open(colormap_file,'w')
+    f = open(colormap_file, 'w', encoding='utf-8')
     f.write('''
 <ColorMap name="{0}" space="RGB">
     <NaN r="0" g="0" b="0"/>

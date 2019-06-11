@@ -1,0 +1,27 @@
+CHANGELOG
+
+This document is an excerpt from Mindboggle's Docker Hub Updates:
+https://cloud.docker.com/u/nipy/repository/docker/nipy/mindboggle/general
+
+
+June 11, 2019 (v1.3.4):
+Conda installed a version of vtk that broke the C++ code
+(https://github.com/nipy/mindboggle/issues/171).
+  - updated neurodocker.sh to install VTK 8.2
+Zernike moments stopped working because scipy.misc was deprecated.
+  - replaced with scipy.special
+Non-default (Gaussian, min, max) curvature file names were incomplete.
+  - fixed the names so that they have the same filestem as the mean curvature file
+Image links broken in docs and in the Jupyter notebook tutorial.
+  - moved images to a new GitHub repository "nipy/mindboggle-assets"
+
+September 14, 2018:
+neurodocker.sh updated to remove __macosx files to allow for Singularity builds.
+
+August 26, 2018:
+neurodocker.sh replaces the earlier Dockerfile-creating scripts.
+
+March 8, 2018:
+mindboggle123 script revised to run antsCorticalThickness.sh with "-u 0" flag,
+which turns off a default setting in ANTs that introduces a stochastic element
+in the Atropos segmentation algorithm.

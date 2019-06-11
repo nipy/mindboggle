@@ -1,7 +1,7 @@
 import numpy
 import numpy.linalg
 import scipy
-import scipy.misc
+import scipy.special
 import time
 #import profilehooks
 
@@ -62,7 +62,7 @@ class CompatPipeline(object) :
         elif len(args) == 2 : return range(args[0],args[1]+1)
         elif len(args) == 3 : return range(args[0],args[1]+1,args[2])
         else : raise Exception()
-    def factorial(self,*args,**dargs) : return scipy.misc.factorial(*args,**dargs)
+    def factorial(self,*args,**dargs) : return scipy.special.factorial(*args,**dargs)
     def tic(self) :
         self.tic_time = time.time()
     def toc(self) :
@@ -81,7 +81,7 @@ class CompatPipeline(object) :
         if axis >= ndim : args = tuple([ numpy.expand_dims(a,axis) for a in args ])
         return numpy.concatenate(args,axis=axis)
     def sqrt(self,*args,**dargs) : return scipy.sqrt(*args,**dargs)
-    def nchoosek(self,*args,**dargs) : return scipy.misc.comb(*args,**dargs)
+    def nchoosek(self,*args,**dargs) : return scipy.special.comb(*args,**dargs)
     def floor(self,*args,**dargs) : return numpy.floor(*args,**dargs).astype(int)
     def conj(self,*args,**dargs) : return numpy.conj(*args,**dargs)
     def sum(self,*args,**dargs) : return numpy.sum(*args,**dargs)

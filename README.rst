@@ -23,8 +23,8 @@ Contents
 - `Help`_
 - `Installation`_
 - `Tutorial`_
-- `Run one command`_
 - `Run separate commands`_
+- `Run one command`_
 - `Visualize output`_
 - `Appendix: processing`_
 - `Appendix: output`_
@@ -90,19 +90,20 @@ download and unzip
 4. Recommended: set environment variables for clarity in the commands below
 (modify accordingly, except for DOCK -- careful, this step is tricky!)::
 
-    HOST=/Users/binarybottle  # path on host to access input/output
-    DOCK=/home/jovyan/work  # path to HOST from Docker container
-    IMAGE=$DOCK/example_mri_data/T1.nii.gz  # input image on HOST
+    HOST=/Users/binarybottle  # path on local host seen from Docker container to access/save data
+    DOCK=/home/jovyan/work  # path to HOST from Docker container (DO NOT CHANGE)
+    IMAGE=$DOCK/example_mri_data/T1.nii.gz  # brain image in $HOST to process
     ID=arno  # ID for brain image
-    OUT=$DOCK/mindboggle123_output # '--out $OUT' is optional
+    OUT=$DOCK/mindboggle123_output # output path ('--out $OUT' below is optional)
 
 ------------------------------------------------------------------------------
 _`Tutorial`
 ------------------------------------------------------------------------------
 To run the Mindboggle jupyter notebook tutorial, first install the Mindboggle
-Docker container (above) and run the notebook in a web browser as follows::
+Docker container (above) and run the notebook in a web browser as follows
+(replacing $HOST with the absolute path where you want to access/save data)::
 
-    docker run --rm -ti -v $HOST:/home/jovyan/work -p 8888:8888 nipy/mindboggle jupyter notebook /opt/mindboggle/docs/mindboggle_tutorial.ipynb # --ip=0.0.0.0 --allow-root
+    docker run --rm -ti -v $HOST:/home/jovyan/work -p 8888:8888 nipy/mindboggle jupyter notebook /opt/mindboggle/docs/mindboggle_tutorial.ipynb --ip=0.0.0.0 --allow-root
 
 In the output on the command line you'll see something like::
 
@@ -112,19 +113,6 @@ In the output on the command line you'll see something like::
 You would then copy and paste the corresponding address into your web browser 
 (in this case, ``http://127.0.0.1:8888/?token=62853787e0d6e180856eb22a51609b25e``),
 and click on "mindboggle_tutorial.ipynb".
-
-------------------------------------------------------------------------------
-_`Run one command`
-------------------------------------------------------------------------------
-The Mindboggle Docker container can be run as a single command to process
-a T1-weighted MR brain image through FreeSurfer, ANTs, and Mindboggle.
-Skip to the next section if you wish to run ``recon-all``,
-``antsCorticalThickness.sh``, and ``mindboggle`` differently::
-
-    docker run --rm -ti -v $HOST:$DOCK nipy/mindboggle $IMAGE --id $ID
-
-Outputs are stored in $DOCK/mindboggle123_output/ by default,
-but you can set a different output path with ``--out $OUT``.
 
 ------------------------------------------------------------------------------
 _`Run separate commands`
@@ -140,7 +128,7 @@ on the cortical surfaces and in the cortical and non-cortical volumes
 
 1. Enter the Docker container's bash shell to run ``recon-all``, ``antsCorticalThickness.sh``, and ``mindboggle`` commands::
 
-    docker run --rm -ti -v $HOST:$DOCK nipy/mindboggle
+    docker run --rm -ti -v $HOST:$DOCK -p 5000:5000 nipy/mindboggle
 
 2. Recommended: reset environment variables as above within the Docker container::
 
@@ -222,19 +210,35 @@ Generate only volume (no surface) labels and shapes::
         --no_surfaces
 
 ------------------------------------------------------------------------------
+_`Run one command`
+------------------------------------------------------------------------------
+**NOTE: This command is currently the subject of issue #178**
+- "Permission denied": https://github.com/nipy/mindboggle/issues/178
+
+The Mindboggle Docker container can be run as a single command to process
+a T1-weighted MR brain image through FreeSurfer, ANTs, and Mindboggle.
+Skip to the next section if you wish to run ``recon-all``,
+``antsCorticalThickness.sh``, and ``mindboggle`` differently::
+
+    docker run --rm -ti -v $HOST:$DOCK nipy/mindboggle $IMAGE --id $ID
+
+Outputs are stored in $DOCK/mindboggle123_output/ by default,
+but you can set a different output path with ``--out $OUT``.
+
+------------------------------------------------------------------------------
 _`Visualize output`
 ------------------------------------------------------------------------------
-To visualize Mindboggle output with roygbiv, start the Docker image with::
+**NOTE: This command is currently the subject of issue #173**
+- Loading issue: https://github.com/nipy/mindboggle/issues/173
 
-    docker run --rm -ti -v $HOST:$DOCK -p 5000:5000 nipy/mindboggle
-
-and then inside the image, run roygbiv on an output directory::
+To visualize Mindboggle output with roygbiv, start the Docker image (#1 above),
+then run roygbiv on an output directory::
 
     roygbiv $OUT/$ID
 
 and open a browser to `localhost:5000`.
 
-Right now, roygbiv only shows summarized data, but Anisha Keshavan is working
+Currently roygbiv only shows summarized data, but one of our goals is to work
 on by-vertex visualizations (for the latter, try `Paraview <https://www.paraview.org/2>`_).
 
 ------------------------------------------------------------------------------

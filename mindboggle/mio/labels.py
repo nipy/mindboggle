@@ -4373,7 +4373,7 @@ class DKTprotocol(object):
         "superior temporal sulcus",
         "inferior temporal sulcus",
         "circular sulcus",
-        "1st transverse temporal sulcus and Heschl's sulcus",
+        "1st transverse temporal sulcus and Heschl sulcus",
         "cingulate sulcus",
         "paracentral sulcus",
         "parietooccipital fissure",

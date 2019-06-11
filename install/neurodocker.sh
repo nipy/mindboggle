@@ -24,10 +24,10 @@
 # (https://docs.docker.com/docker-cloud/builds/push-images/)
 # export DOCKER_ID_USER="nipy"
 # docker login
-# docker tag mindboggle nipy/mindboggle
+# docker tag mindboggle nipy/mindboggle  # See: https://docs.docker.com/engine/reference/commandline/tag/
 # docker push nipy/mindboggle
 #
-# 4. Pull from Docker hub:
+# 4. Pull from Docker hub (or use the original):
 # docker pull nipy/mindboggle
 #
 # In the following, the Docker container can be the original (mindboggle)
@@ -56,14 +56,10 @@ docker run --rm ${image} generate docker \
   --install graphviz tree git-annex-standalone vim \
     emacs-nox nano less ncdu tig sed build-essential \
     libsm-dev libx11-dev libxt-dev libxext-dev libglu1-mesa \
-  --freesurfer version=6.0.0-min \
-  --run 'cd /opt/freesurfer-6.0.0-min && \
-    curl -sSL https://osf.io/download/n3ud2/?revision=1 -o license.txt' \
-  --ants version=b43df4bfc8 method=source cmake_opts='-DBUILD_SHARED_LIBS=ON' make_opts='-j 4'\
   --run 'ln -s /usr/lib/x86_64-linux-gnu /usr/lib64' \
   --miniconda \
-    conda_install="python=3.6 pip jupyter cmake mesalib vtk pandas
-      matplotlib colormath nipype>=1.1.4 tbb-devel nose" \
+    conda_install="python=3.6 pip jupyter cmake mesalib vtk=8.2 pandas
+      matplotlib colormath nipype>=1.1.4 nilearn tbb-devel nose" \
     pip_install="datalad[full] duecredit" \
     create_env="mb" \
     activate=true \
@@ -104,11 +100,9 @@ docker run --rm ${image} generate docker \
         git checkout fbbf31c29952d0ea22ed05d98e0a5a7e7d0827f9 && \
         python setup.py install && \
         cd /opt && \
-        git clone https://github.com/akeshavan/nbpapaya && \
-        cd /opt/nbpapaya && \
-        git checkout 60119b6e1de651f250af26a3541d9cb18e971526 && \
-        git submodule update --init --recursive && \
-        python setup.py install && \
-        rm -rf /opt/roygbiv /opt/nbpapaya' \
-  --run 'mkdir -p ~/.jupyter && echo c.NotebookApp.ip = \"0.0.0.0\" > ~/.jupyter/jupyter_notebook_config.py' \
-  > Dockerfile
+        rm -rf /opt/roygbiv' \
+  --run 'mkdir -p /.jupyter && echo c.NotebookApp.ip = \"0.0.0.0\" > /.jupyter/jupyter_notebook_config.py' \
+  --ants version=b43df4bfc8 method=source cmake_opts='-DBUILD_SHARED_LIBS=ON' make_opts='-j 4' \
+  --freesurfer version=6.0.0-min \
+  --run 'curl -sSL https://osf.io/download/n3ud2/?revision=1 -o /opt/freesurfer-6.0.0-min/license.txt' \
+> Dockerfile

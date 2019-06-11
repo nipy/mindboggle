@@ -34,10 +34,10 @@ def plot_surfaces(vtk_files, use_colormap=False, colormap_file=''):
     >>> from mindboggle.mio.plots import plot_surfaces
     >>> from mindboggle.mio.fetch_data import prep_tests
     >>> urls, fetch_data = prep_tests()
-    >>> label_file = fetch_data(urls['freesurfer_labels'], '', '.nii.gz')
+    >>> labels_file = fetch_data(urls['left_manual_labels'], '', '.vtk') #'left_freesurfer_labels'
     >>> use_colormap = True
     >>> colormap_file = '/software/vtk_cpp_tools/colormap.xml' # doctest: +SKIP
-    >>> plot_surfaces(vtk_files, use_colormap, colormap_file) # doctest: +SKIP
+    >>> plot_surfaces(labels_file, use_colormap, colormap_file) # doctest: +SKIP
 
     Plot manual labels on folds of the left hemisphere:
 
@@ -293,7 +293,7 @@ def histogram_of_vtk_scalars(vtk_file, nbins=100):
     # Histogram:
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    ax.hist(values, nbins, normed=False, facecolor='gray', alpha=0.5)
+    ax.hist(values, bins=nbins, density=False, facecolor='gray', alpha=0.5)
     plt.show()
 
 
@@ -351,7 +351,7 @@ def histograms_of_lists(columns, column_name='', ignore_columns=[],
         if icolumn not in ignore_columns:
             ax = fig.add_subplot(nplotrows, nplotcols, icolumn + 1)
             column = [np.float(x) for x in column]
-            ax.hist(column, nbins, normed=False, facecolor='gray', alpha=0.5)
+            ax.hist(column, bins=nbins, density=False, facecolor='gray', alpha=0.5)
             plt.xlabel(column_name, fontsize='small')
             if len(titles) == ncolumns:
                 plt.title(titles[icolumn], fontsize='small')

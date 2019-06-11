@@ -286,8 +286,8 @@ def curvature(command, method, arguments, surface_file, verbose=False):
     min_curvature_vector_file = None
 
     basename = os.path.splitext(os.path.basename(surface_file))[0]
-    mean_curvature_file = os.path.join(os.getcwd(), basename) + \
-        '.mean_curvature.vtk'
+    stem = os.path.join(os.getcwd(), basename)
+    mean_curvature_file = stem + '.mean_curvature.vtk'
     if method in [0, 1]:
         gauss_curvature_file = stem + '.gauss_curvature.vtk'
         args.extend(['-g', gauss_curvature_file])

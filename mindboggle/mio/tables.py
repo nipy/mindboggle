@@ -381,12 +381,12 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
             if columns:
                 df1 = pd.DataFrame({'ID': label_numbers})
                 df2 = pd.DataFrame(np.transpose(columns),
-                                   columns = column_names)
+                                   columns=column_names)
                 df = pd.concat([df1, df2], axis=1)
                 if label_names:
                     df0 = pd.DataFrame({'name': label_names})
                     df = pd.concat([df0, df], axis=1)
-                df.to_csv(output_table, index=False)
+                df.to_csv(output_table, index=False, encoding='utf-8')
 
             if not os.path.exists(output_table):
                 raise IOError(output_table + " not found")
@@ -585,7 +585,7 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
         output_table = os.path.join(os.getcwd(), 'vertices.csv')
 
     df = pd.DataFrame(np.transpose(columns), columns = column_names)
-    df.to_csv(output_table, index=False)
+    df.to_csv(output_table, index=False, encoding='utf-8')
 
     if not os.path.exists(output_table):
         raise IOError(output_table + " not found")
@@ -655,7 +655,7 @@ def write_face_vertex_averages(input_file, output_table='', area_file=''):
         output_table = os.path.join(os.getcwd(), 'average_face_values.csv')
 
     df = pd.DataFrame({'': columns})
-    df.to_csv(output_table, index=False)
+    df.to_csv(output_table, index=False, encoding='utf-8')
 
     if not os.path.exists(output_table):
         raise IOError(output_table + " not found")
@@ -769,7 +769,7 @@ def write_average_face_values_per_label(input_indices_vtk,
         # Write to table:
         # ----------------------------------------------------------------
         df = pd.DataFrame({'': columns})
-        df.to_csv(output_table, index=False)
+        df.to_csv(output_table, index=False, encoding='utf-8')
         if not os.path.exists(output_table):
             raise IOError(output_table + " not found")
 
@@ -856,7 +856,7 @@ def select_column_from_tables(tables, index=0, write_table=True,
                 output_table = os.path.join(os.getcwd(),
                                             'select_column_from_tables.csv')
             df = pd.DataFrame({'': columns})
-            df.to_csv(output_table, index=False)
+            df.to_csv(output_table, index=False, encoding='utf-8')
         else:
             raise IOError('Not saving table.')
 
@@ -1024,7 +1024,7 @@ def explode_table(input_table='', column_headers=[], output_path=None,
 
         out_file = os.path.join(output_path,
                                 output_stem + str(label) + '.csv')
-        label_table.to_csv(out_file, index=False)
+        label_table.to_csv(out_file, index=False, encoding='utf-8')
 
         if not os.path.exists(out_file):
             raise IOError(out_file + " not found")
