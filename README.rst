@@ -228,9 +228,6 @@ but you can set a different output path with ``--out $OUT``.
 ------------------------------------------------------------------------------
 _`Visualize output`
 ------------------------------------------------------------------------------
-**NOTE: This command is currently the subject of issue #173**
-- Loading issue: https://github.com/nipy/mindboggle/issues/173
-
 To visualize Mindboggle output with roygbiv, start the Docker image (#1 above),
 then run roygbiv on an output directory::
 

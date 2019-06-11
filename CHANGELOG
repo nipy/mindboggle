@@ -8,6 +8,8 @@ June 11, 2019 (v1.3.4):
 Conda installed a version of vtk that broke the C++ code
 (https://github.com/nipy/mindboggle/issues/171).
   - updated neurodocker.sh to install VTK 8.2
+Nipype is breaking with when it tries to generate reports
+  - added "encoding='utf-8'" in nipype files in the docker image to resolve issue #175
 Zernike moments stopped working because scipy.misc was deprecated.
   - replaced with scipy.special
 Non-default (Gaussian, min, max) curvature file names were incomplete.
