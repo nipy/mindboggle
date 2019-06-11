@@ -120,10 +120,10 @@ _`Run one command`
 The Mindboggle Docker container can be run as a single command to process
 a T1-weighted MR brain image through FreeSurfer, ANTs, and Mindboggle.
 Skip to the next section if you wish to run ``recon-all``,
-``antsCorticalThickness.sh``, and ``mindboggle`` differently::
+``antsCorticalThickness.sh``, and ``mindboggle`` differently.
 
 **NOTE: This command is currently the subject of issue #178**
-("Permission denied": https://github.com/nipy/mindboggle/issues/178)
+("Permission denied": https://github.com/nipy/mindboggle/issues/178)::
 
     docker run --rm -ti -v $HOST:$DOCK nipy/mindboggle $IMAGE --id $ID
 
