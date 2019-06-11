@@ -235,7 +235,10 @@ then run roygbiv on an output directory::
 
 and open a browser to `localhost:5000`.
 
-Right now, roygbiv only shows summarized data, but one of our goals is to work
+**NOTE: This command is currently the subject of issue #173**
+(Loading issue: https://github.com/nipy/mindboggle/issues/173)
+
+Currently roygbiv only shows summarized data, but one of our goals is to work
 on by-vertex visualizations (for the latter, try `Paraview <https://www.paraview.org/2>`_).
 
 ------------------------------------------------------------------------------
