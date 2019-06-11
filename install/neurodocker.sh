@@ -56,8 +56,6 @@ docker run --rm ${image} generate docker \
   --install graphviz tree git-annex-standalone vim \
     emacs-nox nano less ncdu tig sed build-essential \
     libsm-dev libx11-dev libxt-dev libxext-dev libglu1-mesa \
-  --freesurfer version=6.0.0-min \
-  --ants version=b43df4bfc8 method=source cmake_opts='-DBUILD_SHARED_LIBS=ON' make_opts='-j 4'\
   --run 'ln -s /usr/lib/x86_64-linux-gnu /usr/lib64' \
   --miniconda \
     conda_install="python=3.6 pip jupyter cmake mesalib vtk=8.2 pandas
@@ -103,6 +101,8 @@ docker run --rm ${image} generate docker \
         python setup.py install && \
         cd /opt && \
         rm -rf /opt/roygbiv' \
-  --run 'curl -sSL https://osf.io/download/n3ud2/?revision=1 -o /opt/freesurfer-6.0.0-min/license.txt' \
   --run 'mkdir -p /.jupyter && echo c.NotebookApp.ip = \"0.0.0.0\" > /.jupyter/jupyter_notebook_config.py' \
-  > Dockerfile
+  --ants version=b43df4bfc8 method=source cmake_opts='-DBUILD_SHARED_LIBS=ON' make_opts='-j 4' \
+  --freesurfer version=6.0.0-min \
+  --run 'curl -sSL https://osf.io/download/n3ud2/?revision=1 -o /opt/freesurfer-6.0.0-min/license.txt' \
+> Dockerfile
