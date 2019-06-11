@@ -23,8 +23,8 @@ Contents
 - `Help`_
 - `Installation`_
 - `Tutorial`_
-- `Run one command`_
 - `Run separate commands`_
+- `Run one command`_
 - `Visualize output`_
 - `Appendix: processing`_
 - `Appendix: output`_
