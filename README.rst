@@ -90,17 +90,18 @@ download and unzip
 4. Recommended: set environment variables for clarity in the commands below
 (modify accordingly, except for DOCK -- careful, this step is tricky!)::
 
-    HOST=/Users/binarybottle  # path on host to access input/output
-    DOCK=/home/jovyan/work  # path to HOST from Docker container
-    IMAGE=$DOCK/example_mri_data/T1.nii.gz  # input image on HOST
+    HOST=/Users/binarybottle  # path on local host seen from Docker container to access/save data
+    DOCK=/home/jovyan/work  # path to HOST from Docker container (DO NOT CHANGE)
+    IMAGE=$DOCK/example_mri_data/T1.nii.gz  # brain image in $HOST to process
     ID=arno  # ID for brain image
-    OUT=$DOCK/mindboggle123_output # '--out $OUT' below is optional
+    OUT=$DOCK/mindboggle123_output # output path ('--out $OUT' below is optional)
 
 ------------------------------------------------------------------------------
 _`Tutorial`
 ------------------------------------------------------------------------------
 To run the Mindboggle jupyter notebook tutorial, first install the Mindboggle
-Docker container (above) and run the notebook in a web browser as follows::
+Docker container (above) and run the notebook in a web browser as follows
+(replacing $HOST with the absolute path where you want to access/save data)::
 
     docker run --rm -ti -v $HOST:/home/jovyan/work -p 8888:8888 nipy/mindboggle jupyter notebook /opt/mindboggle/docs/mindboggle_tutorial.ipynb --ip=0.0.0.0 --allow-root
 
@@ -120,6 +121,9 @@ The Mindboggle Docker container can be run as a single command to process
 a T1-weighted MR brain image through FreeSurfer, ANTs, and Mindboggle.
 Skip to the next section if you wish to run ``recon-all``,
 ``antsCorticalThickness.sh``, and ``mindboggle`` differently::
+
+**NOTE: This command is currently the subject of issue #178**
+("Permission denied": https://github.com/nipy/mindboggle/issues/178)
 
     docker run --rm -ti -v $HOST:$DOCK nipy/mindboggle $IMAGE --id $ID
 
