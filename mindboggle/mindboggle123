@@ -4,7 +4,7 @@ This nipype (python) script runs a complete brain image morphology pipeline::
 
     1. FreeSurfer's recon-all (12hrs on macOS 10.12, 2.6GHz, 16GB RAM)
     2. ANTs's antsCorticalThickness.sh (5.8hrs)
-    3. Mindboggle (http://mindboggle.info) (1.8hrs)
+    3. Mindboggle (https://mindboggle.info) (1.5hrs)
 
 mindboggle123 is intended to be run within the Mindboggle Docker container.
 Don't use this script if you wish to use different arguments than those below.
@@ -20,10 +20,10 @@ Example (we set environment variables for clarity)::
 
 
 Authors:
-    - Arno Klein, 2017  (arno@mindboggle.info)  http://binarybottle.com
-    - Satrajit S. Ghosh, 2017  (satra@mit.edu)  http://www.mit.edu/~satra/
+    - Arno Klein, 2017  (arno@mindboggle.info)  https://binarybottle.com
+    - Satrajit S. Ghosh, 2017  (satra@mit.edu)  https://www.mit.edu/~satra/
 
-Copyright 2017,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2017,  Mindboggle team (https://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -53,7 +53,7 @@ parser = argparse.ArgumentParser(description="""
                     mindboggle123 runs a complete brain MR image morphology
                     pipeline: (1) FreeSurfer's recon-all,
                     (2) ANTs's antsCorticalThickness.sh, and
-                    (3) Mindboggle (http://mindboggle.info).
+                    (3) Mindboggle (https://mindboggle.info).
                     Example: mindboggle123 IMAGE --id ID --out OUT""",
                                  formatter_class = lambda prog:
                                  argparse.HelpFormatter(prog,
