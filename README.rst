@@ -115,22 +115,6 @@ You would then copy and paste the corresponding address into your web browser
 and click on "mindboggle_tutorial.ipynb".
 
 ------------------------------------------------------------------------------
-_`Run one command`
-------------------------------------------------------------------------------
-The Mindboggle Docker container can be run as a single command to process
-a T1-weighted MR brain image through FreeSurfer, ANTs, and Mindboggle.
-Skip to the next section if you wish to run ``recon-all``,
-``antsCorticalThickness.sh``, and ``mindboggle`` differently.
-
-**NOTE: This command is currently the subject of issue #178**
-("Permission denied": https://github.com/nipy/mindboggle/issues/178)::
-
-    docker run --rm -ti -v $HOST:$DOCK nipy/mindboggle $IMAGE --id $ID
-
-Outputs are stored in $DOCK/mindboggle123_output/ by default,
-but you can set a different output path with ``--out $OUT``.
-
-------------------------------------------------------------------------------
 _`Run separate commands`
 ------------------------------------------------------------------------------
 If finer control is needed over the software in the Docker container,
@@ -226,17 +210,33 @@ Generate only volume (no surface) labels and shapes::
         --no_surfaces
 
 ------------------------------------------------------------------------------
+_`Run one command`
+------------------------------------------------------------------------------
+**NOTE: This command is currently the subject of issue #178**
+- "Permission denied": https://github.com/nipy/mindboggle/issues/178
+
+The Mindboggle Docker container can be run as a single command to process
+a T1-weighted MR brain image through FreeSurfer, ANTs, and Mindboggle.
+Skip to the next section if you wish to run ``recon-all``,
+``antsCorticalThickness.sh``, and ``mindboggle`` differently::
+
+    docker run --rm -ti -v $HOST:$DOCK nipy/mindboggle $IMAGE --id $ID
+
+Outputs are stored in $DOCK/mindboggle123_output/ by default,
+but you can set a different output path with ``--out $OUT``.
+
+------------------------------------------------------------------------------
 _`Visualize output`
 ------------------------------------------------------------------------------
+**NOTE: This command is currently the subject of issue #173**
+- Loading issue: https://github.com/nipy/mindboggle/issues/173
+
 To visualize Mindboggle output with roygbiv, start the Docker image (#1 above),
 then run roygbiv on an output directory::
 
     roygbiv $OUT/$ID
 
 and open a browser to `localhost:5000`.
-
-**NOTE: This command is currently the subject of issue #173**
-(Loading issue: https://github.com/nipy/mindboggle/issues/173)
 
 Currently roygbiv only shows summarized data, but one of our goals is to work
 on by-vertex visualizations (for the latter, try `Paraview <https://www.paraview.org/2>`_).
