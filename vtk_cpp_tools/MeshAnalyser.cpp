@@ -537,6 +537,8 @@ void MeshAnalyser::WriteIntoFile(char* fileName, char* prop)
     else if(strcmp("euclideanDepth",prop)==0) this->mesh->GetPointData()->SetScalars(this->euclideanDepth);
     else if(strcmp("curv",prop)==0) this->mesh->GetPointData()->SetScalars(this->curv);
     else if(strcmp("gCurv",prop)==0) this->mesh->GetPointData()->SetScalars(this->gCurv);
+    else if(strcmp("curv1",prop)==0) this->mesh->GetPointData()->SetScalars(this->curv1);
+    else if(strcmp("curv2",prop)==0) this->mesh->GetPointData()->SetScalars(this->curv2);
     else if(strcmp("test",prop)==0) this->mesh->GetPointData()->SetScalars(this->test);
     else if(strcmp("surf",prop)==0) this->mesh->GetPointData()->SetScalars(this->pointSurf);
     else if(strcmp("1color",prop)==0)
