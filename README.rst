@@ -212,15 +212,12 @@ Generate only volume (no surface) labels and shapes::
 ------------------------------------------------------------------------------
 _`Run one command`
 ------------------------------------------------------------------------------
-**NOTE: This command is currently the subject of issue #178**
-- "Permission denied": https://github.com/nipy/mindboggle/issues/178
-
 The Mindboggle Docker container can be run as a single command to process
 a T1-weighted MR brain image through FreeSurfer, ANTs, and Mindboggle.
 Skip to the next section if you wish to run ``recon-all``,
 ``antsCorticalThickness.sh``, and ``mindboggle`` differently::
 
-    docker run --rm -ti -v $HOST:$DOCK nipy/mindboggle $IMAGE --id $ID
+    docker run --rm -ti -v $HOST:$DOCK nipy/mindboggle mindboggle123 $IMAGE --id $ID
 
 Outputs are stored in $DOCK/mindboggle123_output/ by default,
 but you can set a different output path with ``--out $OUT``.
