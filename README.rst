@@ -23,8 +23,8 @@ Contents
 - `Help`_
 - `Installation`_
 - `Tutorial`_
-- `Run separate commands`_
 - `Run one command`_
+- `Run separate commands`_
 - `Visualize output`_
 - `Appendix: processing`_
 - `Appendix: output`_
@@ -113,6 +113,19 @@ In the output on the command line you'll see something like::
 You would then copy and paste the corresponding address into your web browser 
 (in this case, ``http://127.0.0.1:8888/?token=62853787e0d6e180856eb22a51609b25e``),
 and click on "mindboggle_tutorial.ipynb".
+
+------------------------------------------------------------------------------
+_`Run one command`
+------------------------------------------------------------------------------
+The Mindboggle Docker container can be run as a single command to process
+a T1-weighted MR brain image through FreeSurfer, ANTs, and Mindboggle.
+Skip to the next section if you wish to run ``recon-all``,
+``antsCorticalThickness.sh``, and ``mindboggle`` differently::
+
+    docker run --rm -ti -v $HOST:$DOCK nipy/mindboggle mindboggle123 $IMAGE --id $ID
+
+Outputs are stored in $DOCK/mindboggle123_output/ by default,
+but you can set a different output path with ``--out $OUT``.
 
 ------------------------------------------------------------------------------
 _`Run separate commands`
@@ -208,19 +221,6 @@ Generate only volume (no surface) labels and shapes::
     mindboggle $FREESURFER_SUBJECT --out $OUT \
         --ants $ANTS_SUBJECT/antsBrainSegmentation.nii.gz \
         --no_surfaces
-
-------------------------------------------------------------------------------
-_`Run one command`
-------------------------------------------------------------------------------
-The Mindboggle Docker container can be run as a single command to process
-a T1-weighted MR brain image through FreeSurfer, ANTs, and Mindboggle.
-Skip to the next section if you wish to run ``recon-all``,
-``antsCorticalThickness.sh``, and ``mindboggle`` differently::
-
-    docker run --rm -ti -v $HOST:$DOCK nipy/mindboggle mindboggle123 $IMAGE --id $ID
-
-Outputs are stored in $DOCK/mindboggle123_output/ by default,
-but you can set a different output path with ``--out $OUT``.
 
 ------------------------------------------------------------------------------
 _`Visualize output`
