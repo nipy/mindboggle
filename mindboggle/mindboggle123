@@ -452,9 +452,10 @@ if __name__ == '__main__':
     # Workflow configuration: content hashing, crashfiles, etc.:
     # --------------------------------------------------------------------
     mbFlow.config['execution']['hash_method'] = 'content'
-    # mbFlow.config['execution']['use_relative_paths'] = True
     mbFlow.config['execution']['crashfile_format'] = 'txt'
     mbFlow.config['execution']['crashdump_dir'] = WORK
+    # Do not propagate the version check to sub nodes
+    mbFlow.config['execution']['check_version'] = False
 
     # --------------------------------------------------------------------
     # Debug: http://nipy.org/nipype/users/config_file.html#debug-configuration
