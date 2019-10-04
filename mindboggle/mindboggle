@@ -2375,7 +2375,8 @@ if __name__ == '__main__':
     # ------------------------------------------------------------------------
     mbFlow.config['execution']['hash_method'] = 'content'
     mbFlow.config['execution']['crashfile_format'] = 'txt'
-    # mbFlow.config['execution']['use_relative_paths'] = True
+    # Do not propagate the check to sub nodes
+    mbFlow.config['execution']['check_version'] = False
 
     # ------------------------------------------------------------------------
     # Generate a visual graph:

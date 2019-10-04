@@ -3,6 +3,8 @@ CHANGELOG
 This document is an excerpt from Mindboggle's Docker Hub Updates:
 https://cloud.docker.com/u/nipy/repository/docker/nipy/mindboggle/general
 
+September 24, 2019 (v1.3.7): 
+Satrajit Ghosh added etelemetry capabilities.
 
 June 11, 2019 (v1.3.4):
 Conda installed a version of vtk that broke the C++ code

@@ -51,5 +51,6 @@ AUTHOR_EMAIL        = "arno@childmind.org"
 PLATFORMS           = "Linux"
 VERSION             = __version__
 PROVIDES            = ["mindboggle"]
-REQUIRES            = ["nipype", "matplotlib", "colormath", "pandas"]
+REQUIRES            = ["nipype", "matplotlib", "colormath", "pandas",
+                       "etelemetry"]
 
