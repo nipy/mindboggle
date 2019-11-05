@@ -32,12 +32,12 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
 
     To find the endpoints, the find_outer_endpoints function propagates
     multiple tracks from seed vertices at median depth in the fold through
-    concentric rings toward the fold’s edge, selecting maximal values within
+    concentric rings toward the fold's edge, selecting maximal values within
     each ring, and terminating at candidate endpoints. The final endpoints
     are those candidates at the end of tracks that have a high median value,
     with the higher value chosen if two candidate endpoints are within
     (a default of) 10 edges from each other (otherwise, the resulting fundi
-    can have spurious branching at the fold’s edge).
+    can have spurious branching at the fold's edge).
 
     The connect_points_erosion function connects the deepest fold vertices
     to the endpoints with a skeleton of 1-vertex-thick curves by erosion.
