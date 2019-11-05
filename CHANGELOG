@@ -3,6 +3,10 @@ CHANGELOG
 This document is an excerpt from Mindboggle's Docker Hub Updates:
 https://cloud.docker.com/u/nipy/repository/docker/nipy/mindboggle/general
 
+November 4, 2019 (v1.3.8): 
+  - Fix issue #190 in v1.3.7, an error caused by a unicode character within docstrings
+  - Introduce Singularity recipe in neurodocker.sh
+
 September 24, 2019 (v1.3.7): 
 Satrajit Ghosh added etelemetry capabilities.
 
