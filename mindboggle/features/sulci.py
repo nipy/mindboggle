@@ -31,7 +31,7 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
 
     This function assigns vertices in a fold to a sulcus in one of two cases.
     In the first case, vertices whose labels are in only one label pair in
-    the fold are assigned to the label pair’s sulcus if they are connected
+    the fold are assigned to the label pair's sulcus if they are connected
     through similarly labeled vertices to the boundary between the two labels.
     In the second case, the segment_regions function propagates labels from
     label borders to vertices whose labels are in multiple label pairs in the

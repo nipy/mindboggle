@@ -28,7 +28,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     There can be thousands of vertices in a single feature such as a gyrus,
     sulcus, or fundus, and for per-vertex shape measures, it makes sense to
     characterize their collective shape as a distribution of shape values.
-    Mindboggle’s stats_per_label function generates tables of summary
+    Mindboggle's stats_per_label function generates tables of summary
     statistical measures for these distributions, and includes the shape
     measures computed on cortical features as well.
 
