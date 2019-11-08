@@ -43,6 +43,7 @@ def area(command, surface_file, verbose=False):
     >>> ccode_path = os.environ['vtk_cpp_tools']
     >>> command = os.path.join(ccode_path, 'area', 'PointAreaMain')
     >>> area_file = area(command, surface_file, verbose)
+    >>>
     >>> scalars, name = read_scalars(area_file)
     >>> np.allclose(scalars[0:8],
     ...             [0.48270401731, 0.39661528543, 0.57813454792, 0.70574099571,
