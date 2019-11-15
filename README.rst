@@ -164,7 +164,7 @@ segmentation, and registration-based labeling. ``antsCorticalThickness.sh``
 generates transforms and segmentation files used by Mindboggle, and is run
 on the same IMAGE file and ID as above, with $ANTS_OUT output directory.
 TEMPLATE points to the `OASIS-30_Atropos_template <https://osf.io/rh9km/>`_ folder
-already installed in the Docker container ("\\" splits the command for readability)::
+already installed in the Docker container (backslashes split the command for readability)::
 
     ANTS_OUT=$DOCK/ants_subjects
     TEMPLATE=/opt/data/OASIS-30_Atropos_template
