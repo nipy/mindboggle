@@ -136,7 +136,7 @@ def thickinthehead(segmented_file, labeled_file,
     Compute a simple thickness measure for each labeled cortex region volume.
 
     Since Mindboggle accepts FreeSurfer data as input, we include FreeSurfer
-    cortical thickness estimates with Mindboggle’s shape measures.
+    cortical thickness estimates with Mindboggle's shape measures.
     However, surface mesh reconstruction from MRI data does not always
     produce favorable results. For example, we found that at least a quarter
     of the over one hundred EMBARC brain images we processed through
